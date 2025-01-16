@@ -9,8 +9,8 @@ function hideLoader() {
 }
 
 (async function generateLedger() {
-  // Fetch email from local storage
-  const email = localStorage.getItem('loggedInEmail');
+  // Get email from decoded token instead of localStorage
+  const email = getUserEmail(); // Using the function from tokenUtils.js
 
   // if (!email) {
   //   alert('You are not logged in. Redirecting to login...');
