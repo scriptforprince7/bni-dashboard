@@ -12,11 +12,11 @@ function hideLoader() {
   // Fetch email from local storage
   const email = localStorage.getItem('loggedInEmail');
 
-  if (!email) {
-    alert('You are not logged in. Redirecting to login...');
-    window.location.href = '/';
-    return;
-  }
+  // if (!email) {
+  //   alert('You are not logged in. Redirecting to login...');
+  //   window.location.href = '/';
+  //   return;
+  // }
 
   try {
     showLoader(); // Show loader
