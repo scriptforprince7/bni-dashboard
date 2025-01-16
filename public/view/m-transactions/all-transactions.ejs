@@ -1,0 +1,555 @@
+      <!-- header -->
+      <%- include('../partials/header') %> 
+
+      <style>
+        /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+  max-height: 200px; /* Adjust the height as needed */
+  overflow-y: auto;  /* Enables vertical scrolling */
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker shade on hover */
+}
+
+      </style>
+      <!-- end header -->
+      <div id="loader" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+      <!-- sidebar -->
+
+      <%- include('../partials/sidebar') %>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Start::page-header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);">Manage Transactions </a>
+                  </li>
+                  <li class="breadcrumb-item active" aria-current="page">
+                    View All Transactions
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+               
+              </h1>
+            </div>
+            <div class="btn-list">
+              <!-- <a href="/t/generate-invoice"><button
+                class="btn btn-primary btn-wave me-0"
+              >
+                <i class="ri-share-plus me-1"></i> Generate Invoice +
+              </button></a> -->
+             <a href="https://bni-data-backend.onrender.com/api/export-orders"><button
+              class="btn btn-primary btn-wave me-0"
+              style="background-color: #fb3e4e!important; border: #fb3e4e"
+            >
+              <i class="ri-share-forward-line me-1"></i> Export All
+              Orders
+            </button></a> 
+
+            <a href="https://bni-data-backend.onrender.com/api/export-transactions"><button
+              class="btn btn-primary btn-wave me-0"
+              style="background-color: #fb3e4e!important; border: #fb3e4e"
+            >
+              <i class="ri-share-forward-line me-1"></i> Export All
+              Transactions
+            </button></a>  
+
+          
+            </div>
+          </div>
+          <!-- End::page-header -->
+          <div class="col-xl-12">
+            <div class="row">
+              <div class="col-xxl-12 col-xl-12">
+                <div class="row" style="display: flex; justify-content: center;">
+                  <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h1 class="mb-2 fs-12 cus">
+                              Total Transactions Amount (in ₹)
+                            </h1>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span class="count-up" data-count="385"
+                                    ></span
+                                  >
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h6 class="mb-2 fs-12 cus">
+                              Success Payments (in ₹)
+                            </h6>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span class="count-up" data-count="385"
+                                    ></span
+                                  >
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h6 class="mb-2 fs-12 cus">
+                              Pending Payments (in ₹)
+                            </h6>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span class="count-up" data-count="385"
+                                    >
+                                    
+
+
+
+
+                                    </span
+                                  >
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-bottom: 5px;">
+            <div class="col-9"></div>
+            <div class="col-3">
+              <div class="custom-form-group">
+                <input
+                  type="text"
+                  id="searchChapterInput"
+                  class="form-control"
+                  placeholder="Search Payment.."
+                  aria-label="Event : custom'id"
+                  aria-describedby="button-addon2"
+                />
+                <a href="javascript:void(0);" class="text-muted custom-form-btn">
+                  <i class="ti ti-search"></i>
+                </a>
+              </div>
+              
+            </div>
+          </div>
+          <!-- Start::row-1 -->
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div
+                  class="card-header justify-content-between"
+                  style="background-color: gainsboro !important"
+                >
+                  <div class="card-title">All Transactions</div>
+                  <div class="d-flex">
+                    <!-- Region Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Region
+                      </a>
+                      <ul class="dropdown-menu" id="region-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Chapter Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Chapter
+                      </a>
+                      <ul class="dropdown-menu" id="chapter-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Month Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Month
+                      </a>
+                      <ul class="dropdown-menu" id="month-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Type Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Payment Type
+                      </a>
+                      <ul class="dropdown-menu" id="payment-type-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Gateway Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Gateway
+                      </a>
+                      <ul class="dropdown-menu" id="payment-gateway-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Status Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> PG Status
+                      </a>
+                      <ul class="dropdown-menu" id="payment-status-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Method Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Method
+                      </a>
+                      <ul class="dropdown-menu" id="payment-method-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Apply Filter Button -->
+                    <button href=""
+                            id="apply-filters-btn"
+                            class="btn btn-sm btn-primary btn-wave waves-light">
+                      Apply Filter
+                    </button>
+                    <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+                      Reset Filter
+                    </button></div>
+                    
+                    
+                  </div>
+                  
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table text-nowrap">
+                      <thead>
+                        <tr>
+                          <th scope="col">S.No.</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Member Name</th>
+                          <th scope="col">Chapter</th>
+                          <th scope="col">Amount</th>
+                          <th scope="col">Payment Method</th>
+                          <th scope="col">Order ID</th>
+                          <th scope="col">Transaction ID</th>
+                          <th scope="col">PG Status</th>
+                          <th scope="col">Gateway</th>
+                          <th scope="col">Payment Type</th>
+                          <th scope="col">Settlement Status</th>
+                          <th scope="col">Tranfer UTR</th>
+                          <th scope="col">Tranfer Time</th>
+                          <th scope="col">IRN</th>
+                          <th scope="col">QR Code</th>
+                          <th scope="col">E-Invoice Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="invoice-list">
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0">
+                  <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0 float-end">
+                      <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                      </li>
+                      <li class="page-item active">
+                        <a class="page-link" href="javascript:void(0);">1</a>
+                      </li>
+                      <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);">Next</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+      <script>
+        // Function to get URL parameter
+function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// Function to fetch all universal links
+async function fetchAllUniversalLinks() {
+    try {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/universalLinks');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const links = await response.json();
+        console.log('Fetched Links:', links); // Log the fetched links
+        return links;
+    } catch (error) {
+        console.error("Error fetching universal links:", error);
+    }
+}
+
+// Function to update the page with the universal link name based on ulid
+async function updatePageWithLinkName(ulid) {
+    const links = await fetchAllUniversalLinks();
+    if (links) {
+        const matchedLink = links.find(link => link.ulid === ulid); // Assuming 'ulid' is the key in the response
+        if (matchedLink) {
+            displayLinkName(matchedLink.universal_link_name);
+        } else {
+            console.error('No link found for the given ulid:', ulid);
+        }
+    }
+}
+
+// Function to update the page with the universal link name
+function displayLinkName(universalLinkName) {
+    const pageTitleElement = document.querySelector('.page-title');
+    pageTitleElement.textContent = `Manage ${universalLinkName}`;
+}
+
+// On page load
+document.addEventListener('DOMContentLoaded', () => {
+    const ulid = getUrlParameter('ulid');
+    
+    if (ulid) {
+        updatePageWithLinkName(ulid);
+      
+    } else {
+        console.error('No ulid found in the URL');
+    }
+});
+
+      </script>
+
+      <script src="../../assets/js/transactions.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+      <%- include('../partials/footer') %> 
+
+
+

@@ -1,0 +1,564 @@
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/member-sidebar') %>
+    <div id="loader">
+      <img src="../../assets/images/media/loader.svg" alt="" />
+    </div>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >Trainings Information</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item Approved" aria-current="page">
+                    View All My Trainings
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                My Trainings
+              </h1>
+            </div>
+            <div class="col-xl-12">
+                <div class="row">
+                  <div class="col-xxl-12 col-xl-12">
+                    <div class="row" style="display: flex; justify-content: center;">
+                      <div class="col-xxl-3">
+                        <div
+                          class="card custom-card overflow-hidden main-content-card"
+                        >
+                          <div
+                            class="card-body p-4"
+                            style="background-color: gainsboro"
+                          >
+                            <div class="d-flex align-items-start gap-3">
+                              <div class="flex-fill">
+                                <h1 class="mb-2 fs-12 cus">
+                                  Total Registered Trainings
+                                </h1>
+                                <div class="pb-0 mt-0">
+                                  <div>
+                                    <h5 class="fw-medium mb-1">
+                                      <span class="count-up" id="total_registered_trainings"
+                                        >Loading..</span
+                                      >
+                                    </h5>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              >
+                                <div
+                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                                >
+                                  <div class="avatar avatar-sm svg-white">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="44"
+                                      height="44"
+                                      viewBox="0 0 24 24"
+                                      stroke-width="1.5"
+                                      stroke="#d01f2f"
+                                      fill="none"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    >
+                                      <path
+                                        stroke="none"
+                                        d="M0 0h24v24H0z"
+                                        fill="none"
+                                      />
+                                      <path
+                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                      />
+                                      <path
+                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                      />
+                                      <rect
+                                        x="3"
+                                        y="8"
+                                        width="18"
+                                        height="8"
+                                        rx="2"
+                                      />
+                                      <circle cx="16.5" cy="12" r="1.5" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-xxl-3">
+                        <div
+                          class="card custom-card overflow-hidden main-content-card"
+                        >
+                          <div
+                            class="card-body p-4"
+                            style="background-color: gainsboro"
+                          >
+                            <div class="d-flex align-items-start gap-3">
+                              <div class="flex-fill">
+                                <h6 class="mb-2 fs-12 cus">
+                                  Upcoming Trainings
+                                </h6>
+                                <div class="pb-0 mt-0">
+                                  <div>
+                                    <h5 class="fw-medium mb-1">
+                                      <span class="count-up"  id="upcoming_trainings"
+                                        >Loading..
+                                        </span
+                                      >
+                                    </h5>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              >
+                                <div
+                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                                >
+                                  <div class="avatar avatar-sm svg-white">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="44"
+                                      height="44"
+                                      viewBox="0 0 24 24"
+                                      stroke-width="1.5"
+                                      stroke="#d01f2f"
+                                      fill="none"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    >
+                                      <path
+                                        stroke="none"
+                                        d="M0 0h24v24H0z"
+                                        fill="none"
+                                      />
+                                      <path
+                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                      />
+                                      <path
+                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                      />
+                                      <rect
+                                        x="3"
+                                        y="8"
+                                        width="18"
+                                        height="8"
+                                        rx="2"
+                                      />
+                                      <circle cx="16.5" cy="12" r="1.5" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="col-xxl-3">
+                        <div
+                          class="card custom-card overflow-hidden main-content-card"
+                        >
+                          <div
+                            class="card-body p-4"
+                            style="background-color: gainsboro"
+                          >
+                            <div class="d-flex align-items-start gap-3">
+                              <div class="flex-fill">
+                                <h6 class="mb-2 fs-12 cus">
+                                  Total Attended Training
+                                </h6>
+                                <div class="pb-0 mt-0">
+                                  <div>
+                                    <h5 class="fw-medium mb-1">
+                                      <span class="count-up" data-count="385"
+                                        >8</span
+                                      >
+                                    </h5>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              >
+                                <div
+                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                                >
+                                  <div class="avatar avatar-sm svg-white">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="44"
+                                      height="44"
+                                      viewBox="0 0 24 24"
+                                      stroke-width="1.5"
+                                      stroke="#d01f2f"
+                                      fill="none"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    >
+                                      <path
+                                        stroke="none"
+                                        d="M0 0h24v24H0z"
+                                        fill="none"
+                                      />
+                                      <path
+                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                      />
+                                      <path
+                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                      />
+                                      <rect
+                                        x="3"
+                                        y="8"
+                                        width="18"
+                                        height="8"
+                                        rx="2"
+                                      />
+                                      <circle cx="16.5" cy="12" r="1.5" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="col-xxl-3">
+                        <div
+                          class="card custom-card overflow-hidden main-content-card"
+                        >
+                          <div
+                            class="card-body p-4"
+                            style="background-color: gainsboro"
+                          >
+                            <div class="d-flex align-items-start gap-3">
+                              <div class="flex-fill">
+                                <h6 class="mb-2 fs-12 cus">
+                                  Total Missed Trainings
+                                </h6>
+                                <div class="pb-0 mt-0">
+                                  <div>
+                                    <h5 class="fw-medium mb-1">
+                                      <span class="count-up"
+                                        >15
+                                        </span
+                                      >
+                                    </h5>
+                                  </div>
+                                </div>
+                              </div>
+                              <div
+                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              >
+                                <div
+                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                                >
+                                  <div class="avatar avatar-sm svg-white">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="44"
+                                      height="44"
+                                      viewBox="0 0 24 24"
+                                      stroke-width="1.5"
+                                      stroke="#d01f2f"
+                                      fill="none"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    >
+                                      <path
+                                        stroke="none"
+                                        d="M0 0h24v24H0z"
+                                        fill="none"
+                                      />
+                                      <path
+                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                      />
+                                      <path
+                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                      />
+                                      <rect
+                                        x="3"
+                                        y="8"
+                                        width="18"
+                                        height="8"
+                                        rx="2"
+                                      />
+                                      <circle cx="16.5" cy="12" r="1.5" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">My All Trainings</div>
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <div class="btn-group"> 
+                  <div class="dropdown me-2">
+                    <a href="javascript:void(0);"
+                       class="btn btn-sm btn-light text-muted dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="true">
+                      <i class="ti ti-sort-descending-2 me-1"></i> Training Status
+                    </a>
+                    <ul class="dropdown-menu" id="trainings-status-filter" role="menu">
+                      <!-- Items will be dynamically inserted here -->
+                    </ul>
+                  </div>
+             
+                  <button href=""
+                  id="apply-filters-btn"
+                  class="btn btn-sm btn-primary btn-wave waves-light">
+            Apply Filter
+          </button>
+          <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+            Reset Filter
+          </button></div>
+                  <!-- <a href="/tr/add-training"><button
+                    class="btn btn-outline-light border"
+                    type="button"
+                  >
+                    + Add New Training
+                  </button></a>  -->
+                </div>
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    id="searchAccolades"
+                    class="form-control"
+                    placeholder="Search Training.."
+                    aria-label="Search Training"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>
+                
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap chaptersTableBody"
+                  style="border: 1px solid grey">
+                  <thead>
+                    <tr>
+                      <th scope="col">S.No.</th>
+                      <th scope="col">Training Name</th>
+                      <th scope="col">Training Venue</th>
+                      <th scope="col">Registered On</th>
+                      <th scope="col">Paid Training Amount</th>
+                      <th scope="col">Training Date</th>
+                      <th scope="col">Training Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="training-body">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b>1</b> to <b>10</b> entries
+                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                </div>
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto">
+                    <li class="page-item disabled">
+                      <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item Approved" aria-current="page">
+                      <a class="page-link" href="javascript:void(0)">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script>
+        // Function to show the loader
+function showLoader() {
+  document.getElementById('loader').style.display = 'flex'; // Show loader
+}
+
+// Function to hide the loader
+function hideLoader() {
+  document.getElementById('loader').style.display = 'none'; // Hide loader
+}
+        const fetchUserTrainings = async () => {
+  try {
+    showLoader();
+    // Step 1: Fetch Logged-In Email
+    const loggedInEmail = localStorage.getItem('loggedInEmail');
+    if (!loggedInEmail) throw new Error('Logged-in email not found in local storage');
+    console.log('Logged-In Email:', loggedInEmail);
+
+    // Step 2: Fetch Member Data
+    const fetchMemberData = async (email) => {
+      const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+      if (!response.ok) throw new Error('Failed to fetch members data');
+      const members = await response.json();
+      return members.find(member => member.member_email_address === email);
+    };
+
+    const member = await fetchMemberData(loggedInEmail);
+    if (!member) throw new Error('Member not found for the logged-in email');
+    console.log('Logged-In User (Member Data):', member);
+
+    // Step 3: Fetch Orders
+    const fetchOrders = async (memberId) => {
+      const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      const orders = await response.json();
+      return orders.filter(order => order.customer_id === memberId);
+    };
+
+    const orders = await fetchOrders(member.member_id);
+    console.log('Orders for Logged-In User:', orders);
+
+    // Step 4: Extract Training IDs
+    const getTrainingIds = (orders) => {
+      return [...new Set(orders.map(order => order.training_id).filter(id => id))];
+    };
+
+    const trainingIds = getTrainingIds(orders);
+    console.log('Training IDs from Orders:', trainingIds);
+
+    // Step 5: Fetch Trainings
+    const fetchTrainings = async (trainingIds) => {
+      const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+      if (!response.ok) throw new Error('Failed to fetch trainings');
+      const trainings = await response.json();
+      return trainings.filter(training => trainingIds.includes(training.training_id));
+    };
+
+    const trainings = await fetchTrainings(trainingIds);
+    console.log('Trainings Associated with User:', trainings);
+
+    return trainings;
+  } catch (error) {
+    console.error('Error:', error.message);
+    return [];
+  } finally {
+    hideLoader();
+  }
+};
+
+// Call the function and log results
+fetchUserTrainings();
+
+
+const populateTrainingsTable = (trainings) => {
+  const tableBody = document.getElementById('training-body');
+  const totalTrainingsElement = document.getElementById('total_registered_trainings');
+  const upcomingTrainingsElement = document.getElementById('upcoming_trainings');
+  tableBody.innerHTML = ''; // Clear existing rows, if any
+
+  if (trainings.length === 0) {
+    // Handle empty case
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No trainings found.</td></tr>';
+    totalTrainingsElement.innerHTML = '0'; // Set total trainings to 0
+    upcomingTrainingsElement.innerHTML = '0'; // Set upcoming trainings to 0
+    return;
+  }
+
+  totalTrainingsElement.innerHTML = trainings.length;
+
+  // Filter upcoming trainings
+  const upcomingTrainings = trainings.filter(
+    (training) =>
+      training.training_status === 'Postponed' || training.training_status === 'Scheduled'
+  );
+
+  // Update upcoming trainings count
+  upcomingTrainingsElement.innerHTML = upcomingTrainings.length;
+
+  trainings.forEach((training, index) => {
+    const row = document.createElement('tr');
+
+    const getStatusBgClass = (status) => {
+  switch (status) {
+    case 'Scheduled':
+      return 'bg-yellow text-dark'; // Yellow background, dark text
+    case 'Cancelled':
+      return 'bg-red text-light'; // Red background, light text
+    case 'Postponed':
+      return 'bg-yellow text-dark'; // Yellow background, dark text
+    case 'Completed':
+      return 'bg-green text-light'; // Green background, light text
+    default:
+      return 'bg-secondary text-light'; // Default background and text
+  }
+};
+
+
+
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td><b>${training.training_name || 'N/A'}</b></td>
+      <td><b>${training.training_venue || 'N/A'}</b></td>
+      <td>${training.training_date || 'N/A'}</td>
+      <td><b>₹ ${training.training_price || 'N/A'}</b></td>
+      <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
+      <td class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</td>
+    `;
+
+    tableBody.appendChild(row);
+  });
+};
+
+// Example Usage with fetched trainings
+fetchUserTrainings().then((trainings) => {
+  console.log('Trainings to Populate Table:', trainings); // Log for debugging
+  populateTrainingsTable(trainings);
+});
+
+
+      </script>
+      
+
+      <%- include('../partials/footer') %> 

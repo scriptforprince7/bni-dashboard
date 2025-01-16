@@ -1,0 +1,553 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/sidebar') %>
+
+<!-- end sidebar -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <!-- <li class="breadcrumb-item">
+                    <a href="javascript:void(0);"> Pages </a>
+                  </li> -->
+            <li class="breadcrumb-item" aria-current="page">
+              <a href="javascript:void(0);">Invoice</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Create Invoice
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0" id="universal-link-name">
+          Loading...
+        </h1>
+      </div>
+      <div class="btn-list">
+        <!-- <button class="btn btn-white btn-wave">
+                <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+              </button> -->
+      </div>
+    </div>
+    <!-- End::page-header -->
+
+    <div class="dropdown">
+      <a
+        href="javascript:void(0);"
+        class="btn btn-sm btn-light text-muted dropdown-toggle"
+        data-bs-toggle="dropdown"
+        aria-expanded="true"
+      >
+        <i class="ti ti-sort-descending-2 me-1"></i>
+        Choose Region</a
+      >
+      <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
+        <li>
+          <a class="dropdown-item" href="javascript:void(0);">This Week</a>
+        </li>
+      </ul>
+      <a
+        href="javascript:void(0);"
+        class="btn btn-sm btn-light text-muted dropdown-toggle"
+        data-bs-toggle="dropdown"
+        aria-expanded="true"
+      >
+        <i class="ti ti-sort-descending-2 me-1"></i>
+        Choose Chapter</a
+      >
+      <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
+        <li>
+          <a class="dropdown-item" href="javascript:void(0);">This Week</a>
+        </li>
+      </ul>
+                
+    </div>
+
+    <!-- Start::row-1 -->
+    <div class="row">
+      <div class="col-xl-9">
+        <div class="card custom-card">
+          <div class="card-header d-md-flex d-block">
+            <div class="h5 mb-0 d-sm-flex d-block align-items-center">
+              <div>
+                <!-- <img
+                        src=" assets/images/brand-logos/toggle-logo-5.png"
+                        alt=""
+                      /> -->
+              </div>
+              <!-- <div class="ms-sm-2 ms-0 mt-sm-0 mt-2">
+                      <input
+                        type="text"
+                        class="form-control form-control-light form-control-sm"
+                        placeholder="Invoice Title"
+                        value="INV TITLE"
+                      />
+                    </div> -->
+              <!-- <div class="mx-2">:</div> -->
+              <!-- <div class="mt-sm-0 mt-2">
+                      <input
+                        type="text"
+                        class="form-control form-control-light form-control-sm"
+                        placeholder="Invoice ID"
+                        value="INV ID"
+                      />
+                    </div> -->
+            </div>
+            <div class="ms-auto mt-md-0 mt-2">
+              <button class="btn btn-sm btn-danger me-2">
+                Save As PDF<i
+                  class="ri-file-pdf-line ms-1 align-middle d-inline-block"
+                ></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-xl-12">
+                <div class="row">
+                  <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
+                    <p class="dw-semibold mb-2">Billing From :</p>
+                    <div class="row gy-2">
+                      <div class="col-xl-12">
+                        <!-- dropdown -->
+                        <select
+                          class="form-select form-select-light"
+                          id="company-name"
+                        >
+                          <option selected>Select Company</option>
+                          <option value="1">Company 1</option>
+                          <option value="2">Company 2</option>
+                          <option value="3">Company 3</option>
+                        </select>
+                      </div>
+                      <div class="col-xl-12">
+                        <textarea
+                          class="form-control form-control-light"
+                          id="company-address"
+                          placeholder="Enter Address"
+                          rows="3"
+                        ></textarea>
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="company-mail"
+                          placeholder="Company Email"
+                          value=""
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="company-phone"
+                          placeholder="Phone Number"
+                          value=""
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="zip-code"
+                          placeholder="GST Number"
+                          value=""
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3"
+                  >
+                    <p class="dw-semibold mb-2">Billing To :</p>
+                    <div class="row gy-2">
+                      <div class="col-xl-12">
+                        <select
+                          class="form-select form-select-light"
+                          id="company-name"
+                        >
+                          <option selected>Select Member</option>
+                          <option value="Raja Shukla">Raja Shukla</option>
+                          <option value="Amit Anand">Amit Anand</option>
+                          <option value="Ravina Duhan">Ravina Duhan</option>
+                        </select>
+                      </div>
+                      <div class="col-xl-12">
+                        <textarea
+                          class="form-control form-control-light"
+                          id="customer-address"
+                          placeholder="Enter Address"
+                          rows="3"
+                        ></textarea>
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="customer-mail"
+                          placeholder="Customer Company Name"
+                          value=""
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="customer-phone"
+                          placeholder="Phone Number"
+                          value=""
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="zip-code"
+                          placeholder="GST Number"
+                          value=""
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xl-4">
+                <label for="invoice-number" class="form-label"
+                  >Invoice ID</label
+                >
+                <input
+                  type="text"
+                  class="form-control form-control-light"
+                  id="invoice-number"
+                  placeholder="Inv No"
+                  value="#SHG148756965"
+                />
+              </div>
+              <div class="col-xl-4">
+                <label for="invoice-date-issued" class="form-label"
+                  >Date Issued</label
+                >
+                <input
+                  type="date"
+                  class="form-control form-control-light"
+                  id="invoice-date-issued"
+                  placeholder="Choose date"
+                />
+              </div>
+              <div class="col-xl-4">
+                <label for="invoice-due-amount" class="form-label"
+                  >Amount to be paid</label
+                >
+                <input
+                  type="text"
+                  class="form-control form-control-light"
+                  id="invoice-due-amount"
+                  placeholder="Enter Amount"
+                  value="₹ 35,784.54"
+                />
+              </div>
+              <div class="col-xl-12">
+                <div class="table-responsive">
+                  <table class="table nowrap text-nowrap border mt-3">
+                    <thead>
+                      <tr>
+                        <th>S.No.</th>
+                        <th>PARTICULARS</th>
+                        <th>HSN/SAC</th>
+                        <th>QUANTITY</th>
+                        <th>PRICE PER UNIT</th>
+                        <th>TOTAL</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <input
+                            type="text"
+                            class="form-control form-control-light"
+                            placeholder="Enter Product Name"
+                          />
+                        </td>
+                        <td>
+                          <textarea
+                            rows="1"
+                            class="form-control form-control-light"
+                            placeholder="Enter Description"
+                          ></textarea>
+                        </td>
+                        <td>
+                          <textarea
+                            rows="1"
+                            class="form-control form-control-light"
+                            placeholder="Enter Description"
+                          ></textarea>
+                        </td>
+                        <td class="invoice-quantity-container">-</td>
+                        <td>
+                          <input
+                            class="form-control form-control-light"
+                            placeholder=""
+                            type="text"
+                            value="₹ 84.00"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="form-control form-control-light"
+                            placeholder=""
+                            type="text"
+                            value="₹ 251.00"
+                          />
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td colspan="4"></td>
+                        <td colspan="2">
+                          <table
+                            class="table table-sm text-nowrap mb-0 table-borderless"
+                          >
+                            <tbody>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fw-medium">Sub Total :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input"
+                                    placeholder="Enter Amount"
+                                    value="₹ 2519.89"
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fw-medium">
+                                    GST
+                                    <span class="text-danger">(18%)</span>
+                                    :
+                                  </div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input"
+                                    placeholder="Enter Amount"
+                                    value="₹ 214.00"
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fw-medium">Late Fee :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input"
+                                    placeholder="Enter Amount"
+                                    value="₹ 100.00"
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Total :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input"
+                                    placeholder="Enter Amount"
+                                    value="₹ 2,106.68"
+                                  />
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="card-footer d-flex align-items-center justify-content-between gap-2"
+          >
+            <button class="btn btn-primary1-light">
+              <i class="ri-eye-line me-1 align-middle d-inline-block"></i
+              >Preview
+            </button>
+            <button class="btn btn-primary">
+              Send Invoice
+              <i
+                class="ri-send-plane-2-line ms-1 align-middle d-inline-block"
+              ></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3">
+        <div class="card custom-card">
+          <div class="card-header">
+            <div class="card-title">Mode Of Payment</div>
+          </div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-xl-12">
+                <div
+                  class="btn-group"
+                  role="group"
+                  aria-label="Basic radio toggle button group"
+                >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="btnradio"
+                    id="btnradio2"
+                  />
+                  <label
+                    class="btn btn-outline-primary mt-sm-0 mt-1"
+                    for="btnradio2"
+                    >Cash</label
+                  >
+                  <!-- <input
+                          type="radio"
+                          class="btn-check"
+                          name="btnradio"
+                          id="btnradio3"
+                          checked=""
+                        />
+                        <label
+                          class="btn btn-outline-primary mt-sm-0 mt-1"
+                          for="btnradio3"
+                          >Credit/Debit Card</label
+                        > -->
+                </div>
+              </div>
+              <div class="col-xl-12">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="payment-status"
+                    id="paid"
+                    value="paid"
+                  />
+                  <label class="form-check-label" for="paid"> Paid </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="payment-status"
+                    id="not-paid"
+                    value="not-paid"
+                  />
+                  <label class="form-check-label" for="not-paid">
+                    Not Paid
+                  </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="payment-status"
+                    id="credit"
+                    value="credit"
+                  />
+                  <label class="form-check-label" for="credit"> Credit </label>
+                </div>
+              </div>
+              <div class="col-xl-12">
+                <div class="form-group">
+                  <label for="payment-note">Payment Note</label>
+                  <textarea
+                    class="form-control"
+                    id="payment-note"
+                    rows="4"
+                    placeholder="Enter payment details or notes here"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+
+<script>
+  // Function to show the loader
+  function showLoader() {
+    document.getElementById("loader").style.display = "flex"; // Show loader
+  }
+
+  // Function to hide the loader
+  function hideLoader() {
+    document.getElementById("loader").style.display = "none"; // Hide loader
+  }
+  // Function to fetch and display the universal link name based on the ID
+  async function fetchUniversalLinkName() {
+    // Get the `id` parameter from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+    console.log("ID from URL:", id);
+
+    // If no ID is present, handle the error or show a default message
+    if (!id) {
+      document.getElementById("universal-link-name").textContent =
+        "No ID found in URL";
+      return;
+    }
+
+    try {
+      showLoader();
+      // Fetch all universal links from the API
+      const response = await fetch(
+        "https://bni-data-backend.onrender.com/api/universalLinks"
+      );
+      const data = await response.json();
+      console.log("Fetched data:", data);
+
+      // Ensure both id values are strings for comparison
+      const link = data.find((link) => String(link.id) === String(id)); // Use String() for strict comparison
+      console.log("Link found:", link);
+
+      if (link) {
+        // If a matching link is found, update the page title with its name
+        document.getElementById("universal-link-name").textContent =
+          "Make invoice for " + link.universal_link_name;
+      } else {
+        // If no matching link is found
+        document.getElementById("universal-link-name").textContent =
+          "Universal Link not found";
+      }
+    } catch (error) {
+      console.error("Error fetching universal links:", error);
+      document.getElementById("universal-link-name").textContent =
+        "Error loading data";
+    }
+  }
+
+  // Call the function when the page loads
+  fetchUniversalLinkName();
+</script>
+
+<%- include('../partials/footer') %>

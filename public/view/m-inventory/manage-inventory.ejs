@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  dir="ltr"
+  data-nav-layout="vertical"
+  data-theme-mode="light"
+  data-header-styles="light"
+  data-menu-styles="dark"
+  data-toggled="close"
+>
+  <head>
+    <!-- Meta Data -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="Description"
+      content="Laravel Bootstrap Responsive Admin Web Dashboard Template"
+    />
+    <meta name="Author" content="Spruko Technologies Private Limited" />
+    <meta
+      name="keywords"
+      content="laravel template, laravel, laravel admin, admin bootstrap, laravel admin template, dashboard, admin panel template, laravel framework, admin template, laravel admin panel, admin, laravel dashboard, dashboard for laravel, admin panel for laravel, bootstrap admin panel template."
+    />
+
+    <!-- Title-->
+    <title>Manage All Things Under One Roof | BNI Management Software</title>
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="https://www.bni.com/wp-content/uploads/2020/05/bni_white_red.png?x13567"
+      type="image/x-icon"
+    />
+
+    <!-- Main Theme Js -->
+    <script src="assets/main.js"></script>
+
+    <!-- ICONS CSS -->
+    <link href="assets/icon-fonts/icons.css" rel="stylesheet" />
+
+    <!-- Choices JS -->
+    <script src="assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
+
+    <!-- Bootstrap Css -->
+    <link
+      id="style"
+      href="assets/libs/bootstrap/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Node Waves Css -->
+    <link href="assets/libs/node-waves/waves.min.css" rel="stylesheet" />
+
+    <!-- Simplebar Css -->
+    <link href="assets/libs/simplebar/simplebar.min.css" rel="stylesheet" />
+
+    <!-- Color Picker Css -->
+    <link rel="stylesheet" href="assets/libs/flatpickr/flatpickr.min.css" />
+    <link
+      rel="stylesheet"
+      href="assets/libs/%40simonwep/pickr/themes/nano.min.css"
+    />
+
+    <!-- Choices Css -->
+    <link
+      rel="stylesheet"
+      href="assets/libs/choices.js/public/assets/styles/choices.min.css"
+    />
+
+    <!-- FlatPickr CSS -->
+    <link rel="stylesheet" href="assets/libs/flatpickr/flatpickr.min.css" />
+
+    <!-- Auto Complete CSS -->
+    <link
+      rel="stylesheet"
+      href="assets/libs/%40tarekraafat/autocomplete.js/css/autoComplete.css"
+    />
+
+    <!-- APP CSS & APP SCSS -->
+    <link rel="preload" as="style" href="assets/app-BXaKe1N-.css" />
+    <link rel="stylesheet" href=" assets/app-BXaKe1N-.css" />
+
+    <!-- FlatPickr CSS -->
+    <link rel="stylesheet" href="assets/libs/flatpickr/flatpickr.min.css" />
+  </head>
+
+  <body class="">
+    <!-- Switcher -->
+    <div
+      class="offcanvas offcanvas-end"
+      tabindex="-1"
+      id="switcher-canvas"
+      aria-labelledby="offcanvasRightLabel"
+    >
+      <div class="offcanvas-header border-bottom d-block p-0">
+        <div class="d-flex align-items-center justify-content-between p-3">
+          <h5 class="offcanvas-title text-default" id="offcanvasRightLabel">
+            Switcher
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+          ></button>
+        </div>
+        <nav class="border-top border-block-start-dashed">
+          <div
+            class="nav nav-tabs nav-justified"
+            id="switcher-main-tab"
+            role="tablist"
+          >
+            <button
+              class="nav-link Approved"
+              id="switcher-home-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#switcher-home"
+              type="button"
+              role="tab"
+              aria-controls="switcher-home"
+              aria-selected="true"
+            >
+              Theme Styles
+            </button>
+            <button
+              class="nav-link"
+              id="switcher-profile-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#switcher-profile"
+              type="button"
+              role="tab"
+              aria-controls="switcher-profile"
+              aria-selected="false"
+            >
+              Theme Colors
+            </button>
+          </div>
+        </nav>
+      </div>
+      <div class="offcanvas-body">
+        <div class="tab-content" id="nav-tabContent">
+          <div
+            class="tab-pane fade show Approved border-0"
+            id="switcher-home"
+            role="tabpanel"
+            aria-labelledby="switcher-home-tab"
+            tabindex="0"
+          >
+            <div class="">
+              <p class="switcher-style-head">Theme Color Mode:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-light-theme">
+                      Light
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="theme-style"
+                      id="switcher-light-theme"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-dark-theme">
+                      Dark
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="theme-style"
+                      id="switcher-dark-theme"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Directions:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-ltr">
+                      LTR
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="direction"
+                      id="switcher-ltr"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-rtl">
+                      RTL
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="direction"
+                      id="switcher-rtl"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Navigation Styles:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-vertical">
+                      Vertical
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="navigation-style"
+                      id="switcher-vertical"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-horizontal">
+                      Horizontal
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="navigation-style"
+                      id="switcher-horizontal"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="navigation-menu-styles">
+              <p class="switcher-style-head">
+                Vertical & Horizontal Menu Styles:
+              </p>
+              <div class="row switcher-style gx-0 pb-2 gy-2">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-menu-click">
+                      Menu Click
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="navigation-menu-styles"
+                      id="switcher-menu-click"
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-menu-hover">
+                      Menu Hover
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="navigation-menu-styles"
+                      id="switcher-menu-hover"
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-icon-click">
+                      Icon Click
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="navigation-menu-styles"
+                      id="switcher-icon-click"
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-icon-hover">
+                      Icon Hover
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="navigation-menu-styles"
+                      id="switcher-icon-hover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sidemenu-layout-styles">
+              <p class="switcher-style-head">Sidemenu Layout Styles:</p>
+              <div class="row switcher-style gx-0 pb-2 gy-2">
+                <div class="col-sm-6">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-default-menu">
+                      Default Menu
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="sidemenu-layout-styles"
+                      id="switcher-default-menu"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-closed-menu">
+                      Closed Menu
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="sidemenu-layout-styles"
+                      id="switcher-closed-menu"
+                    />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check switch-select">
+                    <label
+                      class="form-check-label"
+                      for="switcher-icontext-menu"
+                    >
+                      Icon Text
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="sidemenu-layout-styles"
+                      id="switcher-icontext-menu"
+                    />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-icon-overlay">
+                      Icon Overlay
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="sidemenu-layout-styles"
+                      id="switcher-icon-overlay"
+                    />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-detached">
+                      Detached
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="sidemenu-layout-styles"
+                      id="switcher-detached"
+                    />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-double-menu">
+                      Double Menu
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="sidemenu-layout-styles"
+                      id="switcher-double-menu"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Page Styles:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-regular">
+                      Regular
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="page-styles"
+                      id="switcher-regular"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-classic">
+                      Classic
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="page-styles"
+                      id="switcher-classic"
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-modern">
+                      Modern
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="page-styles"
+                      id="switcher-modern"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Layout Width Styles:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-sm-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-full-width">
+                      Full Width
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="layout-width"
+                      id="switcher-full-width"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-boxed">
+                      Boxed
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="layout-width"
+                      id="switcher-boxed"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Menu Positions:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-menu-fixed">
+                      Fixed
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="menu-positions"
+                      id="switcher-menu-fixed"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-menu-scroll">
+                      Scrollable
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="menu-positions"
+                      id="switcher-menu-scroll"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Header Positions:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label class="form-check-label" for="switcher-header-fixed">
+                      Fixed
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="header-positions"
+                      id="switcher-header-fixed"
+                      checked=""
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label
+                      class="form-check-label"
+                      for="switcher-header-scroll"
+                    >
+                      Scrollable
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="header-positions"
+                      id="switcher-header-scroll"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <p class="switcher-style-head">Loader:</p>
+              <div class="row switcher-style gx-0">
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label
+                      class="form-check-label"
+                      for="switcher-loader-enable"
+                    >
+                      Enable
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="page-loader"
+                      id="switcher-loader-enable"
+                    />
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="form-check switch-select">
+                    <label
+                      class="form-check-label"
+                      for="switcher-loader-disable"
+                    >
+                      Disable
+                    </label>
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="page-loader"
+                      id="switcher-loader-disable"
+                      checked=""
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="tab-pane fade border-0"
+            id="switcher-profile"
+            role="tabpanel"
+            aria-labelledby="switcher-profile-tab"
+            tabindex="0"
+          >
+            <div>
+              <div class="theme-colors">
+                <p class="switcher-style-head">Menu Colors:</p>
+                <div class="d-flex switcher-style pb-2">
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-white"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Light Menu"
+                      type="radio"
+                      name="menu-colors"
+                      id="switcher-menu-light"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-dark"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Dark Menu"
+                      type="radio"
+                      name="menu-colors"
+                      id="switcher-menu-dark"
+                      checked=""
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Color Menu"
+                      type="radio"
+                      name="menu-colors"
+                      id="switcher-menu-primary"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-gradient"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Gradient Menu"
+                      type="radio"
+                      name="menu-colors"
+                      id="switcher-menu-gradient"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-transparent"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Transparent Menu"
+                      type="radio"
+                      name="menu-colors"
+                      id="switcher-menu-transparent"
+                    />
+                  </div>
+                </div>
+                <div class="px-4 pb-3 text-muted fs-11">
+                  Note:If you want to change color Menu dynamically change from
+                  below Theme Primary color picker
+                </div>
+              </div>
+              <div class="theme-colors">
+                <p class="switcher-style-head">Header Colors:</p>
+                <div class="d-flex switcher-style pb-2">
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-white"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Light Header"
+                      type="radio"
+                      name="header-colors"
+                      id="switcher-header-light"
+                      checked=""
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-dark"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Dark Header"
+                      type="radio"
+                      name="header-colors"
+                      id="switcher-header-dark"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Color Header"
+                      type="radio"
+                      name="header-colors"
+                      id="switcher-header-primary"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-gradient"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Gradient Header"
+                      type="radio"
+                      name="header-colors"
+                      id="switcher-header-gradient"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-transparent"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Transparent Header"
+                      type="radio"
+                      name="header-colors"
+                      id="switcher-header-transparent"
+                    />
+                  </div>
+                </div>
+                <div class="px-4 pb-3 text-muted fs-11">
+                  Note:If you want to change color Header dynamically change
+                  from below Theme Primary color picker
+                </div>
+              </div>
+              <div class="theme-colors">
+                <p class="switcher-style-head">Theme Primary:</p>
+                <div class="d-flex flex-wrap align-items-center switcher-style">
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary-1"
+                      type="radio"
+                      name="theme-primary"
+                      id="switcher-primary"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary-2"
+                      type="radio"
+                      name="theme-primary"
+                      id="switcher-primary1"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary-3"
+                      type="radio"
+                      name="theme-primary"
+                      id="switcher-primary2"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary-4"
+                      type="radio"
+                      name="theme-primary"
+                      id="switcher-primary3"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-primary-5"
+                      type="radio"
+                      name="theme-primary"
+                      id="switcher-primary4"
+                    />
+                  </div>
+                  <div
+                    class="form-check switch-select ps-0 mt-1 color-primary-light"
+                  >
+                    <div class="theme-container-primary"></div>
+                    <div
+                      class="pickr-container-primary"
+                      onchange="updateChartColor(this.value)"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <div class="theme-colors">
+                <p class="switcher-style-head">Theme Background:</p>
+                <div class="d-flex flex-wrap align-items-center switcher-style">
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-bg-1"
+                      type="radio"
+                      name="theme-background"
+                      id="switcher-background"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-bg-2"
+                      type="radio"
+                      name="theme-background"
+                      id="switcher-background1"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-bg-3"
+                      type="radio"
+                      name="theme-background"
+                      id="switcher-background2"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-bg-4"
+                      type="radio"
+                      name="theme-background"
+                      id="switcher-background3"
+                    />
+                  </div>
+                  <div class="form-check switch-select me-3">
+                    <input
+                      class="form-check-input color-input color-bg-5"
+                      type="radio"
+                      name="theme-background"
+                      id="switcher-background4"
+                    />
+                  </div>
+                  <div
+                    class="form-check switch-select ps-0 mt-1 tooltip-static-demo color-bg-transparent"
+                  >
+                    <div class="theme-container-background"></div>
+                    <div class="pickr-container-background"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="menu-image mb-3">
+                <p class="switcher-style-head">Menu With Background Image:</p>
+                <div class="d-flex flex-wrap align-items-center switcher-style">
+                  <div class="form-check switch-select m-2">
+                    <input
+                      class="form-check-input bgimage-input bg-img1"
+                      type="radio"
+                      name="menu-background"
+                      id="switcher-bg-img"
+                    />
+                  </div>
+                  <div class="form-check switch-select m-2">
+                    <input
+                      class="form-check-input bgimage-input bg-img2"
+                      type="radio"
+                      name="menu-background"
+                      id="switcher-bg-img1"
+                    />
+                  </div>
+                  <div class="form-check switch-select m-2">
+                    <input
+                      class="form-check-input bgimage-input bg-img3"
+                      type="radio"
+                      name="menu-background"
+                      id="switcher-bg-img2"
+                    />
+                  </div>
+                  <div class="form-check switch-select m-2">
+                    <input
+                      class="form-check-input bgimage-input bg-img4"
+                      type="radio"
+                      name="menu-background"
+                      id="switcher-bg-img3"
+                    />
+                  </div>
+                  <div class="form-check switch-select m-2">
+                    <input
+                      class="form-check-input bgimage-input bg-img5"
+                      type="radio"
+                      name="menu-background"
+                      id="switcher-bg-img4"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="d-flex justify-content-between canvas-footer flex-nowrap gap-2"
+          >
+            <a
+              href="https://themeforest.net/item/xintra-laravel-bootstrap-admin-dashboard-template/54027623"
+              target="_blank"
+              class="btn btn-primary text-nowrap"
+              >Buy Now</a
+            >
+            <a
+              href="https://themeforest.net/user/spruko/portfolio"
+              target="_blank"
+              class="btn btn-secondary text-nowrap"
+              >Our Portfolio</a
+            >
+            <a
+              href="javascript:void(0);"
+              id="reset-all"
+              class="btn btn-danger text-nowrap"
+              >Reset</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End switcher -->
+
+    <!-- Loader -->
+    <div id="loader">
+      <img src=" assets/images/media/loader.svg" alt="" />
+    </div>
+    <!-- Loader -->
+
+    <div class="page">
+      <!-- Main-Header -->
+      <header class="app-header sticky" id="header">
+        <!-- Start::main-header-container -->
+        <div class="main-header-container container-fluid">
+          <!-- Start::header-content-left -->
+          <div class="header-content-left">
+            <!-- Start::header-element -->
+            <div class="header-element">
+              <div class="horizontal-logo">
+                <a href="index.html" class="header-logo">
+                  <img
+                    src=" assets/images/brand-logos/desktop-logo.png"
+                    alt="logo"
+                    class="desktop-logo"
+                  />
+                  <img
+                    src="https://bnidvr.com/img/site/5ec2854ed3f67d002d544276.png"
+                    alt="logo"
+                    class="toggle-dark"
+                  />
+                  <img
+                    src="https://lh3.googleusercontent.com/proxy/Jeixm6Fw7cgEGxGDsaLmzFQpDVAudLCLJfTLQvG5aO8SyaEnoQZeRISUpdGEeaafODcjVKwO8ik3JyL9uq9UZIGeXv-11U78O4TBnw"
+                    alt="logo"
+                    class="desktop-dark"
+                    height="56px"
+                  />
+                  <img
+                    src="https://lh3.googleusercontent.com/proxy/Jeixm6Fw7cgEGxGDsaLmzFQpDVAudLCLJfTLQvG5aO8SyaEnoQZeRISUpdGEeaafODcjVKwO8ik3JyL9uq9UZIGeXv-11U78O4TBnw"
+                    alt="logo"
+                    class="toggle-logo"
+                  />
+                  <img
+                    src="https://lh3.googleusercontent.com/proxy/Jeixm6Fw7cgEGxGDsaLmzFQpDVAudLCLJfTLQvG5aO8SyaEnoQZeRISUpdGEeaafODcjVKwO8ik3JyL9uq9UZIGeXv-11U78O4TBnw"
+                    alt="logo"
+                    class="toggle-white"
+                  />
+                  <img
+                    src=" assets/images/brand-logos/desktop-white.png"
+                    alt="logo"
+                    class="desktop-white"
+                  />
+                </a>
+              </div>
+            </div>
+            <!-- End::header-element -->
+
+            <!-- Start::header-element -->
+            <div class="header-element mx-lg-0 mx-2">
+              <a
+                aria-label="Hide Sidebar"
+                class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle"
+                data-bs-toggle="sidebar"
+                href="javascript:void(0);"
+                ><span></span
+              ></a>
+            </div>
+            <!-- End::header-element -->
+
+            <!-- Start::header-element -->
+            <div
+              class="header-element header-search d-md-block d-none my-auto auto-complete-search"
+            >
+              <!-- Start::header-link -->
+              <input
+                type="text"
+                class="header-search-bar form-control"
+                id="header-search"
+                placeholder="Search anything here ..."
+                spellcheck="false"
+                autocomplete="off"
+                autocapitalize="off"
+              />
+              <a href="javascript:void(0);" class="header-search-icon border-0">
+                <i class="ri-search-line"></i>
+              </a>
+              <!-- End::header-link -->
+            </div>
+            <!-- End::header-element -->
+          </div>
+          <!-- End::header-content-left -->
+
+          <!-- Start::header-content-right -->
+          <ul class="header-content-right">
+            <!-- Start::header-element -->
+            <li class="header-element d-md-none d-block">
+              <a
+                href="javascript:void(0);"
+                class="header-link"
+                data-bs-toggle="modal"
+                data-bs-target="#header-responsive-search"
+              >
+                <!-- Start::header-link-icon -->
+                <i class="bi bi-search header-link-icon"></i>
+                <!-- End::header-link-icon -->
+              </a>
+            </li>
+            <!-- End::header-element -->
+
+            <!-- Start::header-element -->
+            <li class="header-element country-selector dropdown">
+              <!-- Start::header-link|dropdown-toggle -->
+              <a
+                href="javascript:void(0);"
+                class="header-link dropdown-toggle"
+                data-bs-auto-close="outside"
+                data-bs-toggle="dropdown"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 header-link-icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
+                  ></path>
+                </svg>
+              </a>
+              <!-- End::header-link|dropdown-toggle -->
+              <ul
+                class="main-header-dropdown dropdown-menu dropdown-menu-end"
+                data-popper-placement="none"
+              >
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <div
+                      class="d-flex align-items-center justify-content-between"
+                    >
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                          <img
+                            src=" assets/images/flags/us_flag.jpg"
+                            alt="img"
+                          />
+                        </span>
+                        English
+                      </div>
+                    </div>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img
+                        src=" assets/images/flags/spain_flag.jpg"
+                        alt="img"
+                      />
+                    </span>
+                    español
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img
+                        src=" assets/images/flags/french_flag.jpg"
+                        alt="img"
+                      />
+                    </span>
+                    français
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img src=" assets/images/flags/uae_flag.jpg" alt="img" />
+                    </span>
+                    عربي
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img
+                        src=" assets/images/flags/germany_flag.jpg"
+                        alt="img"
+                      />
+                    </span>
+                    Deutsch
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img
+                        src=" assets/images/flags/china_flag.jpg"
+                        alt="img"
+                      />
+                    </span>
+                    中国人
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img
+                        src=" assets/images/flags/italy_flag.jpg"
+                        alt="img"
+                      />
+                    </span>
+                    Italiano
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="javascript:void(0);"
+                  >
+                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
+                      <img
+                        src=" assets/images/flags/russia_flag.jpg"
+                        alt="img"
+                      />
+                    </span>
+                    Русский
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <!-- End::header-element -->
+
+            <!-- Start::header-element -->
+            <li
+              class="header-element notifications-dropdown d-xl-block d-none dropdown"
+            >
+              <!-- Start::header-link|dropdown-toggle -->
+              <a
+                href="javascript:void(0);"
+                class="header-link dropdown-toggle"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+                id="messageDropdown"
+                aria-expanded="false"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 header-link-icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0M3.124 7.5A8.969 8.969 0 0 1 5.292 3m13.416 0a8.969 8.969 0 0 1 2.168 4.5"
+                  ></path>
+                </svg>
+                <span
+                  class="header-icon-pulse bg-primary2 rounded pulse pulse-secondary"
+                ></span>
+              </a>
+              <!-- End::header-link|dropdown-toggle -->
+              <!-- Start::main-header-dropdown -->
+              <div
+                class="main-header-dropdown dropdown-menu dropdown-menu-end"
+                data-popper-placement="none"
+              >
+                <div class="p-3">
+                  <div
+                    class="d-flex align-items-center justify-content-between"
+                  >
+                    <p class="mb-0 fs-15 fw-medium">Notifications</p>
+                    <span
+                      class="badge bg-secondary text-fixed-white"
+                      id="notifiation-data"
+                      >5 Unread</span
+                    >
+                  </div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <ul class="list-unstyled mb-0" id="header-notification-scroll">
+                  <li class="dropdown-item">
+                    <div class="d-flex align-items-center">
+                      <div class="pe-2 lh-1">
+                        <span
+                          class="avatar avatar-md avatar-rounded bg-primary"
+                        >
+                          <img src=" assets/images/faces/1.jpg" alt="user1" />
+                        </span>
+                      </div>
+                      <div
+                        class="flex-grow-1 d-flex align-items-center justify-content-between"
+                      >
+                        <div>
+                          <p class="mb-0 fw-medium">
+                            <a href="#">New Messages</a>
+                          </p>
+                          <div
+                            class="text-muted fw-normal fs-12 header-notification-text text-truncate"
+                          >
+                            Jane Sam sent you a message.
+                          </div>
+                          <div class="fw-normal fs-10 text-muted op-8">Now</div>
+                        </div>
+                        <div>
+                          <a
+                            href="javascript:void(0);"
+                            class="min-w-fit-content dropdown-item-close1"
+                          >
+                            <i class="ri-close-line"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="dropdown-item">
+                    <div class="d-flex align-items-center">
+                      <div class="pe-2 lh-1">
+                        <span
+                          class="avatar avatar-md bg-primary avatar-rounded fs-20"
+                        >
+                          <i class="fe fe-shopping-cart lh-1"></i>
+                        </span>
+                      </div>
+                      <div
+                        class="flex-grow-1 d-flex align-items-center justify-content-between"
+                      >
+                        <div>
+                          <p class="mb-0 fw-medium">
+                            <a href="#">Order Updates</a>
+                          </p>
+                          <div
+                            class="text-muted fw-normal fs-12 header-notification-text text-truncate"
+                          >
+                            Order <span class="text-primary1">#54321</span> has
+                            been shipped.
+                          </div>
+                          <div class="fw-normal fs-10 text-muted op-8">
+                            2 hours ago
+                          </div>
+                        </div>
+                        <div>
+                          <a
+                            href="javascript:void(0);"
+                            class="min-w-fit-content dropdown-item-close1"
+                          >
+                            <i class="ri-close-line"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="dropdown-item">
+                    <div class="d-flex align-items-center">
+                      <div class="pe-2 lh-1">
+                        <span class="avatar avatar-md bg-orange avatar-rounded">
+                          <img src=" assets/images/faces/10.jpg" alt="user1" />
+                        </span>
+                      </div>
+                      <div
+                        class="flex-grow-1 d-flex align-items-center justify-content-between"
+                      >
+                        <div>
+                          <p class="mb-0 fw-medium">
+                            <a href="#">Comment on Post</a>
+                          </p>
+                          <div
+                            class="text-muted fw-normal fs-12 header-notification-text text-truncate"
+                          >
+                            Reacted:
+                            <span class="text-primary3">John Richard</span> on
+                            your next purchase!
+                          </div>
+                          <div class="fw-normal fs-10 text-muted op-8">
+                            2 hours ago
+                          </div>
+                        </div>
+                        <div>
+                          <a
+                            href="javascript:void(0);"
+                            class="min-w-fit-content dropdown-item-close1"
+                          >
+                            <i class="ri-close-line"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="dropdown-item">
+                    <div class="d-flex align-items-center">
+                      <div class="pe-2 lh-1">
+                        <span
+                          class="avatar avatar-md bg-success avatar-rounded"
+                        >
+                          <img src=" assets/images/faces/11.jpg" alt="user1" />
+                        </span>
+                      </div>
+                      <div
+                        class="flex-grow-1 d-flex align-items-center justify-content-between"
+                      >
+                        <div>
+                          <p class="mb-0 fw-medium">
+                            <a href="#">Follow Request</a>
+                          </p>
+                          <div
+                            class="text-muted fw-normal fs-12 header-notification-text text-truncate"
+                          >
+                            <span class="text-info">Kelin Brown</span> has sent
+                            you the request.
+                          </div>
+                          <div class="fw-normal fs-10 text-muted op-8">
+                            1 Day ago
+                          </div>
+                        </div>
+                        <div>
+                          <a
+                            href="javascript:void(0);"
+                            class="min-w-fit-content dropdown-item-close1"
+                          >
+                            <i class="ri-close-line"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="dropdown-item">
+                    <div class="d-flex align-items-center">
+                      <div class="pe-2 lh-1">
+                        <span
+                          class="avatar avatar-md bg-primary2 avatar-rounded"
+                        >
+                          <i class="ri-gift-line lh-1 fs-16"></i>
+                        </span>
+                      </div>
+                      <div
+                        class="flex-grow-1 d-flex align-items-center justify-content-between"
+                      >
+                        <div>
+                          <p class="mb-0 fw-medium">
+                            <a href="#">Exclusive Offers</a>
+                          </p>
+                          <div
+                            class="text-muted fw-normal fs-12 header-notification-text text-truncate"
+                          >
+                            Enjoy<span class="text-success">20% off</span> on
+                            your next purchase!
+                          </div>
+                          <div class="fw-normal fs-10 text-muted op-8">
+                            5 hours ago
+                          </div>
+                        </div>
+                        <div>
+                          <a
+                            href="javascript:void(0);"
+                            class="min-w-fit-content dropdown-item-close1"
+                          >
+                            <i class="ri-close-line"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+
+                <div class="p-3 empty-header-item1 border-top">
+                  <div class="d-grid">
+                    <a
+                      href="javascript:void(0);"
+                      class="btn btn-primary btn-wave"
+                      >View All</a
+                    >
+                  </div>
+                </div>
+                <div class="p-5 empty-item1 d-none">
+                  <div class="text-center">
+                    <span
+                      class="avatar avatar-xl avatar-rounded bg-secondary-transparent"
+                    >
+                      <i class="ri-notification-off-line fs-2"></i>
+                    </span>
+                    <h6 class="fw-medium mt-3">No New Notifications</h6>
+                  </div>
+                </div>
+              </div>
+              <!-- End::main-header-dropdown -->
+            </li>
+            <!-- End::header-element -->
+
+            <!-- Start::header-element -->
+            <li class="header-element dropdown">
+              <!-- Start::header-link|dropdown-toggle -->
+              <a
+                href="javascript:void(0);"
+                class="header-link dropdown-toggle"
+                id="mainHeaderProfile"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+                aria-expanded="false"
+                style="border-radius: 100px"
+              >
+                <div class="d-flex align-items-center">
+                  <div>
+                    <img
+                      src=" assets/images/faces/15.jpg"
+                      alt="img"
+                      class="avatar avatar-sm"
+                      style="border-radius: 50px"
+                    />
+                  </div>
+                </div>
+              </a>
+              <!-- End::header-link|dropdown-toggle -->
+              <ul
+                class="main-header-dropdown dropdown-menu pt-0 overflow-hidden header-profile-dropdown dropdown-menu-end"
+                aria-labelledby="mainHeaderProfile"
+              >
+                <li>
+                  <div class="dropdown-item text-center border-bottom">
+                    <span> Raja Shukla </span>
+                    <span class="d-block fs-12 text-muted">RO Dashboard</span>
+                  </div>
+                </li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center" href="#"
+                    ><i
+                      class="fe fe-user p-1 rounded-circle bg-primary-transparent me-2 fs-16"
+                    ></i
+                    >Profile</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center" href="#"
+                    ><i
+                      class="fe fe-mail p-1 rounded-circle bg-primary-transparent me-2 fs-16"
+                    ></i
+                    >Mail Inbox</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center" href="#"
+                    ><i
+                      class="fe fe-database p-1 rounded-circle bg-primary-transparent klist me-2 fs-16"
+                    ></i
+                    >File Manger<span
+                      class="badge bg-primary1 text-fixed-white ms-auto fs-9"
+                      >2</span
+                    ></a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center" href="#"
+                    ><i
+                      class="fe fe-settings p-1 rounded-circle bg-primary-transparent ings me-2 fs-16"
+                    ></i
+                    >Settings</a
+                  >
+                </li>
+                <li class="border-top bg-light">
+                  <a class="dropdown-item d-flex align-items-center" href="#"
+                    ><i
+                      class="fe fe-help-circle p-1 rounded-circle bg-primary-transparent set me-2 fs-16"
+                    ></i
+                    >Help</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item d-flex align-items-center" href="#"
+                    ><i
+                      class="fe fe-lock p-1 rounded-circle bg-primary-transparent ut me-2 fs-16"
+                    ></i
+                    >Log Out</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::header-element -->
+          </ul>
+          <!-- End::header-content-right -->
+        </div>
+        <!-- End::main-header-container -->
+      </header>
+      <!-- End Main-Header -->
+
+      <!--Main-Sidebar-->
+      <aside class="app-sidebar sticky" id="sidebar">
+        <!-- Start::main-sidebar-header -->
+        <div class="main-sidebar-header" style="background-color: white">
+          <a href="index.html" class="header-logo">
+            <img
+              src=" assets/images/brand-logos/desktop-logo.png"
+              alt="logo"
+              class="desktop-logo"
+            />
+            <img
+              src="https://bnidvr.com/img/site/5ec2854ed3f67d002d544276.png"
+              alt="logo"
+              class="toggle-dark"
+            />
+            <img
+              src="https://lh3.googleusercontent.com/proxy/Jeixm6Fw7cgEGxGDsaLmzFQpDVAudLCLJfTLQvG5aO8SyaEnoQZeRISUpdGEeaafODcjVKwO8ik3JyL9uq9UZIGeXv-11U78O4TBnw"
+              alt="logo"
+              class="desktop-dark"
+              style="height: 56px"
+            />
+            <img
+              src="https://lh3.googleusercontent.com/proxy/Jeixm6Fw7cgEGxGDsaLmzFQpDVAudLCLJfTLQvG5aO8SyaEnoQZeRISUpdGEeaafODcjVKwO8ik3JyL9uq9UZIGeXv-11U78O4TBnw"
+              alt="logo"
+              class="toggle-logo"
+            />
+            <img
+              src="https://lh3.googleusercontent.com/proxy/Jeixm6Fw7cgEGxGDsaLmzFQpDVAudLCLJfTLQvG5aO8SyaEnoQZeRISUpdGEeaafODcjVKwO8ik3JyL9uq9UZIGeXv-11U78O4TBnw"
+              alt="logo"
+              class="toggle-white"
+            />
+            <img
+              src=" assets/images/brand-logos/desktop-white.png"
+              alt="logo"
+              class="desktop-white"
+            />
+          </a>
+        </div>
+        <!-- End::main-sidebar-header -->
+
+        <!-- Start::main-sidebar -->
+        <div
+          class="main-sidebar"
+          id="sidebar-scroll"
+          style="background-color: #4f4f4f"
+        >
+
+        
+        <!-- Start::nav -->
+        <nav class="main-menu-container nav nav-pills flex-column sub-open">
+          <div class="slide-left" id="slide-left">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="#7b8191"
+              width="24"
+              height="24"
+              viewbox="0 0 24 24"
+            >
+              <path
+                d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"
+              ></path>
+            </svg>
+          </div>
+          <ul class="main-menu">
+            <!-- Start::slide__category -->
+            <li class="slide__category">
+              <span class="category-name">Menu</span>
+            </li>
+            <!-- End::slide__category -->
+
+            <!-- Start::slide -->
+            <li class="slide">
+              <a href="#" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Dashboard</span>
+              </a>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Supplies <br />
+                  Information</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-supplies.html" class="side-menu__item"
+                    >View All Supplies</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-supply.html" class="side-menu__item"
+                    >Add New Supply</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Events & Trainings</span>
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-events.html" class="side-menu__item"
+                    >View All Events</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-event.html" class="side-menu__item"
+                    >Add New Event</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Members <br />
+                  Management</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-members.html" class="side-menu__item"
+                    >View All Members</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-member.html" class="side-menu__item"
+                    >Add New Member</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Chapters <br />
+                  Management</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-chapter.html" class="side-menu__item"
+                    >View All Chapters</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-chapter.html" class="side-menu__item"
+                    >Add New Chapter</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Inventory <br />
+                  Managment</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-inventory.html" class="side-menu__item"
+                    >View All Inventory</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-inventory.html" class="side-menu__item"
+                    >Add New Inventory</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Accolades <br />
+                  Management</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-accolades.html" class="side-menu__item"
+                    >View All Accolades</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-accolades.html" class="side-menu__item"
+                    >Add New Accolade</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+                           <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Company <br />
+                  Management</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-company.html" class="side-menu__item"
+                    >View All Company</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-company.html" class="side-menu__item"
+                    >Add New Company</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Manage Member's <br />
+                  Payments</span
+                >
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a
+                    href="./manage-new-member-payment.html"
+                    class="side-menu__item"
+                    >New Member Payment</a
+                  >
+                </li>
+                <li class="slide">
+                  <a
+                    href="./manage-member-renewal-payment.html"
+                    class="side-menu__item"
+                    >Renewal Payment</a
+                  >
+                </li>
+                <li class="slide">
+                  <a
+                    href="./manage-member-renewal-payment-with-late-fee.html"
+                    class="side-menu__item"
+                    >Renewal Payment With Late Fee</a
+                  >
+                </li>
+              </ul>
+            </li>
+
+            <li class="slide">
+              <a
+                href="./manage-training-payments.html"
+                class="side-menu__item"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Manage Training <br />
+                  Payments</span
+                >
+              </a>
+            </li>
+
+            <li class="slide">
+              <a
+                href="./manage-meeting-payments.html"
+                class="side-menu__item"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label"
+                  >Manage Meeting <br />
+                  Payments</span
+                >
+              </a>
+            </li>
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Transactions</span>
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-transactions.html" class="side-menu__item"
+                    >View All Transactions</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Manage Visitors</span>
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-visitors.html" class="side-menu__item"
+                    >View All Visitors</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-visitor.html" class="side-menu__item"
+                    >Add New Visitor</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide has-sub">
+              <a href="javascript:void(0);" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Manage Expenses</span>
+                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+              </a>
+              <ul class="slide-menu child1">
+                <li class="slide">
+                  <a href="./manage-expense.html" class="side-menu__item"
+                    >View All Expenses</a
+                  >
+                </li>
+                <li class="slide">
+                  <a href="./add-expense.html" class="side-menu__item"
+                    >Add New Expense</a
+                  >
+                </li>
+              </ul>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide">
+              <a href="./kitty-dashboard.html" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4.098 19.902a3.75 3.75 0 0 0 5.304 0l6.401-6.402M6.75 21A3.75 3.75 0 0 1 3 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 0 0 3.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008Z"
+                  ></path>
+                </svg>
+
+                <span class="side-menu__label">Kitty Dashboard</span>
+              </a>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide">
+              <a href="./add-notification.html" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Set Notifications</span>
+              </a>
+            </li>
+            <!-- End::slide -->
+
+
+            <!-- Start::slide -->
+            <li class="slide">
+              <a href="./generate-invoice.html" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Generate Invoice</span>
+              </a>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide__category -->
+            <li class="slide__category">
+              <span class="category-name">General</span>
+            </li>
+            <!-- End::slide__category -->
+
+            <!-- Start::slide -->
+            <!-- <li class="slide">
+              <a href="#" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">Settings</span>
+              </a>
+            </li> -->
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide">
+              <a href="#" class="side-menu__item">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 side-menu__icon"
+                  fill="none"
+                  viewbox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
+                  ></path>
+                </svg>
+                <span class="side-menu__label">My Account</span>
+              </a>
+            </li>
+            <!-- End::slide -->
+
+            <!-- Start::slide -->
+            <li class="slide">
+              <a href="#" class="side-menu__item">
+                <img
+                  src=" assets/images/faces/15.jpg"
+                  alt="img"
+                  class="avatar avatar-sm"
+                />
+                <span class="side-menu__label">Raja Shukla</span>
+              </a>
+            </li>
+            <!-- End::slide -->
+          </ul>
+          <div class="slide-right" id="slide-right">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="#7b8191"
+              width="24"
+              height="24"
+              viewbox="0 0 24 24"
+            >
+              <path
+                d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"
+              ></path>
+            </svg>
+          </div>
+        </nav>
+        <!-- End::nav -->
+
+
+
+        </div>
+        <!-- End::main-sidebar -->
+      </aside>
+      <!-- End Main-Sidebar-->
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >Inventory Information</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item Approved" aria-current="page">
+                    View All Inventory
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                Manage Inventory
+              </h1>
+            </div>
+            <div class="btn-list">
+              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+                </i> Total In Stock
+                Inventory <br />
+               <span> <b>50</b></span> 
+              </button>
+              <button class="btn btn-danger btn-wave me-0">
+                <i class="ri-share-forward-line me-1"></i> Export List
+              </button>
+            </div>
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">All Inventory List</div>
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <div class="btn-group">
+                  <button
+                    class="btn btn-outline-light border dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <i class="ti ti-sort-descending-2 me-1"></i> Region
+                  </button>
+
+                  <button
+                    class="btn btn-outline-light border dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <i class="ti ti-sort-descending-2 me-1"></i> Chapter
+                  </button>
+                  <button
+                    class="btn btn-outline-light border dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <i class="ti ti-sort-descending-2 me-1"></i> Member
+                  </button>
+                  <button
+                    class="btn btn-outline-light border dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    <i class="ti ti-sort-descending-2 me-1"></i> Filter
+                  </button>
+                  <button
+                    class="btn btn-outline-light border"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    + Add Supplies
+                  </button>
+                </div>
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search Supply.."
+                    aria-label="Recipient's username"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap"
+                  style="border: 1px solid grey"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">S.No.</th>
+                      <th scope="col">Inventory Name</th>
+                    
+                      <th scope="col">Stock Available</th>
+                      <th scope="col">Stock In Date</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="order-list">
+                      <td>1</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Induction Kit</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          50
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          >Out Of Stock</span
+                        >
+                        <a
+                          href="
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>2</td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center text-center"
+                            >
+                              <a href="">Black Badge</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          70
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-success-transparent">In Stock</span>
+                        <a
+                          href=""
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>3</td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center text-center"
+                            >
+                              <a href="">BNI Diary</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                         100
+                        </div>
+                      </td>
+
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-success-transparent">In Stock</span>
+                        <a
+                          href=""
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>4</td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center text-center"
+                            >
+                              <a href="">Name Badge</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                         20
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          >Out Of Stock</span
+                        >
+                        <a
+                          href=""
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>6</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href=""> Signage</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                        40
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-success-transparent">In Stock</span>
+                        <a
+                          href=""
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>7</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Goal Board</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                        25
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          >Out Of Stock</span
+                        >
+                        <a
+                          href=""
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>8</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Invition Card</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                        45
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-warning-transparent">In Transit</span>
+                        <a
+                          href=""
+                          class="btn btn-icon btn-sm btn-primary-light btn-wave waves-effect waves-light"
+                        >
+                          <i class="ri-eye-line"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b>1</b> to <b>10</b> entries
+                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                </div>
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto">
+                    <li class="page-item disabled">
+                      <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item Approved" aria-current="page">
+                      <a class="page-link" href="javascript:void(0)">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">2</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">3</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">4</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">5</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+
+      <!-- Footer opened -->
+      <footer
+        class="footer mt-auto py-3 bg-white text-center"
+        style="background-color: #d01f2f !important"
+      >
+        <div class="container">
+          <span class="text-muted" style="color: white !important">
+            Copyright © <span id="year"></span>
+            <a
+              href="javascript:void(0);"
+              class="text-dark fw-medium"
+              style="color: white !important"
+              >BNI</a
+            >. Designed & Managed by
+            <a href="javascript:void(0);">
+              <span
+                class="fw-medium text-primary"
+                style="color: white !important"
+                >Prince Sachdeva</span
+              >
+            </a>
+            All rights reserved
+          </span>
+        </div>
+      </footer>
+      <!-- End Footer -->
+
+      <!-- Country-selector modal -->
+      <div
+        class="modal fade"
+        id="header-responsive-search"
+        tabindex="-1"
+        aria-labelledby="header-responsive-search"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-body">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control border-end-0"
+                  placeholder="Search Anything ..."
+                  aria-label="Search Anything ..."
+                  aria-describedby="button-addon2"
+                />
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  id="button-addon2"
+                >
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End Country-selector modal -->
+    </div>
+
+    <!-- SCRIPTS -->
+    <!-- Scroll To Top -->
+    <div class="scrollToTop">
+      <span class="arrow"><i class="ti ti-arrow-narrow-up fs-20"></i></span>
+    </div>
+    <div id="responsive-overlay"></div>
+    <!-- Scroll To Top -->
+
+    <!-- Popper JS -->
+    <script src="assets/libs/%40popperjs/core/umd/popper.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Node Waves JS-->
+    <script src="assets/libs/node-waves/waves.min.js"></script>
+
+    <!-- Simplebar JS -->
+    <script src="assets/libs/simplebar/simplebar.min.js"></script>
+    <link rel="modulepreload" href="assets/simplebar-B35Aj-bA.js" />
+    <script type="module" src="assets/simplebar-B35Aj-bA.js"></script>
+    <!-- Auto Complete JS -->
+    <script src="assets/libs/%40tarekraafat/autocomplete.js/autoComplete.min.js"></script>
+
+    <!-- Color Picker JS -->
+    <script src="assets/libs/%40simonwep/pickr/pickr.es5.min.js"></script>
+
+    <!-- Date & Time Picker JS -->
+    <script src="assets/libs/flatpickr/flatpickr.min.js"></script>
+
+    <!-- Apex Charts JS -->
+    <script src="assets/libs/apexcharts/apexcharts.min.js"></script>
+
+    <!-- Sales Dashboard -->
+    <link rel="modulepreload" href="assets/sales-dashboard-BU3coFtq.js" />
+    <script type="module" src="assets/sales-dashboard-BU3coFtq.js"></script>
+
+    <!-- Sticky JS -->
+    <script src="assets/sticky.js"></script>
+
+    <!-- Custom-Switcher JS -->
+    <link rel="modulepreload" href="assets/custom-switcher-BayzdO2G.js" />
+    <script type="module" src=" assets/custom-switcher-BayzdO2G.js"></script>
+    <!-- APP JS-->
+    <link rel="modulepreload" href="assets/app-C4M4tSMb.js" />
+    <script type="module" src=" assets/app-C4M4tSMb.js"></script>
+    <!-- END SCRIPTS -->
+  </body>
+</html>

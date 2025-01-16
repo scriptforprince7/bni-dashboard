@@ -1,0 +1,377 @@
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/sidebar') %>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >Classifications Information</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item Approved" aria-current="page">
+                    View All Classifications
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                Manage Classifications
+              </h1>
+            </div>
+            <div class="btn-list">
+              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+                </i> Total Classifications <br />
+               <span> <b>50</b></span> 
+              </button>
+              <button class="btn btn-danger btn-wave me-0">
+                <i class="ri-share-forward-line me-1"></i> Export List
+              </button>
+            </div>
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">All Classifications List</div>
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <div class="btn-group">
+                </div>
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search Classification.."
+                    aria-label="Recipient's username"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap"
+                  style="border: 1px solid grey"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">S.No.</th>
+                      <th scope="col">Classification Name</th>
+                      <th scope="col">Published by</th>
+                    
+                      <th scope="col">Classification Industry</th>
+                      <th scope="col">Published Date</th>
+                      <th scope="col">Vacancy Availability</th>
+                    </tr>
+                  </thead>
+                  
+                  <tbody>
+                    <tr class="order-list">
+                      <td>1</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Ticketing</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                            Travel
+                        </div>
+                      </td>
+                      
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          > Not Available</span
+                        >
+                          
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>2</td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center text-center"
+                            >
+                              <a href="">Tours/Tour Guide</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          Travel
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-success-transparent">Available</span>
+                        
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>3</td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center text-center"
+                            >
+                              <a href="">Marketing Consultant</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                            Consulting
+                        </div>
+                      </td>
+
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-success-transparent">Available</span>
+                       
+                           
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>4</td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center text-center"
+                            >
+                              <a href="">Uniforms</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center text-center">
+                            Retail
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          > Not Available</span
+                        >
+                       
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>6</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href=""> Tiles</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                            Construction
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-success-transparent">Available</span>
+                       
+                           
+                        </a>
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>7</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Custom Clothing/Tailor</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                            Retail
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          > Not Available</span
+                        >
+                      
+                      </td>
+                    </tr>
+                    <tr class="order-list">
+                      <td>8</td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Gold Jewellery - Retail</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <p
+                              class="fw-semibold mb-0 d-flex align-items-center"
+                            >
+                              <a href="">Raja Shukla</a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="d-flex align-items-center">
+                            Retail
+                        </div>
+                      </td>
+                      <td class="fw-semibold">11 Jan 2024</td>
+                      <td>
+                        <span class="badge bg-danger-transparent"
+                          > Not Available</span
+                        >
+                       
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b>1</b> to <b>10</b> entries
+                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                </div>
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto">
+                    <li class="page-item disabled">
+                      <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item Approved" aria-current="page">
+                      <a class="page-link" href="javascript:void(0)">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+
+      <%- include('../partials/footer') %> 

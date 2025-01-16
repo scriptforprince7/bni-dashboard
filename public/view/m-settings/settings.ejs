@@ -1,0 +1,820 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/member-sidebar') %>
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);"> Settings </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              All Settings
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">Manage Settings</h1>
+      </div>
+      <div class="btn-list">
+        <!-- <button class="btn btn-white btn-wave">
+                                <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                            </button>
+                            <button class="btn btn-primary btn-wave me-0">
+                                <i class="ri-share-forward-line me-1"></i> Share
+                            </button> -->
+      </div>
+    </div>
+    <!-- End::page-header -->
+
+    <!-- Start::row-1 -->
+    <div class="row mb-5">
+      <div class="col-xl-3">
+        <div class="card custom-card">
+          <div class="card-body">
+            <ul
+              class="nav nav-tabs flex-column nav-tabs-header mb-0 mail-settings-tab"
+              role="tablist"
+            >
+              <!-- <li class="nav-item me-0">
+                                            <a class="nav-link active" data-bs-toggle="tab" role="tab" aria-current="page" href="#email-settings" aria-selected="true"><i class="ri-mail-line me-2 align-middle fs-14 lh-1 text-primary"></i>Email</a>
+                                        </li> -->
+              <li class="nav-item me-0">
+                <a
+                  class="nav-link active"
+                  data-bs-toggle="tab"
+                  role="tab"
+                  aria-current="page"
+                  href="#account-settings"
+                  aria-selected="true"
+                  ><i
+                    class="ri-shield-user-line me-2 align-middle fs-14 lh-1 text-primary"
+                  ></i
+                  >Account Settings</a
+                >
+              </li>
+              <li class="nav-item me-0">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  role="tab"
+                  aria-current="page"
+                  href="#company-info"
+                  aria-selected="true"
+                  ><i
+                    class="ri-community-line me-2 align-middle fs-14 lh-1 text-primary"
+                  ></i
+                  >Company Info</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="card custom-card">
+          <div class="card-header">
+            <div class="card-title">Social Links</div>
+          </div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-xl-12">
+                <label for="facebook" class="form-label">Facebook :</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="facebook"
+                  placeholder="https://"
+                />
+              </div>
+              <div class="col-xl-12">
+                <label for="Instagram" class="form-label">Instagram :</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="Instagram"
+                  placeholder="https://"
+                />
+              </div>
+              <div class="col-xl-12">
+                <label for="Youtube" class="form-label">Youtube:</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="Youtube"
+                  placeholder="https://"
+                />
+              </div>
+              <div class="col-xl-12">
+                <label for="Linkedin" class="form-label">Linkedin :</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="Linkedin"
+                  placeholder="https://"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-9">
+        <div class="card custom-card">
+          <div class="card-body p-0">
+            <div class="tab-content border-0">
+              <!-- <div class="tab-pane active show p-0" id="email-settings" role="tabpanel">
+                                            <ul class="list-group list-group-flush rounded">
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Keyboard Shortcuts :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="keyboard-enable" id="keyboard-enable1">
+                                                                <label class="form-check-label" for="keyboard-enable1">
+                                                                    Keyboard Shortcuts Enable
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="keyboard-enable" id="keyboard-disable2" checked="">
+                                                                <label class="form-check-label" for="keyboard-disable2">
+                                                                    Keyboard Shortcuts Disable
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="keyboard-shortcuts">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-12">
+                                                            <span class="fs-14 fw-medium mb-0">Menu View :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                                                                <label class="form-check-label" for="flexRadioDefault1">
+                                                                    Default View
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked="">
+                                                                <label class="form-check-label" for="flexRadioDefault2">
+                                                                    Advanced View
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success on mb-0 float-sm-end" id="menu-view">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Images :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="images-open" id="images-open1">
+                                                                <label class="form-check-label" for="images-open1">
+                                                                    Always Open Images
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="images-open" id="images-hide2" checked="">
+                                                                <label class="form-check-label" for="images-hide2">
+                                                                    Ask For Permission
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mails-images">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Mail Send Action :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" value="" id="on-keyboard" checked="">
+                                                                <label class="form-check-label" for="on-keyboard">
+                                                                    On Keyboard Action
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" value="" id="on-buttonclick">
+                                                                <label class="form-check-label" for="on-buttonclick">
+                                                                    On Button Click
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="float-sm-end">
+                                                                <a href="javascript:void(0)" class="btn btn-success-ghost btn-sm">Learn-more</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-3 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Maximum Mails Per Page :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <select class="form-control" data-trigger="" name="mail-per-page" id="mail-per-page">
+                                                            <option value="Choice 1" selected="">10</option>
+                                                            <option value="Choice 2">50</option>
+                                                            <option value="Choice 3">100</option>
+                                                            <option value="Choice 3">120</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mails-per-page">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Mail Composer :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="d-flex gap-4 align-items-center">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="mail-composer" id="mail-composeron1">
+                                                                    <label class="form-check-label" for="mail-composeron1">
+                                                                        Mail Composer On
+                                                                    </label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="mail-composer" id="mail-composeroff2" checked="">
+                                                                    <label class="form-check-label" for="mail-composeroff2">
+                                                                        Mail Composer Off
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mail-composer">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-3 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Language :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <label for="mail-language" class="form-label">Languages :</label>
+                                                            <select class="form-control" name="mail-language" id="mail-language" multiple="">
+                                                            <option value="Choice 1" selected="">English</option>
+                                                            <option value="Choice 2">French</option>
+                                                            <option value="Choice 3">Arabic</option>
+                                                            <option value="Choice 4">Hindi</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mail-languages">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Auto Correct :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="d-flex gap-4 align-items-center">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="auto-correct" id="auto-correcton1">
+                                                                    <label class="form-check-label" for="auto-correcton1">
+                                                                        Auto Correct On
+                                                                    </label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="auto-correct" id="auto-correctoff2" checked="">
+                                                                    <label class="form-check-label" for="auto-correctoff2">
+                                                                        Auto Correct Off
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="auto-correct">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div> -->
+              <div class="tab-pane p-0 active" id="account-settings" role="tabpanel">
+                <div class="row gy-3">
+                  <div class="col-xxl-12">
+                    <div class="card custom-card shadow-none mb-0">
+                      <div class="card-body">
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Display Profile Picture</p>
+                            <p class="fs-12 text-muted mb-0">
+                              Upload your profile picture here
+                            </p>
+                          </div>
+                          <div class="mb-0 ms-0 mt-sm-0 mt-2" id="recovery-mail">
+                            <input type="file" id="member-photo-input" accept=".jpg,.jpeg,.png"/>
+                            <div id="photo-container" class="mt-2">
+                              <img id="member-photo-preview" src="" alt="Profile Picture" style="max-width: 100px; display: none;"/>
+                              <p id="no-photo-message" class="text-muted fs-12">No profile picture uploaded</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="d-flex align-items-top justify-content-between">
+                          <div>
+                            <p class="fs-14 mb-1 fw-medium">Reset Password</p>
+                            <p class="fs-12 text-muted">
+                              Password should be min of
+                              <b class="text-success">8 digits<sup>*</sup></b>,
+                              atleast
+                              <b class="text-success">One Capital letter<sup>*</sup></b>
+                              and
+                              <b class="text-success">One Special Character<sup>*</sup></b>
+                            </p>
+                            <div class="mb-2">
+                              <label for="current-password" class="form-label">Current Password</label>
+                              <input type="text" class="form-control" id="current-password" placeholder="Current Password"/>
+                            </div>
+                            <div class="mb-2">
+                              <label for="new-password" class="form-label">New Password</label>
+                              <input type="text" class="form-control" id="new-password" placeholder="New Password"/>
+                            </div>
+                            <div class="mb-0">
+                              <label for="confirm-password" class="form-label">Confirm Password</label>
+                              <input type="text" class="form-control" id="confirm-password" placeholder="Confirm Password"/>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane p-0" id="company-info" role="tabpanel">
+                <div class="row gy-3">
+                  <div class="col-xxl-12">
+                    <div class="card custom-card shadow-none mb-0">
+                      <div class="card-body">
+
+                        <!-- Phone Number -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Phone Number:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" class="form-control" id="phone-number-input"/>
+                          </div>
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Email Address:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="email" class="form-control" id="email-address-input"/>
+                          </div>
+                        </div>
+                        
+                        <!-- Company Name -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Name:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" class="form-control" id="company-name-input"/>
+                          </div>
+                        </div>
+
+                        <!-- Company Address -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Address:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" class="form-control" id="company-address-input"/>
+                          </div>
+                        </div>
+
+                        <!-- Company GSTIN -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company GSTIN:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" class="form-control" id="company-gstin-input"/>
+                          </div>
+                        </div>
+
+                        <!-- Current Membership -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Current Membership (In Years):</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" class="form-control" id="current-membership-input" style="background-color: #DCDCDC;" readonly/>
+                          </div>
+                        </div>
+
+                        <!-- Renewal Date -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Renewal Date:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" class="form-control" id="renewal-date-input" style="background-color: #DCDCDC;" readonly/>
+                          </div>
+                        </div>
+
+                        <!-- Company Logo (moved to bottom) -->
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Logo:</p>
+                            <p class="fs-12 text-muted mb-0">Upload your company logo here</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="file" class="form-control" id="company-logo-input" accept="image/*"/>
+                            <div id="logo-container" class="mt-2">
+                              <img id="company-logo-preview" src="" alt="Company Logo" style="max-width: 100px; display: none;"/>
+                              <p id="no-logo-message" class="text-muted fs-12">No company logo uploaded</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="card-footer border-top-0 d-flex justify-content-between gap-2 flex-wrap"
+          >
+            
+            
+
+            <div class="ms-auto">
+              <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmationModal">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+  console.log('Before loading settings.js');
+</script>
+<script src="/assets/js/settings.js"></script>
+<script>
+  console.log('After loading settings.js');
+</script>
+
+<!-- Add the modal HTML before the closing body tag -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmationModalLabel">Confirm Changes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to save these changes?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="saveChanges()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  async function saveChanges() {
+    const phoneNumber = document.getElementById('phone-number-input').value;
+    const companyName = document.getElementById('company-name-input').value;
+    const companyAddress = document.getElementById('company-address-input').value;
+    const emailInput = document.getElementById('email-address-input').value;
+    const gstNumber = document.getElementById('company-gstin-input').value;
+    const loggedInEmail = localStorage.getItem('loggedInEmail');
+    
+    // Get member photo from input
+    const memberPhotoInput = document.getElementById('member-photo-input');
+    let memberPhotoData = '';
+    let memberPhotoName = '';
+    
+    // Check if a new file is selected
+    if (memberPhotoInput.files && memberPhotoInput.files[0]) {
+        const file = memberPhotoInput.files[0];
+        const fileExtension = file.name.split('.').pop();
+        const timestamp = Date.now();
+        memberPhotoName = `/home/mindaviator/Desktop/expenses1/bni/public/assets/memberProfileImage/member_${timestamp}.${fileExtension}`;
+        
+        // Convert file to base64
+        const reader = new FileReader();
+        memberPhotoData = await new Promise((resolve) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    // Get social links values directly from the input fields
+    const facebook = document.getElementById('facebook').value.trim();
+    const instagram = document.getElementById('Instagram').value.trim();
+    const youtube = document.getElementById('Youtube').value.trim();
+    const linkedin = document.getElementById('Linkedin').value.trim();
+
+    // Phone number validation
+    if (phoneNumber.length !== 10) {
+        toastr.error("Phone number must be exactly 10 digits", "Error");
+        return;
+    }
+
+    // Basic validations
+    if (!phoneNumber || !companyName || !companyAddress || !emailInput) {
+        toastr.error("Please fill in all required fields", "Error");
+        return;
+    }
+
+    try {
+        const updatedData = {
+            member_email_address: emailInput,
+            old_email_address: loggedInEmail,
+            member_phone_number: phoneNumber,
+            member_company_address: companyAddress,
+            member_company_name: companyName,
+            member_gst_number: gstNumber,
+            member_facebook: facebook,
+            member_instagram: instagram,
+            member_youtube: youtube,
+            member_linkedin: linkedin,
+            member_photo: memberPhotoData || '',  // Send the actual image data
+            member_photo_name: memberPhotoName    // Send the full path filename
+        };
+
+        console.log('Sending request with data:', updatedData);
+        const response = await fetch('http://localhost:5000/api/updateMemberSettings', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Update failed');
+        }
+
+        const data = await response.json();
+
+        if (data.message === "Member settings updated successfully") {
+            if (emailInput !== loggedInEmail) {
+                localStorage.setItem('loggedInEmail', emailInput);
+            }
+            
+            toastr.success("Changes have been saved successfully!", "Success");
+            
+            // Refresh company info to show updated data
+            if (typeof displayCompanyInfo === 'function') {
+                displayCompanyInfo();
+            }
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+        if (modal) {
+            modal.hide();
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        toastr.error(error.message || "Error saving changes. Please try again.", "Error");
+    }
+  }
+
+  // Add event listener for member photo upload preview
+  document.getElementById('member-photo-input').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    
+    // Check if file exists and validate type
+    if (file) {
+        if (!allowedTypes.includes(file.type)) {
+            toastr.error('Only JPG, JPEG and PNG files are allowed', 'Invalid File Type');
+            this.value = ''; // Clear the file input
+            return;
+        }
+
+        // Check file size (optional, set to 5MB here)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            toastr.error('File size should not exceed 5MB', 'File Too Large');
+            this.value = ''; // Clear the file input
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const photoPreview = document.getElementById('member-photo-preview');
+            const noPhotoMessage = document.getElementById('no-photo-message');
+            
+            photoPreview.src = e.target.result;
+            photoPreview.style.display = 'block';
+            noPhotoMessage.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+  });
+
+  // Phone number input validation
+  document.getElementById('phone-number-input').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+    }
+  });
+
+  // Email input validation
+  document.getElementById('email-address-input').addEventListener('input', function(e) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.value) && this.value.length > 0) {
+        this.classList.add('is-invalid');
+        // Optional: Show immediate feedback
+        toastr.warning("Please enter a valid email address", "Warning");
+    } else {
+        this.classList.remove('is-invalid');
+    }
+  });
+
+  // Company name input validation - limit to 50 characters
+  document.getElementById('company-name-input').addEventListener('input', function(e) {
+    if (this.value.length > 50) {
+        this.value = this.value.slice(0, 50);
+        toastr.warning("Company name cannot exceed 50 characters", "Warning");
+    }
+  });
+
+  // Company address input validation - limit to 150 characters
+  document.getElementById('company-address-input').addEventListener('input', function(e) {
+    if (this.value.length > 150) {
+        this.value = this.value.slice(0, 150);
+        toastr.warning("Company address cannot exceed 150 characters", "Warning");
+    }
+  });
+
+  // GST number input validation - Show popup only when user tries to modify the value
+  document.getElementById('company-gstin-input').addEventListener('input', function(e) {
+    // Get the original value
+    const originalValue = this.getAttribute('data-original');
+    
+    // If user tries to change the value, show popup and revert the change
+    if (this.value !== originalValue) {
+        // Show GST update notification modal
+        const gstModal = new bootstrap.Modal(document.getElementById('gstUpdateModal'));
+        gstModal.show();
+    }
+  });
+
+  // Add event listener to OK button in GST modal
+  document.querySelector('#gstUpdateModal .btn-primary').addEventListener('click', function() {
+    const gstInput = document.getElementById('company-gstin-input');
+    const originalValue = gstInput.getAttribute('data-original');
+    gstInput.value = originalValue;
+  });
+
+  // Store original GST number when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    const gstInput = document.getElementById('company-gstin-input');
+    if (gstInput) {
+        gstInput.setAttribute('data-original', gstInput.value);
+    }
+  });
+
+  // Improve URL validation for social links
+  const validateUrl = (url) => {
+    if (!url) return true; // Empty URLs are allowed
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+  };
+
+  const socialInputs = ['facebook', 'Instagram', 'Youtube', 'Linkedin'];
+  
+  socialInputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', function(e) {
+        let value = this.value.trim();
+        
+        // Add https:// if not present and there's a value
+        if (value && !value.match(/^https?:\/\//)) {
+            value = 'https://' + value;
+            this.value = value;
+        }
+
+        // Validate URL
+        if (value && !validateUrl(value)) {
+            this.classList.add('is-invalid');
+            toastr.warning(`Please enter a valid URL for ${id}`, "Warning");
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+  });
+
+  // Function to load social links
+  async function loadSocialLinks() {
+    try {
+        const loggedInEmail = localStorage.getItem('loggedInEmail');
+        const response = await fetch(`http://localhost:5000/api/getMemberSocialLinks?email=${loggedInEmail}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load social links');
+        }
+
+        const data = await response.json();
+        
+        // Update social link inputs and handle null values
+        if (data.social_links) {
+            const links = data.social_links;
+            document.getElementById('facebook').value = links.facebook || '';
+            document.getElementById('Instagram').value = links.instagram || '';
+            document.getElementById('Youtube').value = links.youtube || '';
+            document.getElementById('Linkedin').value = links.linkedin || '';
+        }
+
+        console.log('Loaded social links:', data.social_links); // Debug log
+    } catch (error) {
+        console.error('Error loading social links:', error);
+        toastr.error("Failed to load social links", "Error");
+    }
+  }
+
+  // Call loadSocialLinks when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    loadSocialLinks();
+  });
+</script>
+
+<!-- Add this modal HTML at the end of your settings.ejs file -->
+<div class="modal fade" id="gstUpdateModal" tabindex="-1" aria-labelledby="gstUpdateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gstUpdateModalLabel">GST Number Update Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-center">For updating GST Number, please wait for approval from the administrator. You will be notified once your request is approved.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- End::content  -->
+<%- include('../partials/footer') %>

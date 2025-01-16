@@ -1,0 +1,359 @@
+{
+  "Version": "1.1",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "EXPWP",
+    "RegRev": "N",
+    "EcmGstin": null,
+    "IgstOnIntra": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV",
+    "No": "BBL/AE/24100001",
+    "Dt": "27/12/2024"
+  },
+  "SellerDtls": {
+    "Gstin": "07EVVPS9453K001",
+    "LglNm": "NMP",
+    "Addr1": "B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078",
+    "Loc": "NEW DELHI",
+    "Pin": 110078,
+    "Stcd": "07"
+  },
+  "BuyerDtls": {
+    "Gstin": "URP",
+    "LglNm": "PROTECNO PERU SAC",
+    "Addr1": "SAMOA 373 OF.7URB SOL DE LA MOLINA",
+    "Loc": "OTHER TERRITORY",
+    "Pin": 999999,
+    "Stcd": "29",
+    "POS": "29"  // Explicitly added Buyer POS
+  },
+  "ShipDtls": {
+    "Gstin": "URP",
+    "LglNm": "PROTECNO PERU SAC",
+    "Addr1": "SAMOA 373 OF.7URB SOL DE LA MOLINA",
+    "Loc": "OTHER TERRITORY",
+    "Pin": 999999,
+    "Stcd": "97"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "Product Export",
+      "IsServc": "N",
+      "HsnCd": "84713010",
+      "Qty": 100,
+      "Unit": "PCS",
+      "UnitPrice": 500,
+      "TotAmt": 50000,
+      "Discount": 0,
+      "PreTaxVal": 50000,
+      "AssAmt": 50000,
+      "GstRt": 18,
+      "IgstAmt": 9000,
+      "CgstAmt": 0,
+      "SgstAmt": 0,
+      "TotItemVal": 59000  // Added total item value
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 50000,
+    "IgstVal": 9000,
+    "TotInvVal": 59000,
+  },
+  "ExpDtls": {
+    "ShipBNo": "057-4994 9314",
+    "ShipBDt": "18/10/2024",
+    "ForCur": "USD",
+    "CntCode": "PE"
+  }
+
+}
+
+
+
+
+
+
+{\"Version\": \"1.1\", \"TranDtls\": {\"TaxSch\": \"GST\", \"SupTyp\": \"EXPWP\", \"RegRev\": \"N\", \"EcmGstin\": null, \"IgstOnIntra\": \"N\"}, \"DocDtls\": {\"Typ\": \"INV\", \"No\": \"BBL/AE/24100001\", \"Dt\": \"27/12/2024\"}, \"SellerDtls\": {\"Gstin\": \"07EVVPS9453K001\", \"LglNm\": \"NMP\", \"Addr1\": \"B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078\", \"Loc\": \"NEW DELHI\", \"Pin\": 110078, \"Stcd\": \"07\"}, \"BuyerDtls\": {\"Gstin\": \"URP\", \"LglNm\": \"PROTECNO PERU SAC\", \"Addr1\": \"SAMOA 373 OF.7URB SOL DE LA MOLINA\", \"Loc\": \"OTHER TERRITORY\", \"Pin\": 999999, \"Stcd\": \"97\", \"POS\": \"IN\"}, \"ShipDtls\": {\"Gstin\": \"URP\", \"LglNm\": \"PROTECNO PERU SAC\", \"Addr1\": \"SAMOA 373 OF.7URB SOL DE LA MOLINA\", \"Loc\": \"OTHER TERRITORY\", \"Pin\": 743126, \"Stcd\": \"24\"}, \"ItemList\": [{\"SlNo\": \"1\", \"PrdDesc\": \"Product Export\", \"IsServc\": \"N\", \"HsnCd\": \"84713010\", \"Qty\": 100, \"Unit\": \"PCS\", \"UnitPrice\": 500, \"TotAmt\": 50000, \"Discount\": 0, \"PreTaxVal\": 50000, \"AssAmt\": 50000, \"GstRt\": 18, \"IgstAmt\": 9000, \"CgstAmt\": 0, \"SgstAmt\": 0, \"TotItemVal\": 59000}], \"ValDtls\": {\"AssVal\": 50000, \"IgstVal\": 9000, \"TotInvVal\": 59000}, \"ExpDtls\": {\"ShipBNo\": \"057-4994 9314\", \"ShipBDt\": \"18/10/2024\", \"ForCur\": \"USD\", \"CntCode\": \"IN\"}}
+
+
+
+
+
+{
+  "Version": "1.1",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "EXPWP", 
+    "RegRev": "N",
+    "EcmGstin": null,
+    "IgstOnIntra": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV",
+    "No": "DOC/EXPWP/001",
+    "Dt": "27/12/2024"
+  },
+  "SellerDtls": {
+    "Gstin": "37ARZPT4384Q1MT",
+    "LglNm": "NIC company pvt ltd",
+    "TrdNm": "NIC Industries",
+    "Addr1": "5th block, kuvempu layout",
+    "Addr2": "kuvempu layout",
+    "Loc": "GANDHINAGAR",
+    "Pin": 518001,
+    "Stcd": "37",
+    "Ph": "9000000000",
+    "Em": "abc@gmail.com"
+  },
+  "BuyerDtls": {
+    "Gstin": null,
+    "LglNm": "Overseas Buyer",
+    "TrdNm": "Overseas Trading Co.",
+    "Pos": "96", 
+    "Addr1": "123 Overseas Street",
+    "Addr2": "Global Market",
+    "Loc": "Dubai",
+    "Pin": 123456,
+    "Stcd": "96",
+    "Ph": "9999999999",
+    "Em": "overseasbuyer@example.com"
+  },
+  "ExpDtls": {
+    "ShipBNo": "B-001",
+    "ShipBDt": "27/12/2024",
+    "Port": "INCHN1",
+    "RefClm": "Y",
+    "ForCur": "USD",
+    "CntCode": "US",
+    "ExpDuty": "N"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "Electronics",
+      "IsServc": "N",
+      "HsnCd": "8471",
+      "Barcde": "987654",
+      "Qty": 50,
+      "Unit": "PCS",
+      "UnitPrice": 200,
+      "TotAmt": 10000,
+      "Discount": 0,
+      "PreTaxVal": 10000,
+      "AssAmt": 10000,
+      "GstRt": 0,
+      "IgstAmt": 0,
+      "CgstAmt": 0,
+      "SgstAmt": 0,
+      "TotItemVal": 10000
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 10000,
+    "TotInvVal": 10000
+  },
+  "PayDtls": {
+    "Nm": "Global Bank",
+    "AccDet": "1234567890",
+    "Mode": "WireTransfer",
+    "PaidAmt": 10000,
+    "PaymtDue": 0
+  },
+  "EwbDtls": {
+    "TransId": "ABCPVT001",
+    "TransName": "Global Exports Pvt Ltd",
+    "Distance": 300,
+    "TransDocNo": "EXPWP001",
+    "TransDocDt": "27/12/2024",
+    "VehNo": "DL12345",
+    "VehType": "R",
+    "TransMode": "1"
+  }
+}
+
+
+
+
+
+{\"Version\": \"1.1\", \"TranDtls\": {\"TaxSch\": \"GST\", \"SupTyp\": \"EXPWP\", \"RegRev\": \"N\", \"EcmGstin\": null, \"IgstOnIntra\": \"N\"}, \"DocDtls\": {\"Typ\": \"INV\", \"No\": \"BBL/AE/24100001\", \"Dt\": \"27/12/2024\"}, \"SellerDtls\": {\"Gstin\": \"07EVVPS9453K001\", \"LglNm\": \"NMP\", \"Addr1\": \"B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078\", \"Loc\": \"NEW DELHI\", \"Pin\": 110078, \"Stcd\": \"07\"}, \"BuyerDtls\": {\"Gstin\": \"URP\", \"LglNm\": \"PROTECNO PERU SAC\", \"Addr1\": \"SAMOA 373 OF.7URB SOL DE LA MOLINA\", \"Loc\": \"OTHER TERRITORY\", \"Pin\": 999999, \"Stcd\": \"96\", \"POS\": \"96\"}, \"ShipDtls\": {\"Gstin\": \"URP\", \"LglNm\": \"PROTECNO PERU SAC\", \"Addr1\": \"SAMOA 373 OF.7URB SOL DE LA MOLINA\", \"Loc\": \"OTHER TERRITORY\", \"Pin\": 999999, \"Stcd\": \"96\"}, \"ItemList\": [{\"SlNo\": \"1\", \"PrdDesc\": \"Product Export\", \"IsServc\": \"N\", \"HsnCd\": \"84713010\", \"Qty\": 100, \"Unit\": \"PCS\", \"UnitPrice\": 500, \"TotAmt\": 50000, \"Discount\": 0, \"PreTaxVal\": 50000, \"AssAmt\": 50000, \"GstRt\": 18, \"IgstAmt\": 9000, \"CgstAmt\": 0, \"SgstAmt\": 0, \"TotItemVal\": 59000}], \"ValDtls\": {\"AssVal\": 50000, \"IgstVal\": 9000, \"TotInvVal\": 59000}, \"ExpDtls\": {\"ShipBNo\": \"057-4994 9314\", \"ShipBDt\": \"18/10/2024\", \"ForCur\": \"USD\", \"CntCode\": \"IN\"}}
+
+
+
+
+
+
+
+
+{
+  "Version": "1.1",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "EXPWOP",
+    "RegRev": "N",
+    "EcmGstin": null,
+    "IgstOnIntra": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV", 
+    "No": "BBL/AE/24100040", 
+    "Dt": "27/12/2024"
+  },
+  "SellerDtls": {
+    "Gstin": "07EVVPS9453K001",
+    "LglNm": "NMP",
+    "Addr1": "B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078",
+    "Loc": "NEW DELHI",
+    "Pin": 110078,
+    "Stcd": "07"
+  },
+  "BuyerDtls": {
+    "Gstin": "URP",
+    "LglNm": "PROTECNO PERU SAC",
+    "Addr1": "SAMOA 373 OF.7URB SOL DE LA MOLINA",
+    "Loc": "OTHER TERRITORY",
+    "Pin": 999999,
+    "Stcd": "96",
+    "POS": "96"
+  },
+  "ShipDtls": {
+    "Gstin": "URP",
+    "LglNm": "PROTECNO PERU SAC",
+    "Addr1": "SAMOA 373 OF.7URB SOL DE LA MOLINA",
+    "Loc": "OTHER TERRITORY",
+    "Pin": 999999,
+    "Stcd": "96"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "Product Export",
+      "IsServc": "N",
+      "HsnCd": "84713010",
+      "Qty": 100,
+      "Unit": "PCS",
+      "UnitPrice": 500,
+      "TotAmt": 50000,
+      "Discount": 0,
+      "PreTaxVal": 50000,
+      "AssAmt": 50000,
+      "GstRt": 0,
+      "TotItemVal": 50000
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 50000,
+    "TotInvVal": 50000
+  },
+  "ExpDtls": {
+    "ShipBNo": "057-4994 9314",
+    "ShipBDt": "18/10/2024",
+    "ForCur": "USD",
+    "CntCode": "IN"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+{
+  "Version": "1.1",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "B2B",
+    "RegRev": "Y",
+    "EcmGstin": null,
+    "IgstOnIntra": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV",
+    "No": "RCM/1",
+    "Dt": "28/12/2024"
+  },
+  "SellerDtls": {
+    "Gstin": "07EVVPS9453K001",
+    "LglNm": "NMP",
+    "Addr1": "B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078",
+    "Loc": "NEW DELHI",
+    "Pin": 110078,
+    "Stcd": "07"
+  },
+  "BuyerDtls": {
+    "Gstin": "07EVVPS9453K000",
+    "LglNm": "PROTECNO PERU SAC",
+    "Addr1": "SAMOA 373 OF.7URB SOL DE LA MOLINA",
+    "Loc": "OTHER TERRITORY",
+    "Pin": 110078,
+    "Stcd": "07",
+    "POS": "07"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "RCM",
+      "IsServc": "N",
+      "HsnCd": "84713010",
+      "Qty": 50,
+      "Unit": "PCS",
+      "UnitPrice": 600,
+      "TotAmt": 30000,
+      "Discount": 0,
+      "PreTaxVal": 30000,
+      "AssAmt": 30000,
+      "GstRt": 18,
+      "CgstAmt": 2700,
+      "SgstAmt": 2700,
+      "TotItemVal": 35400
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 30000,
+    "CgstVal": 2700,
+    "SgstVal": 2700,
+    "TotInvVal": 35400
+  },
+  "ExpDtls": {
+    "ShipBNo": null,
+    "ShipBDt": null,
+    "ForCur": null,
+    "CntCode": null
+  }
+}
+
+
+
+
+
+{\"Version\": \"1.1\", \"TranDtls\": {\"TaxSch\": \"GST\", \"SupTyp\": \"SEZWOP\", \"RegRev\": \"N\", \"EcmGstin\": null, \"IgstOnIntra\": \"N\"}, \"DocDtls\": {\"Typ\": \"INV\", \"No\": \"BBL/AE/24111\", \"Dt\": \"28/12/2024\"}, \"SellerDtls\": {\"Gstin\": \"07EVVPS9453K001\", \"LglNm\": \"NMP\", \"Addr1\": \"B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078\", \"Loc\": \"NEW DELHI\", \"Pin\": 110078, \"Stcd\": \"07\"}, \"BuyerDtls\": {\"Gstin\": \"07EVVPS9453K002\", \"LglNm\": \"SEZ Entity Name\", \"Addr1\": \"SEZ Address Line 1\", \"Loc\": \"SEZ Location\", \"Pin\": 110001, \"Stcd\": \"07\", \"POS\": \"07\"}, \"ItemList\": [{\"SlNo\": \"1\", \"PrdDesc\": \"Product SEZ\", \"IsServc\": \"N\", \"HsnCd\": \"84713010\", \"Qty\": 50, \"Unit\": \"PCS\", \"UnitPrice\": 600, \"TotAmt\": 30000, \"Discount\": 0, \"PreTaxVal\": 30000, \"AssAmt\": 30000, \"GstRt\": 0, \"TotItemVal\": 30000}], \"ValDtls\": {\"AssVal\": 30000,\, \"TotInvVal\": 30000}, \"ExpDtls\": {\"ShipBNo\": null, \"ShipBDt\": null, \"ForCur\": null, \"CntCode\": null}}
+
+
+
+
+
+
+{\"Version\": \"1.1\", \"TranDtls\": {\"TaxSch\": \"GST\", \"SupTyp\": \"SEZWOP\", \"RegRev\": \"N\", \"EcmGstin\": null, \"IgstOnIntra\": \"N\"}, \"DocDtls\": {\"Typ\": \"INV\", \"No\": \"BBL/AE/24111\", \"Dt\": \"28/12/2024\"}, \"SellerDtls\": {\"Gstin\": \"07EVVPS9453K001\", \"LglNm\": \"NMP\", \"Addr1\": \"B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078\", \"Loc\": \"NEW DELHI\", \"Pin\": 110078, \"Stcd\": \"07\"}, \"BuyerDtls\": {\"Gstin\": \"07EVVPS9453K002\", \"LglNm\": \"SEZ Entity Name\", \"Addr1\": \"SEZ Address Line 1\", \"Loc\": \"SEZ Location\", \"Pin\": 110001, \"Stcd\": \"07\", \"POS\": \"07\"}, \"ItemList\": [{\"SlNo\": \"1\", \"PrdDesc\": \"Product SEZ\", \"IsServc\": \"N\", \"HsnCd\": \"84713010\", \"Qty\": 50, \"Unit\": \"PCS\", \"UnitPrice\": 600, \"TotAmt\": 30000, \"Discount\": 0, \"PreTaxVal\": 30000, \"AssAmt\": 30000, \"GstRt\": 0, \"TotItemVal\": 30000}], \"ValDtls\": {\"AssVal\": 30000, \"TotInvVal\": 30000}, \"ExpDtls\": {\"ShipBNo\": null, \"ShipBDt\": null, \"ForCur\": null, \"CntCode\": null}}
+
+
+
+
+
+
+
+
+
+
+
+
+{\"Version\": \"1.1\", \"TranDtls\": {\"TaxSch\": \"GST\", \"SupTyp\": \"RCM\", \"RegRev\": \"Y\", \"EcmGstin\": null, \"IgstOnIntra\": \"N\"}, \"DocDtls\": {\"Typ\": \"INV\", \"No\": \"BBL/AE/1001\", \"Dt\": \"28/12/2024\"}, \"SellerDtls\": {\"Gstin\": \"07EVVPS9453K001\", \"LglNm\": \"NMP\", \"Addr1\": \"B-27/A, Third Floor, Dwarka Mor, Patel Garden Sec-15, Dwarka (Near, Dwarka Hospital) Delhi-110078\", \"Loc\": \"NEW DELHI\", \"Pin\": 110078, \"Stcd\": \"07\"}, \"BuyerDtls\": {\"Gstin\": \"07EVVPS9453K000\", \"LglNm\": \"PROTECNO PERU SAC\", \"Addr1\": \"SAMOA 373 OF.7URB SOL DE LA MOLINA\", \"Loc\": \"OTHER TERRITORY\", \"Pin\": 110078, \"Stcd\": \"07\", \"POS\": \"07\"}, \"ItemList\": [{\"SlNo\": \"1\", \"PrdDesc\": \"RCM\", \"IsServc\": \"N\", \"HsnCd\": \"84713010\", \"Qty\": 50, \"Unit\": \"PCS\", \"UnitPrice\": 600, \"TotAmt\": 30000, \"Discount\": 0, \"PreTaxVal\": 30000, \"AssAmt\": 30000, \"GstRt\": 18, \"CgstAmt\": 2700, \"SgstAmt\": 2700, \"TotItemVal\": 35400}], \"ValDtls\": {\"AssVal\": 30000, \"CgstVal\": 2700, \"SgstVal\": 2700, \"TotInvVal\": 35400}, \"ExpDtls\": {\"ShipBNo\": null, \"ShipBDt\": null, \"ForCur\": null, \"CntCode\": null}}
+
+
+

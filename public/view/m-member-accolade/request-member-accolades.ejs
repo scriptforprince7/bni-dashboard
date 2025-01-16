@@ -1,0 +1,398 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/member-sidebar') %>
+
+<!-- end sidebar -->
+<style>
+  
+  /* Ensuring that the modal body has padding */
+  .modal-body {
+    padding: 20px;
+  }
+  /* Preventing the add button container from affecting layout */
+  .add-button-container {
+    margin-top: 10px; /* Space above the button */
+    display: none; /* Initially hidden */
+  }
+</style>
+<style>
+  .custom-dropdown {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background: white;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .options div {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .options div:hover {
+    background-color: #f0f0f0;
+  }
+
+  .selected {
+    display: flex;
+    align-items: center;
+  }
+</style>
+
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins"
+            >Request New Requisition</span
+          >
+        </h1>
+        <!-- <p>Manage kitty payments with just one click</p> -->
+      </div>
+      <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="form-group">
+                <div class="input-group">
+                  <div class="input-group-text bg-white border">
+                    <i class="ri-calendar-line"></i>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control breadcrumb-input"
+                    id="daterange"
+                    placeholder="Search By Date Range"
+                  />
+                </div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-white btn-wave">
+                  <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                </button>
+                <button class="btn btn-primary btn-wave me-0">
+                  <i class="ri-share-forward-line me-1"></i> Share
+                </button>
+              </div>
+            </div> -->
+    </div>
+    <!-- End::page-header -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+    </style>
+
+    <style>
+      * {
+        font-family: Montserrat !important;
+        font-weight: 800px;
+      }
+      .text-muted {
+        color: black !important;
+        font-family: Montserrat Alternates;
+      }
+      .popins {
+        font-family: Poppins;
+      }
+    </style>
+
+    <form id="addRegionForm">
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>It's time for reuesting a new requisition!</b></span
+                          ></label
+                        >
+                      </div>
+
+                      <div class="col-xl-6">
+                        <label for="region_status" class="form-label">Choose Accolade</label>
+                        <select class="form-control" name="region_status" id="region_status">
+                          <option value="">Select</option>
+                          <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <!-- New eligibility checkbox -->
+                        <div class="form-check mt-2">
+                          <input class="form-check-input" type="checkbox" id="eligibilityCheck" name="eligibilityCheck" required>
+                          <label class="form-check-label" for="eligibilityCheck">
+                            I confirm that I am eligible for the above requested accolade
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="mission" class="form-label"
+                          >Request Note</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="mission"
+                          name="mission"
+                          placeholder="Enter the request note"
+                          rows="3"
+                        ></textarea>
+                      </div>
+
+                      <div class="col-xl-12 mt-3">
+                        <button type="submit" class="btn btn-success btn-wave" style="background-color: #28a745; border-color: #28a745; width: 200px;">
+                          Request Requisition
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div id="formMessage"></div>
+  </div>
+</div>
+<!-- End::content  -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Fetch accolades from the live API
+    fetch("https://bni-data-backend.onrender.com/api/accolades")
+      .then((response) => response.json())
+      .then((data) => {
+        const accoladesContainer = document.getElementById("accoladesContainer");
+
+        // Clear existing content (if any)
+        accoladesContainer.innerHTML = "";
+
+        // Loop through accolades and create checkboxes
+        data.forEach((accolade) => {
+          const checkboxDiv = document.createElement("div");
+          checkboxDiv.className = "form-check";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "form-check-input";
+          checkbox.id = `accolade${accolade.accolade_id}`;
+          checkbox.name = "accolades[]";  // Use array syntax for multiple selections
+          checkbox.value = accolade.accolade_id;  // Use ID to store in accolades_config
+
+          const label = document.createElement("label");
+          label.className = "form-check-label";
+          label.setAttribute("for", `accolade${accolade.accolade_id}`);
+          label.textContent = accolade.accolade_name;
+
+          // Append checkbox and label to the div
+          checkboxDiv.appendChild(checkbox);
+          checkboxDiv.appendChild(label);
+
+          // Append the div to the accolades container
+          accoladesContainer.appendChild(checkboxDiv);
+        });
+      })
+      .catch((error) => console.error("Error fetching accolades:", error));
+
+    // Handle form submission
+    const form = document.getElementById("regionForm");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();  // Prevent default form submission
+
+      // Gather accolades
+      const selectedAccolades = Array.from(form.elements["accolades[]"]) // Use the correct name here
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+
+      // Prepare data for submission
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      data.accolades_config = selectedAccolades;  // Include selected accolades
+
+      // Send data to the backend
+      try {
+        const response = await fetch('/api/regions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+        
+          toastr.success('Region Created successfully!');
+          console.log('Region added successfully:', result);
+          document.getElementById("formMessage").innerText = "Region added successfully!";
+        } else {
+          console.error('Error adding region:', response.statusText);
+          const errorResult = await response.json();
+          toastr.error(`${errorResult.message}`);
+          document.getElementById("formMessage").innerText = `Error: ${errorResult.message}`;
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        toastr.error(`${error.message}`);
+        document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
+      }
+    });
+  });
+</script>
+<script>
+  document.getElementById("addFee").addEventListener("click", function () {
+    const newFeeRow = document.createElement("div");
+    newFeeRow.className = "feeRow";
+    newFeeRow.innerHTML = `
+        <label>Year:</label>
+        <input type="number" name="year" placeholder />
+        <input type="text" name="fee" placeholde />
+      `;
+    document.getElementById("membershipFeesContainer").appendChild(newFeeRow);
+  });
+</script>
+<script>
+  function updateTaxOptions(modalId) {
+    const taxTypeSelect = document.getElementById(`taxType${modalId}`);
+    const taxOptionsSelect = document.getElementById(`taxOptions${modalId}`);
+    const addButtonContainer = document.getElementById(
+      `addButtonContainer${modalId}`
+    );
+    const addButton = document.getElementById(`addButton${modalId}`);
+
+    // Clear previous options
+    taxOptionsSelect.innerHTML =
+      '<option value="" selected>Select Percentage</option>';
+
+    if (taxTypeSelect.value === "gst") {
+      taxOptionsSelect.innerHTML +=
+        '<option value="5">5%</option><option value="12">12%</option><option value="18">18%</option>';
+    } else if (taxTypeSelect.value === "vat") {
+      taxOptionsSelect.innerHTML +=
+        '<option value="5">5%</option><option value="15">15%</option>';
+    }
+
+    // Enable the tax options dropdown
+    taxOptionsSelect.disabled = false;
+
+    // Show the Add button only if both dropdowns have a selected value
+    addButtonContainer.style.display =
+      taxTypeSelect.value && taxOptionsSelect.value ? "block" : "none";
+
+    // Event listener for taxOptions dropdown to show/hide Add button
+    taxOptionsSelect.addEventListener("change", function () {
+      addButtonContainer.style.display =
+        taxTypeSelect.value && taxOptionsSelect.value ? "block" : "none";
+    });
+  }
+
+  // Bootstrap JS
+</script>
+<script src="../../assets/js/memberAccolades.js"></script>
+<script>
+  document.getElementById("addRegionForm").addEventListener("submit", async function (event) {
+    event.preventDefault();  // Prevent form from submitting normally
+  
+    const formData = new FormData(this);
+    const formDataObj = {};
+  
+    formDataObj['chapterDays'] = [];
+    formDataObj['chapterStatus'] = [];  // For Chapter Status
+    formDataObj['chapterType'] = [];    // For Chapter Type
+    formDataObj['accolades_config'] = [];      // For Accolades
+  
+    formData.forEach((value, key) => {
+      if (key === 'chapterDays[]') {
+        formDataObj['chapterDays'].push(value);
+      } else if (key === 'chapterStatus[]') {  // Collect Chapter Status
+        formDataObj['chapterStatus'].push(value);
+      } else if (key === 'chapterType[]') {    // Collect Chapter Type
+        formDataObj['chapterType'].push(value);
+      } else if (key === 'accolades[]') {      // Collect Accolades
+        formDataObj['accolades_config'].push(value);
+      } else {
+        formDataObj[key] = value;  // Handle other fields
+      }
+    });
+
+    // Validate fields
+  const contactNumber = formDataObj['contact_number']; // Adjust field name as per your form
+  const email = formDataObj['email_id']; // Adjust field name as per your form
+  const logo = document.getElementById('region_logo').files[0]; // Assuming regionLogo is the file input ID
+
+  // Contact number validation
+  if (!/^\d{10}$/.test(contactNumber)) {
+    toastr.error("Contact number must be exactly 10 digits.");
+    return;
+  }
+
+  // Email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toastr.error("Please enter a valid email address.");
+    return;
+  }
+
+  // Logo file validation
+  if (logo) {
+    const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!validExtensions.includes(logo.type)) {
+      toastr.error("Logo must be in JPG, JPEG, or PNG format.");
+      return;
+    }
+  } else {
+    toastr.error("Please upload a region logo.");
+    return;
+  }
+  
+    try {
+      const response = await fetch('https://bni-data-backend.onrender.com/api/regions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formDataObj),
+      });
+  
+      const result = await response.json();
+      if (response.ok) {
+        toastr.success('Region added successfully!');
+        document.getElementById("formMessage").innerText = "Region added successfully!";
+        setTimeout(() => {
+                  window.location.href = '/r/manage-region';  // Redirect to the region page
+              }, 1200);
+      } else {
+        document.getElementById("formMessage").innerText = `Error: ${result.message}`;
+        toastr.error( result.message);
+      }
+    } catch (error) {
+      console.error("Error submitting the form:", error);
+      toastr.error(error.message);
+      document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
+    }
+  });
+  </script>
+<%- include('../partials/footer') %>

@@ -1,0 +1,244 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/sidebar') %>
+
+<!-- end sidebar -->
+<style>
+  
+  /* Ensuring that the modal body has padding */
+  .modal-body {
+    padding: 20px;
+  }
+  /* Preventing the add button container from affecting layout */
+  .add-button-container {
+    margin-top: 10px; /* Space above the button */
+    display: none; /* Initially hidden */
+  }
+</style>
+<style>
+  .custom-dropdown {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background: white;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .options div {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .options div:hover {
+    background-color: #f0f0f0;
+  }
+
+  .selected {
+    display: flex;
+    align-items: center;
+  }
+</style>
+
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <!-- <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins"
+            >Edit Universal Link</span
+          >
+        </h1>
+        <p>Manage kitty payments with just one click</p>
+      </div> -->
+      <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="form-group">
+                <div class="input-group">
+                  <div class="input-group-text bg-white border">
+                    <i class="ri-calendar-line"></i>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control breadcrumb-input"
+                    id="daterange"
+                    placeholder="Search By Date Range"
+                  />
+                </div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-white btn-wave">
+                  <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                </button>
+                <button class="btn btn-primary btn-wave me-0">
+                  <i class="ri-share-forward-line me-1"></i> Share
+                </button>
+              </div>
+            </div> -->
+    </div>
+    <!-- End::page-header -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+    </style>
+
+    <style>
+      * {
+        font-family: Montserrat !important;
+        font-weight: 800px;
+      }
+      .text-muted {
+        color: black !important;
+        font-family: Montserrat Alternates;
+      }
+      .popins {
+        font-family: Poppins;
+      }
+    </style>
+
+    <form id="">
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>Let's Edit Event!</b></span
+                          ></label
+                        >
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="event_name" class="form-label"
+                          >Event Name</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="event_name"
+                          name="event_name"
+                          placeholder="Event Name"
+                        />
+                        <label
+                          for="product-cost-add"
+                          class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                          ><span style="color: red"
+                            >*Check & acknowledged name of the Event</span
+                          ></label
+                        >
+                      </div>    
+                      <div class="col-xl-6">
+                        <label for="billing_company" class="form-label"
+                          >Billing Company</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="billing_company"
+                          name="billing_company"
+                          placeholder="ADI Corporate Training"
+                          value="ADI Corporate Training"
+                          readonly
+                        />
+                      </div> 
+                      <div class="col-xl-6">
+                        <label for="event_venue" class="form-label"
+                          >Event Venue</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="event_venue"
+                          name="event_venue"
+                          placeholder="The Roseate House.."
+                        />
+                      </div> 
+
+                      <div class="col-xl-6">
+                        <label for="event_ticket_price" class="form-label"
+                          >Event Ticket Price</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="event_ticket_price"
+                          name="event_ticket_price"
+                          placeholder="₹26,5000/-.."
+                        />
+                      </div> 
+                      <div class="col-xl-6">
+                        <label for="event_date" class="form-label"
+                          >Event Date</label
+                        >
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="event_date"
+                          name="event_date"
+                          placeholder="Stock in date.."
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="event_status" class="form-label">Event Status</label>
+                        <select class="form-control" name="event_status" id="event_status">
+                          <option value="">Select</option>
+                          <option value="upcoming">Upcoming</option>
+                          <option value="completed">Completed</option>
+                          <option value="postponed">Postponed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end align-items-center">
+            
+            <button type="button" id="updateRegionBtn" class="btn btn-success me-2 mb-2 mb-sm-0">
+                Edit Event
+              </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  </div>
+</div>
+<!-- End::content  -->
+
+
+
+</script>
+<!-- <script src="../../assets/js/country.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../../assets/js/editEvents.js"></script>
+
+<%- include('../partials/footer') %>

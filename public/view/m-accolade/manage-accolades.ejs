@@ -1,0 +1,137 @@
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/sidebar') %>
+    <div id="loader">
+      <img src="../../assets/images/media/loader.svg" alt="" />
+    </div>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >Accolades Information</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item Approved" aria-current="page">
+                    View All Accolades
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                Manage Accolades
+              </h1>
+            </div>
+            <div class="btn-list">
+              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+                Total In Stock Accolades <br />
+                <span> <b>8</b></span>
+              </button>
+              
+              <button class="btn btn-danger btn-wave me-0">
+                <i class="ri-share-forward-line me-1"></i> Export List
+              </button>
+            </div>
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">All Accolades List</div>
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <div class="btn-group"> 
+                  <a href="/acc/add-accolades"><button
+                    class="btn btn-outline-light border"
+                    type="button"
+                  >
+                    + Add New Accolade
+                  </button></a>
+                </div>
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    id="searchAccolades"
+                    class="form-control"
+                    placeholder="Search Accolades.."
+                    aria-label="Search Accolades"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>
+                
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap chaptersTableBody"
+                  style="border: 1px solid grey"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">S.No.</th>
+                      <th scope="col">Accolades Name</th>
+                      <th scope="col">Published by</th>
+                    
+                      <th scope="col">Stock Available</th>
+                      <th scope="col">Stock In Date</th>
+                      <th scope="col">Item Type</th>
+                      <th scope="col">Accolade Type</th>
+                      <th scope="col">Availability</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+                  
+                  <tbody id="chaptersTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b>1</b> to <b>10</b> entries
+                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                </div>
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto">
+                    <li class="page-item disabled">
+                      <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item Approved" aria-current="page">
+                      <a class="page-link" href="javascript:void(0)">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script src="../../assets/js/accolades.js"></script>
+      
+
+      <%- include('../partials/footer') %> 

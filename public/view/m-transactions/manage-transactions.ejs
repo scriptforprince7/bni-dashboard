@@ -1,0 +1,1159 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/sidebar') %>
+ <!-- Loader -->
+ <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+  <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);">Manage Transactions </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              View All Transactions
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0"></h1>
+      </div>
+      <div class="btn-list">
+        <button
+          class="btn btn-primary btn-wave me-0"
+          style="background-color: red !important; border: red"
+        >
+          <i class="ri-share-forward-line me-1"></i> Export All Transactions
+        </button>
+      </div>
+    </div>
+    <!-- End::page-header -->
+    <div class="col-xl-12">
+      <div class="row">
+        <div class="col-xxl-12 col-xl-12">
+          <div class="row" style="display: flex; justify-content: center">
+            <div class="col-xxl-3">
+              <div class="card custom-card overflow-hidden main-content-card">
+                <div class="card-body p-4" style="background-color: gainsboro">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h1 class="mb-2 fs-12 cus">Total Transactions (in ₹)</h1>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span class="count-up" data-count="385"
+                              >₹ 3,00,000</span
+                            >
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect x="3" y="8" width="18" height="8" rx="2" />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xxl-3">
+              <div class="card custom-card overflow-hidden main-content-card">
+                <div class="card-body p-4" style="background-color: gainsboro">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h6 class="mb-2 fs-12 cus">Settled Payments (in ₹)</h6>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span class="count-up" data-count="385"
+                              >₹ 2,42,000</span
+                            >
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect x="3" y="8" width="18" height="8" rx="2" />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xxl-3">
+              <div class="card custom-card overflow-hidden main-content-card">
+                <div class="card-body p-4" style="background-color: gainsboro">
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h6 class="mb-2 fs-12 cus">Pending Payments (in ₹)</h6>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span class="count-up" data-count="385"
+                              >₹ 38,000</span
+                            >
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect x="3" y="8" width="18" height="8" rx="2" />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start::row-1 -->
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div
+            class="card-header justify-content-between"
+            style="background-color: gainsboro !important"
+          >
+            <div class="card-title">All Transactions</div>
+            <div class="d-flex">
+              <button
+                class="btn btn-outline-light border dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i> Region
+              </button>
+              <button
+                class="btn btn-outline-light border dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i> Chapter
+              </button>
+              <button
+                class="btn btn-outline-light border dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i> July
+              </button>
+              <button
+                class="btn btn-outline-light border dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i> Monthly
+              </button>
+              <button
+                class="btn btn-outline-light border dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i> Filter
+              </button>
+              <a
+                href="/t/new-invoice"
+                class="btn btn-sm btn-primary btn-wave waves-light"
+                style="background-color: #d01f2f Im !important"
+                ><i class="ri-add-line fw-medium align-middle me-1"></i> Create
+                Invoice</a
+              >
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table text-nowrap" id="transaction-table">
+                <thead>
+                  <tr>
+                    <th scope="col">S.No.</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Payment Method</th>
+                    <th scope="col">Paid by</th>
+
+                    <th scope="col">Date</th>
+                    <th scope="col">Chapter</th>
+                    <th scope="col"> PG Status</th>
+                    <th scope="col">order_id</th>
+                 
+                    <th scope="col">Transaction Id</th>
+                    <th scope="col">Gateway</th>
+                    <th scope="col">IRN</th>
+                    <th scope="col">QR Code</th>
+                    <th scope="col">E-Invoice</th>
+                    <th scope="col">Action</th>
+                   
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>1</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹50,000 </b>
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        <br />
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://w7.pngwing.com/pngs/962/794/png-transparent-mastercard-credit-card-mastercard-logo-mastercard-logo-love-text-heart.png"
+                            alt=""
+                          /> </span
+                        >Debit Card
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>25,May 2024</td>
+
+                    <td>
+                      <span class="badge bg-success">Paid</span>
+                    </td>
+
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>
+                      <a
+                        href="/t/new-invoice"
+                        class="btn btn-sm btn-success btn-wave waves-light"
+                      >
+                        Generate E-Invoice</a
+                      >
+                    </td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>2</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹80,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://w7.pngwing.com/pngs/962/794/png-transparent-mastercard-credit-card-mastercard-logo-mastercard-logo-love-text-heart.png"
+                            alt=""
+                          /> </span
+                        >Credit Card
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>13,May 2024</td>
+                    <td>
+                      <span class="badge bg-warning">Pending</span>
+                    </td>
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>Not Applicable</td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>3</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+₹16,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr"
+                            alt=""
+                          /> </span
+                        >UPI
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>30,May 2024</td>
+                    <td>
+                      <span class="badge bg-danger">Overdue</span>
+                    </td>
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>Not Applicable</td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>4</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹22,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://w7.pngwing.com/pngs/962/794/png-transparent-mastercard-credit-card-mastercard-logo-mastercard-logo-love-text-heart.png"
+                            alt=""
+                          /> </span
+                        >Debit Card
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>18,May 2024</td>
+                    <td>
+                      <span class="badge bg-success">Paid</span>
+                    </td>
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>
+                      <a
+                        href="/t/new-invoice"
+                        class="btn btn-sm btn-success btn-wave waves-light"
+                      >
+                        Generate E-Invoice</a
+                      >
+                    </td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>5</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹98,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://w7.pngwing.com/pngs/962/794/png-transparent-mastercard-credit-card-mastercard-logo-mastercard-logo-love-text-heart.png"
+                            alt=""
+                          /> </span
+                        >Credit Card
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>18,May 2024</td>
+                    <td>
+                      <span class="badge bg-primary">Due By 1 Day</span>
+                    </td>
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>Not Applicable</td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>6</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹85,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr"
+                            alt=""
+                          /> </span
+                        >UPI
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>18,May 2024</td>
+
+                    <td>
+                      <span class="badge bg-success">Paid</span>
+                    </td>
+
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>
+                      <a
+                        href="/t/new-invoice"
+                        class="btn btn-sm btn-success btn-wave waves-light"
+                      >
+                        Generate E-Invoice</a
+                      >
+                    </td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>7</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹56,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://st.softgamings.com/uploads/BankTransfer_logo_1200x600.png"
+                            alt=""
+                          /> </span
+                        >Bank Transfer
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>15,May 2024</td>
+                    <td>
+                      <span class="badge bg-success">Paid</span>
+                    </td>
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>
+                      <a
+                        href="/t/new-invoice"
+                        class="btn btn-sm btn-success btn-wave waves-light"
+                      >
+                        Generate E-Invoice</a
+                      >
+                    </td>
+                  </tr>
+                  <tr class="invoice-list">
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <div>
+                          <p>8</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <b>+ ₹74,000</b> <br />
+                      <a
+                        href="javascript:void(0);"
+                        class="fw-medium text-success"
+                      >
+                        View
+                      </a>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://w7.pngwing.com/pngs/962/794/png-transparent-mastercard-credit-card-mastercard-logo-mastercard-logo-love-text-heart.png"
+                            alt=""
+                          /> </span
+                        >Debit Card
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                          <img
+                            src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg"
+                            alt=""
+                          /> </span
+                        >Raja Shukla
+                      </div>
+                    </td>
+
+                    <td>21,May 2024</td>
+                    <td>
+                      <span class="badge bg-warning">Pending</span>
+                    </td>
+                    <td><em>2d4efe39-b134</em></td>
+                    <td>
+                      <a
+                        href="./view-transaction.html"
+                        class="btn btn-primary-light btn-icon btn-sm"
+                      >
+                        <i class="ri-printer-line"></i>
+                      </a>
+                    </td>
+                    <td>Not Applicable</td>
+                  </tr> -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer border-top-0">
+            <nav aria-label="Page navigation">
+              <ul class="pagination mb-0 float-end">
+                <li class="page-item disabled">
+                  <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item active">
+                  <a class="page-link" href="javascript:void(0);">1</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="javascript:void(0);">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+<!-- End::content  -->
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+<script>
+  // Function to get URL parameter
+  function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  }
+
+  // Function to fetch all universal links
+  async function fetchAllUniversalLinks() {
+    try {
+      const response = await fetch(
+        "https://bni-data-backend.onrender.com/api/universalLinks"
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const links = await response.json();
+      console.log("Fetched Links:", links); // Log the fetched links
+      return links;
+    } catch (error) {
+      console.error("Error fetching universal links:", error);
+    }
+
+    //
+  }
+
+  // Function to update the page with the universal link name based on ulid
+  async function updatePageWithLinkName(ulid) {
+    const links = await fetchAllUniversalLinks();
+    if (links) {
+      const matchedLink = links.find((link) => link.ulid === ulid); // Assuming 'ulid' is the key in the response
+      if (matchedLink) {
+        displayLinkName(matchedLink.universal_link_name);
+      } else {
+        console.error("No link found for the given ulid:", ulid);
+      }
+    }
+  }
+
+  // Function to update the page with the universal link name
+  function displayLinkName(universalLinkName) {
+    const pageTitleElement = document.querySelector(".page-title");
+    pageTitleElement.textContent = `Manage ${universalLinkName}`;
+  }
+
+  // Function to fetch transactions from the API
+  async function fetchOrders() {
+    try {
+      // Make an API request to fetch all transactions
+
+      const response = await fetch(
+        "https://bni-data-backend.onrender.com/api/allTransactions"
+      );
+
+      // Check if the response is successful (status 200)
+      if (!response.ok) {
+        toastr.error("Unable to fetch data. Try again.");
+        return []; // Return an empty array in case of error
+      }
+
+      // Parse the JSON data from the response
+      const data = await response.json();
+
+      // Return the list of transactionsab
+      return data; // Adjust based on the actual response structure
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toastr.error("Unable to fetch data. Try again.");
+      return []; // Return an empty array if there's an error
+    }
+  }
+
+  // Function to fetch transactions from the API
+  async function fetchTransactions() {
+    try {
+      // Make an API request to fetch all transactions
+      const response = await fetch(
+        "https://bni-data-backend.onrender.com/api/allOrders"
+      );
+
+      // Check if the response is successful (status 200)
+      if (!response.ok) {
+        toastr.error("Unable to fetch data. Try again.");
+        return []; // Return an empty array in case of error
+      }
+
+      // Parse the JSON data from the response
+      const data = await response.json();
+
+      // Return the list of transactionsab
+      return data; // Adjust based on the actual response structure
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toastr.error("Unable to fetch data. Try again.");
+      return []; // Return an empty array if there's an error
+    }
+  }
+
+  // Function to fetch transactions from the API
+  async function fetchPaymentGateway() {
+    try {
+      // Make an API request to fetch all transactions
+      const response = await fetch(
+        "https://bni-data-backend.onrender.com/api/paymentGateway"
+      );
+
+      // Check if the response is successful (status 200)
+      if (!response.ok) {
+        toastr.error("Unable to fetch data. Try again.");
+        return []; // Return an empty array in case of error
+      }
+
+      // Parse the JSON data from the response
+      const data = await response.json();
+
+      // Return the list of transactionsab
+      return data; // Adjust based on the actual response structure
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toastr.error("Unable to fetch data. Try again.");
+      return []; // Return an empty array if there's an error
+    }
+  }
+
+  async function fetchchapters() {
+    try {
+      // Make an API request to fetch all transactions
+      const response = await fetch(
+        "https://bni-data-backend.onrender.com/api/chapters"
+      );
+
+      // Check if the response is successful (status 200)
+      if (!response.ok) {
+        toastr.error("Unable to fetch data. Try again.");
+        return []; // Return an empty array in case of error
+      }
+
+      // Parse the JSON data from the response
+      const data = await response.json();
+
+      // Return the list of transactionsab
+      return data; // Adjust based on the actual response structure
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toastr.error("Unable to fetch data. Try again.");
+      return []; // Return an empty array if there's an error
+    }
+  }
+
+  // Function to render table rows based on transactions
+  function renderTableRows(
+    transactions,
+    orders,
+    ulid,
+    paymentGateway,
+    chapters
+    )  {
+    let totalTransactionAmount = 0;
+    let settledPayments = 0;
+    let pendingPayments = 0;
+    let paymentGatewayName = "";
+    let transactionId = "";
+    let chapterName = "";
+
+    transactions.sort(
+      (a, b) => new Date(b.payment_time) - new Date(a.payment_time)
+    );
+
+    const tbody = document.querySelector("#transaction-table tbody");
+
+    // Check if tbody exists before modifying it
+    if (!tbody) {
+      console.error("Error: Unable to find tbody element");
+      return;
+    }
+    async function fetchOrders() {
+      try {
+        // Make an API request to fetch all transactions
+
+        const response = await fetch(
+          "https://bni-data-backend.onrender.com/api/allTransactions"
+        );
+
+        // Check if the response is successful (status 200)
+        if (!response.ok) {
+          toastr.error("Unable to fetch data. Try again.");
+          return []; // Return an empty array in case of error
+        }
+
+        // Parse the JSON data from the response
+        const data = await response.json();
+
+        // Return the list of transactionsab
+        return data; // Adjust based on the actual response structure
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toastr.error("Unable to fetch data. Try again.");
+        return []; // Return an empty array if there's an error
+      }
+    }
+
+    tbody.innerHTML = ""; // Clear any existing rows
+
+    // Filter transactions by matching ulid
+    const filteredTransactions = transactions.filter(
+      (transaction) => transaction.ulid === ulid
+    );
+    // console.log(filteredTransactions);
+
+    // If no transactions match the ulid, display a message
+    if (filteredTransactions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center">No transactions found for this ULID.</td></tr>`;
+      return;
+    }
+
+    // Map the filtered transactions to include their order details
+    const transactionsWithOrder = filteredTransactions.map((transaction) => {
+      const order = orders.find(
+        (order) => order.order_id === transaction.order_id
+      );
+      return {
+        ...transaction,
+        order: order || null, // Add the order details or null if not found
+      };
+    });
+
+    const paymentMethod = filteredTransactions.map((transaction) => {
+  const order = orders.find((order) => order.order_id === transaction.order_id);
+  return order || null; // Return null if order is not found
+});
+
+    console.log("fghjk", orders);
+    // console.log(transactionsWithOrder);
+    console.log("hjdsghjsdbfj", transactionsWithOrder);
+
+    // Loop through the filtered transactions and create table rows
+    transactionsWithOrder.forEach((transaction, index) => {
+      // transactionId=transaction.order.cf_payment_id
+      const paymentStatus = transaction.order
+        ? transaction.order.payment_status
+        : "PENDING"; // Default to 'PENDING' if no order found
+
+      const transactionAmount = parseFloat(transaction.order_amount);
+      totalTransactionAmount += transactionAmount;
+
+      // Check payment status and update settled or pending totals
+      if (paymentStatus === "SUCCESS") {
+        settledPayments += transactionAmount;
+      } else if (paymentStatus === "PENDING") {
+        pendingPayments += transactionAmount;
+      }
+      const matchingPaymentGateway = paymentGateway.find(
+        (paymentGatewayitem) =>
+          paymentGatewayitem.gateway_id === transaction.payment_gateway_id
+      );
+
+      // console.log("matchingpayments",matchingPaymentGateway)
+
+      const row = document.createElement("tr");
+      row.classList.add("invoice-list");
+      row.innerHTML = `
+        <td>
+          <div class="d-flex align-items-center">
+            <div>
+              <p>${index + 1}</p>
+            </div>
+          </div>
+        </td>
+        <td>
+          <b>+ ₹${parseFloat(transaction.order_amount).toLocaleString()}</b>
+          <a href="javascript:void(0);" class="fw-medium text-success">
+            <br>View
+          </a>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="avatar avatar-sm me-2 avatar-rounded">
+              <img src="https://w7.pngwing.com/pngs/962/794/png-transparent-mastercard-credit-card-mastercard-logo-mastercard-logo-love-text-heart.png" alt="" />
+            </span>
+            ${
+              transaction.payment_gateway_id === 1
+                ? "Credit Card"
+                : "Other Payment Method"
+            }
+          </div>
+        </td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="avatar avatar-sm me-2 avatar-rounded">
+              <img src="https://png.pngtree.com/png-vector/20190329/ourmid/pngtree-vector-avatar-icon-png-image_889567.jpg" alt="" />
+            </span>
+            ${transaction.member_name}
+          </div>
+        </td>
+        <td>${new Date(transaction.created_at).toLocaleDateString()}</td>
+        <td>prolific</td>
+        <td>
+          <span class="badge bg-${getStatusBadge(paymentStatus)}">
+            ${paymentStatus}
+          </span>
+        </td>
+        <td><em>${transaction.order_id}</em></td>
+         <td><em>${paymentMethod.cf_payment_id}</em></td>
+       
+
+<td>${matchingPaymentGateway.gateway_name}</td>
+<td>Not Applicable</td>
+<td>undefined</td>
+
+
+
+        
+        <td>
+          ${
+            transaction.order_status === "ACTIVE"
+              ? `<a href="/t/new-invoice" class="btn btn-sm btn-success btn-wave waves-light">Generate E-Invoice</a>`
+              : "Not Applicable"
+          }
+        </td>
+        <td>
+          <a href="./view-transaction.html" class="btn btn-primary-light btn-icon btn-sm">
+            <i class="ri-printer-line"></i>
+          </a>
+        </td>
+      `;
+
+      tbody.appendChild(row);
+    });
+
+    // Update the totals section
+    document.querySelector(
+      ".count-up[data-count='385']"
+    ).textContent = `₹ ${totalTransactionAmount.toLocaleString("en-IN")}`;
+    document.querySelectorAll(
+      ".count-up"
+    )[1].textContent = `₹ ${settledPayments.toLocaleString("en-IN")}`;
+    document.querySelectorAll(
+      ".count-up"
+    )[2].textContent = `₹ ${pendingPayments.toLocaleString("en-IN")}`;
+  }
+  // Utility function to determine badge color based on status
+  function getStatusBadge(status) {
+    switch (status) {
+      case "SUCCESS":
+        return "success";
+      case "PENDING":
+        return "warning";
+      case "FAILED":
+        return "danger";
+      default:
+        return "primary";
+    }
+  }
+
+  // Utility function to get URL parameter
+  function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+  }
+
+  // On page load
+  document.addEventListener("DOMContentLoaded", async () => {
+    const ulid = getUrlParameter("ulid");
+    if (ulid) {
+      try {
+        const transactions = await fetchTransactions();
+        const orders = await fetchOrders();
+        const paymentGateway = await fetchPaymentGateway();
+        const chapters = await fetchchapters();
+        renderTableRows(transactions, orders, ulid, paymentGateway, chapters);
+        updatePageWithLinkName(ulid);
+      } catch (error) {
+        toastr.error("Unable to fetch data. Try again.");
+        console.error("Failed to fetch or render transactions:", error);
+      }
+    } else {
+      console.error("No ulid found in the URL");
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

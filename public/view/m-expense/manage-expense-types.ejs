@@ -1,0 +1,126 @@
+<!-- header -->
+<%- include('../partials/header') %> 
+<!-- end header -->
+<!-- Loader -->
+<div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+<img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+<!-- sidebar -->
+
+<%- include('../partials/chapter-sidebar') %>
+
+<!-- end sidebar -->
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Page Header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);" style="color: #d01f2f"
+                >Expenses Management</a
+              >
+            </li>
+            <li class="breadcrumb-item 989178547 " aria-current="page">
+              View All Expense Types
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          Manage All Expense Types
+        </h1>
+      </div>
+    </div>
+    <!-- Page Header Close -->
+
+    <!-- Start::row-1 -->
+    <div class="card custom-card" style="background-color: gainsboro">
+      <div class="card-header justify-content-between">
+        <div class="card-title">All Expense Types</div>
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+          <div class="btn-group">
+
+            <div class="dropdown me-2" >
+              <a
+                href="javascript:void(0);"
+                class="btn btn-sm btn-light text-muted dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i>
+                Sort
+              </a>
+              <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
+                <li>
+                  <a class="dropdown-item filter-option" id="sortButton" href="javascript:void(0);" data-filter="ascending">Ascending</a>
+                </li>
+                
+              </ul>
+            </div>
+            
+            
+            <button
+                  class="btn btn-outline-light border"
+                  type="button"
+                  id="addNewExpenseBtn"
+                  data-region-id="123" 
+                >
+                  + Add New Expense Type
+                </button>
+          </div>
+     
+            
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover text-nowrap" style="border: 1px solid grey">
+              <thead>
+                <tr>
+                  <th scope="col" style="border: 1px solid grey;">S.No.</th>
+                  <th scope="col" style="border: 1px solid grey;">Expense Type</th>
+                  <th scope="col" style="border: 1px solid grey;">Status</th>
+                  <th scope="col" style="border: 1px solid grey;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer border-top-0">
+          <div class="d-flex align-items-center flex-wrap overflow-auto">
+            <div class="mb-2 mb-sm-0">
+              Showing <b>1</b> to <b>10</b> entries
+              <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+            </div>
+            <div class="ms-auto">
+              <ul class="pagination mb-0 overflow-auto">
+                <li class="page-item disabled">
+                  <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item 989178547 " aria-current="page">
+                  <a class="page-link" href="javascript:void(0)">1</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--End::row-1 -->
+    </div>
+  </div>
+  <!-- End::content  -->
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../../assets/js/expense-types.js"></script>
+
+  <%- include('../partials/footer') %> 

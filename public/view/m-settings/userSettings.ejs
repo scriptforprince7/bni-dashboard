@@ -1,0 +1,2041 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/member-sidebar') %>
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);"> Settings </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              All Settings
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">Manage Settings</h1>
+      </div>
+      <div class="btn-list">
+        <!-- <button class="btn btn-white btn-wave">
+                                <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                            </button>
+                            <button class="btn btn-primary btn-wave me-0">
+                                <i class="ri-share-forward-line me-1"></i> Share
+                            </button> -->
+      </div>
+    </div>
+    <!-- End::page-header -->
+
+    <!-- Start::row-1 -->
+    <div class="row mb-5">
+      <div class="col-xl-3">
+        <div class="card custom-card">
+          <div class="card-body">
+            <ul
+              class="nav nav-tabs flex-column nav-tabs-header mb-0 mail-settings-tab"
+              role="tablist"
+            >
+              <!-- <li class="nav-item me-0">
+                                            <a class="nav-link active" data-bs-toggle="tab" role="tab" aria-current="page" href="#email-settings" aria-selected="true"><i class="ri-mail-line me-2 align-middle fs-14 lh-1 text-primary"></i>Email</a>
+                                        </li> -->
+              <li class="nav-item me-0">
+                <a
+                  class="nav-link active"
+                  data-bs-toggle="tab"
+                  role="tab"
+                  aria-current="page"
+                  href="#security"
+                  aria-selected="true"
+                  ><i
+                    class="ri-lock-star-line me-2 align-middle fs-14 lh-1 text-primary"
+                  ></i
+                  >Security</a
+                >
+              </li>
+              <!-- <li class="nav-item me-0">
+                                            <a class="nav-link" data-bs-toggle="tab" role="tab" aria-current="page" href="#notification-settings" aria-selected="true"><i class="ri-notification-3-line me-2 align-middle fs-14 lh-1 text-primary"></i>Notifications</a>
+                                        </li> -->
+              <li class="nav-item me-0">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  role="tab"
+                  aria-current="page"
+                  href="#account-settings"
+                  aria-selected="true"
+                  ><i
+                    class="ri-shield-user-line me-2 align-middle fs-14 lh-1 text-primary"
+                  ></i
+                  >Account Settings</a
+                >
+              </li>
+              <li class="nav-item me-0">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  role="tab"
+                  aria-current="page"
+                  href="#tax"
+                  aria-selected="true"
+                  ><i
+                    class="ri-money-dollar-box-line me-2 align-middle fs-14 lh-1 text-primary"
+                  ></i
+                  >Tax</a
+                >
+              </li>
+              <li class="nav-item me-0">
+                <a
+                  class="nav-link"
+                  data-bs-toggle="tab"
+                  role="tab"
+                  aria-current="page"
+                  href="#company-info"
+                  aria-selected="true"
+                  ><i
+                    class="ri-community-line me-2 align-middle fs-14 lh-1 text-primary"
+                  ></i
+                  >Company Info</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="card custom-card">
+          <div class="card-header">
+            <div class="card-title">Social Links</div>
+          </div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-xl-12">
+                <label for="facebook" class="form-label">Facebook :</label>
+                <input
+                  type="text"
+                  class="form-control bg-light"
+                  id="facebook"
+                  placeholder="https://"
+                  value="https://www.facebook.com"
+                />
+              </div>
+              <div class="col-xl-12">
+                <label for="Twitter" class="form-label">Twitter :</label>
+                <input
+                  type="text"
+                  class="form-control bg-light"
+                  id="Twitter"
+                  placeholder="https://"
+                  value="https://twitter.com"
+                />
+              </div>
+              <div class="col-xl-12">
+                <label for="Pinterest" class="form-label">Instagram:</label>
+                <input
+                  type="text"
+                  class="form-control bg-light"
+                  id="Pinterest"
+                  placeholder="https://"
+                  value="https://in.pinterest.com"
+                />
+              </div>
+              <div class="col-xl-12">
+                <label for="Linkedin" class="form-label">YouTube:</label>
+                <input
+                  type="text"
+                  class="form-control bg-light"
+                  id="Linkedin"
+                  placeholder="https://"
+                  value="https://www.linkedin.com"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-9">
+        <div class="card custom-card">
+          <div class="card-body p-0">
+            <div class="tab-content border-0">
+              <!-- <div class="tab-pane active show p-0" id="email-settings" role="tabpanel">
+                                            <ul class="list-group list-group-flush rounded">
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Keyboard Shortcuts :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="keyboard-enable" id="keyboard-enable1">
+                                                                <label class="form-check-label" for="keyboard-enable1">
+                                                                    Keyboard Shortcuts Enable
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="keyboard-enable" id="keyboard-disable2" checked="">
+                                                                <label class="form-check-label" for="keyboard-disable2">
+                                                                    Keyboard Shortcuts Disable
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="keyboard-shortcuts">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-12">
+                                                            <span class="fs-14 fw-medium mb-0">Menu View :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                                                                <label class="form-check-label" for="flexRadioDefault1">
+                                                                    Default View
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked="">
+                                                                <label class="form-check-label" for="flexRadioDefault2">
+                                                                    Advanced View
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success on mb-0 float-sm-end" id="menu-view">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Images :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="images-open" id="images-open1">
+                                                                <label class="form-check-label" for="images-open1">
+                                                                    Always Open Images
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="images-open" id="images-hide2" checked="">
+                                                                <label class="form-check-label" for="images-hide2">
+                                                                    Ask For Permission
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mails-images">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Mail Send Action :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" value="" id="on-keyboard" checked="">
+                                                                <label class="form-check-label" for="on-keyboard">
+                                                                    On Keyboard Action
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="checkbox" value="" id="on-buttonclick">
+                                                                <label class="form-check-label" for="on-buttonclick">
+                                                                    On Button Click
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="float-sm-end">
+                                                                <a href="javascript:void(0)" class="btn btn-success-ghost btn-sm">Learn-more</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-3 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Maximum Mails Per Page :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <select class="form-control" data-trigger="" name="mail-per-page" id="mail-per-page">
+                                                            <option value="Choice 1" selected="">10</option>
+                                                            <option value="Choice 2">50</option>
+                                                            <option value="Choice 3">100</option>
+                                                            <option value="Choice 3">120</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mails-per-page">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Mail Composer :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="d-flex gap-4 align-items-center">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="mail-composer" id="mail-composeron1">
+                                                                    <label class="form-check-label" for="mail-composeron1">
+                                                                        Mail Composer On
+                                                                    </label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="mail-composer" id="mail-composeroff2" checked="">
+                                                                    <label class="form-check-label" for="mail-composeroff2">
+                                                                        Mail Composer Off
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mail-composer">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-3 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Language :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <label for="mail-language" class="form-label">Languages :</label>
+                                                            <select class="form-control" name="mail-language" id="mail-language" multiple="">
+                                                            <option value="Choice 1" selected="">English</option>
+                                                            <option value="Choice 2">French</option>
+                                                            <option value="Choice 3">Arabic</option>
+                                                            <option value="Choice 4">Hindi</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="mail-languages">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gy-2 d-sm-flex align-items-center justify-content-between">
+                                                        <div class="col-xl-3">
+                                                            <span class="fs-14 fw-medium mb-0">Auto Correct :</span>
+                                                        </div>
+                                                        <div class="col-xl-4">
+                                                            <div class="d-flex gap-4 align-items-center">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="auto-correct" id="auto-correcton1">
+                                                                    <label class="form-check-label" for="auto-correcton1">
+                                                                        Auto Correct On
+                                                                    </label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="auto-correct" id="auto-correctoff2" checked="">
+                                                                    <label class="form-check-label" for="auto-correctoff2">
+                                                                        Auto Correct Off
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xl-5">
+                                                            <div class="toggle toggle-success mb-0 float-sm-end" id="auto-correct">
+                                                                <span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div> -->
+              <div class="tab-pane p-0 active" id="security" role="tabpanel">
+                <ul class="list-group list-group-flush list-unstyled rounded">
+                  <li class="list-group-item">
+                    <div class="row gx-5 gy-3">
+                      <div class="col-xl-4">
+                        <p class="fs-16 mb-1 fw-medium">Logging In</p>
+                        <p class="fs-12 mb-0 text-muted">
+                          Security settings related to logging into our email
+                          account and taking down account if any mischievous
+                          action happened.
+                        </p>
+                      </div>
+                      <div class="col-xl-8">
+                        <div
+                          class="d-sm-flex d-block align-items-top justify-content-between mt-sm-0 mt-3"
+                        >
+                          <div class="mail-security-settings">
+                            <p class="fs-14 mb-1 fw-medium">
+                              Max Limit for login attempts
+                            </p>
+                            <p class="fs-12 mb-0 text-muted mb-sm-0 mb-2">
+                              Account will freeze for 24hrs while attempt to
+                              login with wrong credentials for selected number
+                              of times
+                            </p>
+                          </div>
+                          <div>
+                            <select
+                              class="form-control"
+                              data-trigger=""
+                              name="max-login-attempts"
+                              id="max-login-attempts"
+                            >
+                              <option value="Choice 1" selected="">
+                                3 Attempts
+                              </option>
+                              <option value="Choice 2">5 Attempts</option>
+                              <option value="Choice 3">10 Attempts</option>
+                              <option value="Choice 3">20 Attempts</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div
+                          class="d-sm-flex d-block align-items-top justify-content-between mt-3"
+                        >
+                          <div>
+                            <p class="fs-14 mb-1 fw-medium">
+                              Account Freeze time management
+                            </p>
+                            <p class="fs-12 mb-0 text-muted mb-sm-0 mb-2">
+                              You can change the time for the account freeze
+                              when attempts for
+                            </p>
+                          </div>
+                          <div>
+                            <select
+                              class="form-control"
+                              data-trigger=""
+                              name="account-freeze-time-format"
+                              id="account-freeze-time-format"
+                            >
+                              <option value="Choice 1" selected="">
+                                1 Day
+                              </option>
+                              <option value="Choice 2">1 Hour</option>
+                              <option value="Choice 3">1 Month</option>
+                              <option value="Choice 3">1 Year</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <!-- <li class="list-group-item">
+                                                    <div class="row gx-5 gy-3">
+                                                        <div class="col-xl-4">
+                                                            <p class="fs-16 mb-1 fw-medium">Password Requirements</p>
+                                                            <p class="fs-12 mb-0 text-muted">Security settings related to password strength.</p>
+                                                        </div>
+                                                        <div class="col-xl-8">
+                                                            <div class="d-sm-flex d-block align-items-top justify-content-between mt-sm-0 mt-3 gap-3">
+                                                                <div class="mail-security-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Minimum number of characters in the password</p>
+                                                                    <p class="fs-12 mb-0 text-muted">There should be a minimum number of characters for a password to be validated that shouls be set here.</p>
+                                                                </div>
+                                                                <div>
+                                                                    <input type="text" class="form-control" value="8">
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-sm-flex d-block align-items-top justify-content-between mt-3">
+                                                                <div>
+                                                                    <p class="fs-14 mb-1 fw-medium">Contain A Number</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Password should contain a number.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="password-number">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-sm-flex d-block align-items-top justify-content-between mt-3">
+                                                                <div>
+                                                                    <p class="fs-14 mb-1 fw-medium">Contain A Special Character</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Password should contain a special Character.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="password-special-character">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-sm-flex d-block align-items-top justify-content-between mt-3">
+                                                                <div>
+                                                                    <p class="fs-14 mb-1 fw-medium">Atleast One Capital Letter</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Password should contain atleast one capital letter.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success mb-0 float-sm-end" id="password-capital">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-sm-flex d-block align-items-top justify-content-between mt-3">
+                                                                <div>
+                                                                    <p class="fs-14 mb-1 fw-medium">Maximum Password Length</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Maximum password lenth should be selected here.</p>
+                                                                </div>
+                                                                <div>
+                                                                    <input type="text" class="form-control" value="16">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li> -->
+                  <!-- <li class="list-group-item">
+                                                    <div class="row gx-5 gy-3">
+                                                        <div class="col-xl-4">
+                                                            <p class="fs-16 mb-1 fw-medium">Unknown Chats</p>
+                                                            <p class="fs-12 mb-0 text-muted">Security settings related to unknown chats.</p>
+                                                        </div>
+                                                        <div class="col-xl-8">
+                                                            <div class="btn-group float-sm-end" role="group" aria-label="Basic radio toggle button group">
+                                                                <input type="radio" class="btn-check" name="btnunknownchats" id="unknown-chats-show" checked="">
+                                                                <label class="btn btn-outline-light" for="unknown-chats-show">Show</label>
+                                                                <input type="radio" class="btn-check" name="btnunknownchats" id="unknown-chats-hide">
+                                                                <label class="btn btn-outline-light" for="unknown-chats-hide">Hide</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li> -->
+                </ul>
+                <div class="card-footer border-top-0 d-flex justify-content-end">
+                    <button class="btn btn-danger" onclick="saveSecuritySettings()">
+                        Save Security Settings
+                    </button>
+                </div>
+              </div>
+              <!-- <div class="tab-pane p-0" id="notification-settings" role="tabpanel">
+                                            <ul class="list-group list-group-flush list-unstyled rounded">
+                                                <li class="list-group-item">
+                                                    <div class="row gx-5 gy-3">
+                                                        <div class="col-xl-5">
+                                                            <p class="fs-16 mb-1 fw-medium">Email Notifications</p>
+                                                            <p class="fs-12 mb-0 text-muted">Email notifications are the notifications you will receeive when you are offline, you can customize them by enabling or disabling them.</p>
+                                                        </div>
+                                                        <div class="col-xl-7">
+                                                            <div class="d-flex align-items-top justify-content-between mt-sm-0 mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Updates & Features</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Notifications about new updates and their features.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="update-features">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-top justify-content-between mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Early Access</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Users are selected for beta testing of new update,notifications relating or participate in any of paid product promotion.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success mb-0 float-sm-end" id="early-access">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-top justify-content-between mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Email Shortcuts</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Shortcut notifications for email.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="email-shortcut">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-top justify-content-between mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">New Mails</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Notifications related to new mails received.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="new-mails">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-top justify-content-between mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Mail Chat Messages</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Any of new messages are received will be updated through notifications.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="mail-chat-messages">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <div class="row gx-5 gy-3">
+                                                        <div class="col-xl-5">
+                                                            <p class="fs-16 mb-1 fw-medium">Push Notifications</p>
+                                                            <p class="fs-12 mb-0 text-muted">Push notifications are recieved when you are online, you can customize them by enabling or disabling them.</p>
+                                                        </div>
+                                                        <div class="col-xl-7">
+                                                            <div class="d-flex align-items-top justify-content-between mt-sm-0 mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">New Mails</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Notifications related to new mails received.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="push-new-mails">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-top justify-content-between mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Mail Chat Messages</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Any of new messages are received will be updated through notifications.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0 float-sm-end" id="push-mail-chat-messages">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-top justify-content-between mt-3">
+                                                                <div class="mail-notification-settings">
+                                                                    <p class="fs-14 mb-1 fw-medium">Mail Extensions</p>
+                                                                    <p class="fs-12 mb-0 text-muted">Notifications related to the extensions received by new emails and thier propertied also been displayed.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success mb-0 float-sm-end" id="mail-extensions">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div> -->
+              <div class="tab-pane p-0" id="account-settings" role="tabpanel">
+                <div class="row gy-3">
+                  <div class="col-xxl-7">
+                    <div class="card custom-card shadow-none mb-0">
+                      <div class="card-body">
+                        <!-- Add this section for password update -->
+                        <div id="password-update-section" style="display: none;">
+                        
+                        </div>
+                        <!-- Existing account settings content -->
+                        <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Display Logo</p>
+                            <p class="fs-12 text-muted mb-0">
+                              Upload your company logo.
+                            </p>
+                            <!-- Display the current logo -->
+                            <img id="logo-preview" src="" alt="Logo Preview" style="max-width: 200px; margin-top: 10px;">
+                          </div>
+                          <div class="mb-0 ms-0 mt-sm-0 mt-2" id="logo-upload-section">
+                            <input type="file" id="logo-input" accept="image/*">
+                          </div>
+                        </div>
+
+                        <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <!-- <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Recovery Mail</p>
+                            <p class="fs-12 text-muted mb-0">
+                              In case of forgetting passwords, emails are sent
+                              to aana14@gmail.com.
+                            </p>
+                          </div> -->
+                          <!-- <div
+                            class="toggle toggle-success on mb-0 ms-0 mt-sm-0 mt-2"
+                            id="recovery-mail"
+                          >
+                            <span></span>
+                          </div> -->
+                        </div>
+                        <!-- <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <div>
+                            <p class="fs-14 mb-1 fw-medium">SMS Recovery</p>
+                            <p class="fs-12 text-muted mb-0">
+                              In case of recovery, SMS messages are sent to
+                              9876543xx
+                            </p>
+                          </div>
+                          <div
+                            class="toggle toggle-success on mb-0 ms-0 mt-sm-0 mt-2"
+                            id="sms-recovery"
+                          >
+                            <span></span>
+                          </div>
+                        </div> -->
+                        <div class="d-flex align-items-top justify-content-between">
+                          <div>
+                            <p class="fs-14 mb-1 fw-medium">Reset Password</p>
+                            <p class="fs-12 text-muted">
+                              Password should be min of
+                              <b class="text-success">8 digits<sup>*</sup></b>,
+                              atleast <b class="text-success">One Capital letter<sup>*</sup></b>,
+                              <b class="text-success">One Number<sup>*</sup></b> and
+                              <b class="text-success">One Special Character<sup>*</sup></b>
+                              included.
+                            </p>
+                            <div class="mb-2">
+                              <label for="current-password" class="form-label">Current Password</label>
+                              <div class="input-group">
+                                <input type="password" class="form-control" id="current-password" placeholder="Current Password" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('current-password')">
+                                  <i class="ri-eye-line"></i>
+                                </button>
+                              </div>
+                              <div class="invalid-feedback">Please enter your current password</div>
+                            </div>
+                            <div class="mb-2">
+                              <label for="new-password" class="form-label">New Password</label>
+                              <div class="input-group">
+                                <input type="password" class="form-control" id="new-password" placeholder="New Password" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new-password')">
+                                  <i class="ri-eye-line"></i>
+                                </button>
+                              </div>
+                              <div class="invalid-feedback">Password must meet all requirements</div>
+                            </div>
+                            <div class="mb-0">
+                              <label for="confirm-password" class="form-label">Confirm New Password</label>
+                              <div class="input-group">
+                                <input type="password" class="form-control" id="confirm-password" placeholder="Confirm Password" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm-password')">
+                                  <i class="ri-eye-line"></i>
+                                </button>
+                              </div>
+                              <div class="invalid-feedback">Passwords do not match</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xxl-5">
+                    <div class="card custom-card shadow-none mb-0">
+                      <div
+                        class="card-header justify-content-between d-sm-flex d-block"
+                      >
+                        <div class="card-title">Registered Devices</div>
+                        <div class="mt-sm-0 mt-2">
+                          <button class="btn btn-sm btn-danger">
+                            Signout from all devices
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <ul class="list-group">
+                          <li class="list-group-item">
+                            <div class="d-sm-flex d-block align-items-top">
+                              <div class="lh-1 mb-sm-0 mb-2">
+                                <i
+                                  class="bi bi-phone me-2 fs-16 align-middle text-muted"
+                                ></i>
+                              </div>
+                              <div class="lh-1 flex-fill">
+                                <p class="mb-1">
+                                  <span class="fw-medium">Mobile-LG-1023</span>
+                                </p>
+                                <p class="mb-0">
+                                  <span class="text-muted fs-11"
+                                    >Manchester, UK-Nov 30, 04:45PM</span
+                                  >
+                                </p>
+                              </div>
+                              <div class="dropdown mt-sm-0 mt-2">
+                                <a
+                                  href="javascript:void(0);"
+                                  class="btn btn-icon btn-sm btn-light"
+                                  data-bs-toggle="dropdown"
+                                  aria-expanded="false"
+                                >
+                                  <i class="fe fe-more-vertical"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Another action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Something else here</a
+                                    >
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </li>
+                          <li class="list-group-item">
+                            <div class="d-sm-flex d-block align-items-top">
+                              <div class="lh-1 mb-sm-0 mb-2">
+                                <i
+                                  class="bi bi-laptop me-2 fs-16 align-middle text-muted"
+                                ></i>
+                              </div>
+                              <div class="lh-1 flex-fill">
+                                <p class="mb-1">
+                                  <span class="fw-medium">Lenovo-1291203</span>
+                                </p>
+                                <p class="mb-0">
+                                  <span class="text-muted fs-11"
+                                    >England, UK-Aug 12, 12:25PM</span
+                                  >
+                                </p>
+                              </div>
+                              <div class="dropdown mt-sm-0 mt-2">
+                                <a
+                                  href="javascript:void(0);"
+                                  class="btn btn-icon btn-sm btn-light"
+                                  data-bs-toggle="dropdown"
+                                  aria-expanded="false"
+                                >
+                                  <i class="fe fe-more-vertical"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Another action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Something else here</a
+                                    >
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </li>
+                          <li class="list-group-item">
+                            <div class="d-sm-flex d-block align-items-top">
+                              <div class="lh-1 mb-sm-0 mb-2">
+                                <i
+                                  class="bi bi-laptop me-2 fs-16 align-middle text-muted"
+                                ></i>
+                              </div>
+                              <div class="lh-1 flex-fill">
+                                <p class="mb-1">
+                                  <span class="fw-medium">Macbook-Suzika</span>
+                                </p>
+                                <p class="mb-0">
+                                  <span class="text-muted fs-11"
+                                    >Brightoon, UK-Jul 18, 8:34AM</span
+                                  >
+                                </p>
+                              </div>
+                              <div class="dropdown mt-sm-0 mt-2">
+                                <a
+                                  href="javascript:void(0);"
+                                  class="btn btn-icon btn-sm btn-light"
+                                  data-bs-toggle="dropdown"
+                                  aria-expanded="false"
+                                >
+                                  <i class="fe fe-more-vertical"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Another action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Something else here</a
+                                    >
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </li>
+                          <li class="list-group-item">
+                            <div class="d-sm-flex d-block align-items-top">
+                              <div class="lh-1 mb-sm-0 mb-2">
+                                <i
+                                  class="bi bi-pc-display-horizontal me-2 fs-16 align-middle text-muted"
+                                ></i>
+                              </div>
+                              <div class="lh-1 flex-fill">
+                                <p class="mb-1">
+                                  <span class="fw-medium">Apple-Desktop</span>
+                                </p>
+                                <p class="mb-0">
+                                  <span class="text-muted fs-11"
+                                    >Darlington, UK-Jan 14, 11:14AM</span
+                                  >
+                                </p>
+                              </div>
+                              <div class="dropdown mt-sm-0 mt-2">
+                                <a
+                                  href="javascript:void(0);"
+                                  class="btn btn-icon btn-sm btn-light"
+                                  data-bs-toggle="dropdown"
+                                  aria-expanded="false"
+                                >
+                                  <i class="fe fe-more-vertical"></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Another action</a
+                                    >
+                                  </li>
+                                  <li>
+                                    <a
+                                      class="dropdown-item"
+                                      href="javascript:void(0);"
+                                      >Something else here</a
+                                    >
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0 d-flex justify-content-end">
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#saveAccountModal">
+                        Save Account Settings
+                    </button>
+                </div>
+              </div>
+              <div class="tab-pane p-0" id="tax" role="tabpanel">
+                <div class="row gy-3">
+                  <div class="col-xxl-12">
+                    <div class="card custom-card shadow-none mb-0">
+                      <div class="card-body">
+                        <!-- <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                                                                <div class="w-75">
+                                                                    <p class="fs-14 mb-1 fw-medium">Two Step Verification</p>
+                                                                    <p class="fs-12 text-muted mb-0">Two-step verification provides enhanced security measures and helps prevent unauthorized access and fraudulent activities.</p>
+                                                                </div>
+                                                                <div class="toggle toggle-success on mb-0" id="two-step-verification">
+                                                                    <span></span>
+                                                                </div>
+                                                            </div> -->
+                        <!-- <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <div class="mb-sm-0 mb-2 w-75">
+                            <p class="fs-14 mb-2 fw-medium">Authentication</p>
+                            <div class="mb-0 authentication-btn-group">
+                              <div
+                                class="btn-group"
+                                role="group"
+                                aria-label="Basic radio toggle button group"
+                              >
+                                <input
+                                  type="radio"
+                                  class="btn-check"
+                                  name="btnradio"
+                                  id="btnradio1"
+                                  checked=""
+                                />
+                                <label
+                                  class="btn btn-outline-light"
+                                  for="btnradio1"
+                                  ><i
+                                    class="ri-lock-unlock-line me-1 align-middle d-inline-block"
+                                  ></i
+                                  >Pin</label
+                                >
+                                <input
+                                  type="radio"
+                                  class="btn-check"
+                                  name="btnradio"
+                                  id="btnradio2"
+                                />
+                                <label
+                                  class="btn btn-outline-light"
+                                  for="btnradio2"
+                                  ><i
+                                    class="ri-lock-password-line me-1 align-middle d-inline-block"
+                                  ></i
+                                  >Password</label
+                                >
+                                <input
+                                  type="radio"
+                                  class="btn-check"
+                                  name="btnradio"
+                                  id="btnradio3"
+                                />
+                                <label
+                                  class="btn btn-outline-light"
+                                  for="btnradio3"
+                                  ><i
+                                    class="ri-fingerprint-line me-1 align-middle d-inline-block"
+                                  ></i
+                                  >Finger Print</label
+                                >
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="toggle toggle-success on mb-0 ms-0 mt-sm-0 mt-2"
+                            id="authentication"
+                          >
+                            <span></span>
+                          </div>
+                        </div> -->
+                        <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">GST</p>
+                          </div>
+                          <div class="w-25">
+                            <select class="form-select" id="gst-select">
+                              <!-- Options will be populated by JavaScript -->
+                            </select>
+                          </div>
+                        </div>
+                        <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">VAT</p>
+                          </div>
+                          <div class="w-25">
+                            <select class="form-select" id="vat-select">
+                              <!-- Options will be populated by JavaScript -->
+                            </select>
+                          </div>
+                        </div>
+                        <!-- <div
+                          class="d-sm-flex d-block align-items-top mb-4 justify-content-between"
+                        >
+                          <div>
+                            <p class="fs-14 mb-1 fw-medium">SMS Recovery</p>
+                            <p class="fs-12 text-muted mb-0">
+                              In case of recovery, SMS messages are sent to
+                              9876543xx
+                            </p>
+                          </div>
+                          <div
+                            class="toggle toggle-success on mb-0 ms-0 mt-sm-0 mt-2"
+                            id="sms-recovery"
+                          >
+                            <span></span>
+                          </div>
+                        </div> -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0 d-flex justify-content-end">
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#saveTaxModal">
+                        Save Tax Settings
+                    </button>
+                </div>
+              </div>
+              <div class="tab-pane p-0" id="company-info" role="tabpanel">
+                <div class="row gy-3">
+                  <div class="col-xxl-12">
+                    <div class="card custom-card shadow-none mb-0">
+                      <div class="card-body">
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Name:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-name" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Address:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-address" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company GSTIN:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-gstin" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Email:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-email" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Company Phone:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-phone" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Account Number:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-account" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">IFSC Code:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-ifsc" class="form-control">
+                          </div>
+                        </div>
+                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
+                          <div class="w-75">
+                            <p class="fs-14 mb-1 fw-medium">Bank Branch:</p>
+                          </div>
+                          <div class="w-25">
+                            <input type="text" id="company-branch" class="form-control">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0 d-flex justify-content-end">
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#saveCompanyModal">
+                        Save Company Info
+                    </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="/assets/js/userSettings.js"></script>
+
+<!-- Add this script before the closing body tag -->
+<script>
+// Configure toastr options
+toastr.options = {
+    "closeButton": true,
+    "progressBar": true,
+    "timeOut": "3000",
+    "extendedTimeOut": "1000",
+    "preventDuplicates": true,
+    "newestOnTop": true
+};
+
+// Function to get logged in email from localStorage
+function getLoggedInEmail() {
+    return localStorage.getItem('loggedInEmail');
+}
+
+// Function to check if user is authorized
+async function checkUserAuthorization() {
+    try {
+        const loggedInEmail = getLoggedInEmail();
+        if (!loggedInEmail) {
+            console.error('No logged in email found');
+            return false;
+        }
+
+        const response = await fetch('https://bni-data-backend.onrender.com/api/getUsers');
+        const users = await response.json();
+        
+        // Check if logged in email matches any user
+        return users.some(user => user.email === loggedInEmail);
+    } catch (error) {
+        console.error('Error checking authorization:', error);
+        return false;
+    }
+}
+
+// Function to populate company info fields
+function populateCompanyInfo(data) {
+    // Existing company info fields
+    document.getElementById('company-name').value = data.company_name || '';
+    document.getElementById('company-address').value = data.company_address || '';
+    document.getElementById('company-gstin').value = data.company_gst || '';
+    document.getElementById('company-email').value = data.company_email || '';
+    document.getElementById('company-phone').value = data.company_phone || '';
+    document.getElementById('company-account').value = data.company_account_number || '';
+    document.getElementById('company-ifsc').value = data.company_ifsc_code || '';
+    document.getElementById('company-branch').value = data.company_bank_branch || '';
+
+    // Populate social media links in the existing fields
+    document.getElementById('facebook').value = data.company_facebook || '';
+    document.getElementById('Twitter').value = data.company_twitter || '';
+    document.getElementById('Linkedin').value = data.company_youtube || ''; // Using LinkedIn field for YouTube
+    document.getElementById('Pinterest').value = data.company_instagram || ''; // Using Pinterest field for Instagram
+}
+
+// Function to save company changes
+async function saveCompanyChanges() {
+    try {
+        console.log('=== SAVE COMPANY CHANGES START ===');
+        
+        // Validate fields first
+        const invalidFields = document.querySelectorAll('#company-info .is-invalid');
+        if (invalidFields.length > 0) {
+            toastr.error('Please correct the invalid fields before saving');
+            return;
+        }
+
+        // Log all form elements to debug
+        console.log('Form elements:', {
+            name: document.getElementById('company-name'),
+            address: document.getElementById('company-address'),
+            gstin: document.getElementById('company-gstin'),
+            email: document.getElementById('company-email'),
+            phone: document.getElementById('company-phone'),
+            account: document.getElementById('company-account'),
+            ifsc: document.getElementById('company-ifsc'),
+            branch: document.getElementById('company-branch'),
+            facebook: document.getElementById('facebook'),
+            twitter: document.getElementById('Twitter'),
+            linkedin: document.getElementById('Linkedin'),
+            pinterest: document.getElementById('Pinterest')
+        });
+
+        const data = {
+            company_name: document.getElementById('company-name')?.value || '',
+            company_address: document.getElementById('company-address')?.value || '',
+            company_gst: document.getElementById('company-gstin')?.value || '',
+            company_email: document.getElementById('company-email')?.value || '',
+            company_phone: document.getElementById('company-phone')?.value || '',
+            company_account_number: document.getElementById('company-account')?.value || '',
+            company_ifsc_code: document.getElementById('company-ifsc')?.value || '',
+            company_bank_branch: document.getElementById('company-branch')?.value || '',
+            company_facebook: document.getElementById('facebook')?.value || '',
+            company_twitter: document.getElementById('Twitter')?.value || '',
+            company_youtube: document.getElementById('Linkedin')?.value || '', // Using LinkedIn field for YouTube
+            company_instagram: document.getElementById('Pinterest')?.value || '' // Using Pinterest field for Instagram
+        };
+
+        console.log('Sending data:', data);
+
+        // Update the API endpoint to match your backend
+        const response = await fetch('https://bni-data-backend.onrender.com/api/updateUserSettings', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` // Add token if required
+            },
+            body: JSON.stringify(data)
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.ok) {
+            console.log('Update successful');
+            $('#saveCompanyModal').modal('hide');
+            toastr.success('Company information updated successfully!');
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            const errorData = await response.json();
+            console.error('Update failed:', errorData);
+            toastr.error(errorData.message || 'Failed to update company information');
+        }
+    } catch (error) {
+        console.error('Error in saveCompanyChanges:', error);
+        toastr.error('Error updating company information. Please try again.');
+    }
+}
+
+// Add event listener when document loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== INITIALIZING SAVE BUTTON HANDLER ===');
+    
+    // Get the save button in the modal
+    const saveChangesBtn = document.querySelector('#saveCompanyModal .btn-primary');
+    if (saveChangesBtn) {
+        console.log('Save button found');
+        saveChangesBtn.onclick = saveCompanyChanges; // Changed to direct assignment
+    } else {
+        console.error('Save button not found');
+    }
+});
+
+// Add a flag to track if error message is already shown
+let activeToastrIds = {
+    email: null,
+    phone: null,
+    gst: null,
+    ifsc: null,
+    account: null,
+    companyName: null,
+    companyAddress: null
+};
+
+// Helper function to show error only if not already shown
+function showUniqueToastr(fieldName, message) {
+    if (!activeToastrIds[fieldName]) {
+        activeToastrIds[fieldName] = toastr.error(message, 'Error');
+    }
+}
+
+// Helper function to clear specific error
+function clearToastr(fieldName) {
+    if (activeToastrIds[fieldName]) {
+        toastr.clear(activeToastrIds[fieldName]);
+        activeToastrIds[fieldName] = null;
+    }
+}
+
+// Update the validation listeners
+document.getElementById('company-email').addEventListener('input', function() {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.value) && this.value.length > 0) {
+        this.classList.add('is-invalid');
+        showUniqueToastr('email', 'Invalid email format');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('email');
+    }
+});
+
+document.getElementById('company-phone').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    if (this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+    }
+    
+    if (this.value.length !== 0 && this.value.length !== 10) {
+        this.classList.add('is-invalid');
+        showUniqueToastr('phone', 'Phone number must be exactly 10 digits');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('phone');
+    }
+});
+
+document.getElementById('company-gstin').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    if (this.value.length > 15) {
+        this.value = this.value.slice(0, 15);
+    }
+    
+    if (this.value.length !== 0 && this.value.length !== 15) {
+        this.classList.add('is-invalid');
+        showUniqueToastr('gst', 'GST number must be exactly 15 characters');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('gst');
+    }
+});
+
+document.getElementById('company-ifsc').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    if (this.value.length > 11) {
+        this.value = this.value.slice(0, 11);
+    }
+    
+    if (this.value.length !== 0 && this.value.length !== 11) {
+        this.classList.add('is-invalid');
+        showUniqueToastr('ifsc', 'IFSC code must be exactly 11 characters');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('ifsc');
+    }
+});
+
+document.getElementById('company-account').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    if (this.value.length > 20) {
+        this.value = this.value.slice(0, 20);
+        this.classList.add('is-invalid');
+        showUniqueToastr('account', 'Account number cannot exceed 20 digits');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('account');
+    }
+});
+
+document.getElementById('company-name').addEventListener('input', function() {
+    if (this.value.length > 50) {
+        this.value = this.value.slice(0, 50);
+        this.classList.add('is-invalid');
+        showUniqueToastr('companyName', 'Company name cannot exceed 50 characters');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('companyName');
+    }
+});
+
+document.getElementById('company-address').addEventListener('input', function() {
+    if (this.value.length > 150) {
+        this.value = this.value.slice(0, 150);
+        this.classList.add('is-invalid');
+        showUniqueToastr('companyAddress', 'Company address cannot exceed 150 characters');
+    } else {
+        this.classList.remove('is-invalid');
+        clearToastr('companyAddress');
+    }
+});
+
+// Security Settings
+async function saveSecuritySettings() {
+    try {
+        // Demo functionality for now
+        toastr.success('Security settings saved successfully!');
+    } catch (error) {
+        console.error('Error:', error);
+        toastr.error('Error saving security settings');
+    }
+}
+
+// Tax Settings
+async function saveTaxSettings() {
+    try {
+        const gstSelect = document.querySelector('#tax select:first-of-type');
+        const vatSelect = document.querySelector('#tax select:last-of-type');
+        
+        const data = {
+            gst: gstSelect.value,
+            vat: vatSelect.value
+        };
+        
+        // Demo functionality for now
+        console.log('Tax settings to save:', data);
+        
+        // Close the modal
+        $('#saveTaxModal').modal('hide');
+        
+        // Show success message
+        toastr.success('Tax settings saved successfully!');
+        
+        // Optional: Reload the page after a short delay
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        toastr.error('Error saving tax settings');
+    }
+}
+
+// Initialize modals and event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handler for company save button using jQuery
+    $('#company-info .btn-danger').on('click', function() {
+        $('#saveCompanyModal').modal('show');
+    });
+
+    // Keep existing validation listeners
+    // ... your existing validation code ...
+});
+
+// Function to fetch GST types
+async function fetchGstTypes() {
+    try {
+        console.log('=== FETCH GST TYPES START ===');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/getGstType');
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch GST types');
+        }
+
+        const data = await response.json();
+        console.log('GST types received:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching GST types:', error);
+        toastr.error('Failed to load GST types');
+        return [];
+    }
+}
+
+// Function to fetch GST values
+async function fetchGstValues() {
+    try {
+        console.log('=== FETCH GST VALUES START ===');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/getGstTypeValues');
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch GST values');
+        }
+
+        const data = await response.json();
+        console.log('GST values received:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching GST values:', error);
+        toastr.error('Failed to load GST values');
+        return [];
+    }
+}
+
+// Function to populate GST and VAT dropdowns
+async function populateTaxDropdowns() {
+    try {
+        console.log('=== POPULATE TAX DROPDOWNS START ===');
+        
+        // Fetch both GST types and values
+        const [gstTypes, allGstValues] = await Promise.all([
+            fetchGstTypes(),
+            fetchGstValues()
+        ]);
+
+        // Get dropdown elements
+        const gstSelect = document.querySelector('#gst-select');
+        const vatSelect = document.querySelector('#vat-select');
+
+        if (!gstSelect || !vatSelect) {
+            throw new Error('Tax dropdowns not found in DOM');
+        }
+
+        // Clear existing options
+        gstSelect.innerHTML = '<option value="">Select GST</option>';
+        vatSelect.innerHTML = '<option value="">Select VAT</option>';
+
+        // Populate GST dropdown (type_id = 1)
+        const gstValues = allGstValues.filter(value => value.gst_type_name_id === 1);
+        const activeGst = gstValues.find(value => value.active_status === 'active');
+
+        // Add all GST values to dropdown
+        gstValues.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value.gst_value_id;
+            option.textContent = value.gst_values;
+            // If this is the active value, select it
+            if (activeGst && value.gst_value_id === activeGst.gst_value_id) {
+                option.selected = true;
+            }
+            gstSelect.appendChild(option);
+        });
+
+        // Populate VAT dropdown (type_id = 2)
+        const vatValues = allGstValues.filter(value => value.gst_type_name_id === 2);
+        const activeVat = vatValues.find(value => value.active_status === 'active');
+
+        // Add all VAT values to dropdown
+        vatValues.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value.gst_value_id;
+            option.textContent = value.gst_values;
+            // If this is the active value, select it
+            if (activeVat && value.gst_value_id === activeVat.gst_value_id) {
+                option.selected = true;
+            }
+            vatSelect.appendChild(option);
+        });
+
+        console.log('=== POPULATE TAX DROPDOWNS COMPLETE ===');
+        console.log('Active GST:', activeGst);
+        console.log('Active VAT:', activeVat);
+        console.log('All GST values:', gstValues);
+        console.log('All VAT values:', vatValues);
+    } catch (error) {
+        console.error('Error populating tax dropdowns:', error);
+        toastr.error('Failed to load tax options');
+    }
+}
+
+// Function to save tax settings
+async function saveTaxSettings() {
+    try {
+        const gstSelect = document.querySelector('#gst-select');
+        const vatSelect = document.querySelector('#vat-select');
+        
+        if (!gstSelect.value || !vatSelect.value) {
+            toastr.error('Please select both GST and VAT values');
+            return;
+        }
+
+        const data = {
+            gst_value_id: parseInt(gstSelect.value),
+            vat_value_id: parseInt(vatSelect.value)
+        };
+        
+        console.log('Tax settings to save:', data);
+        
+        const response = await fetch('http://localhost:5000/api/updateGstTypeValues', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update tax settings');
+        }
+
+        // Close the modal
+        $('#saveTaxModal').modal('hide');
+        
+        // Show success message
+        toastr.success('Tax settings saved successfully!');
+        
+        // Refresh the dropdowns instead of reloading the page
+        await populateTaxDropdowns();
+          // Reload the page to reflect changes
+          window.location.reload(); // Page will reload after saving
+        
+    } catch (error) {
+        console.error('Error:', error);
+        toastr.error('Error saving tax settings');
+    }
+}
+
+// Initialize when document loads
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        await populateTaxDropdowns();
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        toastr.error('Error loading tax settings');
+    }
+});
+
+// Single consolidated saveAccountSettings function
+async function saveAccountSettings() {
+    try {
+        console.log('Starting account settings update...');
+        let updatesMade = false;
+        let successMessages = [];
+        
+        // Get user info from token
+        const decoded = getDecodedToken();
+        console.log('Decoded token:', decoded);
+
+        // 1. Handle Password Update (if attempted)
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        
+        if (currentPassword || newPassword) {
+            console.log('Password update initiated...');
+            
+            // Validate user permissions
+            if (!decoded?.login_type || !decoded?.email) {
+                console.error('Authentication failed:', { login_type: decoded?.login_type, email: decoded?.email });
+                toastr.error('Authentication error');
+                return;
+            }
+            
+            if (decoded.login_type !== 'ro_admin') {
+                console.error('Unauthorized access attempt. User type:', decoded.login_type);
+                toastr.error('Only admin users can update password');
+                return;
+            }
+
+            // Validate password requirements
+            if (!validatePasswords()) {
+                console.error('Password validation failed');
+                return;
+            }
+
+            try {
+                console.log('Sending password update request...');
+                const passwordResponse = await fetch('http://localhost:5000/api/updateUserPassword', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        currentPassword,
+                        newPassword,
+                        email: decoded.email
+                    })
+                });
+
+                console.log('Password update response status:', passwordResponse.status);
+                const passwordData = await passwordResponse.json();
+                console.log('Password update response:', passwordData);
+
+                if (!passwordResponse.ok) {
+                    console.error('Password update failed:', passwordData.message);
+                    toastr.error(passwordData.message || 'Failed to update password');
+                    return;
+                }
+
+                if (!passwordData.success) {
+                    console.error('Current password verification failed');
+                    toastr.error('Current password is incorrect');
+                    return;
+                }
+
+                console.log('Password updated successfully');
+                updatesMade = true;
+                successMessages.push('Password updated');
+                
+                // Clear password fields
+                ['current-password', 'new-password', 'confirm-password'].forEach(id => {
+                    const field = document.getElementById(id);
+                    if (field) field.value = '';
+                });
+            } catch (error) {
+                console.error('Password update error:', error);
+                toastr.error('Failed to update password');
+                return;
+            }
+        }
+
+        // 2. Handle Logo Upload (if attempted)
+        const logoInput = document.getElementById('logo-input');
+        if (logoInput?.files.length > 0) {
+            console.log('Logo upload requested...');
+            
+            try {
+                const formData = new FormData();
+                formData.append('logo', logoInput.files[0]);
+
+                const logoResponse = await fetch('http://localhost:5000/api/uploadLogo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!logoResponse.ok) {
+                    const logoData = await logoResponse.json();
+                    throw new Error(logoData.message || 'Failed to upload logo');
+                }
+
+                // Update the logo preview
+                const logoPreview = document.getElementById('logo-preview');
+                if (logoPreview) {
+                    logoPreview.src = logoResponse.filePath + '?t=' + new Date().getTime();
+                }
+                
+                updatesMade = true;
+                successMessages.push('Logo uploaded');
+                
+                // Clear file input
+                logoInput.value = '';
+            } catch (error) {
+                console.error('Logo upload error:', error);
+                toastr.error('Failed to upload logo');
+                return;
+            }
+        }
+
+        // Show single success message if updates were made
+        if (updatesMade) {
+            $('#saveAccountModal').modal('hide');
+            
+            // Show only one success message
+            const successMessage = successMessages.join(' and ') + ' successfully';
+            setTimeout(() => {
+                toastr.success(successMessage);
+                // Reload page after showing the message
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }, 100);
+        } else {
+            toastr.info('No changes were made');
+            $('#saveAccountModal').modal('hide');
+        }
+
+    } catch (error) {
+        console.error('Account settings update error:', error);
+        toastr.error('Error updating account settings');
+    }
+}
+
+// Keep the event listener
+
+
+// Update password fields disable logic to use token
+document.addEventListener('DOMContentLoaded', function() {
+    const decoded = getDecodedToken();
+    const isAdmin = decoded && decoded.login_type === 'ro_admin';
+    const passwordFields = ['current-password', 'new-password', 'confirm-password'];
+    
+    passwordFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.disabled = !isAdmin;
+        }
+    });
+});
+
+// Logo handling with token authorization
+document.addEventListener('DOMContentLoaded', function() {
+    const decoded = getDecodedToken();
+    if (!decoded || decoded.login_type !== 'ro_admin') {
+        const logoInput = document.getElementById('logo-input');
+        if (logoInput) {
+            logoInput.disabled = true;
+        }
+        return;
+    }
+
+    loadLogo();
+
+    const logoInput = document.getElementById('logo-input');
+    logoInput.addEventListener('change', function() {
+        const file = logoInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logoPreview = document.getElementById('logo-preview');
+                logoPreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+// Rest of the functions remain the same
+function validatePasswords() {
+    const currentPassword = document.getElementById('current-password');
+    const newPassword = document.getElementById('new-password');
+    const confirmPassword = document.getElementById('confirm-password');
+    let isValid = true;
+
+    // Check if elements exist before proceeding
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        console.error('Password fields not found');
+        toastr.error('Error: Password fields not found');
+        return false;
+    }
+
+    // Reset previous validation states
+    [currentPassword, newPassword, confirmPassword].forEach(field => {
+        if (field.classList.contains('is-invalid')) {
+            field.classList.remove('is-invalid');
+        }
+    });
+
+    // Current password validation
+    if (!currentPassword.value) {
+        currentPassword.classList.add('is-invalid');
+        isValid = false;
+    }
+
+    // New password validation
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+    if (!passwordRegex.test(newPassword.value)) {
+        newPassword.classList.add('is-invalid');
+        isValid = false;
+    }
+
+    // Confirm password validation
+    if (newPassword.value !== confirmPassword.value) {
+        confirmPassword.classList.add('is-invalid');
+        isValid = false;
+    }
+
+    if (!isValid) {
+        toastr.error('Please correct the password errors');
+        return false;
+    }
+
+    return true;
+}
+
+// Function to toggle password visibility
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.nextElementSibling.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        button.className = 'ri-eye-off-line';
+    } else {
+        field.type = 'password';
+        button.className = 'ri-eye-line';
+    }
+}
+
+// Add real-time password validation
+document.getElementById('new-password').addEventListener('input', function() {
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+    if (!passwordRegex.test(this.value)) {
+        this.classList.add('is-invalid');
+    } else {
+        this.classList.remove('is-invalid');
+    }
+});
+
+document.getElementById('confirm-password').addEventListener('input', function() {
+    const newPassword = document.getElementById('new-password').value;
+    if (this.value !== newPassword) {
+        this.classList.add('is-invalid');
+    } else {
+        this.classList.remove('is-invalid');
+    }
+});
+
+// Function to load existing logo
+function loadLogo() {
+  console.log('Starting logo load...');
+  
+  fetch('http://localhost:5000/api/getDisplayLogo')
+    .then(response => {
+      console.log('Received response:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Received data:', data);
+      
+      if (data && data.length > 0 && data[0].display_image_name) {
+        const imageName = data[0].display_image_name;
+        console.log('Found image name:', imageName);
+        
+        const logoPreview = document.getElementById('logo-preview');
+        // Construct the full URL using the image name
+        const imageUrl = `http://localhost:5000/uploads/dynamicLogo/${imageName}`;
+        console.log('Setting image URL:', imageUrl);
+        
+        logoPreview.src = imageUrl + '?t=' + new Date().getTime();
+      } else {
+        console.log('No logo data received');
+      }
+    })
+    .catch(error => {
+      console.error('Error loading logo:', error);
+    });
+}
+
+// Modify saveAccountSettings to include logo upload
+
+// Rest of your existing code remains exactly the same...
+</script>
+
+<!-- Make sure jQuery and Bootstrap JS are included before your script -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Update the Company Info Modal -->
+<div class="modal fade" id="saveCompanyModal" tabindex="-1" role="dialog" aria-labelledby="saveCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveCompanyModalLabel">Confirm Company Changes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to save the company information changes?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="saveCompanyChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add the Save Tax Settings button -->
+
+<!-- Add the Tax Settings Modal -->
+<div class="modal fade" id="saveTaxModal" tabindex="-1" role="dialog" aria-labelledby="saveTaxModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="saveTaxModalLabel">Confirm Tax Changes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to save the tax settings changes?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="saveTaxSettings()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this modal definition near your other modals -->
+<div class="modal fade" id="saveAccountModal" tabindex="-1" role="dialog" aria-labelledby="saveAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="saveAccountModalLabel">Confirm Account Changes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to save the account settings changes?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="saveAccountSettings()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- End::content  -->
+<%- include('../partials/footer') %>
+
+<style>
+    .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.3) !important; /* Reduced opacity from default 0.5 to 0.3 */
+    }
+</style>
+</style>

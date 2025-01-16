@@ -1,0 +1,187 @@
+      <!-- header -->
+      <%- include('../partials/header') %> 
+      <!-- end header -->
+
+      <!-- sidebar -->
+
+      <%- include('../partials/member-sidebar') %>
+
+      <style>
+        .border {
+            border: 1px solid gainsboro !important;
+        }
+      </style>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+
+                
+            <!-- Start::page-header -->
+            <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
+                <div>
+                    <nav>
+                        <ol class="breadcrumb mb-1">
+                            <li class="breadcrumb-item">
+                                <a href="javascript:void(0);" style="color: #d01f2f;">
+                                    View Invoice
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Invoice Details</li>
+                        </ol>
+                    </nav>
+                    <h1 class="page-title fw-medium fs-18 mb-0">Showing Invoice:</h1>
+                </div>
+                <!-- <div class="btn-list">
+                    <button class="btn btn-danger btn-wave me-0">
+                        <i class="ri-share-forward-line me-1"></i> Share Bill
+                    </button>
+                </div> -->
+            </div>
+            <!-- End::page-header -->
+
+            <!-- Start::row-1 -->
+            <div class="row">
+                <div class="col-xl-9">
+                    <div class="card custom-card">
+                        <div class="card-header d-md-flex d-block">
+                            <div class="h5 mb-0 d-sm-flex d-bllock align-items-center">
+                                <div class="ms-sm-2 ms-0 mt-sm-0 mt-2">
+                                    <div class="h6 fw-medium mb-0">Bill INVOICE : <span class="text-primary" style="color: #d01f2f !important;">BNEW-01</span></div>
+                                </div>
+                            </div>
+                            <div class="ms-auto mt-md-0 mt-2">
+                                <button class="btn btn-sm btn-danger me-1" onclick="javascript:window.print();">Print<i class="ri-printer-line ms-1 align-middle d-inline-block"></i></button>
+                                <!-- <button class="btn btn-sm btn-success">Save As PDF<i class="ri-file-pdf-line ms-1 align-middle d-inline-block"></i></button> -->
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row gy-3">
+                                <div class="col-xl-12">
+                                    <div class="row">
+                                        <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
+                                            <p class="text-muted mb-2">
+                                                Billing From :
+                                            </p>
+                                            <p class="fw-bold mb-1">
+                                                ADI CORPORATE TRAINING
+                                            </p>
+                                            <p class="mb-1 text-muted">
+                                                Dda Sfs Flat, Flat No 12, Pocket 1, Sector 19, Dwarka New Delhi, Delhi, 110075 India
+                                            </p>
+                                            <p class="mb-1 text-muted">
+                                                sunilk@bni-india.in
+                                            </p>
+                                            <p class="mb-1 text-muted">
+                                                +91 9899789340
+                                            </p>
+                                            <p class="mb-1 text-muted">
+                                               <b>07EVVPS9453K4Z8</b> 
+                                            </p>
+                                        </div>
+                                        <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3">
+                                            <p class="text-muted mb-2">
+                                                Billing To :
+                                            </p>
+                                            <p class="fw-bold mb-1 billing-to-name">
+                                            
+                                            </p>
+                                            <p class="text-muted mb-1  billing-to-address">
+                                                
+                                            </p>
+                                            <p class="text-muted mb-1 billing-to-email">
+                                                
+                                            </p>
+                                            <p class="text-muted billing-to-phone">
+                                                
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-4">
+                                    <p class="fw-medium text-muted mb-1">Invoice ID :</p>
+                                    <p class="fs-15 mb-1 invoice-id">#SHG148756965</p>
+                                </div>
+                                <div class="col-xl-4">
+                                    <p class="fw-medium text-muted mb-1">Date Issued :</p>
+                                    <p class="fs-15 mb-1 date-issued">15,May 2024 - <span class="text-muted fs-12">11:13AM</span></p>
+                                </div>
+                                <!-- <div class="col-xl-3">
+                                    <p class="fw-medium text-muted mb-1">Due Date :</p>
+                                    <p class="fs-15 mb-1 due-date">28,June 2024</p>
+                                </div> -->
+                                <div class="col-xl-4">
+                                    <p class="fw-medium text-muted mb-1">Paid Amount :</p>
+                                    <p class="fs-16 mb-1 fw-medium due-amount">₹4,877.11</p>
+                                </div>
+                                <div class="col-xl-12">
+                                    <div class="table-responsive">
+                                        <table class="table tbody nowrap text-nowrap border mt-4 transaction-items">
+                                            <thead>
+                                                <tr>
+                                                    <th>S.No.</th>
+                                                    <th>Payment Type</th>
+                                                    <th>Transaction ID</th>
+                                                    <th>QUANTITY</th>
+                                                    <th>PRICE PER UNIT</th>
+                                                    <th>TOTAL</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Dynamic rows will be populated here -->
+                                                
+                                            </tbody>
+                                        </table>
+                                        
+                                    </div>
+                                </div>
+                             
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <button class="btn btn-danger">Download <i class="ri-download-2-line ms-1 align-middle"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3">
+                    <div class="card custom-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                Mode Of Payment
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row gy-3">
+                                <div class="col-xl-12">
+                                    <p class="fs-14 fw-medium">
+                                        Paid By: <span class="payment-mode"></span>
+                                    </p>
+                                    <p>
+                                        <span class="fw-medium text-muted fs-12">Total Amount:</span> <span class="total-amount text-success fw-medium fs-14"></span>
+                                    </p>
+                                    <p>
+                                        <span class="fw-medium text-muted fs-12">Payment Status:</span> <span class="payment-status badge"></span>
+                                    </p>
+                                    <!-- <div class="alert alert-primary2" role="alert">
+                                        Please make sure to pay the invoice bill within 120 days.
+                                    </div> -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            <!--End::row-1 -->
+
+            
+        </div>
+    </div>
+    <!-- End::content  -->
+
+    <%- include('../partials/footer') %> 
+
+    <script src="../../assets/js/memberInvoice.js"></script>
+
+      <!-- Footer opened -->
+ 

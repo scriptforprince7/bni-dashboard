@@ -1,0 +1,209 @@
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/sidebar') %>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content" style="background-color: #f4f4f4">
+        <div class="container-fluid">
+          <!-- Start::page-header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                <span style="font-weight: 700; font-family: Poppins"
+                  >Add New Accolade</span
+                >
+              </h1>
+              <!-- <p>Manage kitty payments with just one click</p> -->
+            </div>
+          </div>
+          <!-- End::page-header -->
+          <style>
+            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+          </style>
+
+          <style>
+            * {
+              font-family: Montserrat !important;
+              font-weight: 800px;
+            }
+            .text-muted {
+              color: black !important;
+              font-family: Montserrat Alternates;
+            }
+            .popins {
+              font-family: Poppins;
+            }
+          </style>
+
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div class="card-body add-products">
+                  <div class="row gx-4">
+                    <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                      <div class="card custom-card shadow-none mb-0 border-0">
+                        <div class="card-body p-0">
+                          <div class="row gy-3">
+                            <div class="col-xl-12">
+                              <label for="product-cost-add" class="form-label"
+                                ><span style="font-size: 15px"
+                                  ><b>It's time for a new accolade!</b></span
+                                ></label
+                              >
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="accolade_name" class="form-label"
+                                >Enter Accolade Name</label
+                              >
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="accolade_name"
+                                placeholder="New accolade name.."
+                              />
+                              <label
+                                for="product-cost-add"
+                                class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                                ><span style="color: red"
+                                  >*Mention the acknowledged name of the
+                                  accolade</span
+                                ></label
+                              >
+                            </div>
+
+                            <div class="col-xl-6">
+                              <label for="accolade_price" class="form-label"
+                                >Accolade Price<b>(if any)</b></label
+                              >
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="accolade_price"
+                                placeholder="₹49,500/-"
+                              />
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="accolade_published" class="form-label"
+                                >Accolade Published by</b></label
+                              >
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="accolade_published"
+                                placeholder="Raja Shukla/-"
+                              />
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="accolade_published_date" class="form-label"
+                                >Accolade Published Date</b></label
+                              >
+                              <input
+                                type="date"
+                                class="form-control"
+                                id="accolade_published_date"
+                              />
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="item_type" class="form-label">Item Type</label>
+                              <select class="form-control" name="item_type" id="item_type">
+                                <option value="">Select</option>
+                                <option value="Pin">Pin</option>
+                                <option value="Ribbon">Ribbon</option>
+                                <option value="Kit">Kit</option>
+                              </select>
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="accolade_type" class="form-label">Accolade Type</label>
+                              <select class="form-control" name="accolade_type" id="accolade_type">
+                                <option value="">Select</option>
+                                <option value="Regional">Regional</option>
+                                <option value="India">India</option>
+                                <option value="Global">Global</option>
+                              </select>
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="ec" class="form-label"
+                                >Eligibility & Condition</label
+                              >
+                              <textarea
+                                class="form-control"
+                                id="ec"
+                                name="ec"
+                                placeholder="Enter the Eligibilty & Condition for this accolade"
+                                rows="3"
+                              ></textarea>
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="stock_available" class="form-label"
+                                >Stock Available</label
+                              >
+                              <input
+                                type="text"
+                                class="form-control"
+                                id="stock_available"
+                                placeholder="50"
+                              />
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="accolade_availability" class="form-label"
+                                >Accolade Availability</label
+                              >
+                              <select
+                                class="form-control"
+                                data-trigger=""
+                                name="accolade_availability"
+                                id="accolade_availability"
+                              >
+                                <option value="">Select</option>
+                                <option value="available">Available</option>
+                                <option value="not-available">Not Available</option>
+                              </select>
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="accolade_status" class="form-label"
+                                > Accolade Status</label
+                              >
+                              <select
+                                class="form-control"
+                                data-trigger=""
+                                name="accolade_status"
+                                id="accolade_status"
+                              >
+                                <option value="">Select</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                              </select>
+                            </div>
+                            
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end"
+                >
+                  <button class="btn btn-success me-2 mb-2 mb-sm-0" id="submit-accolade">
+                    Add Accolade<i class="bi bi-plus-lg ms-2"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- End::content  -->
+
+      <script src="../../assets/js/addAccolades.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <%- include('../partials/footer') %> 
