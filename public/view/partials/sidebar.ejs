@@ -14,11 +14,12 @@
               class="toggle-dark"
             />
             <img
-              src="../../assets/images/bni-new-logo.jpg"
-              alt="logo"
-              class="desktop-dark"
-              style="height: 56px"
-            />
+            src="../../assets/images/bni-new-logo.jpg"
+            alt="logo"
+            class="desktop-dark"
+            style="height: 56px"
+            id="dynamic-logo"
+          />
             <img
               src="../../assets/images/bni-new-logo.jpg"
               alt="logo"
@@ -724,6 +725,33 @@
 
 
       </style>
+
+<script>
+  // API URL
+  const apiUrl = "https://bni-data-backend.onrender.com/api/getDisplayLogo";
+
+  // Fetch data from the API
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      // Check if data is valid and contains the required field
+      if (data.length > 0 && data[0].display_image_name) {
+        const displayImageName = data[0].display_image_name;
+
+        // Construct the image path
+        const imagePath = `http://localhost:5000/uploads/dynamicLogo/${displayImageName}`;
+
+        // Update the <img> src attribute
+        const logoImg = document.getElementById("dynamic-logo");
+        logoImg.src = imagePath;
+      } else {
+        console.error("No valid display image found in the API response.");
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching display logo:", error);
+    });
+</script>
 
       <script>
         document.addEventListener("DOMContentLoaded", function () {
