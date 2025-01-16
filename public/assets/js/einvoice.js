@@ -18,6 +18,9 @@ function getQueryParam(param) {
 // Retrieve and parse the JSON data
 const invoiceData = JSON.parse(decodeURIComponent(getQueryParam("invoiceData")));
 const einvoiceData = JSON.parse(decodeURIComponent(getQueryParam("einvoiceData")));
+const universalLinkId = invoiceData.orderId.universal_link_id;
+
+const apiUrl = "https://bni-data-backend.onrender.com/api/universalLinks";
 // Use `invoiceData` and `einvoiceData` as needed
 const ackDate = einvoiceData.ack_dt ? new Date(einvoiceData.ack_dt) : null;
 const orderAmount = invoiceData.orderId.order_amount || 0;
@@ -163,8 +166,28 @@ document.querySelector(".ack_no").textContent = einvoiceData.ack_no || "N/A";
 document.querySelector(".ack_date").textContent = ackDate 
     ? `${ackDate.getDate().toString().padStart(2, '0')}-${(ackDate.getMonth() + 1).toString().padStart(2, '0')}-${ackDate.getFullYear().toString().slice(-2)}` 
     : "N/A";
-    document.querySelector(".payment_type").innerHTML = 
-    `<strong>${invoiceData.universalLinkName || "N/A"} - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>`;
+    fetch(apiUrl)
+  .then((response) => response.json())
+  .then((data) => {
+    // Find the universal link name corresponding to the universal_link_id
+    const universalLink = data.find((item) => item.id === universalLinkId);
+
+    // Get the universal_link_name or set it to "N/A" if not found
+    const universalLinkName = universalLink ? universalLink.universal_link_name : "N/A";
+
+    // Update the innerHTML of the payment_type element
+    document.querySelector(".payment_type").innerHTML = `
+      <strong>${universalLinkName} - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>
+    `;
+  })
+  .catch((error) => {
+    console.error("Error fetching universal links:", error);
+
+    // Fallback in case of error
+    document.querySelector(".payment_type").innerHTML = `
+      <strong>N/A - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>
+    `;
+  });
   
 document.querySelector(".base_amount").textContent = `₹ ${baseAmount.toFixed(2)}`;
 document.querySelector(".base_amountt").textContent = `₹${baseAmount.toFixed(2)}`;
