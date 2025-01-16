@@ -73,7 +73,7 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
   
   (async function fetchTransactions() {
     // Fetch email from local storage
-    const email = localStorage.getItem('loggedInEmail');
+    const email = getUserEmail(); // Using the function from tokenUtils.js
   
     if (!email) {
       alert('You are not logged in. Redirecting to login...');
