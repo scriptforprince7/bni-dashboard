@@ -1083,7 +1083,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const resultsDiv = document.getElementById("qr-reader-results");
 
   // Simulating retrieval of loginType and loggedInEmail (replace with actual logic)
-  const loginType = localStorage.getItem("loginType"); // Or fetch it from a backend endpoint
+  // const loginType = localStorage.getItem("loginType"); // Or fetch it from a backend endpoint
   const loggedInEmail = localStorage.getItem("loggedInEmail"); // Retrieve the email if available
   const orderId = document.getElementsByClassName("o_id")[0];
   const customerId = document.getElementsByClassName("customer_id")[0];
@@ -1093,10 +1093,65 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("click", async function (event) {
     if (event.target.closest("#openCamera")) {
+      const token = localStorage.getItem('token');
+      // if (loginType !== "ro_admin") {
+      //   alert("You are not authorized to scan QR codes.");
+      //   return;
+      // }
+
+      let loginType;
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const decodedToken = JSON.parse(window.atob(base64));
+        loginType = decodedToken.login_type;
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        alert('Authentication error. Please login again.');
+        return;
+      }
+
       if (loginType !== "ro_admin") {
         alert("You are not authorized to scan QR codes.");
         return;
       }
+
+      // Check if scanner is already running
+      if (qrReader.isScanning) {
+        // Stop the scanner
+        qrReader.stop().then(() => {
+          console.log('QR Code scanner stopped');
+          const button = event.target.closest("#openCamera");
+          // Restore the original camera icon
+          button.innerHTML = `<i class="fa fa-camera" style="font-size:20px; color:red;"></i>`;
+          
+          // Make sure QR reader div exists
+          let qrReaderDiv = document.getElementById('qr-reader');
+          if (!qrReaderDiv) {
+            qrReaderDiv = document.createElement('div');
+            qrReaderDiv.id = 'qr-reader';
+            qrReaderDiv.style.width = '300px';
+            button.insertAdjacentElement('afterend', qrReaderDiv);
+          }
+          qrReaderDiv.style.display = 'none';
+        }).catch(err => {
+          console.error('Failed to stop QR Code scanner:', err);
+        });
+        return;
+      }
+
+      // Starting the scanner
+      // Make sure QR reader div exists and is visible
+      let qrReaderDiv = document.getElementById('qr-reader');
+      if (!qrReaderDiv) {
+        qrReaderDiv = document.createElement('div');
+        qrReaderDiv.id = 'qr-reader';
+        qrReaderDiv.style.width = '300px';
+        const button = event.target.closest("#openCamera");
+        button.insertAdjacentElement('afterend', qrReaderDiv);
+      }
+      qrReaderDiv.style.display = 'block';
+      
 
       // Start the QR Code scanning process
       qrReader
