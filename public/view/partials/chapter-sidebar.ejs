@@ -88,9 +88,38 @@
               </li>
               <!-- End::slide -->
 
+              <li class="slide has-sub">
+                <a href="javascript:void(0);" class="side-menu__item kitty-menu">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 side-menu__icon"
+                    fill="none"
+                    viewbox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                    ></path>
+                  </svg>
+                  <span class="side-menu__label">Kitty Management</span>
+                  <i class="ri-arrow-down-s-line side-menu__angle"></i>
+                </a>
+                <ul class="slide-menu child1">
+                  <li class="slide">
+                    <a href="/ck/manage-chapterKitty" class="side-menu__item">Kitty Dashboard</a>
+                  </li>
+                  <li class="slide">
+                    <a href="/ck/chapter-raiseBill" class="side-menu__item">Raise a Bill</a>
+                  </li>
+                </ul>
+              </li>
+
               <!-- Start::slide -->
               <li class="slide has-sub">
-                <a href="javascript:void(0);" class="side-menu__item universal-menu">
+                <a href="javascript:void(0);" class="side-menu__item expense-menu">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 side-menu__icon"
@@ -161,6 +190,7 @@
               </li>
               <!-- End::slide - Tab 2 -->
 
+
             <div class="slide-right" id="slide-right">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -206,36 +236,13 @@
 
   // Map menu items to their parent menu
   const menuMapping = {
-    "/d/ro-dashboard": ".dashboard-menu",
-    "/r/manage-region": ".region-menu",
-    "/r/add-region": ".region-menu",
-    "/r/edit-region": ".region-menu",
-    "/r/view-region": ".region-menu",
-    "/c/manage-chapter": ".chapter-menu",
-    "/c/add-chapter": ".chapter-menu",
-    "/c/edit-chapter": ".chapter-menu",
-    "/c/view-chapter": ".chapter-menu",
-    "/u/manage-universal-links": ".universal-menu",
-    "/u/edit-universal-link": ".universal-menu",
-    "/m/manage-members": ".member-menu",
-    "/m/add-member": ".member-menu",
-    "/m/edit-member": ".member-menu",
-    "/m/view-member": ".member-menu",
-    "/t/all-transactions": ".transaction-menu",
-    "/acc/manage-accolades": ".accolade-menu",
-    "/acc/add-accolades": ".accolade-menu",
-    "/acc/edit-accolades": ".accolade-menu",
-    "/acc/edit-accolades": ".accolade-menu",
-    "/acc/edit-accolades": ".accolade-menu",
-    "/cl/manage-classifications": ".classification-menu",
-    "/cl/add-classification": ".classification-menu",
-    "/e/manage-events": ".events-menu",
-    "/e/add-event": ".events-menu",
-    "/tr/manage-trainings": ".training-menu",
-    "/tr/add-training": ".training-menu",
-    "/k/manage-kitty": ".kitty-menu",
-    "/k/kitty-management": ".kitty-menu",
-    "/k/add-credit": ".kitty-menu",
+    "/d/chapter-dashboard": ".dashboard-menu",
+    "/exp/manage-expenses": ".expense-menu",
+    "/exp/add-expenses": ".expense-menu",
+    "/exp/manage-expense-types": ".expense-type-menu",
+    "/exp/add-expense-type": ".expense-type-menu",
+    "/ck/manage-chapterKitty": ".kitty-menu",
+    "/ck/chapter-raiseBill": ".kitty-menu",
   };
 
   // Mark the active menu and open its dropdown
