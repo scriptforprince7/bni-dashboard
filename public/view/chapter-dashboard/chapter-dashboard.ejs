@@ -250,7 +250,7 @@
                     <div class="card custom-card">
                       <div class="card-header justify-content-between">
                         <div class="card-title">Latest Transactions</div>
-                        <a href="javascript:void(0);" class="btn btn-light btn-wave btn-sm text-muted">
+                        <a href="http://localhost:3000/exp/manage-expenses" class="btn btn-light btn-wave btn-sm text-muted">
                           View All<i class="ti ti-arrow-narrow-right ms-1"></i>
                         </a>
                       </div>
@@ -263,85 +263,8 @@
                                 <th>Status</th>
                               </tr>
                             </thead>
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1"></div>
-                                    <div class="fw-medium">
-                                      Aditya <br />₹1,200
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td>
-                                  <span class="badge bg-success">Success</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1"></div>
-                                    <div class="fw-medium">
-                                      Prince <br />₹50,000
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td>
-                                  <span class="badge bg-warning">Pending</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1"></div>
-                                    <div class="fw-medium">
-                                      Pushparaj <br />₹29,500
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td>
-                                  <span class="badge bg-danger">Failed</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                  <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1"></div>
-                                    <div class="fw-medium">
-                                      Ashutosh <br />₹6,500
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <td>
-                                  <span class="badge bg-success">Success</span>
-                                </td>
-                              </tr>
-
-                              <!-- <tr>
-                                <td class="border-bottom-0">
-                                  <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1">
-                                      <span class="avatar avatar-sm">
-                                        <img
-                                          src=" assets/images/ecommerce/jpg/5.jpg"
-                                          alt=""
-                                        />
-                                      </span>
-                                    </div>
-                                    <div class="fw-medium">FitTrack</div>
-                                  </div>
-                                </td>
-                                <td class="border-bottom-0">
-                                  <span class="fw-medium">$49.95</span>
-                                </td>
-                                <td class="border-bottom-0">
-                                  <span class="badge bg-warning">Success</span>
-                                </td>
-                              </tr> -->
+                            <tbody id="transactionsTableBody">
+                              <!-- Dynamic data will be inserted here -->
                             </tbody>
                           </table>
                         </div>
@@ -547,6 +470,7 @@
                                           id="SvgjsPath4745"
                                           d="M 0, 0 
                    m -3.5, 0 
+                   a 3.5,3.5 0 1,0 7,0 
                    a 3.5,3.5 0 1,0 7,0 
                    a 3.5,3.5 0 1,0 -7,0"
                                           fill="rgba(119, 119, 142, 0.05)"
@@ -2072,8 +1996,8 @@
                                       index="1"
                                       clip-path="url(#gridRectMask2xjixwaa)"
                                       filter="url(#SvgjsFilter4775)"
-                                      pathTo="M 25.275410970052082 156.4338285714286C 42.96819864908854 156.4338285714286 58.133445231119794 24.066742857142856 75.82623291015625 24.066742857142856C 93.5190205891927 24.066742857142856 108.68426717122395 67.38688000000002 126.37705485026041 67.38688000000002C 144.06984252929686 67.38688000000002 159.2350891113281 144.40045714285714 176.92787679036456 144.40045714285714C 194.62066446940102 144.40045714285714 209.78591105143227 54.15017142857144 227.47869873046872 54.15017142857144C 245.17148640950518 54.15017142857144 260.33673299153645 6.016685714285728 278.0295206705729 6.016685714285728C 295.72230834960936 6.016685714285728 310.8875549316406 79.72108571428572 328.58034261067706 79.72108571428572C 346.27313028971355 79.72108571428572 361.43837687174477 55.654342857142865 379.13116455078125 55.654342857142865C 396.82395222981773 55.654342857142865 411.98919881184895 18.651725714285732 429.68198649088544 18.651725714285732C 447.3747741699219 18.651725714285732 462.54002075195314 74.0052342857143 480.2328084309896 74.0052342857143C 497.92559611002605 74.0052342857143 513.0908426920573 52.646000000000015 530.7836303710938 52.646000000000015C 548.4764180501302 52.646000000000015 563.6416646321615 141.39211428571429 581.3344523111979 141.39211428571429"
-                                      pathFrom="M 0 210.584 L 0 210.584 L 75.82623291015625 210.584 L 126.37705485026041 210.584 L 176.92787679036456 210.584 L 227.47869873046872 210.584 L 278.0295206705729 210.584 L 328.58034261067706 210.584 L 379.13116455078125 210.584 L 429.68198649088544 210.584 L 480.2328084309896 210.584 L 530.7836303710938 210.584 L 581.3344523111979 210.584"
+                                      pathTo="M 25.275410970052082 156.4338285714286C 42.96819864908854 156.4338285714286 58.133445231119794 24.066742857142856 75.82623291015625 24.066742857142856C 93.5190205891927 24.066742857142856 108.68426717122395 67.38688000000002 126.37705485026041 67.38688000000002C 144.06984252929686 67.38688000000002 159.2350891113281 144.40045714285714 176.92787679036456 144.40045714285714C 194.62066446940102 144.40045714285714 209.78591105143227 54.15017142857144 227.47869873046872 54.15017142857144C 245.17148640950518 54.15017142857144 260.33673299153645 6.016685714285728 278.0295206705729 6.016685714285728C 295.72230834960936 6.016685714285728 310.8875549316406 79.72108571428572 328.58034261067706 79.72108571428572C 346.27313028971355 79.72108571428572 361.43837687174477 55.654342857142865 379.13116455078125 55.654342857142865C 396.82395222981773 55.654342857142865 411.98919881184895 18.651725714285732 429.68198649088544 18.651725714285732C 447.3747741699219 18.651725714285732 462.54002075195314 74.0052342857143 480.2328084309896 74.0052342857143C 497.92559611002605 74.0052342857143 513.0908426920573 52.646000000000015 530.7836303710938 52.646000000000015C 548.4764180501302 52.646000000000015 563.6416646321615 141.39211428571429 581.3344523111979 141.39211428571429C 581.3344523111979 141.39211428571429 581.3344523111979 141.39211428571429 581.3344523111979 210.584 L 25.275410970052082 210.584z"
+                                      pathFrom="M 0 210.584 L 0 210.584 L 75.82623291015625 210.584 L 126.37705485026041 210.584 L 176.92787679036456 210.584 L 227.47869873046872 210.584 L 278.0295206705729 210.584 L 328.58034261067706 210.584 L 379.13116455078125 210.584 L 429.68198649088544 210.584 L 480.2328084309896 210.584 L 530.7836303710938 210.584 L 581.3344523111979 210.584z"
                                       fill-rule="evenodd"
                                     ></path>
                                     <g
@@ -2666,22 +2590,6 @@
                                     >
                                       <tspan id="SvgjsTspan4983">Jun</tspan>
                                       <title>Jun</title>
-                                    </text>
-                                    <text
-                                      id="SvgjsText4985"
-                                      font-family="Helvetica, Arial, sans-serif"
-                                      x="328.5803426106771"
-                                      y="238.584"
-                                      text-anchor="middle"
-                                      dominant-baseline="auto"
-                                      font-size="11px"
-                                      font-weight="600"
-                                      fill="#8c9097"
-                                      class="apexcharts-text apexcharts-xaxis-label apexcharts-xaxis-label"
-                                      style="font-family: Helvetica, Arial, sans-serif"
-                                    >
-                                      <tspan id="SvgjsTspan4986">Jul</tspan>
-                                      <title>Jul</title>
                                     </text>
                                     <text
                                       id="SvgjsText4988"
@@ -4054,4 +3962,68 @@
 
       <%- include('../partials/footer') %> 
 
+      <script>
+      async function fetchTransactions() {
+          try {
+              // Fetch orders first
+              const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
+              const orders = await ordersResponse.json();
+
+              // Fetch transactions
+              const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+              const transactions = await transactionsResponse.json();
+
+              // Get table body element
+              const tableBody = document.getElementById('transactionsTableBody');
+              tableBody.innerHTML = ''; // Clear existing content
+
+              // Process and display the latest 5 transactions
+              const latestTransactions = transactions
+                  .sort((a, b) => new Date(b.payment_time) - new Date(a.payment_time))
+                  .slice(0, 5);
+
+              latestTransactions.forEach(transaction => {
+                  // Find corresponding order
+                  const order = orders.find(o => o.order_id === transaction.order_id);
+                  const memberName = order ? order.member_name || 'Unknown Member' : 'Unknown Member';
+
+                  const row = `
+                      <tr>
+                          <td>
+                              <div class="d-flex align-items-center gap-2">
+                                  <div class="lh-1"></div>
+                                  <div class="fw-medium">
+                                      ${memberName}<br />₹${parseFloat(transaction.payment_amount).toLocaleString('en-IN')}
+                                  </div>
+                              </div>
+                          </td>
+                          <td>
+                              <span class="badge ${getBadgeClass(transaction.payment_status)}">${transaction.payment_status}</span>
+                          </td>
+                      </tr>
+                  `;
+                  tableBody.innerHTML += row;
+              });
+          } catch (error) {
+              console.error('Error fetching transaction data:', error);
+          }
+      }
+
+      function getBadgeClass(status) {
+          switch(status) {
+              case 'SUCCESS':
+                  return 'bg-success';
+              case 'PENDING':
+                  return 'bg-warning';
+              case 'FAILED':
+              case 'NOT_ATTEMPTED':
+                  return 'bg-danger';
+              default:
+                  return 'bg-secondary';
+          }
+      }
+
+      // Call the function when the page loads
+      document.addEventListener('DOMContentLoaded', fetchTransactions);
+      </script>
   
