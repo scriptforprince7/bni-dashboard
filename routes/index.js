@@ -23,6 +23,8 @@ const memberAccoladesRoutes = require('./r-memberAccolades/memberAccolades')
 const memberTrainingsRoutes = require('./r-memberTraining/memberTrainings')
 const memberInvoiceRoutes = require('./r-memberInvoice/memberInvoice')
 const refundRoutes = require('./r-refund/refundRoutes')
+
+const chapterMembersRoutes = require('./r-chapterMembers/chapterMembers');
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -45,4 +47,6 @@ router .use('/exp', expenseRoutes);
 router .use('/mtr', memberTrainingsRoutes);
 router .use('/minv', memberInvoiceRoutes);
 router.use('/ref', refundRoutes);
+
+router.use('/cm', chapterMembersRoutes);
 module.exports = router;
