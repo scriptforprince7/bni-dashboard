@@ -12,11 +12,11 @@ function hideLoader() {
   // Get email from decoded token instead of localStorage
   const email = getUserEmail(); // Using the function from tokenUtils.js
 
-  if (!email) {
-    alert('You are not logged in. Redirecting to login...');
-    window.location.href = '/';
-    return;
-  }
+  // if (!email) {
+  //   alert('You are not logged in. Redirecting to login...');
+  //   window.location.href = '/';
+  //   return;
+  // }
 
   try {
     showLoader(); // Show loader

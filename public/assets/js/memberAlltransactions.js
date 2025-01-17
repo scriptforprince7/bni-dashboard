@@ -75,11 +75,11 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
     // Fetch email from local storage
     const email = getUserEmail(); // Using the function from tokenUtils.js
   
-    if (!email) {
-      alert('You are not logged in. Redirecting to login...');
-      window.location.href = '/';
-      return;
-    }
+    // if (!email) {
+    //   alert('You are not logged in. Redirecting to login...');
+    //   window.location.href = '/';
+    //   return;
+    // }
   
     try {
       showLoader(); // Show loader

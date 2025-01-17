@@ -25,6 +25,7 @@ const memberInvoiceRoutes = require('./r-memberInvoice/memberInvoice')
 const refundRoutes = require('./r-refund/refundRoutes')
 
 const chapterMembersRoutes = require('./r-chapterMembers/chapterMembers');
+const chapterKitty = require('./r-chapterKitty/chapterKitty')
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -49,4 +50,5 @@ router .use('/minv', memberInvoiceRoutes);
 router.use('/ref', refundRoutes);
 
 router.use('/cm', chapterMembersRoutes);
+router.use('/ck', chapterKitty);
 module.exports = router;

@@ -1,8 +1,30 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-  const training_id = urlParams.get('training_id'); // Get the accolade ID from the URL
-  console.log("training id from viewTraining.js file - supports every code", training_id);
+  const urlParams = new URLSearchParams(window.location.search);
+  const training_id = urlParams.get('training_id');
+  console.log("Training ID:", training_id);
 
+
+  async function checkAttendanceStatus() {
+    try {
+      const response = await fetch('http://localhost:5000/api/allCheckins');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const checkins = await response.json();
+      console.log("All checkins:", checkins);
+      
+      // Filter checkins for current training
+      const trainingCheckins = checkins.filter(checkin => 
+        checkin.training_id === parseInt(training_id)
+      );
+      console.log("Filtered checkins for this training:", trainingCheckins);
+      return trainingCheckins;
+    } catch (error) {
+      console.error("Error in checkAttendanceStatus:", error);
+      return [];
+    }
+  }
   const regionsDropdown = document.getElementById("region-filter");
   const chaptersDropdown = document.getElementById("chapter-filter");
   const monthsDropdown = document.getElementById("month-filter");
@@ -80,6 +102,8 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
   try {
     showLoader();
     // Fetch data from all necessary endpoints
+    const checkinsData = await checkAttendanceStatus();
+    console.log("Checkins data loaded:", checkinsData);
     const [
       ordersResponse,
       transactionsResponse,
@@ -87,6 +111,7 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
       paymentGatewayResponse,
       universalLinksResponse,
       regionsResponse,
+          // Added this new item
     ] = await Promise.all([
       fetch(`https://bni-data-backend.onrender.com/api/getTrainingOrder/${training_id}`),
       fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
@@ -95,6 +120,7 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
       fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
       fetch("https://bni-data-backend.onrender.com/api/regions"),
       fetch("https://bni-data-backend.onrender.com/api/allOrders"),
+      
     ]);
 
     const orders = await ordersResponse.json();
@@ -103,6 +129,7 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
     const paymentGateways = await paymentGatewayResponse.json();
     const universalLinks = await universalLinksResponse.json();
     const regions = await regionsResponse.json();
+    console.log("Checkins Data received:", checkinsData);
 
     // Filter transactions related to the orders
 const transactions = allTransactions.filter(transaction =>
@@ -138,6 +165,9 @@ const populateMonthDropdown = () => {
 
 // Call the function to populate months
 populateMonthDropdown();
+
+
+
 
 // Populate payment status dropdown
 const populatePaymentStatusDropdown = () => {
@@ -392,108 +422,87 @@ if (filters.month && transaction.order_id) {
     );
 
     // Get the table body to insert rows
-    const tableBody = document.querySelector(".table tbody");
+    // Get the table body to insert rows
+const tableBody = document.querySelector(".table tbody");
 
-    filteredTransactions.forEach((transaction, index) => {
-      // console.log("Transaction in filtered list:", transaction);
-      // Find the associated order
-      const order = orders.find(
-        (order) => order.order_id === transaction.order_id
-      );
-      // Get chapter name from chapterMap
-      const chapterName = chapterMap.get(order?.chapter_id) || "N/A";
+filteredTransactions.forEach((transaction, index) => {
+  // Find the associated order
+  const order = orders.find(
+    (order) => order.order_id === transaction.order_id
+  );
+  
+  // Check attendance status
+  const checkin = checkinsData.find(c => c.order_id === transaction.order_id);
+  console.log("Processing transaction:", transaction.order_id, "Checkin status:", checkin);
 
-      // Get gateway name from paymentGatewayMap using order's gateway_id
-      const gatewayName =
-        paymentGatewayMap.get(order?.payment_gateway_id) || "Unknown";
+  // Get chapter name from chapterMap
+  const chapterName = chapterMap.get(order?.chapter_id) || "N/A";
 
-      // Get universal link name from universalLinkMap using order's universal_link_id
-      const universalLinkName =
-        universalLinkMap.get(order?.universal_link_id) || "Not Applicable";
+  // Get gateway name from paymentGatewayMap
+  const gatewayName = paymentGatewayMap.get(order?.payment_gateway_id) || "Unknown";
 
-      // Update total transaction amount
-      const transactionAmount = parseFloat(transaction.payment_amount);
-      totalTransactionAmount += transactionAmount;
+  // Format date and amount
+  const formattedDate = new Date(transaction.payment_time).toLocaleDateString("en-GB");
+  const formattedAmount = `+ ₹${parseFloat(transaction.payment_amount).toLocaleString("en-IN")}`;
 
-      // Check payment status and update settled or pending totals
-      if (transaction.payment_status === "SUCCESS") {
-        settledPayments += transactionAmount;
-      } else if (transaction.payment_status === "PENDING") {
-        pendingPayments += transactionAmount;
+  // Determine payment method and image
+  let paymentMethod = "N/A";
+  let paymentImage = "";
+  if (transaction.payment_method) {
+    if (transaction.payment_method.upi) {
+      paymentMethod = "UPI";
+      paymentImage = '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
+    } else if (transaction.payment_method.card) {
+      paymentMethod = "Card";
+      paymentImage = '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
+    } else if (transaction.payment_method.netbanking) {
+      paymentMethod = "Net Banking";
+      paymentImage = '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
+    } else if (transaction.payment_method.wallet) {
+      paymentMethod = "Wallet";
+      paymentImage = '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+    }
+  }
+
+  const row = document.createElement("tr");
+  row.classList.add("invoice-list");
+
+  row.innerHTML = `
+    <td>${index + 1}</td>
+    <td>
+      ${checkin && checkin.checked_in 
+        ? `<button value="${index}" class="btn btn-sm btn-success btn-wave waves-light" disabled>Attendance Marked ✔</button>`
+        : `<button value="${index}" class="btn btn-sm btn-outline-danger mark_attendence btn-wave waves-light">Mark Attendence</button>`
       }
-
-      // Determine payment method
-      let paymentMethod = "N/A";
-      let paymentImage = "";
-      if (transaction.payment_method) {
-        if (transaction.payment_method.upi) {
-          paymentMethod = "UPI";
-          paymentImage =
-            '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
-        } else if (transaction.payment_method.card) {
-          paymentMethod = "Card";
-          paymentImage =
-            '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
-        } else if (transaction.payment_method.netbanking) {
-          paymentMethod = "Net Banking";
-          paymentImage =
-            '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
-        } else if (transaction.payment_method.wallet) {
-          paymentMethod = "Wallet";
-          paymentImage =
-            '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
-        }
-      }
-
-      // Format date and amount
-      const formattedDate = new Date(
-        transaction.payment_time
-      ).toLocaleDateString("en-GB");
-      const formattedAmount = `+ ₹${transactionAmount.toLocaleString("en-IN")}`;
-
-      // Create a new row for the table
-      const row = document.createElement("tr");
-      row.classList.add("invoice-list");
-
-      row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>
-      <button value="${index}" class="btn btn-sm btn-outline-danger mark_attendence btn-wave waves-light">Mark Attendence</button>
     </td>
-               <td><button class="generate-qr-btn" data-transaction-id="2">Generate QR</button></td>
-                
-                <td>${formattedDate}</td>
-                <td class="dynamic_member"><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
-                  order?.member_name || "Unknown"
-                }</td>
-                <td class="dynamic_chapter"><b><em>${chapterName}</em></b></td>
-                <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${
-        transaction.order_id
-      }" class="fw-medium text-success">View</a></td>
-                <td>${paymentImage} ${paymentMethod}</td>
-                <td class="o_id"><em>${transaction.order_id}</em></td>
-                <td class="custom_id"><b><em>${transaction.cf_payment_id}</em></b></td>
-                <td><span class="badge ${
-                  transaction.payment_status === "SUCCESS"
-                    ? "bg-success"
-                    : "bg-danger"
-                }">${transaction.payment_status.toLowerCase()}</span></td>
-                <td><b><em>${gatewayName}</em></b></td>
-                <td>
-                <a href="#" data-transaction-id="${transaction.order_id}" class="btn btn-sm btn-outline-danger btn-wave waves-light track-settlement">Track Settlement</a>
-                </td>
-                <td class="utr-cell"><em>Not Available</em></td>
-                <td class="settlement-time"><em>Not Available</em></td>
-                <td class="irn"><em>Not Applicable</em></td>
-                <td class="qrcode"><em>Not Applicable</em></td>
-                <td class="generate-invoice-btn">Not Applicable</td>
-                <td class="customer_id">${
-                  order?.customer_id || "Unknown"
-                }</td>
-            `;
+    <td>
+      ${checkin && checkin.checked_in 
+        ? `<button class="generate-qr-btn" disabled style="opacity: 0.5">Send QR</button>`
+        : `<button class="generate-qr-btn" data-transaction-id="${transaction.order_id}">Send QR</button>`
+      }
+    </td>
+    <td>${formattedDate}</td>
+    <td class="dynamic_member"><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${order?.member_name || "Unknown"}</td>
+    <td class="dynamic_chapter"><b><em>${chapterName}</em></b></td>
+    <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${transaction.order_id}" class="fw-medium text-success">View</a></td>
+    <td>${paymentImage} ${paymentMethod}</td>
+    <td class="o_id"><em>${transaction.order_id}</em></td>
+    <td class="custom_id"><b><em>${transaction.cf_payment_id}</em></b></td>
+    <td><span class="badge ${transaction.payment_status === "SUCCESS" ? "bg-success" : "bg-danger"}">${transaction.payment_status.toLowerCase()}</span></td>
+    <td><b><em>${gatewayName}</em></b></td>
+    <td>
+      <a href="#" data-transaction-id="${transaction.order_id}" class="btn btn-sm btn-outline-danger btn-wave waves-light track-settlement">Track Settlement</a>
+    </td>
+    <td class="utr-cell"><em>Not Available</em></td>
+    <td class="settlement-time"><em>Not Available</em></td>
+    <td class="irn"><em>Not Applicable</em></td>
+    <td class="qrcode"><em>Not Applicable</em></td>
+    <td class="generate-invoice-btn">Not Applicable</td>
+    <td class="customer_id">${order?.customer_id || "Unknown"}</td>
+  `;
 
-      tableBody.appendChild(row);
-    });
+  tableBody.appendChild(row);
+});
 
     tableBody.addEventListener("click", (event) => {
       const target = event.target;
@@ -545,6 +554,9 @@ if (filters.month && transaction.order_id) {
                     text: "The member's attendance has been successfully marked.",
                     icon: "success",
                     confirmButtonText: "OK",
+                  }).then(() => {
+                    // Add page reload after clicking OK
+                    window.location.reload();
                   });
     
                   // Optionally update UI
@@ -655,7 +667,7 @@ if (filters.month && transaction.order_id) {
                       qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
                   } else if (einvoiceData.qrcode) {
                       // If QR code is available but not yet stored, show the button
-                      qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+                      qrcodeCell.innerHTML = `<span class="generate-qr-btn">Send QR</span>`;
         
                       // Add event listener to the button to display loading and then the QR code
                       row.querySelector(".generate-qr-btn").addEventListener("click", () => {
@@ -1004,13 +1016,12 @@ document.addEventListener('click', async function(event) {
         const qrCodeImage = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(cfPaymentId)}&size=100x100`;
 
 
-        console.log("QR Code Image:", qrCodeImage);
-
-        const qrcodeDiv = document.createElement('div');
-        qrcodeDiv.className = 'qrcode'; // Add a class for styling
-        qrcodeDiv.innerHTML = `<img src="${qrCodeImage}" alt="QR Code" width="100" height="100">`;
-
-        button.parentNode.insertBefore(qrcodeDiv, loaderDiv.nextSibling); 
+         // Instead of showing QR code, show success message
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.innerHTML = `<button class="btn btn-success btn-sm" disabled>QR Sent ✓</button>`;
+    
+    button.parentNode.insertBefore(successDiv, loaderDiv.nextSibling);
           // Extract the additional data
           const page_title = trainingData.training_name || '';
           const training_name = trainingData.training_name || '';
