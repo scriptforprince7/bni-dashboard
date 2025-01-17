@@ -1,0 +1,454 @@
+
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/chapter-sidebar') %>
+      <!-- Start::app-content -->
+      <div class="main-content app-content" style="background-color: #f4f4f4">
+        <div class="container-fluid">
+          <!-- Start::page-header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                <span style="font-weight: 700; font-family: Poppins"
+                  >Kitty Dashboard</span
+                >
+              </h1>
+              <p>Manage kitty payments with just one click</p>
+            </div>
+            
+            <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="form-group">
+                <div class="input-group">
+                  <div class="input-group-text bg-white border">
+                    <i class="ri-calendar-line"></i>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control breadcrumb-input"
+                    id="daterange"
+                    placeholder="Search By Date Range"
+                  />
+                </div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-white btn-wave">
+                  <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                </button>
+                <button class="btn btn-primary btn-wave me-0">
+                  <i class="ri-share-forward-line me-1"></i> Share
+                </button>
+              </div>
+            </div> -->
+          </div>
+          <!-- End::page-header -->
+          <style>
+            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+          </style>
+
+          <style>
+            * {
+              font-family: Montserrat !important;
+              font-weight: 800px;
+            }
+            .text-muted {
+              color: black !important;
+              font-family: Montserrat Alternates;
+            }
+            .popins {
+              font-family: Poppins;
+            }
+          </style>
+
+          <!-- Start:: row-1 -->
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="row">
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #cccccc">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Total Kitty Balance</span
+                          >
+                          <h4 class="fw-medium mb-0">
+                            ₹ <span><b>1,00,000</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary"
+                          >
+                            <i class="ti ti-shopping-cart fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <a href=""
+                        ><div class="text-muted fs-13">See Statistics ▶</div></a
+                      > -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #e8e8e8">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="d-block text-muted mb-1 popins"
+                            >Total Kitty Expense</span
+                          >
+                          <h4 class="fw-medium mb-0 bol">
+                            ₹ <span><b>50,000</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary1"
+                          >
+                            <i class="ti ti-users fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <div class="text-muted fs-13">
+                        Increased By
+                        <span class="text-success"
+                          >0.34%<i class="ti ti-arrow-narrow-up fs-16"></i
+                        ></span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #e8e8e8">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Kitty Payment Pending</span
+                          >
+                          <h4 class="fw-medium mb-0 bol">
+                            ₹ <span><b>80,000</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary2"
+                          >
+                            <i class="ti ti-currency-dollar fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <div class="text-muted fs-13">
+                        Increased By
+                        <span class="text-success"
+                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
+                        ></span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #e8e8e8">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Total Kitty Received</span
+                          >
+                          <h4 class="fw-medium mb-0 bol">
+                            ₹ <span><b>2,00,000</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary2"
+                          >
+                            <i class="ti ti-currency-dollar fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <div class="text-muted fs-13">
+                        Increased By
+                        <span class="text-success"
+                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
+                        ></span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #e8e8e8">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Total Visitor Payment</span
+                          >
+                          <h4 class="fw-medium mb-0 bol">
+                            ₹ <span><b>2,00,000</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary2"
+                          >
+                            <i class="ti ti-currency-dollar fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <div class="text-muted fs-13">
+                        Increased By
+                        <span class="text-success"
+                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
+                        ></span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <!-- <div class="col-xxl-4 col-xl-6">
+                  <div class="card custom-card overflow-hidden">
+                    <div class="card-header pb-0 justify-content-between">
+                      <div class="card-title">Order Statistics</div>
+                      <div class="dropdown">
+                        <a
+                          aria-label="anchor"
+                          href="javascript:void(0);"
+                          class="btn btn-light btn-icons btn-sm text-muted"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                        >
+                          <i class="fe fe-more-vertical"></i>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li class="border-bottom">
+                            <a class="dropdown-item" href="javascript:void(0);"
+                              >Today</a
+                            >
+                          </li>
+                          <li class="border-bottom">
+                            <a class="dropdown-item" href="javascript:void(0);"
+                              >This Week</a
+                            >
+                          </li>
+                          <li>
+                            <a class="dropdown-item" href="javascript:void(0);"
+                              >Last Week</a
+                            >
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="card-body py-4 px-3">
+                      <div class="d-flex gap-3 mb-3">
+                        <div class="avatar avatar-md bg-primary-transparent">
+                          <i class="ti ti-trending-up fs-5"></i>
+                        </div>
+                        <div
+                          class="flex-fill d-flex align-items-start justify-content-between"
+                        >
+                          <div>
+                            <span class="fs-11 mb-1 d-block fw-medium"
+                              >TOTAL ORDERS</span
+                            >
+                            <div
+                              class="d-flex align-items-center justify-content-between"
+                            >
+                              <h4 class="mb-0 d-flex align-items-center">
+                                3,736<span class="text-success fs-12 ms-2 op-1"
+                                  ><i
+                                    class="ti ti-trending-up align-middle me-1"
+                                  ></i
+                                  >0.57%</span
+                                >
+                              </h4>
+                            </div>
+                          </div>
+                          <a
+                            href="javascript:void(0);"
+                            class="text-success fs-12 text-decoration-underline"
+                            >Earnings ?</a
+                          >
+                        </div>
+                      </div>
+                      <div id="orders" class="my-2"></div>
+                    </div>
+                    <div
+                      class="card-footer border-top border-block-start-dashed"
+                    >
+                      <div class="d-grid">
+                        <button
+                          class="btn btn-primary-ghost btn-wave fw-medium waves-effect waves-light table-icon"
+                        >
+                          Complete Statistics<i
+                            class="ti ti-arrow-narrow-right ms-2 fs-16 d-inline-block"
+                          ></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div> -->
+              </div>
+            </div>
+          </div>
+          <!-- End:: row-1 -->
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div
+                  class="card-header justify-content-between"
+                  style="background-color: gainsboro !important"
+                >
+                  <div class="card-title">All Kitty Transactions</div>
+                  <div class="d-flex">
+
+                  
+                    <!-- Month Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Month
+                      </a>
+                      <ul class="dropdown-menu" id="month-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                  
+                    <!-- Payment Gateway Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Gateway
+                      </a>
+                      <ul class="dropdown-menu" id="payment-gateway-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Status Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> PG Status
+                      </a>
+                      <ul class="dropdown-menu" id="payment-status-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Method Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Method
+                      </a>
+                      <ul class="dropdown-menu" id="payment-method-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Apply Filter Button -->
+                    <button href=""
+                            id="apply-filters-btn"
+                            class="btn btn-sm btn-primary btn-wave waves-light">
+                      Apply Filter
+                    </button>
+                    <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+                      Reset Filter
+                    </button></div>
+                    
+                    
+                  </div>
+                  
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table text-nowrap">
+                      <thead>
+                        <tr>
+                          <th scope="col">S.No.</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Member Name</th>
+                          <th scope="col">Chapter</th>
+                          <th scope="col">Amount</th>
+                          <th scope="col">Payment Method</th>
+                          <th scope="col">Order ID</th>
+                          <th scope="col">Transaction ID</th>
+                          <th scope="col">PG Status</th>
+                          <th scope="col">Gateway</th>
+                          <th scope="col">Payment Type</th>
+                          <th scope="col">Settlement Status</th>
+                          <th scope="col">Tranfer UTR</th>
+                          <th scope="col">Tranfer Time</th>
+                          <th scope="col">IRN</th>
+                          <th scope="col">QR Code</th>
+                          <th scope="col">E-Invoice Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="paymentsTableBody">
+                       
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0">
+                  <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0 float-end">
+                      <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                      </li>
+                      <li class="page-item active">
+                        <a class="page-link" href="javascript:void(0);">1</a>
+                      </li>
+                      <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);">Next</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End::content  -->
+
+      <script src="../../assets/js/kittyDashboard.js"></script>
+
+      <%- include('../partials/footer') %> 
