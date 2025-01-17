@@ -1,61 +1,70 @@
-const apiUrl = 'https://bni-data-backend.onrender.com/api/members';
-const chaptersApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
-const regionsApiUrl = 'https://bni-data-backend.onrender.com/api/regions';
-const categoriesApiUrl = 'https://bni-data-backend.onrender.com/api/memberCategory';
-const accoladesApiUrl = 'https://bni-data-backend.onrender.com/api/accolades';
-let chaptersMap = {};
-let allMembers = []; 
-let filteredMembers = []; 
-let currentPage = 1; 
-const entriesPerPage = 30; 
-const regionsDropdown = document.getElementById("region-filter");
-const chapterDropdown = document.getElementById("chapter-filter");
-const membershipDropdown = document.getElementById("membership-filter");
-const categoryDropdown = document.getElementById("category-filter");
-const accoladesDropdown = document.getElementById("accolades-filter");
-const statusDropdown = document.getElementById("status-filter");
+// Use window object to store global variables
+window.BNI = window.BNI || {};
+window.BNI.endpoints = {
+    members: "https://bni-data-backend.onrender.com/api/members",
+    chapters: "https://bni-data-backend.onrender.com/api/chapters",
+    regions: "https://bni-data-backend.onrender.com/api/regions",
+    categories: "https://bni-data-backend.onrender.com/api/memberCategory",
+    accolades: "https://bni-data-backend.onrender.com/api/accolades"
+};
 
-function showLoader() { 
-  document.getElementById('loader').style.display = 'flex';
+// Use window.BNI namespace for other global variables
+window.BNI.state = window.BNI.state || {
+    chaptersMap: {},
+    allMembers: [],
+    filteredMembers: [],
+    currentPage: 1,
+    entriesPerPage: 30
+};
+
+// Cache DOM elements
+window.BNI.elements = {
+    dropdowns: {
+        region: document.getElementById("region-filter"),
+        chapter: document.getElementById("chapter-filter"),
+        membership: document.getElementById("membership-filter"),
+        category: document.getElementById("category-filter"),
+        accolades: document.getElementById("accolades-filter"),
+        status: document.getElementById("status-filter")
+    },
+    loader: document.getElementById("loader"),
+    tableBody: document.querySelector('.table tbody'),
+    totalMembersCount: document.getElementById("total-members-count")
+};
+
+// Function to show/hide loader
+function showLoader() {
+    if (window.BNI.elements.loader) {
+        window.BNI.elements.loader.style.display = 'flex';
+    }
 }
 
 function hideLoader() {
-  document.getElementById('loader').style.display = 'none';
+    if (window.BNI.elements.loader) {
+        window.BNI.elements.loader.style.display = 'none';
+    }
 }
 
-// Function to populate a dropdown
-const populateDropdown = (
-  dropdown,
-  data,
-  valueField,
-  textField,
-  defaultText
-) => {
-  // Clear the dropdown
-  dropdown.innerHTML = "";
-
-  // Add a default option
-  dropdown.innerHTML += `
-      <li>
-        <a class="dropdown-item" href="javascript:void(0);" data-value="">
-          ${defaultText}
-        </a>
-      </li>
+// Function to populate dropdowns
+const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
+    if (!dropdown) return;
+    
+    dropdown.innerHTML = `
+        <li>
+            <a class="dropdown-item" href="javascript:void(0);" data-value="">
+                ${defaultText}
+            </a>
+        </li>
+        ${data.map(item => `
+            <li>
+                <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
+                    ${item[textField]}
+                </a>
+            </li>
+        `).join('')}
     `;
 
-  // Add options dynamically
-  data.forEach((item) => {
-    dropdown.innerHTML += `
-          <li>
-            <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
-              ${item[textField]}
-            </a>
-          </li>
-        `;
-  });
-
-  // Attach event listeners
-  attachDropdownListeners(dropdown);
+    attachDropdownListeners(dropdown);
 };
 
 // Function to attach event listeners to dropdown items
@@ -86,16 +95,16 @@ const attachDropdownListeners = (dropdown) => {
 const populateRegionDropdown = async () => {
   try {
     showLoader();
-    const response = await fetch(regionsApiUrl);
+    const response = await fetch(window.BNI.endpoints.regions);
     if (!response.ok) throw new Error("Error fetching regions");
 
     const regions = await response.json();
 
     // Clear existing options
-    regionsDropdown.innerHTML = "";
+    window.BNI.elements.dropdowns.region.innerHTML = "";
 
     // Add a default option
-    regionsDropdown.innerHTML += `
+    window.BNI.elements.dropdowns.region.innerHTML += `
       <li>
         <a class="dropdown-item" href="javascript:void(0);" data-value="">
           Select Region
@@ -105,7 +114,7 @@ const populateRegionDropdown = async () => {
 
     // Populate dropdown with region IDs and names
     regions.forEach((region) => {
-      regionsDropdown.innerHTML += `
+      window.BNI.elements.dropdowns.region.innerHTML += `
         <li>
           <a class="dropdown-item" href="javascript:void(0);" data-value="${region.region_id}">
             ${region.region_name}
@@ -115,7 +124,7 @@ const populateRegionDropdown = async () => {
     });
 
     // Attach listeners after populating
-    attachDropdownListeners(regionsDropdown);
+    attachDropdownListeners(window.BNI.elements.dropdowns.region);
   } catch (error) {
     console.error("Error populating regions dropdown:", error);
   } finally {
@@ -130,17 +139,17 @@ const populateChapterDropdown = async () => {
   try {
     showLoader();
     // Fetch chapters data
-    const response = await fetch(chaptersApiUrl);
+    const response = await fetch(window.BNI.endpoints.chapters);
     if (!response.ok) throw new Error("Error fetching chapter");
 
     const chapters = await response.json(); // Assume the API returns an array of chapter objects
 
     // Clear existing options
-    chapterDropdown.innerHTML = "";
+    window.BNI.elements.dropdowns.chapter.innerHTML = "";
 
     // Populate dropdown with unique chapter
     chapters.forEach((chapter) => {
-      chapterDropdown.innerHTML += `
+      window.BNI.elements.dropdowns.chapter.innerHTML += `
         <li>
           <a class="dropdown-item" href="javascript:void(0);" data-value="${chapter.chapter_id}">
             ${chapter.chapter_name}
@@ -151,7 +160,7 @@ const populateChapterDropdown = async () => {
     
 
     // Attach listeners after populating
-    attachDropdownListeners(chapterDropdown);
+    attachDropdownListeners(window.BNI.elements.dropdowns.chapter);
   } catch (error) {
     console.error("Error populating chapters dropdown:", error);
   } finally {
@@ -165,16 +174,16 @@ const populateCategoryDropdown = async () => {
   try {
     showLoader();
     // Fetch chapters data
-    const response = await fetch(categoriesApiUrl);
+    const response = await fetch(window.BNI.endpoints.categories);
     if (!response.ok) throw new Error("Error fetching chapter");
 
     const categories = await response.json(); // Assume the API returns an array of chapter objects
 
     // Clear existing options
-    categoryDropdown.innerHTML = "";
+    window.BNI.elements.dropdowns.category.innerHTML = "";
 
     categories.forEach((category) => {
-      categoryDropdown.innerHTML += `
+      window.BNI.elements.dropdowns.category.innerHTML += `
         <li>
           <a class="dropdown-item" href="javascript:void(0);" data-value="${category.category_id}">
             ${category.category_name}
@@ -185,7 +194,7 @@ const populateCategoryDropdown = async () => {
     
 
     // Attach listeners after populating all categories
-    attachDropdownListeners(categoryDropdown);
+    attachDropdownListeners(window.BNI.elements.dropdowns.category);
   } catch (error) {
     console.error("Error populating chapters dropdown:", error);
   } finally {
@@ -199,16 +208,16 @@ const populateAccoladesDropdown = async () => {
   try {
     showLoader();
     // Fetch chapters data
-    const response = await fetch(accoladesApiUrl);
+    const response = await fetch(window.BNI.endpoints.accolades);
     if (!response.ok) throw new Error("Error fetching chapter");
 
     const accolades = await response.json(); // Assume the API returns an array of chapter objects
 
     // Clear existing options
-    accoladesDropdown.innerHTML = "";
+    window.BNI.elements.dropdowns.accolades.innerHTML = "";
 
     accolades.forEach((accolade) => {
-      accoladesDropdown.innerHTML += `
+      window.BNI.elements.dropdowns.accolades.innerHTML += `
         <li>
           <a class="dropdown-item" href="javascript:void(0);" data-value="${accolade.accolade_id}">
             ${accolade.accolade_name}
@@ -218,7 +227,7 @@ const populateAccoladesDropdown = async () => {
     })
 
     // Attach listeners after populating all accolades
-    attachDropdownListeners(accoladesDropdown);
+    attachDropdownListeners(window.BNI.elements.dropdowns.accolades);
   } catch (error) {
     console.error("Error populating chapters dropdown:", error);
   } finally {
@@ -232,7 +241,7 @@ const populateMembershipDropdown = async () => {
   try {
     showLoader();
     // Fetch membership data
-    const response = await fetch(apiUrl);
+    const response = await fetch(window.BNI.endpoints.members);
     if (!response.ok) throw new Error("Error fetching membershi[");
 
     const memberships = await response.json(); // Assume the API returns an array of chapter objects
@@ -243,11 +252,11 @@ const populateMembershipDropdown = async () => {
     ];
 
     // Clear existing options
-    membershipDropdown.innerHTML = "";
+    window.BNI.elements.dropdowns.membership.innerHTML = "";
 
     // Populate dropdown with unique membership
     uniqueTypes.forEach((type) => {
-      membershipDropdown.innerHTML += `<li>
+      window.BNI.elements.dropdowns.membership.innerHTML += `<li>
                 <a class="dropdown-item" href="javascript:void(0);" data-value="${type.toUpperCase()}">
                     ${type}
                 </a>
@@ -255,7 +264,7 @@ const populateMembershipDropdown = async () => {
     });
 
     // Attach listeners after populating all membership
-    attachDropdownListeners(membershipDropdown);
+    attachDropdownListeners(window.BNI.elements.dropdowns.membership);
   } catch (error) {
     console.error("Error populating chapters dropdown:", error);
   } finally {
@@ -269,7 +278,7 @@ const populateStatusDropdown = async () => {
   try {
     showLoader();
     // Fetch member status data
-    const response = await fetch(apiUrl);
+    const response = await fetch(window.BNI.endpoints.members);
     if (!response.ok) throw new Error("Error fetching member current membership");
 
     const statuses = await response.json(); // Assume the API returns an array of members objects
@@ -280,11 +289,11 @@ const populateStatusDropdown = async () => {
     ];
 
     // Clear existing options
-    statusDropdown.innerHTML = "";
+    window.BNI.elements.dropdowns.status.innerHTML = "";
 
     // Populate dropdown with unique current membership
     uniqueTypes.forEach((type) => {
-      statusDropdown.innerHTML += `<li>
+      window.BNI.elements.dropdowns.status.innerHTML += `<li>
                 <a class="dropdown-item" href="javascript:void(0);" data-value="${type.toUpperCase()}">
                     ${type}
                 </a>
@@ -292,7 +301,7 @@ const populateStatusDropdown = async () => {
     });
 
     // Attach listeners after populating all current membership
-    attachDropdownListeners(statusDropdown);
+    attachDropdownListeners(window.BNI.elements.dropdowns.status);
   } catch (error) {
     console.error("Error populating chapters dropdown:", error);
   } finally {
@@ -337,12 +346,12 @@ const updateDropdownText = (dropdown, selectedValue) => {
 
 // Attach event listener to a "Filter" button or trigger
 document.getElementById("apply-filters-btn").addEventListener("click", () => {
-  const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-  const chapterId = chapterDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-  const membershipYear = membershipDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-  const categoryId = categoryDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-  const accoladesId = accoladesDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-  const status = statusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const regionId = window.BNI.elements.dropdowns.region.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const chapterId = window.BNI.elements.dropdowns.chapter.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const membershipYear = window.BNI.elements.dropdowns.membership.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const categoryId = window.BNI.elements.dropdowns.category.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const accoladesId = window.BNI.elements.dropdowns.accolades.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const status = window.BNI.elements.dropdowns.status.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
 
   const queryParams = new URLSearchParams();
 
@@ -371,12 +380,12 @@ window.addEventListener('load', () => {
   const status = urlParams.get("status");
 
   // Update the dropdowns with the selected filter values
-  if (regionId) updateDropdownText(regionsDropdown, regionId);
-  if (chapterId) updateDropdownText(chapterDropdown, chapterId);
-  if (membershipYear) updateDropdownText(membershipDropdown, membershipYear); // Ensure chapter type is uppercased
-  if (categoryId) updateDropdownText(categoryDropdown, categoryId); // Ensure chapter status is uppercased
-  if (accoladesId) updateDropdownText(accoladesDropdown, accoladesId); // Ensure chapter status is uppercased
-  if (status) updateDropdownText(statusDropdown, status); // Ensure chapter status is uppercased
+  if (regionId) updateDropdownText(window.BNI.elements.dropdowns.region, regionId);
+  if (chapterId) updateDropdownText(window.BNI.elements.dropdowns.chapter, chapterId);
+  if (membershipYear) updateDropdownText(window.BNI.elements.dropdowns.membership, membershipYear); // Ensure chapter type is uppercased
+  if (categoryId) updateDropdownText(window.BNI.elements.dropdowns.category, categoryId); // Ensure chapter status is uppercased
+  if (accoladesId) updateDropdownText(window.BNI.elements.dropdowns.accolades, accoladesId); // Ensure chapter status is uppercased
+  if (status) updateDropdownText(window.BNI.elements.dropdowns.status, status); // Ensure chapter status is uppercased
 
   checkFiltersAndToggleResetButton();
 });
@@ -397,135 +406,132 @@ checkFiltersAndToggleResetButton();
 
 async function fetchChapters() {
   try {
-    const response = await fetch(chaptersApiUrl);
+    const response = await fetch(window.BNI.endpoints.chapters);
     if (!response.ok) throw new Error('Network response was not ok');
     const chapters = await response.json();
     chapters.forEach(chapter => {
-      chaptersMap[chapter.chapter_id] = chapter.chapter_name;
+      window.BNI.state.chaptersMap[chapter.chapter_id] = chapter.chapter_name;
     });
   } catch (error) {
     console.error('Error fetching chapters:', error);
   }
 }
 
+// Function to fetch and display members
 async function fetchMembers() {
-  showLoader();
-  try {
-    await fetchChapters();
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    allMembers = await response.json(); 
-    // Apply filters from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const filters = {
-      // Get the filter values from URL params
-        regionId : urlParams.get("region_id"),
-        chapterId : urlParams.get("chapter_id"),
-        membershipYear : urlParams.get("membership_year"),
-        categoryId : urlParams.get("category_id"),
-        accoladesId : urlParams.get("accolades_id"),
-        status : urlParams.get("status"),
-    };
-    console.log("Filters from URL params:", filters);
-    // Filter chapters based on the filters
-    filteredMembers = allMembers.filter((member) => {
-      return (
-        (!filters.regionId || member.region_id === parseInt(filters.regionId)) &&
-        (!filters.chapterId || member.chapter_id === parseInt(filters.chapterId)) &&
-        (!filters.membershipYear || member.member_current_membership === filters.membershipYear) &&
-        (!filters.categoryId || member.category_id === parseInt(filters.categoryId)) && 
-        (!filters.accoladesId || (Array.isArray(member.accolades_id) && member.accolades_id.includes(parseInt(filters.accoladesId)))) &&
-        (!filters.status || member.member_status.toUpperCase() === filters.status)
-      );
-    });
-    updateTotalMembersCount();
-    console.log("Filtered chapters:", filteredMembers);
-  
-    displayMembers(filteredMembers.slice(0, entriesPerPage));
-    setupPagination(filteredMembers.length); 
-  } catch (error) {
-    console.error('There was a problem fetching the members data:', error);
-  } finally {
-    hideLoader();
-  }
+    showLoader();
+    try {
+        await fetchChapters();
+        const response = await fetch(window.BNI.endpoints.members);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        window.BNI.state.allMembers = await response.json();
+        const urlParams = new URLSearchParams(window.location.search);
+        const filters = {
+            regionId: urlParams.get("region_id"),
+            chapterId: urlParams.get("chapter_id"),
+            membershipYear: urlParams.get("membership_year"),
+            categoryId: urlParams.get("category_id"),
+            accoladesId: urlParams.get("accolades_id"),
+            status: urlParams.get("status")
+        };
+
+        window.BNI.state.filteredMembers = window.BNI.state.allMembers.filter(member => {
+            return (
+                (!filters.regionId || member.region_id === parseInt(filters.regionId)) &&
+                (!filters.chapterId || member.chapter_id === parseInt(filters.chapterId)) &&
+                (!filters.membershipYear || member.member_current_membership === filters.membershipYear) &&
+                (!filters.categoryId || member.category_id === parseInt(filters.categoryId)) &&
+                (!filters.accoladesId || (Array.isArray(member.accolades_id) && member.accolades_id.includes(parseInt(filters.accoladesId)))) &&
+                (!filters.status || member.member_status.toUpperCase() === filters.status)
+            );
+        });
+
+        updateTotalMembersCount();
+        displayMembers(window.BNI.state.filteredMembers.slice(0, window.BNI.state.entriesPerPage));
+        setupPagination(window.BNI.state.filteredMembers.length);
+    } catch (error) {
+        console.error('Error fetching members:', error);
+    } finally {
+        hideLoader();
+    }
 }
 
 // Function to update the total chapters count
 const updateTotalMembersCount = () => {
-  const totalMembersElement = document.getElementById("total-members-count"); // Ensure you have an element with this ID
-  const totalFilteredMembers = filteredMembers.length; // Use the filtered chapters array
+  const totalMembersElement = window.BNI.elements.totalMembersCount; // Ensure you have an element with this ID
+  const totalFilteredMembers = window.BNI.state.filteredMembers.length; // Use the filtered chapters array
   totalMembersElement.innerHTML = `<strong>${totalFilteredMembers}</strong>`;
 };
 
+// Function to display members
 function displayMembers(members) {
-  const tableBody = document.querySelector('.table tbody');
-  tableBody.innerHTML = '';
+    const tableBody = window.BNI.elements.tableBody;
+    if (!tableBody) return;
 
-  if (members.length === 0) {
-    // Show "No data" message if no chapters are available
-    const noDataRow = document.createElement("tr");
-    noDataRow.innerHTML = `
-      <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
-    `;
-    tableBody.appendChild(noDataRow);
-    return;
-  }
+    tableBody.innerHTML = '';
 
-  members.forEach((member, index) => {
-    const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
-    const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
-    const chapterName = chaptersMap[member.chapter_id] || 'N/A';
-    const row = document.createElement('tr');
-    row.classList.add('order-list');
-    
-    row.innerHTML = `
-      <td>${(currentPage - 1) * entriesPerPage + index + 1}</td> <!-- Adjust for pagination -->
-      <td style="border: 1px solid grey;">
-        <div class="d-flex align-items-center">
-          <span class="avatar avatar-sm me-2 avatar-rounded">
-            <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
-          </span>
-          <a href="/m/view-member/?member_id=${member.member_id}">${fullName}</a>
-        </div>
-      </td>
-      <td style="border: 1px solid grey;">
-        <div class="d-flex align-items-center">
-          <b>${member.member_email_address}</b>
-        </div>
-      </td>
-      <td style="border: 1px solid grey;">${member.member_phone_number}</td>
-      <td class="fw-semibold" style="color:#d01f2f;">${chapterName}</td>
-      <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
-      <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
-      <td class="fw-semibold" style="border: 1px solid grey;">2</td>
-      <td style="border: 1px solid grey;">
-        <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
-          ${member.member_status}
-        </span>
-      </td>
-       <td style="border: 1px solid grey">
-        <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
-           <a href="/m/edit-member/?member_id=${member.member_id} "style="cursor:pointer; color:white;">Edit</a>
-        </span>
-        <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
-     Delete
-    </span>
-      </td>
-    `;
-    
-    // Append the row to the table body
-    tableBody.appendChild(row);
-  });
+    if (members.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
+            </tr>
+        `;
+        return;
+    }
+
+    members.forEach((member, index) => {
+        const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
+        const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
+        const chapterName = window.BNI.state.chaptersMap[member.chapter_id] || 'N/A';
+        
+        const row = document.createElement('tr');
+        row.classList.add('order-list');
+        row.innerHTML = `
+            <td>${(window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + index + 1}</td>
+            <td style="border: 1px solid grey;">
+                <div class="d-flex align-items-center">
+                    <span class="avatar avatar-sm me-2 avatar-rounded">
+                        <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
+                    </span>
+                    <a href="/m/view-member/?member_id=${member.member_id}">${fullName}</a>
+                </div>
+            </td>
+            <td style="border: 1px solid grey;">
+                <div class="d-flex align-items-center">
+                    <b>${member.member_email_address}</b>
+                </div>
+            </td>
+            <td style="border: 1px solid grey;">${member.member_phone_number}</td>
+            <td class="fw-semibold" style="color:#d01f2f;">${chapterName}</td>
+            <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
+            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
+            <td class="fw-semibold" style="border: 1px solid grey;">2</td>
+            <td style="border: 1px solid grey;">
+                <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
+                    ${member.member_status}
+                </span>
+            </td>
+            <td style="border: 1px solid grey">
+                <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
+                    <a href="/m/edit-member/?member_id=${member.member_id}" style="cursor:pointer; color:white;">Edit</a>
+                </span>
+                <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
+                    Delete
+                </span>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
 }
 
 // Function to filter members based on search input
 function filterMembers(searchTerm) {
   if (searchTerm === '') {
-    filteredMembers = [...allMembers]; // Reset filtered members to all members if search term is empty
-    currentPage = 1; // Reset to the first page when search term is cleared
+    window.BNI.state.filteredMembers = [...window.BNI.state.allMembers]; // Reset filtered members to all members if search term is empty
+    window.BNI.state.currentPage = 1; // Reset to the first page when search term is cleared
   } else {
-    filteredMembers = allMembers.filter(member => {
+    window.BNI.state.filteredMembers = window.BNI.state.allMembers.filter(member => {
       const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
       const email = member.member_email_address.toLowerCase();
       const phone = member.member_phone_number;
@@ -535,8 +541,8 @@ function filterMembers(searchTerm) {
              phone.includes(searchTerm);
     });
   }
-  displayMembers(filteredMembers.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)); // Display current page members
-  setupPagination(filteredMembers.length); // Update pagination based on filtered results
+  displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage)); // Display current page members
+  setupPagination(window.BNI.state.filteredMembers.length); // Update pagination based on filtered results
 }
 
 // Add event listener for the search input
@@ -549,16 +555,16 @@ document.getElementById('searchInput').addEventListener('input', function() {
 function setupPagination(totalMembers) {
   const paginationElement = document.querySelector('.pagination');
   paginationElement.innerHTML = ''; // Clear existing pagination
-  const totalPages = Math.ceil(totalMembers / entriesPerPage);
+  const totalPages = Math.ceil(totalMembers / window.BNI.state.entriesPerPage);
   // Previous button
   const prevPage = document.createElement('li');
-  prevPage.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+  prevPage.className = `page-item ${window.BNI.state.currentPage === 1 ? 'disabled' : ''}`;
   prevPage.innerHTML = `<a class="page-link" href="javascript:void(0)">Previous</a>`;
   prevPage.onclick = () => {
-    if (currentPage > 1) {
-      currentPage--;
-      displayMembers(filteredMembers.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage));
-      setupPagination(filteredMembers.length);
+    if (window.BNI.state.currentPage > 1) {
+      window.BNI.state.currentPage--;
+      displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage));
+      setupPagination(window.BNI.state.filteredMembers.length);
     }
   };
   paginationElement.appendChild(prevPage);
@@ -566,25 +572,25 @@ function setupPagination(totalMembers) {
   // Page numbers
   for (let i = 1; i <= totalPages; i++) {
     const pageItem = document.createElement('li');
-    pageItem.className = `page-item ${currentPage === i ? 'active' : ''}`;
+    pageItem.className = `page-item ${window.BNI.state.currentPage === i ? 'active' : ''}`;
     pageItem.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
     pageItem.onclick = () => {
-      currentPage = i;
-      displayMembers(filteredMembers.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage));
-      setupPagination(filteredMembers.length);
+      window.BNI.state.currentPage = i;
+      displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage));
+      setupPagination(window.BNI.state.filteredMembers.length);
     };
     paginationElement.appendChild(pageItem);
   }
 
   // Next button
   const nextPage = document.createElement('li');
-  nextPage.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+  nextPage.className = `page-item ${window.BNI.state.currentPage === totalPages ? 'disabled' : ''}`;
   nextPage.innerHTML = `<a class="page-link" href="javascript:void(0)">Next</a>`;
   nextPage.onclick = () => {
-    if (currentPage < totalPages) {
-      currentPage++;
-      displayMembers(filteredMembers.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage));
-      setupPagination(filteredMembers.length);
+    if (window.BNI.state.currentPage < totalPages) {
+      window.BNI.state.currentPage++;
+      displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage));
+      setupPagination(window.BNI.state.filteredMembers.length);
     }
   };
   paginationElement.appendChild(nextPage);
@@ -594,7 +600,7 @@ function setupPagination(totalMembers) {
 async function loadChapters() {
   showLoader();
   try {
-    const response = await fetch(chaptersApiUrl);
+    const response = await fetch(window.BNI.endpoints.chapters);
     if (!response.ok) throw new Error('Network response was not ok');
     
     const chapters = await response.json();
@@ -637,23 +643,38 @@ function displayChapters(chapters) {
     tableBody.appendChild(row);
   });
 }
-// Call fetchMembers on page load
-window.addEventListener('DOMContentLoaded', async () => {
-  showLoader(); // Show loader immediately on page load
 
-  const memberId = getMemberIdFromUrl(); // Get the member ID from the URL
-  console.log('Member ID:', memberId); // Check if the memberId is being extracted correctly
+// Add this function near the top of your script.js file, after the window.BNI initialization
+function getMemberIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('member_id');
+}
 
-  try {
-    await fetchMembers(); // Wait for data to be fetched
-  } catch (error) {
-    console.error("Failed to fetch member data:", error);
-  } finally {
-    hideLoader(); // Hide loader after data is fetched, whether successful or not
-  }
+// Update the event listener to use this function
+document.addEventListener('DOMContentLoaded', async () => {
+    showLoader();
+    try {
+        const memberId = getMemberIdFromUrl();
+        console.log('Member ID from URL:', memberId);
+        
+        await fetchMembers();
+        
+        // If there's a specific member ID, filter for that member
+        if (memberId) {
+            window.BNI.state.filteredMembers = window.BNI.state.allMembers.filter(
+                member => member.member_id === parseInt(memberId)
+            );
+        }
+        
+        displayMembers(window.BNI.state.filteredMembers.slice(0, window.BNI.state.entriesPerPage));
+        setupPagination(window.BNI.state.filteredMembers.length);
+        
+    } catch (error) {
+        console.error("Failed to fetch member data:", error);
+    } finally {
+        hideLoader();
+    }
 });
-window.onload = fetchMembers;
-
 
 const deleteMember = async (member_id) => {
   // Show confirmation using SweetAlert
