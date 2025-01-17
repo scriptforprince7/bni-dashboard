@@ -1338,7 +1338,7 @@
         // Update user info from token
         const userEmail = getUserEmail();
         const userLoginType = getUserLoginType();
-        console.log("Getting user info from token:", { userEmail, userLoginType });
+        // console.log("Getting user info from token:", { userEmail, userLoginType });
 
         if (userEmail) {
             document.getElementById('user-email').textContent = userEmail;
@@ -1361,9 +1361,8 @@
 
         // Logo check
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Checking login type and logo status...');
+            // console.log('Checking login type and logo status...');
             const loginType = getUserLoginType();
-            console.log('Login type from token:', loginType);
             
             const headerLogo = document.getElementById('headerLogo');
             
