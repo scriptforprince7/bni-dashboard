@@ -1,5 +1,16 @@
 document.addEventListener('DOMContentLoaded', async function () {
+
+    // Function to show the loader
+function showLoader() {
+    document.getElementById('loader').style.display = 'flex';
+}
+
+// Function to hide the loader
+function hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
     try {
+        showLoader();
         // Step 1: Get logged-in chapter email from token
         const chapterEmail = getUserEmail();
         console.log('Logged-in chapter email:', chapterEmail);
@@ -151,5 +162,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     } catch (error) {
         console.error('Error fetching chapter kitty data:', error);
+    } finally {
+        hideLoader();
     }
 });
