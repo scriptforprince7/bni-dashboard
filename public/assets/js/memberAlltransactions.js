@@ -220,7 +220,36 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
   
       // Filter orders and transactions for the logged-in user (based on email)
       const filteredOrders = orders.filter(order => order.customer_email === email);
-      const filteredTransactions = transactions.filter(transaction =>
+
+      // Get URL parameters for filtering
+      const urlParams = new URLSearchParams(window.location.search);
+      const selectedPaymentType = urlParams.get('payment_type');
+      const selectedMonth = urlParams.get('month');
+      const selectedPaymentStatus = urlParams.get('payment_status');
+      const selectedPaymentMethod = urlParams.get('payment_method');
+
+      // Filter transactions based on URL parameters
+      let filteredTransactions = transactions.filter(transaction => {
+        const order = orders.find(order => order.order_id === transaction.order_id);
+        
+        // Check if transaction matches all selected filters
+        const matchesPaymentType = !selectedPaymentType || (order && order.universal_link_id.toString() === selectedPaymentType);
+        
+        // Month filter - check payment_time
+        const transactionMonth = new Date(transaction.payment_time).getMonth() + 1; // Adding 1 because getMonth() returns 0-11
+        const matchesMonth = !selectedMonth || transactionMonth.toString() === selectedMonth;
+        
+        // Payment status filter
+        const matchesStatus = !selectedPaymentStatus || 
+          transaction.payment_status.toUpperCase() === selectedPaymentStatus.toUpperCase();
+        
+        // Payment method filter
+        const matchesMethod = !selectedPaymentMethod || 
+          transaction.payment_group.toLowerCase() === selectedPaymentMethod.toLowerCase();
+
+        // Return true only if all active filters match
+        return matchesPaymentType && matchesMonth && matchesStatus && matchesMethod;
+      }).filter(transaction =>
         filteredOrders.some(order => order.order_id === transaction.order_id)
       );
 
@@ -279,7 +308,7 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
         row.innerHTML = `
           <td>${index + 1}</td>
           <td>${new Date(transaction.payment_time).toLocaleDateString()}</td>
-          <td><b>- ₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br><a href="/minv/view-memberInvoice?order_id=${
+          <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br><a href="/minv/view-memberInvoice?order_id=${
             transaction.order_id
           }" class="fw-medium text-success">View</a></td>
           <td>${paymentImage} ${paymentMethod}</td>
