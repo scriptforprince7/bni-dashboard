@@ -52,13 +52,18 @@ function hideLoader() {
         // Step 5: Calculate total amount raised
         const totalAmountRaised = parseFloat(total_bill_amount) * memberCount;
 
-        // Step 6: Fetch all orders for the chapter where universal_link_id = 4
+        // Step 6: Fetch all orders for the chapter
         const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
         const allOrders = await ordersResponse.json();
-        const chapterOrders = allOrders.filter(order => order.chapter_id === chapter_id && order.universal_link_id === 4);
+
+        // Filter orders for the chapter with universal_link_id === 4
+        const chapterOrders = allOrders.filter(order => 
+            order.chapter_id === chapter_id && 
+            order.universal_link_id === 4
+        );
 
         if (chapterOrders.length === 0) {
-            console.error('No orders found for the chapter.');
+            console.error('No orders found for the chapter with universal_link_id 4.');
             return;
         }
 
@@ -81,54 +86,55 @@ function hideLoader() {
         const tableBody = document.querySelector('#paymentsTableBody');
         tableBody.innerHTML = ''; // Clear the table body
 
-        ordersWithTransactions.forEach((data, index) => {
-            const {
-                order_date,
-                member_name,
-                order_amount,
-                payment_method,
-                order_id,
-                transaction_id,
-                pg_status,
-                gateway,
-                payment_type,
-                settlement_status,
-                transfer_utr,
-                transfer_time,
-                irn,
-                qr_code,
-                einvoice_status
-            } = data;
+        let serialNumber = 1; // Initialize counter for displayed rows
 
-            const formattedDate = new Date(order_date).toLocaleDateString('en-IN');
-            const formattedAmount = new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-                maximumFractionDigits: 2
-            }).format(order_amount);
+        chapterOrders.forEach((order) => {
+            // Find matching transaction
+            const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
+            
+            // Skip this order if no transaction found
+            if (!transaction) {
+                return; // This will skip to the next iteration
+            }
+
+            // Format date
+            const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : 'N/A';
+            
+            // Format amount
+            const formattedAmount = order.order_amount ? 
+                new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    maximumFractionDigits: 2
+                }).format(order.order_amount) : 'N/A';
+
+            // Get payment details from transaction
+            const paymentMethod = transaction.payment_method?.netbanking ? 'netbanking' : 'upi';
+            const transactionId = transaction.cf_payment_id;
+            const pgStatus = transaction.payment_status;
 
             const row = `
                 <tr>
-                    <td>${index + 1}</td>
-                    <td>${formattedDate}</td>
-                    <td>${member_name || 'N/A'}</td>
+                    <td>${serialNumber}</td>
+                    <td>${orderDate}</td>
+                    <td>${order.member_name || 'N/A'}</td>
                     <td>${formattedAmount}</td>
-                    <td>${payment_method || 'N/A'}</td>
-                    <td>${order_id || 'N/A'}</td>
-                    <td>${transaction_id || 'N/A'}</td>
-                    <td>${pg_status || 'N/A'}</td>
-                    <td>${gateway || 'N/A'}</td>
-                    <td>${payment_type || 'N/A'}</td>
-                    <td>${settlement_status || 'N/A'}</td>
-                    <td>${transfer_utr || 'N/A'}</td>
-                    <td>${transfer_time || 'N/A'}</td>
-                    <td>${irn || 'N/A'}</td>
-                    <td>${qr_code || 'N/A'}</td>
-                    <td>${einvoice_status || 'N/A'}</td>
+                    <td>${paymentMethod}</td>
+                    <td>${order.order_id || 'N/A'}</td>
+                    <td>${transactionId}</td>
+                    <td>${pgStatus}</td>
+                    <td>${order.payment_gateway_id || 'N/A'}</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
+                    <td>N/A</td>
                 </tr>
             `;
 
             tableBody.insertAdjacentHTML('beforeend', row);
+            serialNumber++; // Increment counter only for displayed rows
         });
 
         const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
