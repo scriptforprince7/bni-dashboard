@@ -19,19 +19,22 @@ async function fetchAllOrders() {
             throw new Error('Network response was not ok');
         }
         const allOrders = await response.json();
-        console.log("All Orders:", allOrders); // Log all orders
+        console.log("All Orders:", allOrders);
 
-        const order = allOrders.find(order => order.order_id === orderId); // Find the specific order
+        const order = allOrders.find(order => order.order_id === orderId);
         if (order) {
-            displayOrderDetails(order);
-            await fetchTransactionsForOrder(order.order_id); // Fetch transactions for this order
+            // Fetch transactions first to get cf_payment_id
+            const transactions = await fetchTransactionsForOrder(order.order_id);
+            const transaction = transactions[0]; // Get the first transaction
+            
+            // Update displayOrderDetails to include transaction details
+            displayOrderDetails(order, transaction);
 
             if (order.universal_link_id) {
-                universalLinkName = await fetchUniversalLinkName(order.universal_link_id); // Fetch and store the name
-                displayTransactionDetails(order); // Pass the order object to displayTransactionDetails
+                universalLinkName = await fetchUniversalLinkName(order.universal_link_id);
+                displayTransactionDetails(order);
             }
 
-            // Fetch member address based on customer_id
             if (order.customer_id) {
                 await fetchMemberAddress(order.customer_id);
             }
@@ -108,35 +111,59 @@ async function fetchUniversalLinkName(universalLinkId) {
     }
 }
 
+// Add new function to fetch training name
+async function fetchTrainingName(trainingId) {
+    try {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const trainings = await response.json();
+        const training = trainings.find(t => t.training_id === trainingId);
+        return training ? training.training_name : 'Unknown Training';
+    } catch (error) {
+        console.error('Error fetching training name:', error);
+        return 'Unknown Training';
+    }
+}
+
 // Function to display transaction details in the table
 async function displayTransactionDetails(order) {
-    const transactions = await fetchTransactionsForOrder(orderId); // Fetch relevant transactions
+    const transactions = await fetchTransactionsForOrder(orderId);
     const transactionTableBody = document.querySelector('.transaction-items tbody');
-    transactionTableBody.innerHTML = ''; // Clear existing rows
+    transactionTableBody.innerHTML = '';
 
-    // Assuming that you want to display only the first transaction (you may adjust as needed)
     if (transactions.length > 0) {
-        const transaction = transactions[0]; // Get the first transaction
+        const transaction = transactions[0];
         
-        // Display payment mode, total amount, and status
-        // document.querySelector('.payment-mode').textContent = transaction.payment_method[transaction.payment_group].channel; // Display payment method
-        document.querySelector('.total-amount').textContent = `₹${transaction.payment_amount}`; // Display payment amount
-        document.querySelector('.payment-status').textContent = transaction.payment_status; // Display payment status
-        document.querySelector('.payment-status').classList.add(transaction.payment_status === "SUCCESS" ? 'bg-success' : 'bg-danger'); // Conditional styling for status
+        document.querySelector('.total-amount').textContent = `₹${transaction.payment_amount}`;
+        document.querySelector('.payment-status').textContent = transaction.payment_status;
+        document.querySelector('.payment-status').classList.add(transaction.payment_status === "SUCCESS" ? 'bg-success' : 'bg-danger');
 
-        // Create a new row for transaction details in the table
+        // Calculate base amount (order_amount - GST - One Time Registration Fee)
+        const baseAmount = order.order_amount - (order.tax || 0) - (order.one_time_registration_fee || 0);
+
+        // Get display name based on payment type
+        let displayName = universalLinkName;
+        if (universalLinkName === 'Training Payments' && order.training_id) {
+            const trainingName = await fetchTrainingName(order.training_id);
+            displayName = `${universalLinkName} - ${trainingName}`;
+        } else if (universalLinkName === 'New Member Payment' && order.renewal_year) {
+            displayName = `${universalLinkName} - ${order.renewal_year}`;
+        } else if (universalLinkName === 'Renewal Payment' && order.renewal_year) {
+            displayName = `${universalLinkName} - ${order.renewal_year}`;
+        }
+
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>1</td> <!-- Serial number -->
-            <td class="payment-type"><b>${universalLinkName}</b></td> <!-- Display fetched universal link name -->
-            <td>${transaction.cf_payment_id}</td> <!-- Display cf_payment_id as Transaction ID -->
-            <td>1</td> <!-- Quantity -->
-            <td>₹${order.membership_fee}</td> <!-- Price per unit -->
-            <td>₹${order.membership_fee}</td> <!-- Total -->
+            <td>1</td>
+            <td class="payment-type"><b>${displayName}</b></td>
+            <td>999511</td>
+            <td>₹${baseAmount}</td>
+            <td>₹${baseAmount}</td>
         `;
         transactionTableBody.appendChild(row);
 
-        // Create a new row for GST and tax calculations (as before)
         const gstTaxRow = document.createElement('tr');
         gstTaxRow.innerHTML = `
         <td colspan="3"></td>
@@ -148,17 +175,19 @@ async function displayTransactionDetails(order) {
                             <p class="mb-0">Sub Total :</p>
                         </th>
                         <td>
-                            <p class="mb-0 fw-medium fs-15">₹${order.membership_fee}</p>
+                            <p class="mb-0 fw-medium fs-15">₹${baseAmount}</p>
                         </td>
                     </tr>
+                    ${order.one_time_registration_fee && order.one_time_registration_fee !== 0 ? `
                     <tr>
                         <th scope="row">
                             <p class="mb-0">One Time Registration Fee :</p>
                         </th>
                         <td>
-                            <p class="mb-0 fw-medium fs-15">₹${order.one_time_registration_fee || 0}</p>
+                            <p class="mb-0 fw-medium fs-15">₹${order.one_time_registration_fee}</p>
                         </td>
                     </tr>
+                    ` : ''}
                     <tr>
                         <th scope="row">
                             <p class="mb-0">GST <span class="text-success">(18%)</span> :</p>
@@ -178,8 +207,8 @@ async function displayTransactionDetails(order) {
                 </tbody>
             </table>
         </td>
-    `; // Your existing GST and tax calculations
-        transactionTableBody.appendChild(gstTaxRow); // Append the GST and tax row to the transaction table
+    `;
+        transactionTableBody.appendChild(gstTaxRow);
     } else {
         console.error('No transactions found for this order');
     }
@@ -187,15 +216,47 @@ async function displayTransactionDetails(order) {
 
 
 // Function to display order details
-function displayOrderDetails(order) {
-    // Update HTML elements with order details
-    document.querySelector('.invoice-id').textContent = order.order_id; // Update invoice ID
-    document.querySelector('.date-issued').textContent = new Date(order.created_at).toLocaleString(); // Date Issued
-    document.querySelector('.billing-to-name').textContent = order.member_name || "N/A"; // Billing Name
-    document.querySelector('.due-amount').textContent = `₹${order.order_amount}`; // Due Amount
-    document.querySelector('.billing-to-email').textContent = order.customer_email || "N/A"; // Billing Email
-    document.querySelector('.billing-to-phone').textContent = order.customer_phone || "N/A"; // Billing Phone
+function displayOrderDetails(order, transaction) {
+    document.querySelector('.invoice-id').textContent = order.order_id;
+    document.querySelector('.date-issued').textContent = new Date(order.created_at).toLocaleString();
+    
+    // Set member name without GSTIN
+    document.querySelector('.billing-to-name').textContent = order.member_name || "N/A";
+    document.querySelector('.due-amount').textContent = `₹${order.order_amount}`;
+    
+    // Create billing to section with GSTIN at the end
+    document.querySelector('.billing-to-email').textContent = order.customer_email || "N/A";
+    document.querySelector('.billing-to-phone').textContent = order.customer_phone || "N/A";
+    document.querySelector('.billing-to-gstin').textContent = `GSTIN: ${order.gstin || "N/A"}`;
+    
+    // Set the transaction ID (cf_payment_id) if available
+    if (transaction && transaction.cf_payment_id) {
+        document.querySelector('.due-date').textContent = transaction.cf_payment_id;
+    } else {
+        document.querySelector('.due-date').textContent = "N/A";
+    }
 }
 
 // Call the function to fetch order details on page load
 fetchAllOrders();
+
+document.addEventListener('DOMContentLoaded', function() {
+    const downloadBtn = document.getElementById('downloadInvoice');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function() {
+            const element = document.querySelector('.card.custom-card');
+            const orderId = document.querySelector('.invoice-id').textContent;
+            
+            const opt = {
+                margin: 1,
+                filename: `BNI-Invoice-${orderId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Generate and download PDF
+            html2pdf().set(opt).from(element).save();
+        });
+    }
+});

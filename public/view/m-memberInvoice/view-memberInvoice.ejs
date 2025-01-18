@@ -32,11 +32,7 @@
                     </nav>
                     <h1 class="page-title fw-medium fs-18 mb-0">Showing Invoice:</h1>
                 </div>
-                <!-- <div class="btn-list">
-                    <button class="btn btn-danger btn-wave me-0">
-                        <i class="ri-share-forward-line me-1"></i> Share Bill
-                    </button>
-                </div> -->
+               
             </div>
             <!-- End::page-header -->
 
@@ -47,7 +43,7 @@
                         <div class="card-header d-md-flex d-block">
                             <div class="h5 mb-0 d-sm-flex d-bllock align-items-center">
                                 <div class="ms-sm-2 ms-0 mt-sm-0 mt-2">
-                                    <div class="h6 fw-medium mb-0">Bill INVOICE : <span class="text-primary" style="color: #d01f2f !important;">BNEW-01</span></div>
+                                    <div class="h6 fw-medium mb-0">Bill INVOICE <span class="text-primary" style="color: #d01f2f !important;"></span></div>
                                 </div>
                             </div>
                             <div class="ms-auto mt-md-0 mt-2">
@@ -89,28 +85,30 @@
                                             <p class="text-muted mb-1  billing-to-address">
                                                 
                                             </p>
-                                            <p class="text-muted mb-1 billing-to-email">
+                                            <p class="fw-bold text-muted mb-1 billing-to-email">
                                                 
                                             </p>
-                                            <p class="text-muted billing-to-phone">
+                                            <p class=" fw-bold mb-0 text-muted billing-to-phone">
                                                 
+                                            </p>
+                                            <p class="fw-bold text-muted billing-to-gstin">
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-4">
+                                <div class="col-xl-3">
                                     <p class="fw-medium text-muted mb-1">Invoice ID :</p>
                                     <p class="fs-15 mb-1 invoice-id">#SHG148756965</p>
                                 </div>
-                                <div class="col-xl-4">
+                                <div class="col-xl-3">
                                     <p class="fw-medium text-muted mb-1">Date Issued :</p>
                                     <p class="fs-15 mb-1 date-issued">15,May 2024 - <span class="text-muted fs-12">11:13AM</span></p>
                                 </div>
-                                <!-- <div class="col-xl-3">
-                                    <p class="fw-medium text-muted mb-1">Due Date :</p>
+                                <div class="col-xl-3">
+                                    <p class="fw-medium text-muted mb-1">Transaction ID :</p>
                                     <p class="fs-15 mb-1 due-date">28,June 2024</p>
-                                </div> -->
-                                <div class="col-xl-4">
+                                </div>
+                                <div class="col-xl-3">
                                     <p class="fw-medium text-muted mb-1">Paid Amount :</p>
                                     <p class="fs-16 mb-1 fw-medium due-amount">₹4,877.11</p>
                                 </div>
@@ -120,11 +118,10 @@
                                             <thead>
                                                 <tr>
                                                     <th>S.No.</th>
-                                                    <th>Payment Type</th>
-                                                    <th>Transaction ID</th>
-                                                    <th>QUANTITY</th>
-                                                    <th>PRICE PER UNIT</th>
-                                                    <th>TOTAL</th>
+                                                    <th>Particulars</th>
+                                                    <th>HSN/SAC</th>
+                                                    <th>RATE PER UNIT</th>
+                                                    <th>Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -139,7 +136,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-end">
-                            <button class="btn btn-danger">Download <i class="ri-download-2-line ms-1 align-middle"></i></button>
+                            <button id="downloadInvoice" class="btn btn-danger">Download <i class="ri-download-2-line ms-1 align-middle"></i></button>
                         </div>
                     </div>
                 </div>
@@ -181,7 +178,9 @@
 
     <%- include('../partials/footer') %> 
 
-    <script src="../../assets/js/memberInvoice.js"></script>
+    <script src="../../assets/js/viewTransactions.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
       <!-- Footer opened -->
  
