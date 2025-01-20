@@ -31,90 +31,85 @@ function formatDate(date) {
 }
 
 // Add this function near the top with other utility functions
-async function fetchAndPopulateCountries(selectedCountry) {
+async function fetchAndPopulateCountries() {
   try {
     const response = await fetch('https://restcountries.com/v3.1/all');
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    const data = await response.json();
+    if (!response.ok) throw new Error('Failed to fetch countries.');
+
+    const countries = await response.json();
     const selectElement = document.getElementById('country');
-    
-    // Clear existing options
+
     selectElement.innerHTML = '<option value="">Select Country</option>';
 
-    // Sort all countries alphabetically
-    const sortedCountries = data.sort((a, b) => 
-      a.name.common.localeCompare(b.name.common)
-    );
+    // Add India first
+    const india = countries.find(country => country.cca2 === 'IN');
+    if (india) {
+      const indiaOption = document.createElement('option');
+      indiaOption.value = india.cca2;
+      indiaOption.textContent = india.name.common;
+      selectElement.appendChild(indiaOption);
+    }
 
-    // Add all countries to the dropdown
-    sortedCountries.forEach(country => {
-      const option = document.createElement('option');
-      option.value = country.cca2; // Use country code as value instead of name
-      option.textContent = country.name.common;
-      selectElement.appendChild(option);
+    // Add other countries
+    countries.forEach(country => {
+      if (country.cca2 !== 'IN') { // Skip India since we already added it
+        const option = document.createElement('option');
+        option.value = country.cca2;
+        option.textContent = country.name.common;
+        selectElement.appendChild(option);
+      }
     });
 
-    // Set the selected country if provided, otherwise default to India (IN)
-    if (selectedCountry) {
-      selectElement.value = selectedCountry;
-    } else {
-      selectElement.value = "IN"; // Use India's country code
-    }
+    // Set India as default
+    selectElement.value = 'IN';
   } catch (error) {
-    console.error('Error fetching countries:', error);
-    // If API fails, ensure India is available and selected
-    const selectElement = document.getElementById('country');
-    selectElement.innerHTML = '<option value="IN">India</option>';
-    selectElement.value = "IN";
+    console.error('Error populating country dropdown:', error);
+    alert('Failed to load country data. Please try again.');
   }
 }
 
-document.addEventListener('DOMContentLoaded', async function () {
-  // Get the member ID from the URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const memberId = urlParams.get('member_id');
-  console.log(memberId);
-
-  if (!memberId) {
-    alert('No member ID provided!');
-    return;
-  }
-
-  // Show loader
-  showLoader();
-
+// Initialize the page
+document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // Add country fetching before member data fetch
+    // First populate countries and set India as default
     await fetchAndPopulateCountries();
+    document.getElementById('country').value = 'IN'; // Set India as default immediately
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const memberId = urlParams.get('member_id');
+    
+    if (!memberId) {
+      alert('No member ID provided!');
+      return;
+    }
+
+    showLoader();
     // Fetch member data
     const memberResponse = await fetch(`https://bni-data-backend.onrender.com/api/getMember/${memberId}`);
     if (!memberResponse.ok) throw new Error('Error fetching member data');
 
-    const member = await memberResponse.json(); // Directly get the member object
+    const member = await memberResponse.json();
 
-    console.log(member); // Debug: Check the structure of the response
-
-    // If member data is not found
-    if (!member) {
-      alert('Member not found!');
-      return;
+    // If member has a different country, update it, otherwise keep India
+    if (member.country && member.country !== 'IN') {
+      document.getElementById('country').value = member.country;
+    } else {
+      document.getElementById('country').value = 'IN'; // Ensure India is selected
     }
 
-     // Fetch and populate regions
-     const regionResponse = await fetch('https://bni-data-backend.onrender.com/api/regions'); // Adjust the endpoint accordingly
-     if (!regionResponse.ok) throw new Error('Error fetching regions data');
-     const regions = await regionResponse.json();
-     populateSelectOptions('region_id', regions, 'region_id', 'region_name', member.region_id);
- 
-     // Fetch and populate chapters
-     const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters'); // Adjust the endpoint accordingly
-     if (!chapterResponse.ok) throw new Error('Error fetching chapters data');
-     const chapters = await chapterResponse.json();
-     populateSelectOptions('chapter_id', chapters, 'chapter_id', 'chapter_name', member.chapter_id);
+    // Fetch and populate regions
+    const regionResponse = await fetch('https://bni-data-backend.onrender.com/api/regions'); // Adjust the endpoint accordingly
+    if (!regionResponse.ok) throw new Error('Error fetching regions data');
+    const regions = await regionResponse.json();
+    populateSelectOptions('region_id', regions, 'region_id', 'region_name', member.region_id);
 
-      // Fetch all accolades
+    // Fetch and populate chapters
+    const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters'); // Adjust the endpoint accordingly
+    if (!chapterResponse.ok) throw new Error('Error fetching chapters data');
+    const chapters = await chapterResponse.json();
+    populateSelectOptions('chapter_id', chapters, 'chapter_id', 'chapter_name', member.chapter_id);
+
+    // Fetch all accolades
     const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
     if (!accoladesResponse.ok) throw new Error('Error fetching accolades');
     
@@ -201,22 +196,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('date_of_publishing').value = formatDate(member.date_of_publishing);
 
     // Add this with other field populations
-    if (member.country) {
-      document.getElementById('country').value = member.country;
-    } else {
-      // If no country is set in member data, default to India
-      document.getElementById('country').value = "India";
-    }
-
     document.getElementById('meeting_opening_balance').value = member.meeting_opening_balance || '0';
 
   } catch (error) {
     console.error('Error:', error);
   } finally {
-    // Hide loader
     hideLoader();
   }
 });
+
 const urlParams = new URLSearchParams(window.location.search);
 const memberId = urlParams.get('member_id');
 
