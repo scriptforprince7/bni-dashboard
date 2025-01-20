@@ -24,6 +24,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         if (!chapterKittyPayment) {
             console.error('Kitty payment not found for chapter ID:', chapter_id);
+            document.getElementById('totalKittyAmountRaised').textContent = 'N/A';
+            document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
+            document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
+            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            const tableBody = document.getElementById('paymentsTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="11" style="text-align: center;"><b>No Bill Raised yet.</b></td>
+            `;
+            tableBody.appendChild(row);
             return;
         }
 
