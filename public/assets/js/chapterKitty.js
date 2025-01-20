@@ -118,7 +118,9 @@ function hideLoader() {
                     <td>${serialNumber}</td>
                     <td>${orderDate}</td>
                     <td>${order.member_name || 'N/A'}</td>
-                    <td>${formattedAmount}</td>
+                    <td><b>${formattedAmount}</b><br><a href="/ck/chapter-kittyInvoice?order_id=${
+        transaction.order_id
+      }" class="fw-medium text-success">View</a></td>
                     <td>${paymentMethod}</td>
                     <td>${order.order_id || 'N/A'}</td>
                     <td>${transactionId}</td>

@@ -5,5 +5,6 @@ const chapterKitty = require('../../controllers/c-chapterKitty/chapterKittyContr
 // Chapter kitty routes
 router.get('/manage-chapterKitty', chapterKitty.manageChapterKitty);
 router.get('/chapter-raiseBill', chapterKitty.chapterRaiseBill);
+router.get('/chapter-kittyInvoice', chapterKitty.chapterKittyInvoice);
 
 module.exports = router;
