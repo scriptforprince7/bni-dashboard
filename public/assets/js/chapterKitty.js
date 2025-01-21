@@ -242,11 +242,43 @@ document.addEventListener('DOMContentLoaded', async function () {
         const members = await membersResponse.json();
         const chapterMembers = members.filter(member => member.chapter_id === chapter_id);
         const memberCount = chapterMembers.length;
+        console.log("chapter member",chapterMembers);
+        // add 18% gst on total_bill_amount
+        const gst = total_bill_amount * 0.18;
+        console.log('GST:', gst);
+        let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
+        // formatter moved here
+        const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 2,
+        });
 
         console.log('Number of members:', memberCount);
+        if (memberCount===0) {
+            console.error('Kitty payment not found for chapter ID:', chapter_id);
+            document.getElementById('totalKittyAmountRaised').textContent = 'N/A';  //need to change here
+            document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
+            document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
+            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            document.querySelector('.member_count').textContent= memberCount;
+            document.querySelector('.description').textContent= description;
+            document.querySelector('.bill_type').textContent = bill_type;
+            document.querySelector('.total_weeks').textContent= `${total_weeks}`;
+
+            const tableBody = document.getElementById('paymentsTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="11" style="text-align: center;"><b>No Bill Transaction Found.</b></td>
+            `;
+            tableBody.appendChild(row);
+            return;
+        }
+        
+
 
         // Step 5: Calculate total amount raised
-        const totalAmountRaised = parseFloat(total_bill_amount) * memberCount;
+        const totalAmountRaised = (parseFloat(amountWithGst) * memberCount);
 
         // Step 6: Fetch all orders for the chapter
         const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
@@ -260,6 +292,22 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         if (chapterOrders.length === 0) {
             console.error('No orders found for the chapter with universal_link_id 4.');
+            console.error('Kitty payment not found for chapter ID:', chapter_id);
+            document.getElementById('totalKittyAmountRaised').textContent = indianCurrencyFormatter.format(totalAmountRaised);  //need to change here
+            document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
+            document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
+            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            document.querySelector('.member_count').textContent= memberCount;
+            document.querySelector('.description').textContent= description;
+            document.querySelector('.bill_type').textContent = bill_type;
+            document.querySelector('.total_weeks').textContent= `${total_weeks}`;
+
+            const tableBody = document.getElementById('paymentsTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="11" style="text-align: center;"><b>No Bill Transaction Found.</b></td>
+            `;
+            tableBody.appendChild(row);
             return;
         }
 
@@ -271,6 +319,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const ordersWithTransactions = chapterOrders.map(order => {
             const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
+
             return {
                 ...order,
                 ...transaction // Add transaction fields to the order object
@@ -278,13 +327,23 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
 
         console.log('Orders with Transactions:', ordersWithTransactions);
+        // chapterMembers
+        // const ordersTransactionsMember = chapterOrders.map(order => {
+        //     const member = chapterMembers.find(tran => tran.chapter_id === order.chapter_id);
+        //     return {
+        //         ...order,
+        //         ...transaction // Add transaction fields to the order object
+        //     };
+        // });
+
+        // console.log('Orders with Transactions:', ordersWithTransactions);
 
         // Update table with order data
         const tableBody = document.querySelector('#paymentsTableBody');
         tableBody.innerHTML = ''; // Clear the table body
 
         let serialNumber = 1; // Initialize counter for displayed rows
-
+        let currentChapterMember;
         chapterOrders.forEach((order) => {
             // Find matching transaction
             const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
@@ -296,15 +355,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             // Format date
             const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : 'N/A';
+            // find current member
+            currentChapterMember = chapterMembers.find(member => member.member_email_address === order.customer_email);
+            console.log('Current Member:', currentChapterMember);
+
+            let payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
             
+            // console.log('payamount:', payamount);
+            // console.log('order.order_amount:', order.order_amount);
+            // console.log('chapterMembers.meeting_opening_balance:', currentChapterMember.meeting_opening_balance);
             // Format amount
-            const formattedAmount = order.order_amount ? 
+            let formattedAmount = order.order_amount ? 
                 new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
                     maximumFractionDigits: 2
-                }).format(order.order_amount) : 'N/A';
-
+                }).format(payamount) : 'N/A';
+            // if(chapterMembers.meeting_opening_balance !==0){
+            //     formattedAmount= formattedAmount - chapterMembers.meeting_opening_balance;
+            // }
             // Get payment details from transaction
             const paymentMethod = transaction.payment_method?.netbanking ? 'netbanking' : 'upi';
             const transactionId = transaction.cf_payment_id;
@@ -328,8 +397,18 @@ document.addEventListener('DOMContentLoaded', async function () {
             tableBody.insertAdjacentHTML('beforeend', row);
             serialNumber++; // Increment counter only for displayed rows
         });
-
-        const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
+        // if (chapterMembers.meeting_opening_balance !==0){
+        //     const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
+        //     console.log('Total Kitty Amount Received with opening balance:', totalKittyAmountReceived);
+        // } else{
+        //     const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
+        //     console.log('Total Kitty Amount Received without op:', totalKittyAmountReceived);
+        // }
+        const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => {
+            const member = chapterMembers.find(member => member.member_email_address === order.customer_email);
+            const meetingOpeningBalance = member ? parseFloat(member.meeting_opening_balance) : 0;
+            return sum + parseFloat(order.order_amount) - meetingOpeningBalance;
+        }, 0);
         console.log('Total Kitty Amount Received:', totalKittyAmountReceived);
 
         // Step 7: Calculate total kitty amount pending
@@ -337,19 +416,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log('Total Kitty Amount Pending:', totalKittyAmountPending);
 
         // Step 8: Format values in Indian currency format
-        const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 2,
-        });
-
-        const formattedBillAmount = indianCurrencyFormatter.format(total_bill_amount);
+        // const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+        //     style: 'currency',
+        //     currency: 'INR',
+        //     maximumFractionDigits: 2,
+        // });
+        // let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
+        // let totalAmountRaisedWithGst = parseFloat(totalAmountRaised) ;
+        const formattedBillAmount = indianCurrencyFormatter.format(amountWithGst);
         const formattedTotalRaised = indianCurrencyFormatter.format(totalAmountRaised);
         const formattedKittyReceived = indianCurrencyFormatter.format(totalKittyAmountReceived);
         const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
 
         // Step 9: Update the UI with fetched values
-        document.querySelector('.total_bill_amount').textContent = formattedBillAmount;
+        document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
         document.querySelector('.total_bill_amount_raised').textContent = formattedTotalRaised;
         document.querySelector('.total_kitty_amount_received').textContent = formattedKittyReceived;
         document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
