@@ -28,6 +28,54 @@ function formatDateForInput(dateString) {
     return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
   }
 
+// Function to update status options based on date
+function updateStatusOptions(selectedDate, currentStatus) {
+    const trainingStatus = document.getElementById('training_status');
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
+    
+    const selectedDateTime = new Date(selectedDate);
+    selectedDateTime.setHours(0, 0, 0, 0);
+
+    // Clear existing options
+    trainingStatus.innerHTML = '<option value="">Select</option>';
+
+    if (selectedDateTime > currentDate) {
+        // Future date - show Scheduled, Postponed, and Completed
+        trainingStatus.innerHTML += `
+            <option value="Scheduled">Scheduled</option>
+            <option value="Postponed">Postponed</option>
+            <option value="Cancelled">Cancelled</option>
+        `;
+    } else if (selectedDateTime < currentDate) {
+        // Past date - show Scheduled, Postponed, and Completed
+        trainingStatus.innerHTML += `
+            <option value="Scheduled">Scheduled</option>
+            <option value="Postponed">Postponed</option>
+            <option value="Completed">Completed</option>
+        `;
+    } else {
+        // Current date - show all options
+        trainingStatus.innerHTML += `
+            <option value="Scheduled">Scheduled</option>
+            <option value="Postponed">Postponed</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Completed">Completed</option>
+        `;
+    }
+
+    // Set the current status as selected
+    if (currentStatus) {
+        trainingStatus.value = currentStatus;
+    }
+}
+
+// Add event listener to date input
+document.getElementById('training_date').addEventListener('change', function(e) {
+    const currentStatus = document.getElementById('training_status').value;
+    updateStatusOptions(e.target.value, currentStatus);
+});
+
 // Function to fetch event details and populate the form
 async function fetchTrainingDetails() {
   try {
@@ -45,8 +93,8 @@ async function fetchTrainingDetails() {
     training_note.value = trainingData.training_note || '';
     training_published_by.value = trainingData.training_published_by || '';
     
-    // Set the "availability" dropdown
-    training_status.value = trainingData.training_status || '';
+    // Update status options based on the fetched date and set the current status
+    updateStatusOptions(trainingData.training_date, trainingData.training_status);
 
   } catch (error) {
     console.error('Error fetching training details:', error);

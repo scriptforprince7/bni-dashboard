@@ -5,8 +5,10 @@ const applyFilterBtn = document.getElementById('apply-filters-btn');
 const resetFilterBtn = document.getElementById('reset-filters-btn');
 const loader = document.getElementById('loader');
 const trainingsApiUrl = 'https://bni-data-backend.onrender.com/api/allTrainings';
+const searchInput = document.getElementById('searchAccolades');
 
 let trainings = []; // Store all trainings
+let selectedTrainingStatus = null;
 
 // Loader functions
 function showLoader() {
@@ -58,36 +60,106 @@ function populateMonthsDropdown() {
     });
 }
 
-// Apply Filter Button Click Handler
+// Function to populate Training Status filter dropdown
+function populateTrainingStatusFilter() {
+    const statuses = ['Scheduled', 'Postponed', 'Cancelled', 'Completed'];
+    const statusFilter = document.getElementById('trainings-status-filter');
+    statusFilter.innerHTML = ''; // Clear existing options
+
+    statuses.forEach(status => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <a class="dropdown-item" href="javascript:void(0);" data-status="${status}">
+                ${status}
+            </a>
+        `;
+        statusFilter.appendChild(li);
+    });
+}
+
+// Add click event listener for status filter items
+document.getElementById('trainings-status-filter').addEventListener('click', function(e) {
+    if (e.target.classList.contains('dropdown-item')) {
+        selectedTrainingStatus = e.target.dataset.status;
+        console.log('Selected Status:', selectedTrainingStatus); // Debug log
+        
+        // Update dropdown button text
+        const dropdownButton = e.target.closest('.dropdown').querySelector('.dropdown-toggle');
+        dropdownButton.textContent = selectedTrainingStatus;
+    }
+});
+
+// Update the apply filter button click handler
 applyFilterBtn.addEventListener('click', () => {
-    const selectedMonth = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
+    console.log('Applying filters...'); // Debug log
+    console.log('Status:', selectedTrainingStatus); // Debug log
     
-    if (!selectedMonth) {
-        renderTrainings(trainings); // Show all trainings if no month selected
-        return;
+    const selectedMonth = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
+    let filteredTrainings = [...trainings]; // Create a copy of trainings array
+
+    // Filter by month if selected
+    if (selectedMonth) {
+        filteredTrainings = filteredTrainings.filter(training => {
+            const trainingDate = new Date(training.training_date);
+            const trainingMonth = trainingDate.getMonth() + 1;
+            return trainingMonth === parseInt(selectedMonth);
+        });
     }
 
-    // Filter trainings by selected month
-    const filteredTrainings = trainings.filter(training => {
-        const trainingDate = new Date(training.training_date);
-        const trainingMonth = trainingDate.getMonth() + 1; // getMonth() returns 0-11
-        return trainingMonth === parseInt(selectedMonth);
-    });
+    // Filter by status if selected
+    if (selectedTrainingStatus) {
+        filteredTrainings = filteredTrainings.filter(training => {
+            return training.training_status === selectedTrainingStatus;
+        });
+    }
 
     renderTrainings(filteredTrainings);
 });
 
-// Reset Filter Button Click Handler
+// Update reset filter button handler
 resetFilterBtn.addEventListener('click', () => {
-    // Reset dropdown text
+    // Reset training status filter
+    selectedTrainingStatus = null;
+    const statusDropdown = document.querySelector('[data-bs-toggle="dropdown"]');
+    statusDropdown.innerHTML = '<i class="ti ti-sort-descending-2 me-1"></i> Training Status';
+    
+    // Reset month filter
     const dropdownToggle = monthsDropdown.closest('.dropdown').querySelector('.dropdown-toggle');
     dropdownToggle.textContent = 'Month';
-    
-    // Remove active class from all items
     monthsDropdown.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
     
     // Show all trainings
     renderTrainings(trainings);
+});
+
+// Add this function for search functionality
+function searchTrainings(searchTerm) {
+    const filteredTrainings = trainings.filter(training => {
+        // Convert both search term and training data to lowercase for case-insensitive search
+        searchTerm = searchTerm.toLowerCase();
+        const trainingName = training.training_name.toLowerCase();
+        const trainingVenue = (training.training_venue || '').toLowerCase();
+        const trainingStatus = training.training_status.toLowerCase();
+
+        // Return true if search term is found in any of these fields
+        return trainingName.includes(searchTerm) || 
+               trainingVenue.includes(searchTerm) || 
+               trainingStatus.includes(searchTerm);
+    });
+
+    renderTrainings(filteredTrainings);
+}
+
+// Add real-time search event listener
+searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.trim();
+    if (searchTerm === '') {
+        // If search box is empty, show all trainings
+        renderTrainings(trainings);
+    } else {
+        // Filter trainings based on search term
+        searchTrainings(searchTerm);
+    }
 });
 
 // Render trainings to table
@@ -97,7 +169,7 @@ function renderTrainings(trainingsToShow) {
     if (trainingsToShow.length === 0) {
         trainingsTableBody.innerHTML = `
             <tr>
-                <td colspan="8" class="text-center text-danger">No trainings found for the selected month.</td>
+                <td colspan="8" class="text-center text-danger">No trainings found matching your search.</td>
             </tr>`;
         return;
     }
@@ -156,6 +228,7 @@ async function fetchAndDisplayTrainings() {
         trainings = await response.json();
         renderTrainings(trainings);
         populateMonthsDropdown();
+        populateTrainingStatusFilter();
     } catch (error) {
         console.error('Error:', error);
         trainingsTableBody.innerHTML = `
@@ -168,7 +241,11 @@ async function fetchAndDisplayTrainings() {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', fetchAndDisplayTrainings);
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAndDisplayTrainings();
+    populateMonthsDropdown();
+    populateTrainingStatusFilter();
+});
 
 
 

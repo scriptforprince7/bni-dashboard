@@ -84,7 +84,7 @@
                             >Total Kitty Amount Raised</span
                           >
                           <h4 class="fw-medium mb-0">
-                            <b><span class="total_bill_amount_raised">Loading..</span></b>
+                            <b><span class="total_bill_amount_raised" id="totalKittyAmountRaised">Loading..</span></b>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -114,7 +114,7 @@
                             >Kitty Bill Details</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                           <b><span class="total_bill_amount">Loading..</span></b>
+                           <b><span class="total_bill_amount"id="totalKittyDetails">Loading..</span></b>
                           </h4>
                           <p><span><b>Bill Type</b>: <span class="bill_type"></span></span><br><span><b>Bill For</b>: <span class="total_weeks"></span> weeks</span><br><span><b>Bill Duration</b>: <span class="description"></span></span><br><span><b>Total Member Count</b>: <span class="member_count"></span></span></p>
                         </div>
@@ -148,7 +148,7 @@
                             >Total Kitty Amount Received</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                           <b><span class="total_kitty_amount_received">Loading..</span></b> 
+                           <b><span class="total_kitty_amount_received" id="totalKittyAmountReceived">Loading..</span></b> 
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -181,7 +181,7 @@
                             >Total Kitty Amount Pending</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                           <b><span class="total_kitty_amount_pending"></span></b> 
+                           <b><span class="total_kitty_amount_pending" id="totalKittyExpense"></span></b> 
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -382,7 +382,7 @@
                     <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
-                         data-bs-toggle="dropdown"
+                         data-bs-toggle="dropdow  n"
                          aria-expanded="true">
                         <i class="ti ti-sort-descending-2 me-1"></i> Gateway
                       </a>
@@ -445,12 +445,12 @@
                           <th scope="col">Transaction ID</th>
                           <th scope="col">PG Status</th>
                           <th scope="col">Gateway</th>
-                          <th scope="col">Settlement Status</th>
+                          <!-- <th scope="col">Settlement Status</th>
                           <th scope="col">Tranfer UTR</th>
                           <th scope="col">Tranfer Time</th>
                           <th scope="col">IRN</th>
                           <th scope="col">QR Code</th>
-                          <th scope="col">E-Invoice Status</th>
+                          <th scope="col">E-Invoice Status</th> -->
                         </tr>
                       </thead>
                       <tbody id="paymentsTableBody">
