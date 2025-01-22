@@ -234,8 +234,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
 
-        const { total_bill_amount, bill_type, description, total_weeks } = chapterKittyPayment;
-        console.log('Kitty Payment Details:', { total_bill_amount, bill_type, description, total_weeks });
+        const { total_bill_amount, bill_type, description, total_weeks, kitty_bill_id} = chapterKittyPayment;
+        console.log('Kitty Payment Details:', { total_bill_amount, bill_type, description, total_weeks, kitty_bill_id });
 
         // Step 4: Fetch members count using chapter_id
         const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
@@ -287,7 +287,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         // Filter orders for the chapter with universal_link_id === 4
         const chapterOrders = allOrders.filter(order => 
             order.chapter_id === chapter_id && 
-            order.universal_link_id === 4
+            order.universal_link_id === 4 &&
+            order.kitty_bill_id === kitty_bill_id 
+            // &&
+            // order.order_status === 'SUCCESS'
         );
 
         if (chapterOrders.length === 0) {
@@ -344,6 +347,17 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         let serialNumber = 1; // Initialize counter for displayed rows
         let currentChapterMember;
+        let ReceivedAmount = 0;
+        let MiscellaneousAmount = 0;
+        // ordersWithTransactions.forEach((order) => {
+        //     if (order.payment_status === 'SUCCESS') {
+        //     // ReceivedAmount += order.order_amount;
+        //     ReceivedAmount += parseFloat(order.order_amount);
+        //     }
+        //     // console.log(order);
+        // });
+
+
         chapterOrders.forEach((order) => {
             // Find matching transaction
             const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
@@ -361,9 +375,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             let payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
             
-            // console.log('payamount:', payamount);
-            // console.log('order.order_amount:', order.order_amount);
-            // console.log('chapterMembers.meeting_opening_balance:', currentChapterMember.meeting_opening_balance);
+            console.log('payamount:', payamount);
+            console.log('order.order_amount:', order.order_amount);
+            console.log('chapterMembers.meeting_opening_balance:', currentChapterMember.meeting_opening_balance);
+            // ReceivedAmount += payamount;
+            // console.log(order);
+            // if (order.payment_status === 'SUCCESS') {
+            //     ReceivedAmount -= parseFloat(currentChapterMember.meeting_opening_balance);
+            //     console.log('vasu');
+            // }
+                const pgStatus = transaction.payment_status;
+                if (pgStatus === 'SUCCESS') {
+                // ReceivedAmount += order.order_amount;
+                ReceivedAmount += parseFloat(payamount);
+                }
+                else{
+                    MiscellaneousAmount += parseFloat(payamount);
+                }
+            
+            
             // Format amount
             let formattedAmount = order.order_amount ? 
                 new Intl.NumberFormat('en-IN', {
@@ -377,7 +407,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Get payment details from transaction
             const paymentMethod = transaction.payment_method?.netbanking ? 'netbanking' : 'upi';
             const transactionId = transaction.cf_payment_id;
-            const pgStatus = transaction.payment_status;
+            
 
             const row = `
                 <tr>
@@ -404,12 +434,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         //     const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
         //     console.log('Total Kitty Amount Received without op:', totalKittyAmountReceived);
         // }
-        const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => {
-            const member = chapterMembers.find(member => member.member_email_address === order.customer_email);
-            const meetingOpeningBalance = member ? parseFloat(member.meeting_opening_balance) : 0;
-            return sum + parseFloat(order.order_amount) - meetingOpeningBalance;
-        }, 0);
-        console.log('Total Kitty Amount Received:', totalKittyAmountReceived);
+        // const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => {
+        //     const member = chapterMembers.find(member => member.member_email_address === order.customer_email);
+        //     const meetingOpeningBalance = member ? parseFloat(member.meeting_opening_balance) : 0;
+        //     return sum + parseFloat(order.order_amount) - meetingOpeningBalance;
+        // }, 0);
+        // console.log('Total Kitty Amount Received:', totalKittyAmountReceived);
+        console.log('ReceivedAmount:', ReceivedAmount);
+        const totalKittyAmountReceived = ReceivedAmount;
+        const totalPendingMiscellaneousAmount = MiscellaneousAmount;
 
         // Step 7: Calculate total kitty amount pending
         const totalKittyAmountPending = totalAmountRaised - totalKittyAmountReceived;
@@ -427,6 +460,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const formattedTotalRaised = indianCurrencyFormatter.format(totalAmountRaised);
         const formattedKittyReceived = indianCurrencyFormatter.format(totalKittyAmountReceived);
         const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
+        const formattedMiscellaneousAmount = indianCurrencyFormatter.format(totalPendingMiscellaneousAmount);
 
         // Step 9: Update the UI with fetched values
         document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
@@ -437,6 +471,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.querySelector('.description').textContent = description;
         document.querySelector('.total_weeks').textContent = total_weeks;
         document.querySelector('.member_count').textContent = memberCount;
+        document.querySelector('.total_miscellaneous_amount').textContent = formattedMiscellaneousAmount;
 
         // Populate all filter dropdowns
         await populateGatewayFilter();
