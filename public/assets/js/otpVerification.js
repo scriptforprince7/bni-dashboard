@@ -110,4 +110,96 @@ function getDecodedToken() {
     }
 }
 
+// Timer functionality
+let timeLeft = 180; // 3 minutes in seconds
+let timerId = null;
+
+function startTimer() {
+    console.log('Starting 3-minute timer for OTP resend');
+    const resendLink = document.querySelector('.text-primary');
+    resendLink.style.pointerEvents = 'none';
+    resendLink.style.opacity = '0.5';
+
+    // Update the text to show timer
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        resendLink.textContent = `Resend OTP in ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft === 0) {
+            console.log('Timer completed, enabling resend button');
+            clearInterval(timerId);
+            resendLink.textContent = 'Resend OTP';
+            resendLink.style.pointerEvents = 'auto';
+            resendLink.style.opacity = '1';
+            timeLeft = 180; // Reset for next use
+        } else {
+            timeLeft--;
+        }
+    }
+
+    // Initial call and start interval
+    updateTimer();
+    timerId = setInterval(updateTimer, 1000);
+}
+
+// Start timer when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    startTimer();
+});
+
+// Handle resend OTP
+document.querySelector('.text-primary').addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    if (timeLeft !== 180) {
+        console.log('Timer still running, cannot resend OTP yet');
+        return;
+    }
+
+    try {
+        console.log('Requesting OTP resend for email:', email, 'login_type:', login_type);
+        const response = await fetch('https://bni-data-backend.onrender.com/api/auth/login', {  // Using login endpoint as it handles OTP generation and sending
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email,
+                login_type,
+                resend: true  // Add flag to indicate this is a resend request
+            })
+        });
+
+        const result = await response.json();
+        console.log('Resend OTP response:', result);
+
+        if (result.success) {
+            console.log('New OTP sent successfully via email');
+            Swal.fire({
+                icon: 'success',
+                title: 'OTP Resent',
+                text: 'A new OTP has been sent to your email',
+                confirmButtonText: 'OK'
+            });
+            timeLeft = 180; // Reset timer to 3 minutes
+            startTimer(); // Restart the timer
+        } else {
+            console.log('OTP resend failed:', result.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to Resend OTP',
+                text: result.message || 'Failed to resend OTP. Please try again.',
+                confirmButtonText: 'OK'
+            });
+        }
+    } catch (error) {
+        console.error('Error in resending OTP:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while resending OTP. Please try again.',
+            confirmButtonText: 'OK'
+        });
+    }
+});
+
 

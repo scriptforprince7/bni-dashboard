@@ -243,10 +243,15 @@
                               </div>
 
                               <div class="col-xl-6">
-                                <label for="member_photo" class="form-label">Member Image</label>
-                                <input type="file" class="form-control" id="member_photo"
-                                name="member_photo"
-                                required/>
+                                <label for="member_photo" class="form-label">Member Photo</label>
+                                <input 
+                                  type="file" 
+                                  class="form-control" 
+                                  id="member_photo"
+                                  name="member_photo"
+                                  accept="image/png, image/jpeg, image/jpg"
+                                  required
+                                />
                               </div>
                           </div>
                         </div>
@@ -472,8 +477,15 @@
                             </div>
 
                             <div class="col-xl-6">
-                              <label for="member_company_logo" class="form-label">Member Company logo</label>
-                              <input type="file" class="form-control" id="member_company_logo" name="member_company_logo"/>
+                              <label for="member_company_logo" class="form-label">Company Logo</label>
+                              <input 
+                                type="file" 
+                                class="form-control" 
+                                id="member_company_logo"
+                                name="member_company_logo"
+                                accept="image/png, image/jpeg, image/jpg"
+                                required
+                              />
                             </div>
                           </div>
                         </div>
@@ -536,11 +548,11 @@
                                       <button type="button" class="btn btn-outline-info btn-sm">Add Category +</button>
                                   </a>
                               </label>
-                              <select class="form-control" data-trigger="" name="product-brand-add" id="category">
-                                  <option value="">Select</option>
-                                  <!-- Categories will be dynamically populated here -->
-                              </select>
-                          </div>
+                              <select class="form-control" data-trigger="" name="category_id" id="category">
+                                <option value="">Select</option>
+                                <!-- Categories will be dynamically populated here -->
+                            </select>
+                            </div>
             
                              
                               <div class="col-xl-6">
@@ -921,87 +933,65 @@
 
 <script>
   document.getElementById("addMemberForm").addEventListener("submit", async function (event) {
-    event.preventDefault();  // Prevent form from submitting normally
-  
+    event.preventDefault();
+    
     const formData = new FormData(this);
     const formDataObj = {};
-  
-    formDataObj['chapterDays'] = [];
-    formDataObj['chapterStatus'] = [];  // For Chapter Status
-    formDataObj['chapterType'] = [];    // For Chapter Type
-    formDataObj['accolades_id'] = [];      // For Accolades
-  
+    
+    // Initialize accolades array
+    formDataObj['accolades_id'] = [];
+
+    // Get file inputs first
+    const memberPhotoFile = document.getElementById('member_photo').files[0];
+    const companyLogoFile = document.getElementById('member_company_logo').files[0];
+    
+    // Get category_id from select element
+    const categorySelect = document.getElementById('category');
+    formDataObj['category_id'] = categorySelect.value;
+
+    // Validate files are selected
+    if (!memberPhotoFile) {
+      toastr.error("Please select a member photo");
+      return;
+    }
+
+    if (!companyLogoFile) {
+      toastr.error("Please select a company logo");
+      return;
+    }
+
+    // Validate file types
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    
+    if (!allowedTypes.includes(memberPhotoFile.type)) {
+      toastr.error("Member photo must be in JPG, JPEG, or PNG format");
+      return;
+    }
+
+    if (!allowedTypes.includes(companyLogoFile.type)) {
+      toastr.error("Company logo must be in JPG, JPEG, or PNG format");
+      return;
+    }
+
+    // Process form data
     formData.forEach((value, key) => {
-      if (key === 'chapterDays[]') {
-        formDataObj['chapterDays'].push(value);
-      } else if (key === 'chapterStatus[]') {  // Collect Chapter Status
-        formDataObj['chapterStatus'].push(value);
-      } else if (key === 'chapterType[]') {    // Collect Chapter Type
-        formDataObj['chapterType'].push(value);
-      } else if (key === 'accolades[]') {      // Collect Accolades
+      if (key.startsWith('accolades')) {
         formDataObj['accolades_id'].push(value);
+      } else if (key === 'member_photo') {
+        formDataObj[key] = memberPhotoFile.name;
+      } else if (key === 'member_company_logo') {
+        formDataObj[key] = companyLogoFile.name;
       } else {
-        formDataObj[key] = value;  // Handle other fields
+        formDataObj[key] = value;
       }
     });
 
-          // Validate fields
-  const contactNumber = formDataObj['member_phone_number']; // Adjust field name as per your form
-  const alternateContactNumber = formDataObj['member_alternate_mobile_number']; // Adjust field name as per your form
-  const gst_number = formDataObj['member_gst_number']; // Adjust field name as per your form
-  const member_company_logo = formDataObj['member_company_logo']; // Adjust field name as per your form
-  const email = formDataObj['member_email_address']; // Adjust field name as per your form
-  const logo = document.getElementById('member_photo').files[0]; // Assuming regionLogo is the file input ID
+    // Explicitly set the file names in the formDataObj
+    formDataObj['member_photo'] = memberPhotoFile.name;
+    formDataObj['member_company_logo'] = companyLogoFile.name;
 
-  // Contact number validation
-  if (!/^\d{10}$/.test(contactNumber)) {
-    toastr.error("Contact number must be exactly 10 digits.");
-    return;
-  }
+    console.log('Form data being sent:', formDataObj); // Debug log
 
-  // Contact number validation
-  if (!/^\d{10}$/.test(alternateContactNumber)) {
-    toastr.error("Alternate Contact number must be exactly 10 digits.");
-    return;
-  }
-
-  // Contact number validation
-  if (!/^\d{15}$/.test(gst_number)) {
-    toastr.error("GSTIN Number must be exactly 15 digits.");
-    return;
-  }
-
-  // Email validation
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    toastr.error("Please enter a valid email address.");
-    return;
-  }
-
-  // Logo file validation
-  if (logo) {
-    const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!validExtensions.includes(logo.type)) {
-      toastr.error("Member Image must be in JPG, JPEG, or PNG format.");
-      return;
-    }
-  } else {
-    toastr.error("Please upload a region logo.");
-    return;
-  }
-
-  // Logo file validation
-  if (member_company_logo) {
-    const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!validExtensions.includes(logo.type)) {
-      toastr.error("Company Logo must be in JPG, JPEG, or PNG format.");
-      return;
-    }
-  } else {
-    toastr.error("Please upload a region logo.");
-    return;
-  }
-  
-  
     try {
       const response = await fetch('https://bni-data-backend.onrender.com/api/members', {
         method: 'POST',
@@ -1010,18 +1000,19 @@
         },
         body: JSON.stringify(formDataObj),
       });
-  
+
       const result = await response.json();
+      console.log('Response from server:', result); // Debug log
+
       if (response.ok) {
         toastr.success('Member added successfully!');
         document.getElementById("formMessage").innerText = "Member added successfully!";
         setTimeout(() => {
-                  window.location.href = '/m/manage-members';  // Redirect to the region page
-              }, 1200);
-   
+          window.location.href = '/m/manage-members';
+        }, 1200);
       } else {
-        toastr.error(result.error.message||result.message);
         document.getElementById("formMessage").innerText = `Error: ${result.message}`;
+        toastr.error(result.message);
       }
     } catch (error) {
       console.error("Error submitting the form:", error);
@@ -1029,7 +1020,7 @@
       document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
     }
   });
-  </script>
+</script>
   <script src="../../assets/js/country.js"></script>
 
 <%- include('../partials/footer') %> 

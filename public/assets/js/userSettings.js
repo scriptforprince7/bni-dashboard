@@ -204,24 +204,113 @@ async function fetchGstValues() {
 // Function to populate GST and VAT dropdowns
 
 
-// Add debugging to initialization
+// Function to fetch payment gateways
+async function fetchPaymentGateways() {
+    try {
+        console.log('=== FETCH PAYMENT GATEWAYS START ===');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch payment gateways');
+        }
+
+        const data = await response.json();
+        console.log('Payment gateways received:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching payment gateways:', error);
+        toastr.error('Failed to load payment gateways');
+        return [];
+    }
+}
+
+// Simple function to fetch and populate payment gateway dropdown
+async function handlePaymentGatewaySelection() {
+    console.log('=== PAYMENT GATEWAY INITIALIZATION START ===');
+    
+    // Get the select element
+    const gatewaySelect = document.getElementById('payment-gateway-select');
+    if (!gatewaySelect) {
+        console.error('Payment gateway select element not found');
+        return;
+    }
+
+    try {
+        // Fetch gateways
+        console.log('Fetching payment gateways...');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/paymentGateway');
+        console.log('API Response status:', response.status);
+        
+        const gateways = await response.json();
+        console.log('Fetched gateways:', gateways);
+
+        // Clear and add default option
+        gatewaySelect.innerHTML = '<option value="">Choose Payment Gateway</option>';
+
+        // Add gateway options
+        gateways.forEach(gateway => {
+            console.log('Processing gateway:', gateway);
+            
+            const option = document.createElement('option');
+            option.value = gateway.gateway_name;
+            option.textContent = gateway.gateway_name;
+            option.selected = gateway.status === 'active';  // Cashfree will be selected by default
+            
+            gatewaySelect.appendChild(option);
+            console.log(`Added option: ${gateway.gateway_name}, Status: ${gateway.status}`);
+        });
+
+        console.log('Final dropdown options:', gatewaySelect.innerHTML);
+
+    } catch (error) {
+        console.error('Error setting up payment gateways:', error);
+        toastr.error('Failed to load payment gateways');
+    }
+}
+
+// Function to save payment gateway settings
+async function savePaymentGatewaySettings(gateway) {
+    try {
+        const settings = {};
+        
+        switch(gateway) {
+            case 'cashfree':
+                settings.appId = document.getElementById('cashfree-app-id').value;
+                settings.secretKey = document.getElementById('cashfree-secret-key').value;
+                break;
+            case 'razorpay':
+                settings.keyId = document.getElementById('razorpay-key-id').value;
+                settings.keySecret = document.getElementById('razorpay-key-secret').value;
+                break;
+            case 'ccavenue':
+                settings.merchantId = document.getElementById('ccavenue-merchant-id').value;
+                settings.accessCode = document.getElementById('ccavenue-access-code').value;
+                settings.workingKey = document.getElementById('ccavenue-working-key').value;
+                break;
+        }
+
+        console.log('Saving settings for:', gateway, settings);
+        toastr.success('Payment gateway settings saved successfully');
+        
+        // TODO: Add API call to save settings
+        
+    } catch (error) {
+        console.error('Error saving payment gateway settings:', error);
+        toastr.error('Failed to save payment gateway settings');
+    }
+}
+
+// Add to existing DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('=== PAGE INITIALIZATION START ===');
     try {
         await fetchCompanyInfo();
+        await fetchLogoInfo();
+        handlePaymentGatewaySelection(); // Initialize payment gateway handling
         console.log('=== PAGE INITIALIZATION COMPLETE ===');
     } catch (error) {
         console.error('Error during initialization:', error);
         toastr.error('Error loading page data');
-    }
-});
-
-// Make sure this function is called when the page loads
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        await fetchLogoInfo();
-    } catch (error) {
-        console.error('Error during initialization:', error);
     }
 });
 

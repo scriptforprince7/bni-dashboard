@@ -1202,16 +1202,17 @@
 
 <script>
   document.getElementById("addChapterForm").addEventListener("submit", async function (event) {
-    event.preventDefault();  // Prevent form from submitting normally
-  
+    event.preventDefault();
+    
     const formData = new FormData(this);
     const formDataObj = {};
-  
+
+    // Existing form data collection
     formDataObj['chapterDays'] = [];
-    formDataObj['chapterStatus'] = [];  // For Chapter Status
-    formDataObj['chapterType'] = [];    // For Chapter Type
-    formDataObj['accolades_config'] = [];      // For Accolades
-  
+    formDataObj['chapterStatus'] = [];
+    formDataObj['chapterType'] = [];
+    formDataObj['accolades_config'] = [];
+
     formData.forEach((value, key) => {
       if (key === 'chapterDays[]') {
         formDataObj['chapterDays'].push(value);
@@ -1226,35 +1227,138 @@
       }
     });
 
-      // Validate fields
-  const contactNumber = formDataObj['contact_number']; // Adjust field name as per your form
-  const email = formDataObj['email_id']; // Adjust field name as per your form
-  const logo = document.getElementById('chapter_logo').files[0]; // Assuming regionLogo is the file input ID
-
-  // Contact number validation
-  if (!/^\d{10}$/.test(contactNumber)) {
-    toastr.error("Contact number must be exactly 10 digits.");
-    return;
-  }
-
-  // Email validation
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    toastr.error("Please enter a valid email address.");
-    return;
-  }
-
-  // Logo file validation
-  if (logo) {
-    const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!validExtensions.includes(logo.type)) {
-      toastr.error("Logo must be in JPG, JPEG, or PNG format.");
+    // Chapter Name validation
+    if (!formDataObj['chapter_name'] || formDataObj['chapter_name'].trim() === '') {
+      toastr.error("Chapter name is required.");
       return;
     }
-  } else {
-    toastr.error("Please upload a region logo.");
-    return;
-  }
-  
+
+    // Region Selection validation
+    if (!formDataObj['region_id'] || formDataObj['region_id'] === '') {
+      toastr.error("Please select a region.");
+      return;
+    }
+
+    // Meeting Day validation
+    if (!formDataObj['chapter_meeting_day'] || formDataObj['chapter_meeting_day'] === '') {
+      toastr.error("Please select a meeting day.");
+      return;
+    }
+
+    // Chapter Type validation
+    if (!formDataObj['chapter_type'] || formDataObj['chapter_type'] === '') {
+      toastr.error("Please select a chapter type.");
+      return;
+    }
+
+    // Contact Number validation
+    const contactNumber = formDataObj['contact_number'];
+    if (!/^\d{10}$/.test(contactNumber)) {
+      toastr.error("Contact number must be exactly 10 digits.");
+      return;
+    }
+
+    // Email validation
+    const email = formDataObj['email_id'];
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toastr.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Kitty Billing Frequency validation
+    if (!formDataObj['billing_frequency'] || formDataObj['billing_frequency'] === '') {
+      toastr.error("Please select kitty billing frequency.");
+      return;
+    }
+
+    // Chapter Meeting/Kitty Fees validation
+    if (!formDataObj['chapter_kitty_fees'] || formDataObj['chapter_kitty_fees'].trim() === '') {
+      toastr.error("Chapter meeting/kitty fees is required.");
+      return;
+    }
+    if (isNaN(parseFloat(formDataObj['chapter_kitty_fees']))) {
+      toastr.error("Kitty fees must be a valid number.");
+      return;
+    }
+
+    // Chapter Visitor Fee validation
+    if (!formDataObj['chapter_visitor_fees'] || formDataObj['chapter_visitor_fees'].trim() === '') {
+      toastr.error("Chapter visitor fee is required.");
+      return;
+    }
+    if (isNaN(parseFloat(formDataObj['chapter_visitor_fees']))) {
+      toastr.error("Visitor fee must be a valid number.");
+      return;
+    }
+
+    // Chapter Status validation
+    if (!formDataObj['chapter_status'] || formDataObj['chapter_status'] === '') {
+      toastr.error("Please select chapter status.");
+      return;
+    }
+
+    // Address & Hotel Details Validations
+    
+
+    // State validation
+    if (!formDataObj['state'] || formDataObj['state'].trim() === '') {
+      toastr.error("State/Province is required.");
+      return;
+    }
+
+    // City validation
+    if (!formDataObj['city'] || formDataObj['city'].trim() === '') {
+      toastr.error("City is required.");
+      return;
+    }
+
+    // Street Address validation
+    if (!formDataObj['street_address_line'] || formDataObj['street_address_line'].trim() === '') {
+      toastr.error("Street Address Line 1 is required.");
+      return;
+    }
+
+    // Postal Code validation
+    if (!formDataObj['postal_code'] || formDataObj['postal_code'].trim() === '') {
+      toastr.error("Postal Code is required.");
+      return;
+    }
+    if (!/^\d{6}$/.test(formDataObj['postal_code'])) {
+      toastr.error("Please enter a valid 6-digit postal code.");
+      return;
+    }
+
+    // Hotel Name validation
+    if (!formDataObj['meeting_hotel_name'] || formDataObj['meeting_hotel_name'].trim() === '') {
+      toastr.error("Hotel name is required.");
+      return;
+    }
+
+    // Date of Publishing validation
+    if (!formDataObj['date_of_publishing'] || formDataObj['date_of_publishing'] === '') {
+      toastr.error("Please select the date of publishing.");
+      return;
+    }
+
+    // Chapter Launched By validation
+    if (!formDataObj['chapter_launched_by'] || formDataObj['chapter_launched_by'].trim() === '') {
+      toastr.error("Please enter who launched the chapter.");
+      return;
+    }
+
+    // GST number validation
+    const gst_number = formDataObj['gst_number']; // Get GST number from form data
+    if (!gst_number || gst_number.trim() === '') {
+      toastr.error("GSTIN Number is required.");
+      return;
+    }
+
+    // Validate GST number format
+    if (!/^[A-Z0-9]{15}$/.test(gst_number)) {
+      toastr.error("GSTIN Number must be exactly 15 characters (letters and numbers).");
+      return;
+    }
+
     try {
       const response = await fetch('https://bni-data-backend.onrender.com/api/chapters', {
         method: 'POST',
@@ -1281,7 +1385,7 @@
       document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
     }
   });
-  </script>
+</script>
   <script src="../../assets/js/country.js"></script>
 
 <%- include('../partials/footer') %> 

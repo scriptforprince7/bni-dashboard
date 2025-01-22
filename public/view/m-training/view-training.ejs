@@ -666,3 +666,47 @@ fetch('http://localhost:5000/api/allCheckins')
     <span class="non-registrations"><b>0</b></span>
     <span class="missed-registrations"><b>0</b></span>
 </div>
+
+<!-- Add this script section just before the closing body tag -->
+<script>
+  // Function to calculate and update attendance numbers
+  const updateAttendanceNumbers = async () => {
+    const training_id = new URLSearchParams(window.location.search).get('training_id');
+    
+    try {
+      // Get registrations count directly from table
+      const tableBody = document.querySelector('.table-responsive tbody');
+      const totalRegistrations = tableBody ? tableBody.rows.length - 1 : 0; // Subtract 1 for header row
+      
+      // Get all checkins
+      const checkinsResponse = await fetch('http://localhost:5000/api/allCheckins');
+      const checkinsData = await checkinsResponse.json();
+      
+      // Calculate checkins
+      const totalCheckins = checkinsData.filter(checkin => 
+        checkin.training_id === parseInt(training_id) && checkin.checked_in === true
+      ).length;
+
+      // Calculate missed (table entries minus checkins)
+      const totalMissed = totalRegistrations - totalCheckins;
+      
+      // Update the display
+      document.querySelector('.registrations').textContent = totalRegistrations;
+      document.querySelector('.non-registrations').textContent = totalCheckins;
+      document.querySelector('.missed-registrations').textContent = totalMissed;
+      
+    } catch (error) {
+      console.error('Error updating attendance numbers:', error);
+    }
+  };
+
+  // Call the function when page loads
+  document.addEventListener('DOMContentLoaded', updateAttendanceNumbers);
+  
+  // Update numbers when table content changes
+  const observer = new MutationObserver(updateAttendanceNumbers);
+  observer.observe(document.querySelector('.table-responsive tbody'), {
+    childList: true,
+    subtree: true
+  });
+</script>
