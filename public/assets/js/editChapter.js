@@ -200,33 +200,127 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Function to validate the form inputs
 const validateChapterForm = () => {
-  const contactNumber = document.querySelector("#contact_number").value.trim();
-  const emailId = document.querySelector("#email_id").value.trim();
-  const regionLogo = document.querySelector("#chapter_logo").files[0]; // Assuming file input for the logo
+    const errors = [];
 
-  // Validation messages
-  const errors = [];
+    // Chapter Name validation
+    const chapterName = document.querySelector("#chapter_name").value.trim();
+    if (!chapterName) {
+        errors.push("Chapter name is required.");
+    }
 
-  // Validate contact number
-  if (!/^\d{10}$/.test(contactNumber)) {
-      errors.push("Contact number must be exactly 10 digits.");
-  }
+    // Region Selection validation
+    const regionId = document.querySelector("#region_id").value;
+    if (!regionId) {
+        errors.push("Please select a region.");
+    }
 
-  // Validate email ID
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
-      errors.push("Invalid email address format.");
-  }
+    // Meeting Day validation
+    const meetingDay = document.querySelector("#chapter_meeting_day").value;
+    if (!meetingDay) {
+        errors.push("Please select a meeting day.");
+    }
 
-  // Validate region logo file type
-  if (regionLogo) {
-      const validExtensions = ["jpg", "jpeg", "png"];
-      const fileExtension = regionLogo.name.split(".").pop().toLowerCase();
-      if (!validExtensions.includes(fileExtension)) {
-          errors.push("Chapter logo must be a JPG, JPEG, or PNG file.");
-      }
-  }
+    // Chapter Type validation
+    const chapterType = document.querySelector("#chapter_type").value;
+    if (!chapterType) {
+        errors.push("Please select a chapter type.");
+    }
 
-  return errors;
+    // Contact Number validation
+    const contactNumber = document.querySelector("#contact_number").value.trim();
+    if (!/^\d{10}$/.test(contactNumber)) {
+        errors.push("Contact number must be exactly 10 digits.");
+    }
+
+    // Email validation
+    const emailId = document.querySelector("#email_id").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
+        errors.push("Please enter a valid email address.");
+    }
+
+    // Kitty Billing Frequency validation
+    const billingFrequency = document.querySelector("#billing_frequency").value;
+    if (!billingFrequency) {
+        errors.push("Please select kitty billing frequency.");
+    }
+
+    // Chapter Meeting/Kitty Fees validation
+    const kittyFees = document.querySelector("#chapter_kitty_fees").value.trim();
+    if (!kittyFees) {
+        errors.push("Chapter meeting/kitty fees is required.");
+    } else if (isNaN(parseFloat(kittyFees))) {
+        errors.push("Kitty fees must be a valid number.");
+    }
+
+    // Chapter Visitor Fee validation
+    const visitorFees = document.querySelector("#chapter_visitor_fees").value.trim();
+    if (!visitorFees) {
+        errors.push("Chapter visitor fee is required.");
+    } else if (isNaN(parseFloat(visitorFees))) {
+        errors.push("Visitor fee must be a valid number.");
+    }
+
+    // Chapter Status validation
+    const chapterStatus = document.querySelector("#chapter_status").value;
+    if (!chapterStatus) {
+        errors.push("Please select chapter status.");
+    }
+
+    // State validation
+    const state = document.querySelector("#state").value.trim();
+    if (!state) {
+        errors.push("State/Province is required.");
+    }
+
+    // City validation
+    const city = document.querySelector("#city").value.trim();
+    if (!city) {
+        errors.push("City is required.");
+    }
+
+    // Street Address validation
+    const streetAddress = document.querySelector("#street_address_line").value.trim();
+    if (!streetAddress) {
+        errors.push("Street Address Line is required.");
+    }
+
+    // Postal Code validation
+    const postalCode = document.querySelector("#postal_code").value.trim();
+    if (!postalCode) {
+        errors.push("Postal Code is required.");
+    } else if (!/^\d{6}$/.test(postalCode)) {
+        errors.push("Please enter a valid 6-digit postal code.");
+    }
+
+    // Hotel Name validation
+    const hotelName = document.querySelector("#meeting_hotel_name").value.trim();
+    if (!hotelName) {
+        errors.push("Hotel name is required.");
+    }
+
+    // Date of Publishing validation
+    const publishingDate = document.querySelector("#date_of_publishing").value;
+    if (!publishingDate) {
+        errors.push("Please select the date of publishing.");
+    }
+
+    // Chapter Launched By validation
+    const launchedBy = document.querySelector("#chapter_launched_by").value.trim();
+    if (!launchedBy) {
+        errors.push("Please enter who launched the chapter.");
+    }
+
+    // Logo file validation (only if a new file is selected)
+    const logoFile = document.querySelector("#chapter_logo").files[0];
+    if (logoFile) {
+        const validExtensions = ["jpg", "jpeg", "png"];
+        const fileExtension = logoFile.name.split(".").pop().toLowerCase();
+        if (!validExtensions.includes(fileExtension)) {
+            errors.push("Chapter logo must be a JPG, JPEG, or PNG file.");
+        }
+    }
+
+    return errors;
 };
 
 

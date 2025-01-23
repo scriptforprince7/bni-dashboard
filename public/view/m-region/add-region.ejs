@@ -142,6 +142,7 @@
                           id="region_name"
                           name="region_name"
                           placeholder="New region name.."
+                          required
                         />
                         <label
                           for="product-cost-add"
@@ -162,6 +163,7 @@
                           id="contact_person"
                           name="contact_person" 
                           placeholder="Name of the contact Person.."
+                          required
                         />
                       </div>
                       <div class="col-xl-6">
@@ -185,6 +187,7 @@
                             name="contact_number" 
 
                             placeholder="Enter phone number"
+                            required
                           />
                         </div>
                       </div>
@@ -199,6 +202,7 @@
                           id="email_id" 
                           name="email_id" 
                           placeholder="admin@bni.com"
+                          required
                         />
                       </div>
                       <div class="col-xl-6">
@@ -377,7 +381,7 @@
                       </div>
                       <div class="col-xl-6">
                         <label for="region_logo" class="form-label"
-                          >Region logo <span style="color: red;">(jpg, png, jpeg)</span></label
+                          >Region logo <span style="color: black;">(jpg, png, jpeg)</span></label
                         >
                         <input
                           type="file"
@@ -1092,59 +1096,182 @@
 <script src="../../assets/js/country.js"></script>
 <script>
   document.getElementById("addRegionForm").addEventListener("submit", async function (event) {
-    event.preventDefault();  // Prevent form from submitting normally
-  
+    event.preventDefault();
+    
     const formData = new FormData(this);
     const formDataObj = {};
-  
+    
     formDataObj['chapterDays'] = [];
-    formDataObj['chapterStatus'] = [];  // For Chapter Status
-    formDataObj['chapterType'] = [];    // For Chapter Type
-    formDataObj['accolades_config'] = [];      // For Accolades
+    formDataObj['chapterStatus'] = [];
+    formDataObj['chapterType'] = [];
+    formDataObj['accolades_config'] = [];
   
     formData.forEach((value, key) => {
       if (key === 'chapterDays[]') {
         formDataObj['chapterDays'].push(value);
-      } else if (key === 'chapterStatus[]') {  // Collect Chapter Status
+      } else if (key === 'chapterStatus[]') {
         formDataObj['chapterStatus'].push(value);
-      } else if (key === 'chapterType[]') {    // Collect Chapter Type
+      } else if (key === 'chapterType[]') {
         formDataObj['chapterType'].push(value);
-      } else if (key === 'accolades[]') {      // Collect Accolades
+      } else if (key === 'accolades[]') {
         formDataObj['accolades_config'].push(value);
       } else {
-        formDataObj[key] = value;  // Handle other fields
+        formDataObj[key] = value;
       }
     });
 
-    // Validate fields
-  const contactNumber = formDataObj['contact_number']; // Adjust field name as per your form
-  const email = formDataObj['email_id']; // Adjust field name as per your form
-  const logo = document.getElementById('region_logo').files[0]; // Assuming regionLogo is the file input ID
-
-  // Contact number validation
-  if (!/^\d{10}$/.test(contactNumber)) {
-    toastr.error("Contact number must be exactly 10 digits.");
-    return;
-  }
-
-  // Email validation
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    toastr.error("Please enter a valid email address.");
-    return;
-  }
-
-  // Logo file validation
-  if (logo) {
-    const validExtensions = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!validExtensions.includes(logo.type)) {
-      toastr.error("Logo must be in JPG, JPEG, or PNG format.");
+    // Validate Region Name (required)
+    if (!formDataObj['region_name'] || formDataObj['region_name'].trim() === '') {
+      toastr.error("Region name is required.");
       return;
     }
-  } else {
-    toastr.error("Please upload a region logo.");
-    return;
-  }
-  
+
+    // Validate Contact Person (required)
+    if (!formDataObj['contact_person'] || formDataObj['contact_person'].trim() === '') {
+      toastr.error("Contact person name is required.");
+      return;
+    }
+
+    // Validate Contact Number (existing validation)
+    const contactNumber = formDataObj['contact_number'];
+    if (!/^\d{10}$/.test(contactNumber)) {
+      toastr.error("Contact number must be exactly 10 digits.");
+      return;
+    }
+
+    // Validate Email (existing validation)
+    const email = formDataObj['email_id'];
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toastr.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Validate Chapter Days (at least one day must be selected)
+    if (formDataObj['chapterDays'].length === 0) {
+      toastr.error("Please select at least one chapter day.");
+      return;
+    }
+
+    // Validate Chapter Status (exactly one status must be selected)
+    if (formDataObj['chapterStatus'].length !== 1) {
+      toastr.error("Please select exactly one chapter status.");
+      return;
+    }
+
+    // Validate Chapter Type (exactly one type must be selected)
+    if (formDataObj['chapterType'].length !== 1) {
+      toastr.error("Please select exactly one chapter type.");
+      return;
+    }
+
+    // Validate Accolades Configuration (at least one accolade must be selected)
+    if (formDataObj['accolades_config'].length === 0) {
+      toastr.error("Please select at least one accolade.");
+      return;
+    }
+
+    // Validate Region Status (must be selected)
+    if (!formDataObj['region_status'] || formDataObj['region_status'] === '') {
+      toastr.error("Please select a region status.");
+      return;
+    }
+
+    // Validate Date of Publishing (must be selected)
+    if (!formDataObj['date_of_publishing'] || formDataObj['date_of_publishing'] === '') {
+      toastr.error("Please select the date of publishing.");
+      return;
+    }
+
+    // Validate Region Launched by (must not be empty)
+    if (!formDataObj['region_launched_by'] || formDataObj['region_launched_by'].trim() === '') {
+      toastr.error("Please enter who launched the region.");
+      return;
+    }
+
+    // Membership Fee Information Validations
+    // One time registration fee validation
+    if (!formDataObj['one_time_registration_fee'] || formDataObj['one_time_registration_fee'].trim() === '') {
+      toastr.error("One time registration fee is required.");
+      return;
+    }
+    // Validate if it's a valid number
+    if (isNaN(parseFloat(formDataObj['one_time_registration_fee']))) {
+      toastr.error("One time registration fee must be a valid number.");
+      return;
+    }
+
+    // Membership fees validation (1 year, 2 year, 5 year)
+    const feeFields = ['one_year_fee', 'two_year_fee', 'five_year_fee'];
+    for (const field of feeFields) {
+      if (!formDataObj[field] || formDataObj[field].trim() === '') {
+        toastr.error(`${field.replace(/_/g, ' ').toUpperCase()} is required.`);
+        return;
+      }
+      if (isNaN(parseFloat(formDataObj[field]))) {
+        toastr.error(`${field.replace(/_/g, ' ').toUpperCase()} must be a valid number.`);
+        return;
+      }
+    }
+
+    // Late fees validation
+    if (!formDataObj['late_fees'] || formDataObj['late_fees'].trim() === '') {
+      toastr.error("Late fees amount is required.");
+      return;
+    }
+    if (isNaN(parseFloat(formDataObj['late_fees']))) {
+      toastr.error("Late fees must be a valid number.");
+      return;
+    }
+
+    // Address & Venue Details Validations
+    
+
+    // State validation
+    if (!formDataObj['state'] || formDataObj['state'].trim() === '') {
+      toastr.error("State/Province is required.");
+      return;
+    }
+
+    // City validation
+    if (!formDataObj['city'] || formDataObj['city'].trim() === '') {
+      toastr.error("City is required.");
+      return;
+    }
+
+    // Street Address validation
+    if (!formDataObj['street_address_line_1'] || formDataObj['street_address_line_1'].trim() === '') {
+      toastr.error("Street Address Line 1 is required.");
+      return;
+    }
+
+    // Postal Code validation
+    if (!formDataObj['postal_code'] || formDataObj['postal_code'].trim() === '') {
+      toastr.error("Postal Code is required.");
+      return;
+    }
+    // Validate postal code format (assuming Indian postal code format)
+    if (!/^\d{6}$/.test(formDataObj['postal_code'])) {
+      toastr.error("Please enter a valid 6-digit postal code.");
+      return;
+    }
+
+    // Validate numeric values for all fee fields
+    const numericFields = [
+      'one_time_registration_fee',
+      'one_year_fee',
+      'two_year_fee',
+      'five_year_fee',
+      'late_fees'
+    ];
+
+    for (const field of numericFields) {
+      const value = formDataObj[field];
+      if (value && !/^\d+(\.\d{1,2})?$/.test(value)) {
+        toastr.error(`${field.replace(/_/g, ' ').toUpperCase()} must be a valid number with up to 2 decimal places.`);
+        return;
+      }
+    }
+
     try {
       const response = await fetch('https://bni-data-backend.onrender.com/api/regions', {
         method: 'POST',
@@ -1159,11 +1286,11 @@
         toastr.success('Region added successfully!');
         document.getElementById("formMessage").innerText = "Region added successfully!";
         setTimeout(() => {
-                  window.location.href = '/r/manage-region';  // Redirect to the region page
-              }, 1200);
+          window.location.href = '/r/manage-region';
+        }, 1200);
       } else {
         document.getElementById("formMessage").innerText = `Error: ${result.message}`;
-        toastr.error( result.message);
+        toastr.error(result.message);
       }
     } catch (error) {
       console.error("Error submitting the form:", error);
@@ -1171,5 +1298,5 @@
       document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
     }
   });
-  </script>
+</script>
 <%- include('../partials/footer') %>

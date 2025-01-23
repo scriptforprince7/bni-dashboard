@@ -11,7 +11,13 @@ window.BNI.state = window.BNI.state || {
     allChapters: [],
     filteredChapters: [],
     allMembers: [],
-    allRegions: []
+    allRegions: [],
+    filters: {
+        region: '',
+        meetingDay: 'all',
+        chapterStatus: 'all',
+        chapterType: 'all'
+    }
 };
 
 // Function to show the loader
@@ -112,6 +118,123 @@ const displayChapters = (chapters) => {
     });
 };
 
+// Function to populate filter dropdowns
+function populateFilters() {
+    // Populate region filter with specific regions
+    const regionFilter = document.getElementById("region-filter");
+    const regions = ['North', 'South', 'East', 'West']; // Fixed set of regions
+    regionFilter.innerHTML = `
+        ${regions.map(region => `
+            <li><a class="dropdown-item" href="javascript:void(0);" data-value="${region}">${region}</a></li>
+        `).join('')}
+    `;
+
+    // Populate meeting day filter
+    const meetingDayFilter = document.getElementById("meeting-day-filter");
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    meetingDayFilter.innerHTML = `
+       
+        ${days.map(day => `
+            <li><a class="dropdown-item" href="javascript:void(0);" data-value="${day}">${day}</a></li>
+        `).join('')}
+    `;
+
+    // Populate chapter status filter
+    const statusFilter = document.getElementById("chapter-status-filter");
+    const statuses = ['running', 'pre-launch']; // Base statuses - can be expanded later
+    statusFilter.innerHTML = `
+        
+        ${statuses.map(status => `
+            <li><a class="dropdown-item" href="javascript:void(0);" data-value="${status}">
+                ${status.charAt(0).toUpperCase() + status.slice(1)}
+            </a></li>
+        `).join('')}
+    `;
+
+    // Populate chapter type filter
+    const typeFilter = document.getElementById("chapter-type-filter");
+    const chapterTypes = ['Offline', 'Online', 'Hybrid'];
+    typeFilter.innerHTML = `
+        ${chapterTypes.map(type => `
+            <li><a class="dropdown-item" href="javascript:void(0);" data-value="${type.toLowerCase()}">
+                ${type}
+            </a></li>
+        `).join('')}
+    `;
+}
+
+// Function to apply filters
+function applyFilters() {
+    const { region, meetingDay, chapterStatus, chapterType } = window.BNI.state.filters;
+    
+    window.BNI.state.filteredChapters = window.BNI.state.allChapters.filter(chapter => {
+        const regionName = getRegionNameById(chapter.region_id);
+        const matchesRegion = !region || regionName.includes(region);
+        const matchesMeetingDay = meetingDay === 'all' || chapter.chapter_meeting_day === meetingDay;
+        const matchesStatus = chapterStatus === 'all' || chapter.chapter_status === chapterStatus;
+        const matchesType = chapterType === 'all' || 
+                          (chapter.chapter_type && chapter.chapter_type.toLowerCase() === chapterType.toLowerCase());
+        return matchesRegion && matchesMeetingDay && matchesStatus && matchesType;
+    });
+
+    displayChapters(window.BNI.state.filteredChapters);
+}
+
+// Event listeners for filters
+document.getElementById("region-filter")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("dropdown-item")) {
+        window.BNI.state.filters.region = event.target.dataset.value;
+        event.target.closest('.dropdown').querySelector('.dropdown-toggle').textContent = 
+            `Region: ${event.target.textContent}`;
+    }
+});
+
+document.getElementById("meeting-day-filter")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("dropdown-item")) {
+        window.BNI.state.filters.meetingDay = event.target.dataset.value;
+        event.target.closest('.dropdown').querySelector('.dropdown-toggle').textContent = 
+            `Meeting Day: ${event.target.textContent}`;
+    }
+});
+
+document.getElementById("chapter-status-filter")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("dropdown-item")) {
+        window.BNI.state.filters.chapterStatus = event.target.dataset.value;
+        event.target.closest('.dropdown').querySelector('.dropdown-toggle').textContent = 
+            `Status: ${event.target.textContent}`;
+    }
+});
+
+document.getElementById("chapter-type-filter")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("dropdown-item")) {
+        window.BNI.state.filters.chapterType = event.target.dataset.value;
+        event.target.closest('.dropdown').querySelector('.dropdown-toggle').textContent = 
+            `Chapter Type: ${event.target.textContent}`;
+    }
+});
+
+document.getElementById("apply-filters-btn")?.addEventListener("click", () => {
+    applyFilters();
+});
+
+document.getElementById("reset-filters-btn")?.addEventListener("click", () => {
+    // Reset filter state
+    window.BNI.state.filters.region = '';
+    window.BNI.state.filters.meetingDay = 'all';
+    window.BNI.state.filters.chapterStatus = 'all';
+    window.BNI.state.filters.chapterType = 'all';
+    
+    // Reset dropdown texts
+    document.querySelector('#region-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Region';
+    document.querySelector('#meeting-day-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Meeting Day';
+    document.querySelector('#chapter-status-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Chapter Status';
+    document.querySelector('#chapter-type-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Chapter Type';
+    
+    // Reset filtered chapters to all chapters
+    window.BNI.state.filteredChapters = [...window.BNI.state.allChapters];
+    displayChapters(window.BNI.state.filteredChapters);
+});
+
 // Initialize everything when the DOM is loaded
 window.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM Content Loaded - Starting initialization");
@@ -140,6 +263,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             members: window.BNI.state.allMembers.length
         });
 
+        // After data is fetched successfully, populate filters
+        populateFilters();
+        
         // Display initial data
         displayChapters(window.BNI.state.filteredChapters);
 

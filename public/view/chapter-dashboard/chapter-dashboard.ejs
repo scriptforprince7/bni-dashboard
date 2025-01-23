@@ -72,7 +72,7 @@
           <div class="row">
             <div class="col-xl-12">  <!-- Changed from col-xl-8 to col-xl-12 to take full width -->
               <div class="row">
-                <div class="col-xxl-3 col-xl-6">  <!-- Changed from col-xxl-4 to col-xxl-3 -->
+                <!-- <div class="col-xxl-3 col-xl-6">  
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: #cccccc">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -93,9 +93,9 @@
                       </a>
                     </div>
                   </div>    
-                </div>
+                </div> -->
 
-                <div class="col-xxl-3 col-xl-6">  <!-- Changed from col-xxl-4 to col-xxl-3 -->
+                <!-- <div class="col-xxl-3 col-xl-6">
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: #e8e8e8">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -117,9 +117,9 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
-                <div class="col-xxl-3 col-xl-6">  <!-- Changed from col-xxl-4 to col-xxl-3 -->
+                <!-- <div class="col-xxl-3 col-xl-6">  
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: #e8e8e8">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -141,10 +141,10 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
                 <!-- Added new box for Total Received 2 -->
-                <div class="col-xxl-3 col-xl-6">
+                <!-- <div class="col-xxl-3 col-xl-6">
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: #e8e8e8">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -166,9 +166,9 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
-                <div class="col-xxl-4 col-xl-6">
+                <!-- <div class="col-xxl-4 col-xl-6">
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: #e8e8e8">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -190,9 +190,9 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
-                <div class="col-xxl-4 col-xl-6">
+                <!-- <div class="col-xxl-4 col-xl-6">
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: gainsboro">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -215,10 +215,10 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
                 <!-- Added new box for Visitor's Balance 2 -->
-                <div class="col-xxl-4 col-xl-6">
+                <!-- <div class="col-xxl-4 col-xl-6">
                   <div class="card custom-card overflow-hidden main-content-card">
                     <div class="card-body" style="background-color: gainsboro">
                       <div class="d-flex align-items-start justify-content-between mb-2">
@@ -242,7 +242,7 @@
                     </div>
                   </div> 
                   
-                </div>
+                </div> -->
 
                 <div class="row">
                   <!-- Latest Transactions Column -->
@@ -3966,7 +3966,7 @@
       async function fetchTransactions() {
           try {
               // Fetch orders first
-              const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
+              const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
               const orders = await ordersResponse.json();
 
               // Fetch transactions

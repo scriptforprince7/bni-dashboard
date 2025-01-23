@@ -220,27 +220,155 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Function to validate the form inputs
 const validateRegionForm = () => {
-    const contactNumber = document.querySelector("#contact_number").value.trim();
-    const emailId = document.querySelector("#email_id").value.trim();
-    const regionLogo = document.querySelector("#region_logo").files[0]; // Assuming file input for the logo
-
-    // Validation messages
     const errors = [];
 
-    // Validate contact number
+    // Region Name validation
+    const regionName = document.querySelector("#region_name").value.trim();
+    if (!regionName) {
+        errors.push("Region name is required.");
+    }
+
+    // Contact Person validation
+    const contactPerson = document.querySelector("#contact_person").value.trim();
+    if (!contactPerson) {
+        errors.push("Contact person name is required.");
+    }
+
+    // Contact Number validation
+    const contactNumber = document.querySelector("#contact_number").value.trim();
     if (!/^\d{10}$/.test(contactNumber)) {
         errors.push("Contact number must be exactly 10 digits.");
     }
 
-    // Validate email ID
+    // Email validation
+    const emailId = document.querySelector("#email_id").value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailId)) {
-        errors.push("Invalid email address format.");
+        errors.push("Please enter a valid email address.");
     }
 
-    // Validate region logo file type
-    if (regionLogo) {
+    // Chapter Days validation - at least one required
+    const selectedDays = Array.from(document.querySelectorAll('input[name="chapterDays[]"]:checked'));
+    if (selectedDays.length === 0) {
+        errors.push("Please select at least one chapter day.");
+    }
+
+    // Chapter Status validation - at least one required
+    const selectedStatus = Array.from(document.querySelectorAll('input[name="chapterStatus[]"]:checked'));
+    if (selectedStatus.length === 0) {
+        errors.push("Please select at least one chapter status.");
+    }
+
+    // Chapter Type validation - at least one required
+    const selectedType = Array.from(document.querySelectorAll('input[name="chapterType[]"]:checked'));
+    if (selectedType.length === 0) {
+        errors.push("Please select at least one chapter type.");
+    }
+
+    // Accolades Configuration validation
+    const selectedAccolades = Array.from(document.querySelectorAll('input[name="accolades[]"]:checked'));
+    if (selectedAccolades.length === 0) {
+        errors.push("Please select at least one accolade.");
+    }
+
+    // Region Status validation
+    const regionStatus = document.querySelector("#region_status").value;
+    if (!regionStatus || regionStatus === '') {
+        errors.push("Please select a region status.");
+    }
+
+    // Date of Publishing validation
+    const publishingDate = document.querySelector("#date_of_publishing").value;
+    if (!publishingDate) {
+        errors.push("Please select the date of publishing.");
+    }
+
+    // Region Launched By validation
+    const launchedBy = document.querySelector("#region_launched_by").value.trim();
+    if (!launchedBy) {
+        errors.push("Please enter who launched the region.");
+    }
+
+    // Membership Fee Information Validations
+    // One time registration fee validation
+    const registrationFee = document.querySelector("#one_time_registration_fee").value.trim();
+    if (!registrationFee) {
+        errors.push("One time registration fee is required.");
+    } else if (isNaN(parseFloat(registrationFee))) {
+        errors.push("One time registration fee must be a valid number.");
+    }
+
+    // Membership fees validation (1 year, 2 year, 5 year)
+    const feeFields = [
+        { id: "one_year_fee", label: "ONE YEAR FEE" },
+        { id: "two_year_fee", label: "TWO YEAR FEE" },
+        { id: "five_year_fee", label: "FIVE YEAR FEE" }
+    ];
+
+    feeFields.forEach(field => {
+        const value = document.querySelector(`#${field.id}`).value.trim();
+        if (!value) {
+            errors.push(`${field.label} is required.`);
+        } else if (isNaN(parseFloat(value))) {
+            errors.push(`${field.label} must be a valid number.`);
+        }
+    });
+
+    // Late fees validation
+    const lateFees = document.querySelector("#late_fees").value.trim();
+    if (!lateFees) {
+        errors.push("Late fees amount is required.");
+    } else if (isNaN(parseFloat(lateFees))) {
+        errors.push("Late fees must be a valid number.");
+    }
+
+    // Address & Venue Details Validations
+    // State validation
+    const state = document.querySelector("#state").value.trim();
+    if (!state) {
+        errors.push("State/Province is required.");
+    }
+
+    // City validation
+    const city = document.querySelector("#city").value.trim();
+    if (!city) {
+        errors.push("City is required.");
+    }
+
+    // Street Address validation
+    const streetAddress = document.querySelector("#street_address_line_1").value.trim();
+    if (!streetAddress) {
+        errors.push("Street Address Line 1 is required.");
+    }
+
+    // Postal Code validation
+    const postalCode = document.querySelector("#postal_code").value.trim();
+    if (!postalCode) {
+        errors.push("Postal Code is required.");
+    } else if (!/^\d{6}$/.test(postalCode)) {
+        errors.push("Please enter a valid 6-digit postal code.");
+    }
+
+    // Validate numeric values for all fee fields
+    const numericFields = [
+        { id: "one_time_registration_fee", label: "One time registration fee" },
+        { id: "one_year_fee", label: "One year fee" },
+        { id: "two_year_fee", label: "Two year fee" },
+        { id: "five_year_fee", label: "Five year fee" },
+        { id: "late_fees", label: "Late fees" }
+    ];
+
+    numericFields.forEach(field => {
+        const value = document.querySelector(`#${field.id}`).value.trim();
+        if (value && !/^\d+(\.\d{1,2})?$/.test(value)) {
+            errors.push(`${field.label} must be a valid number with up to 2 decimal places.`);
+        }
+    });
+
+    // Logo file validation (only if a new file is selected)
+    const logoFile = document.querySelector("#region_logo").files[0];
+    if (logoFile) {
         const validExtensions = ["jpg", "jpeg", "png"];
-        const fileExtension = regionLogo.name.split(".").pop().toLowerCase();
+        const fileExtension = logoFile.name.split(".").pop().toLowerCase();
         if (!validExtensions.includes(fileExtension)) {
             errors.push("Region logo must be a JPG, JPEG, or PNG file.");
         }
