@@ -32,6 +32,9 @@ function hideLoader() {
       alert('No data found for the logged-in user.');
       return;
     }
+    console.log(userData.member_id);
+    console.log(userData.chapter_id);
+    console.log(userData);
 
     const { meeting_opening_balance, meeting_payable_amount, chapter_id } = userData;
 
@@ -41,10 +44,57 @@ function hideLoader() {
 
     // Find the chapter payment details for the logged-in user's chapter
     const chapterPayment = kittyPayments.find(payment => payment.chapter_id === chapter_id);
+    // console.log(chapterPayment.kitty_bill_id);
+    if(!chapterPayment) {
+      // alert('No chapter payment details found for the logged-in user.');
+      document.getElementById('total-kitty-amount').textContent = 'No Bill Raised Yet.';
+      document.querySelector('.description').innerHTML = '-';
+      document.getElementById('billType').textContent = '-';
+      document.getElementById('tot_weeks').textContent = '-';
+      const ledgerData = [
+        {
+          sNo: 1,
+          date: new Date().toLocaleDateString(),
+          description: 'Opening Balance',
+          debit: meeting_opening_balance,
+          credit: 0,
+          balance: meeting_opening_balance, // Display opening balance here
+          balanceColor: 'red', // Set balance color to red
+        },
+        
+      ];
+      const ledgerBody = document.getElementById('ledger-body');
+    ledgerBody.innerHTML = ''; // Clear existing rows
+    ledgerData.forEach(entry => {
+      const row = document.createElement('tr');
+      
+      // For Opening Balance and Meeting Payable Amount, always show in red with a '-'
+      const balanceColor = (entry.sNo === 1 || entry.sNo === 2) ? 'red' : (entry.balance >= 0 ? 'green' : 'red');
+      const balanceSign = (entry.sNo === 1 || entry.sNo === 2) ? '-' : (entry.balance >= 0 ? '+' : '-');
+    
+      row.innerHTML = `
+        <td>${entry.sNo}</td>
+        <td><b>${entry.date}</b></td>
+        <td><b>${entry.description}</b></td>
+        <td><b style="color: ${entry.debit ? 'red' : 'inherit'}">${entry.debit ? parseFloat(entry.debit).toFixed(2) : '-'}</b></td>
+        <td><b style="color: ${entry.credit ? 'green' : 'inherit'}">${entry.credit ? parseFloat(entry.credit).toFixed(2) : '-'}</b></td>
+        <td>
+          <b style="color: ${balanceColor}">
+            ${balanceSign}${parseFloat(entry.balance).toFixed(2)}
+          </b>
+        </td>
+      `;
+      
+      ledgerBody.appendChild(row);
+    });
+      hideLoader(); // Hide loader
+      return;
+    }
 
     const chapterDescription = chapterPayment
-      ? `${chapterPayment.description} (${chapterPayment.bill_type})`
+      ? `${chapterPayment.description}`
       : 'No description available';
+      console.log(chapterDescription);
 
     // Fetch orders and transactions
     const [ordersResponse, transactionsResponse] = await Promise.all([
@@ -57,17 +107,25 @@ function hideLoader() {
 
     // Filter orders where universal_link_id = 4 and customer_email matches
     const filteredOrders = orders.filter(order =>
-      order.universal_link_id === 4 && order.customer_email === email
+      order.universal_link_id === 4 && order.customer_email === email && order.kitty_bill_id === chapterPayment.kitty_bill_id
     );
-
+ let filteredTransactions = [];
     // Filter transactions based on matching order_id and payment_status = "SUCCESS"
-    const filteredTransactions = transactions.filter(transaction =>
-      transaction.payment_status === 'SUCCESS' &&
-      filteredOrders.some(order => order.order_id === transaction.order_id)
-    );
+    if(filteredOrders.length !== 0) {
+       filteredTransactions = transactions.filter(transaction =>
+        filteredOrders.map(order => order.order_id).includes(transaction.order_id) && transaction.payment_status === 'SUCCESS'
+      );
+      console.log(filteredTransactions);
+    } else {
+     filteredTransactions = [];
+    }
+    // const filteredTransactions = transactions.filter(transaction =>
+    //   transaction.payment_status === 'SUCCESS' &&
+    //   filteredOrders.some(order => order.order_id === transaction.order_id)
+    // );
 
     // Prepare ledger data
-    let currentBalance = meeting_opening_balance + meeting_payable_amount;
+    let currentBalance = meeting_opening_balance + meeting_payable_amount + (meeting_payable_amount * 0.18); // Initial balance
     let totalMeetingFeePaid = 0; // Track total meeting fee paid
 
     const ledgerData = [
@@ -88,7 +146,7 @@ function hideLoader() {
           <em>(bill for: ${chapterPayment.bill_type})</em> - 
           <em>(${chapterPayment.description})</em>
         `,
-        debit: meeting_payable_amount,
+        debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
         credit: 0,
         balance: currentBalance, // Show sum in Meeting Payable Amount row
         balanceColor: 'red', // Set balance color to red
@@ -112,9 +170,41 @@ function hideLoader() {
     });
 
     // Display amounts in the spans
-    document.getElementById('total-kitty-amount').textContent = (meeting_opening_balance + meeting_payable_amount).toFixed(2);
-    document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid.toFixed(2);
+    document.getElementById('total-kitty-amount').textContent = ( meeting_payable_amount + (meeting_payable_amount * 0.18) ).toFixed(2);
+    if(meeting_opening_balance === 0) {
+      document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid.toFixed(2);
     document.getElementById('pending_payment_amount').textContent = (currentBalance).toFixed(2);
+    } else {
+      // document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid.toFixed(2) + ' (including opening balance)';
+    // document.getElementById('pending_payment_amount').textContent = (currentBalance).toFixed(2) + ' (including opening balance)';
+    if(currentBalance === 0){
+      document.getElementById('pending_payment_amount').textContent = (currentBalance).toFixed(2);
+    } else {
+      document.getElementById('pending_payment_amount').innerHTML = `${currentBalance.toFixed(2)} <span style="color: green;">(inc. opening balance ${meeting_opening_balance.toFixed(2)})</span>`;
+    }
+    if(totalMeetingFeePaid === 0){
+      document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid.toFixed(2);
+
+    } else {
+      document.getElementById('success_kitty_amount').innerHTML = `${totalMeetingFeePaid.toFixed(2)} <span style="color: green;">(inc. opening balance ${meeting_opening_balance.toFixed(2)})</span>`;
+    }
+
+    }
+
+    if(chapterPayment){
+      document.querySelector('.description').innerHTML = chapterDescription;
+    document.getElementById('billType').textContent = chapterPayment.bill_type;
+    document.getElementById('tot_weeks').textContent = chapterPayment.total_weeks;
+    } else {
+      document.querySelector('.description').innerHTML = 'No description available';
+      document.getElementById('billType').textContent = 'No bill type available';
+      document.getElementById('tot_weeks').textContent = 'No total weeks available';
+    }
+
+
+    // console.log(chapterPayment.bill_type);
+    // console.log(chapterPayment.total_weeks);
+
      // Save pending_payment_amount to local storage
      localStorage.setItem('pendingPaymentAmount', currentBalance.toFixed(2));
 
