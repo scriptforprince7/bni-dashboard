@@ -84,7 +84,7 @@
                             >Total Kitty Amount Raised</span
                           >
                           <h4 class="fw-medium mb-0">
-                            <b><span class="total_bill_amount_raised">Loading..</span></b>
+                            <b><span class="total_bill_amount_raised" id="totalKittyAmountRaised">Loading..</span></b>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -114,7 +114,7 @@
                             >Kitty Bill Details</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                           <b><span class="total_bill_amount">Loading..</span></b>
+                           <b><span class="total_bill_amount"id="totalKittyDetails">Loading..</span></b>
                           </h4>
                           <p><span><b>Bill Type</b>: <span class="bill_type"></span></span><br><span><b>Bill For</b>: <span class="total_weeks"></span> weeks</span><br><span><b>Bill Duration</b>: <span class="description"></span></span><br><span><b>Total Member Count</b>: <span class="member_count"></span></span></p>
                         </div>
@@ -148,7 +148,7 @@
                             >Total Kitty Amount Received</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                           <b><span class="total_kitty_amount_received">Loading..</span></b> 
+                           <b><span class="total_kitty_amount_received" id="totalKittyAmountReceived">Loading..</span></b> 
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -168,7 +168,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xxl-4 col-xl-6">
+                <div class="col-xxl-3 col-xl-6">
                   <div
                     class="card custom-card overflow-hidden main-content-card"
                   >
@@ -181,7 +181,7 @@
                             >Total Kitty Amount Pending</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                           <b><span class="total_kitty_amount_pending"></span></b> 
+                           <b><span class="total_kitty_amount_pending" id="totalKittyExpense"></span></b> 
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -201,7 +201,37 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xxl-4 col-xl-6">
+                <div class="col-xxl-3 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #cccccc">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Total Transaction Failed</span
+                          >
+                          <h4 class="fw-medium mb-0">
+                            <b><span class="total_miscellaneous_amount" id="failed_pending_amount">Loading..</span></b>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary"
+                          >
+                          <i class="ti ti-currency-dollar fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <a href=""
+                        ><div class="text-muted fs-13">See Statistics ▶</div></a
+                      > -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-3 col-xl-6">
                   <div
                     class="card custom-card overflow-hidden main-content-card"
                   >
@@ -234,7 +264,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-xxl-4 col-xl-6">
+                <div class="col-xxl-3 col-xl-6">
                   <div
                     class="card custom-card overflow-hidden main-content-card"
                   >
