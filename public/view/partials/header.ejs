@@ -1394,14 +1394,17 @@
             return;
           }
 
-          // Set new expiration time (15 seconds from now)
-          const newExpirationTime = Date.now() + (15 * 1000);
+          // Set new expiration time (4 hours from now)
+          const newExpirationTime = Date.now() + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
           
           // Start countdown timer
           const countdownInterval = setInterval(() => {
             const timeLeft = Math.round((newExpirationTime - Date.now()) / 1000);
+            const hoursLeft = Math.floor(timeLeft / 3600);
+            const minutesLeft = Math.floor((timeLeft % 3600) / 60);
+            const secondsLeft = timeLeft % 60;
             
-            console.log(`Time until logout: ${timeLeft} seconds`);
+            console.log(`Time until logout: ${hoursLeft}h ${minutesLeft}m ${secondsLeft}s`);
             
             if (timeLeft <= 0) {
                 clearInterval(countdownInterval);
