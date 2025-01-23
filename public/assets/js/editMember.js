@@ -241,7 +241,7 @@ const updateMemberData = async () => {
       console.log("Collected member data:", collectFormData); // Log the collected form data
       try {
           showLoader(); // Show the loader when sending data
-          const response = await fetch(`http://localhost:5000/api/updateMember/${memberId}`, {
+          const response = await fetch(`https://bni-data-backend.onrender.com/api/updateMember/${memberId}`, {
               method: 'PUT',
               headers: {
                   'Content-Type': 'application/json',

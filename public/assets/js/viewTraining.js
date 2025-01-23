@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function checkAttendanceStatus() {
     try {
-      const response = await fetch('http://localhost:5000/api/allCheckins');
+      const response = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -546,7 +546,7 @@ updateRegistrationCount();
         }).then((result) => {
           if (result.isConfirmed) {
             // Send a request to the backend
-            fetch("http://localhost:5000/api/markAttendence", {
+            fetch("https://bni-data-backend.onrender.com/api/markAttendence", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -710,7 +710,7 @@ updateRegistrationCount();
                                           const orderId = transaction.order_id; // Get the order_id
 
                                           // Send both orderId and cf_payment_id to the backend
-                                          fetch('http://localhost:5000/api/send-qr-code', {
+                                          fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
                                               method: 'POST',
                                               headers: {
                                                   'Content-Type': 'application/json',
@@ -1048,7 +1048,7 @@ document.addEventListener('click', async function(event) {
                       const orderId = transaction.order_id; // Get the order_id
 
                       // Send all details to the backend
-                      fetch('http://localhost:5000/api/send-qr-code', {
+                      fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
                           method: 'POST',
                           headers: {
                               'Content-Type': 'application/json',
@@ -1208,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (result.isConfirmed) {
               try {
                 // Send the scanned QR code to the backend
-                const response = await fetch("http://localhost:5000/api/verify-qr-code", {
+                const response = await fetch("https://bni-data-backend.onrender.com/api/verify-qr-code", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",

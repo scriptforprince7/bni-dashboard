@@ -613,7 +613,7 @@ window.addEventListener('load', fetchTrainingDetails);
 // const training_id = urlParams.get('training_id');
 
 // Use the existing urlParams and training_id variables
-fetch('http://localhost:5000/api/allCheckins')
+fetch('https://bni-data-backend.onrender.com/api/allCheckins')
 .then((response) => response.json())
 .then((data) => {
     // Filter checkins for the specific training_id
@@ -679,7 +679,7 @@ fetch('http://localhost:5000/api/allCheckins')
       const totalRegistrations = tableBody ? tableBody.rows.length - 1 : 0; // Subtract 1 for header row
       
       // Get all checkins
-      const checkinsResponse = await fetch('http://localhost:5000/api/allCheckins');
+      const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
       const checkinsData = await checkinsResponse.json();
       
       // Calculate checkins

@@ -96,13 +96,15 @@
       href="../../assets/libs/flatpickr/flatpickr.min.css"
     />
     <style>
-      .page{
+      .page {
         min-height: 0vh !important;
       }
     </style>
-<!-- toaster js -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
-
+    <!-- toaster js -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+      rel="stylesheet"
+    />
   </head>
 
   <body class="">
@@ -926,11 +928,7 @@
             <div class="header-element">
               <div class="horizontal-logo">
                 <a href="index.html" class="header-logo">
-                  <img
-                    src=""
-                    alt="logo"
-                    class="desktop-logo"
-                  />
+                  <img src="" alt="logo" class="desktop-logo" />
                   <img
                     src="https://bnidvr.com/img/site/5ec2854ed3f67d002d544276.png"
                     alt="logo"
@@ -952,11 +950,7 @@
                     alt="logo"
                     class="toggle-white"
                   />
-                  <img
-                    src=""
-                    alt="logo"
-                    class="desktop-white"
-                  />
+                  <img src="" alt="logo" class="desktop-white" />
                 </a>
               </div>
             </div>
@@ -1211,7 +1205,8 @@
                           <div
                             class="text-muted fw-normal fs-12 header-notification-text text-truncate"
                           >
-                            Welcome, Rajiv Ahuja, a new member in prolific chapter
+                            Welcome, Rajiv Ahuja, a new member in prolific
+                            chapter
                           </div>
                           <div class="fw-normal fs-10 text-muted op-8">
                             5 hours ago
@@ -1286,7 +1281,10 @@
                 <li>
                   <div class="dropdown-item text-center border-bottom">
                     <span id="user-email"></span>
-                    <span class="d-block fs-12 text-muted" id="login_type"></span>
+                    <span
+                      class="d-block fs-12 text-muted"
+                      id="login_type"
+                    ></span>
                   </div>
                 </li>
                 <!-- <li>
@@ -1307,7 +1305,9 @@
                 </li> -->
 
                 <li>
-                  <a class="dropdown-item d-flex align-items-center" href="/s/settings"
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="/s/settings"
                     ><i
                       class="fe fe-settings p-1 rounded-circle bg-primary-transparent ings me-2 fs-16"
                     ></i
@@ -1316,8 +1316,11 @@
                 </li>
 
                 <li>
-                  <a class="dropdown-item d-flex align-items-center" href="/"
-                  id="logoutBtn"><i
+                  <a
+                    class="dropdown-item d-flex align-items-center"
+                    href="/"
+                    id="logoutBtn"
+                    ><i
                       class="fe fe-lock p-1 rounded-circle bg-primary-transparent ut me-2 fs-16"
                     ></i
                     >Log Out</a
@@ -1335,41 +1338,94 @@
     </div>
     <script src="../../assets/js/tokenUtils.js"></script>
     <script>
-        // Update user info from token
-        const userEmail = getUserEmail();
-        const userLoginType = getUserLoginType();
-        // console.log("Getting user info from token:", { userEmail, userLoginType });
+      // Update user info from token
+      const userEmail = getUserEmail();
+      const userLoginType = getUserLoginType();
+      // console.log("Getting user info from token:", { userEmail, userLoginType });
 
-        if (userEmail) {
-            document.getElementById('user-email').textContent = userEmail;
+      if (userEmail) {
+        document.getElementById("user-email").textContent = userEmail;
+      }
+
+      if (userLoginType) {
+        document.getElementById("login_type").textContent = userLoginType;
+      }
+
+      // Logout functionality
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+      });
+
+      // Auth check
+      if (!userEmail || !userLoginType) {
+        window.location.href = "/";
+      }
+
+      // Logo check
+      document.addEventListener("DOMContentLoaded", function () {
+        // console.log('Checking login type and logo status...');
+        const loginType = getUserLoginType();
+
+        const headerLogo = document.getElementById("headerLogo");
+
+        if (loginType === "ro_admin") {
+          // Rest of your logo loading logic...
+        }
+      });
+
+      // Add token expiration handling
+      function setupTokenExpirationCheck() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          handleLogout();
+          return;
         }
 
-        if (userLoginType) {
-            document.getElementById('login_type').textContent = userLoginType;
-        }
+        try {
+          // Parse the JWT token
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          const currentTime = Date.now() / 1000; // Current time in seconds
+          
+          // Check if token has already expired
+          if (payload.exp < currentTime) {
+            console.log('Token already expired');
+            handleLogout();
+            return;
+          }
 
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            window.location.href = '/';
-        });
-
-        // Auth check
-        if (!userEmail || !userLoginType) {
-            window.location.href = '/';
-        }
-
-        // Logo check
-        document.addEventListener('DOMContentLoaded', function() {
-            // console.log('Checking login type and logo status...');
-            const loginType = getUserLoginType();
+          // Set new expiration time (15 seconds from now)
+          const newExpirationTime = Date.now() + (15 * 1000);
+          
+          // Start countdown timer
+          const countdownInterval = setInterval(() => {
+            const timeLeft = Math.round((newExpirationTime - Date.now()) / 1000);
             
-            const headerLogo = document.getElementById('headerLogo');
+            console.log(`Time until logout: ${timeLeft} seconds`);
             
-            if (loginType === 'ro_admin') {
-                // Rest of your logo loading logic...
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                console.log('Token expired - Logging out');
+                handleLogout();
             }
-        });
+          }, 1000);
+
+        } catch (error) {
+          console.error("Error checking token expiration:", error);
+          handleLogout();
+        }
+      }
+
+      function handleLogout() {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+      }
+
+      // Start the token check when page loads or refreshes
+      window.addEventListener('load', setupTokenExpirationCheck);
+
+      // Update the existing logout button handler
+      document.getElementById("logoutBtn").addEventListener("click", handleLogout);
     </script>
   </body>
 </html>

@@ -7,7 +7,7 @@ let selectedMethod = null;
 // Function to populate Gateway filter dropdown
 async function populateGatewayFilter() {
     try {
-        const response = await fetch('http://localhost:5000/api/paymentGateway');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/paymentGateway');
         const gateways = await response.json();
         
         const gatewayFilter = document.getElementById('payment-gateway-filter');
