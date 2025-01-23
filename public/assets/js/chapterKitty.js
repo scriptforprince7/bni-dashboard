@@ -7,7 +7,7 @@ let selectedMethod = null;
 // Function to populate Gateway filter dropdown
 async function populateGatewayFilter() {
     try {
-        const response = await fetch('http://localhost:5000/api/paymentGateway');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/paymentGateway');
         const gateways = await response.json();
         
         const gatewayFilter = document.getElementById('payment-gateway-filter');
@@ -196,7 +196,18 @@ document.getElementById('payment-gateway-filter').addEventListener('click', func
 });
 
 document.addEventListener('DOMContentLoaded', async function () {
+
+    // Function to show the loader
+function showLoader() {
+    document.getElementById('loader').style.display = 'flex';
+}
+
+// Function to hide the loader
+function hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
     try {
+        showLoader();
         // Step 1: Get logged-in chapter email from token
         const chapterEmail = getUserEmail();
         console.log('Logged-in chapter email:', chapterEmail);
@@ -549,5 +560,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     } catch (error) {
         console.error('Error fetching chapter kitty data:', error);
+    } finally {
+        hideLoader();
     }
 });
