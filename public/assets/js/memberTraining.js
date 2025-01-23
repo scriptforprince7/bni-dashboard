@@ -6,7 +6,6 @@ const trainingPerPage = 15; // Number of events per page
 let currentPage = 1; // Current active page
 
 const trainingsDropdown = document.getElementById("trainings-status-filter");
-const monthDropdown = document.getElementById("month-filter");
 
 // Function to show the loader
 function showLoader() {
@@ -82,77 +81,42 @@ const populateDropdown = (
   // Populate chapter type dropdown
 const populateTrainingsStatusDropdown = async () => {
     try {
-        showLoader();
-        const response = await fetch(trainingsApiUrl);
-        if (!response.ok) throw new Error("Error fetching trainings");
-
-        const trainings = await response.json();
-
-        // Extract unique training statuses
-        const uniqueTypes = [
-            ...new Set(trainings.map((training) => training.training_status)),
-        ];
-
-        // Clear existing options
-        trainingsDropdown.innerHTML = "";
-
-        // Add default "All" option
-        trainingsDropdown.innerHTML = `
-            <li>
-                <a class="dropdown-item" href="javascript:void(0);" data-value="">
-                    All Trainings
-                </a>
-            </li>`;
-
-        // Add status options
-        uniqueTypes.forEach((type) => {
-            if (type) {  // Only add if status is not null/empty
-                trainingsDropdown.innerHTML += `
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0);" data-value="${type}">
-                            ${type}
-                        </a>
-                    </li>`;
-            }
-        });
-
-        attachDropdownListeners(trainingsDropdown);
+      showLoader();
+      // Fetch event data
+      const response = await fetch(trainingsApiUrl);
+      if (!response.ok) throw new Error("Error fetching events");
+  
+      const trainings = await response.json(); // Assume the API returns an array of event objects
+  
+      // Extract unique event
+      const uniqueTypes = [
+        ...new Set(trainings.map((training) => training.training_status)),
+      ];
+  
+      // Clear existing options
+      trainingsDropdown.innerHTML = "";
+  
+      // Populate dropdown with unique chapter types
+      uniqueTypes.forEach((type) => {
+        trainingsDropdown.innerHTML += `<li>
+                  <a class="dropdown-item" href="javascript:void(0);" data-value="${type.toUpperCase()}">
+                      ${type}
+                  </a>
+              </li>`;
+      });
+  
+      // Attach listeners after populating
+      attachDropdownListeners(trainingsDropdown);
     } catch (error) {
-        console.error("Error populating training status dropdown:", error);
+      console.error("Error populating chapter type dropdown:", error);
     } finally {
-        hideLoader();
+      hideLoader();
     }
-};
+  };
+  // Call the function to populate the chapter type dropdown
+  populateTrainingsStatusDropdown();
 
-// Function to populate month dropdown
-const populateMonthDropdown = () => {
-    const months = [
-        { value: '', text: 'All Months' },
-        { value: '01', text: 'January' },
-        { value: '02', text: 'February' },
-        { value: '03', text: 'March' },
-        { value: '04', text: 'April' },
-        { value: '05', text: 'May' },
-        { value: '06', text: 'June' },
-        { value: '07', text: 'July' },
-        { value: '08', text: 'August' },
-        { value: '09', text: 'September' },
-        { value: '10', text: 'October' },
-        { value: '11', text: 'November' },
-        { value: '12', text: 'December' }
-    ];
-
-    monthDropdown.innerHTML = `
-        <li><a class="dropdown-item active" href="javascript:void(0);" data-value="">All Months</a></li>
-        ${months.slice(1).map(month => 
-            `<li><a class="dropdown-item" href="javascript:void(0);" data-value="${month.value}">${month.text}</a></li>`
-        ).join('')}
-    `;
-
-    attachDropdownListeners(monthDropdown);
-};
-
-// Function to check if there are any filters in the query parameters
+  // Function to check if there are any filters in the query parameters
 function checkFiltersAndToggleResetButton() {
     const urlParams = new URLSearchParams(window.location.search);
   
@@ -187,8 +151,14 @@ function checkFiltersAndToggleResetButton() {
 
   // Attach event listener to a "Filter" button or trigger
 document.getElementById("apply-filters-btn").addEventListener("click", () => {
-    fetchAndDisplaytrainings();
-});
+    const trainingID = trainingsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const queryParams = new URLSearchParams();
+  
+    if (trainingID) queryParams.append('training_status', trainingID);
+  
+    const filterUrl = `/tr/manage-trainings?${queryParams.toString()}`;
+    window.location.href = filterUrl;
+  });
 
 
   // On page load, check for any applied filters in the URL params
@@ -328,34 +298,36 @@ function changePage(page) {
     renderPagination();
 }
 
-// Function to fetch and filter trainings
+// Function to fetch trainings data
 async function fetchAndDisplaytrainings() {
     try {
         showLoader();
+
         const response = await fetch(trainingsApiUrl);
         if (!response.ok) throw new Error('Error fetching trainings data');
 
         trainings = await response.json();
 
-        // Get selected status and month from dropdowns
-        const selectedStatus = trainingsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
-        const selectedMonth = monthDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
-        
-        // Filter trainings based on status and month
-        if (selectedStatus || selectedMonth) {
-            trainings = trainings.filter(training => {
-                const matchesStatus = !selectedStatus || training.training_status === selectedStatus;
-                const matchesMonth = !selectedMonth || (training.training_date && 
-                    training.training_date.substring(5, 7) === selectedMonth);
-                return matchesStatus && matchesMonth;
-            });
-        }
+        // Apply filters from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const filters = {
+        trainingID: urlParams.get("event_status"),
+    };
 
-        currentPage = 1;
+    console.log("Filters from URL params:", filters);
+
+    // Filter chapters based on the filters
+    trainings = trainings.filter((event) => {
+        return (
+            (!filters.trainingID || event.event_status.toLowerCase() === filters.trainingID.toLowerCase())
+        );
+      });
+  
+        currentPage = 1; // Reset to first page after fetching new data
         renderPage(currentPage);
         renderPagination();
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching trainings data:', error);
         trainingsTableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center text-danger">Error fetching trainings data.</td>
@@ -365,12 +337,8 @@ async function fetchAndDisplaytrainings() {
     }
 }
 
-// Call these functions when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    populateTrainingsStatusDropdown();
-    populateMonthDropdown();
-    fetchAndDisplaytrainings();
-});
+// Load trainings data on page load
+window.addEventListener('load', fetchAndDisplaytrainings);
 
 const deleteTraining = async (training_id) => {
     // Show confirmation using SweetAlert
@@ -415,30 +383,6 @@ const deleteTraining = async (training_id) => {
       deleteTraining(training_id);
     }
   });
-
-// Update reset filters function
-function resetFilters() {
-    // Reset both dropdowns selection to default
-    [trainingsDropdown, monthDropdown].forEach(dropdown => {
-        const dropdownItems = dropdown.querySelectorAll('.dropdown-item');
-        dropdownItems.forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('data-value') === '') {
-                item.classList.add('active');
-            }
-        });
-    });
-
-    // Reset dropdown toggle texts
-    const statusToggle = trainingsDropdown.closest('.dropdown').querySelector('.dropdown-toggle');
-    const monthToggle = monthDropdown.closest('.dropdown').querySelector('.dropdown-toggle');
-    
-    if (statusToggle) statusToggle.innerHTML = '<i class="ti ti-sort-descending-2 me-1"></i> Training Status';
-    if (monthToggle) monthToggle.innerHTML = '<i class="ti ti-calendar me-1"></i> Month';
-
-    // Fetch all trainings again
-    fetchAndDisplaytrainings();
-}
 
 
 
