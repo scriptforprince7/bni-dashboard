@@ -26,6 +26,7 @@ const refundRoutes = require('./r-refund/refundRoutes')
 
 const chapterMembersRoutes = require('./r-chapterMembers/chapterMembers');
 const chapterKitty = require('./r-chapterKitty/chapterKitty')
+const sendNotificationRoutes = require('./r-sendNotification/sendNotificationRoutes');
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -51,4 +52,5 @@ router.use('/ref', refundRoutes);
 
 router.use('/cm', chapterMembersRoutes);
 router.use('/ck', chapterKitty);
+router.use('/sn', sendNotificationRoutes);
 module.exports = router;

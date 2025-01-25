@@ -342,7 +342,18 @@
                       <i class="ti ti-calendar me-1"></i> Month
                     </a>
                     <ul class="dropdown-menu" id="month-filter" role="menu">
-                      <!-- Items will be dynamically inserted here -->
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="1">January</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="2">February</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="3">March</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="4">April</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="5">May</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="6">June</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="7">July</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="8">August</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="9">September</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="10">October</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="11">November</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="12">December</a></li>
                     </ul>
                   </div>
 
@@ -438,315 +449,337 @@ function hideLoader() {
 }
 
 // Store all trainings globally for filtering
-let allTrainings = [];
+  let allTrainings = [];
+  
 
-// Function to populate status filter dropdown
-const populateStatusFilter = () => {
-    const statusFilter = document.getElementById('trainings-status-filter');
-    const uniqueStatuses = [...new Set(allTrainings.map(t => t.training_status))];
-    
-    statusFilter.innerHTML = `
-        <li><a class="dropdown-item" href="javascript:void(0);" data-status="all">All</a></li>
-        ${uniqueStatuses.map(status => 
-            `<li><a class="dropdown-item" href="javascript:void(0);" data-status="${status}">${status}</a></li>`
-        ).join('')}
-    `;
-};
+  // Function to populate status filter dropdown
+  const populateStatusFilter = () => {
+      const statusFilter = document.getElementById('trainings-status-filter');
+      const uniqueStatuses = [...new Set(allTrainings.map(t => t.training_status))];
+      
+      statusFilter.innerHTML = `
+          <li><a class="dropdown-item" href="javascript:void(0);" data-status="all">All</a></li>
+          ${uniqueStatuses.map(status => 
+              `<li><a class="dropdown-item" href="javascript:void(0);" data-status="${status}">${status}</a></li>`
+          ).join('')}
+      `;
+  };
 
-// Function to filter trainings based on status and search term
-const filterTrainings = (trainings, statusFilter = 'all', searchTerm = '') => {
-    console.log('Filtering with status:', statusFilter, 'search:', searchTerm);
-    
-    return trainings.filter(training => {
-        const matchesStatus = statusFilter === 'all' || training.training_status === statusFilter;
-        const matchesSearch = searchTerm === '' || 
-            Object.values(training).some(value => 
-                String(value).toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        return matchesStatus && matchesSearch;
-    });
-};
+  // Function to filter trainings based on status, month, and search term
+  const filterTrainings = (trainings, statusFilter = 'all', monthFilter = null, searchTerm = '') => {
+      console.log('Filtering with status:', statusFilter, 'month:', monthFilter, 'search:', searchTerm);
+      
+      return trainings.filter(training => {
+          const matchesStatus = statusFilter === 'all' || training.training_status === statusFilter;
+          const trainingMonth = new Date(training.training_date).getMonth() + 1; // Get month (1-12)
+          const matchesMonth = monthFilter === null || trainingMonth === monthFilter; // Compare with selected month
+          const matchesSearch = searchTerm === '' || 
+              Object.values(training).some(value => 
+                  String(value).toLowerCase().includes(searchTerm.toLowerCase())
+              );
+          return matchesStatus && matchesMonth && matchesSearch;
+      });
+  };
 
-// Function to handle real-time search
-const handleSearch = () => {
-    const searchInput = document.getElementById('searchAccolades');
-    const selectedStatus = document.querySelector('#trainings-status-filter .active')?.dataset.status || 'all';
-    
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value;
-        const filteredTrainings = filterTrainings(allTrainings, selectedStatus, searchTerm);
-        populateTrainingsTable(filteredTrainings);
-    });
-};
+  // Function to handle real-time search
+  const handleSearch = () => {
+      const searchInput = document.getElementById('searchAccolades');
+      const selectedStatus = document.querySelector('#trainings-status-filter .active')?.dataset.status || 'all';
+      
+      searchInput.addEventListener('input', (e) => {
+          const searchTerm = e.target.value;
+          const filteredTrainings = filterTrainings(allTrainings, selectedStatus, null, searchTerm);
+          populateTrainingsTable(filteredTrainings);
+      });
+  };
 
-// Function to handle filter application
-const handleFilters = () => {
-    const applyFilterBtn = document.getElementById('apply-filters-btn');
-    const resetFilterBtn = document.getElementById('reset-filters-btn');
-    const statusFilter = document.getElementById('trainings-status-filter');
-    const searchInput = document.getElementById('searchAccolades');
+  // Function to handle filter application
+  const handleFilters = () => {
+      const applyFilterBtn = document.getElementById('apply-filters-btn');
+      const resetFilterBtn = document.getElementById('reset-filters-btn');
+      const statusFilter = document.getElementById('trainings-status-filter');
+      const monthFilter = document.getElementById('month-filter');
+      const searchInput = document.getElementById('searchAccolades');
 
-    // Handle status selection
-    statusFilter.addEventListener('click', (e) => {
-        if (e.target.classList.contains('dropdown-item')) {
-            // Remove active class from all items
-            statusFilter.querySelectorAll('.dropdown-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            // Add active class to selected item
-            e.target.classList.add('active');
-        }
-    });
+      // Handle status selection
+      statusFilter.addEventListener('click', (e) => {
+          if (e.target.classList.contains('dropdown-item')) {
+              // Remove active class from all items
+              statusFilter.querySelectorAll('.dropdown-item').forEach(item => {
+                  item.classList.remove('active');
+              });
+              // Add active class to selected item
+              e.target.classList.add('active');
+          }
+      });
 
-    // Apply filter button click
-    applyFilterBtn.addEventListener('click', () => {
-        const selectedStatus = statusFilter.querySelector('.active')?.dataset.status || 'all';
-        const searchTerm = searchInput.value;
-        const filteredTrainings = filterTrainings(allTrainings, selectedStatus, searchTerm);
-        populateTrainingsTable(filteredTrainings);
-    });
+      // Handle month selection
+      monthFilter.addEventListener('click', (e) => {
+          if (e.target.classList.contains('dropdown-item')) {
+              // Remove active class from all items
+              monthFilter.querySelectorAll('.dropdown-item').forEach(item => {
+                  item.classList.remove('active');
+              });
+              // Add active class to selected item
+              e.target.classList.add('active');
+          }
+      });
 
-    // Reset filter button click
-    resetFilterBtn.addEventListener('click', () => {
-        // Clear search
-        searchInput.value = '';
-        // Reset status filter
-        statusFilter.querySelectorAll('.dropdown-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        statusFilter.querySelector('[data-status="all"]').classList.add('active');
-        // Show all trainings
-        populateTrainingsTable(allTrainings);
-    });
-};
+      // Apply filter button click
+      applyFilterBtn.addEventListener('click', () => {
+          const selectedStatus = statusFilter.querySelector('.active')?.dataset.status || 'all';
+          const selectedMonth = monthFilter.querySelector('.active')?.dataset.month ? parseInt(monthFilter.querySelector('.active').dataset.month) : null;
+          const searchTerm = searchInput.value;
+          const filteredTrainings = filterTrainings(allTrainings, selectedStatus, selectedMonth, searchTerm);
+          populateTrainingsTable(filteredTrainings);
+      });
 
-// Update the fetchUserTrainings function
-const fetchUserTrainings = async () => {
+      // Reset filter button click
+      resetFilterBtn.addEventListener('click', () => {
+          // Clear search
+          searchInput.value = '';
+          // Reset status filter
+          statusFilter.querySelectorAll('.dropdown-item').forEach(item => {
+              item.classList.remove('active');
+          });
+          statusFilter.querySelector('[data-status="all"]').classList.add('active');
+          // Reset month filter
+          monthFilter.querySelectorAll('.dropdown-item').forEach(item => {
+              item.classList.remove('active');
+          });
+          monthFilter.querySelector('[data-month="1"]').classList.add('active'); // Default to January
+          // Show all trainings
+          populateTrainingsTable(allTrainings);
+      });
+  };
+
+  // Update the fetchUserTrainings function
+  const fetchUserTrainings = async () => {
+      try {
+          showLoader();
+          const loggedInEmail = getUserEmail();
+          if (!loggedInEmail) throw new Error('No valid email found in token');
+          console.log('Logged-In Email from token:', loggedInEmail);
+
+          // Step 2: Fetch Member Data
+          const fetchMemberData = async (email) => {
+            const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+            if (!response.ok) throw new Error('Failed to fetch members data');
+            const members = await response.json();
+            console.log('Looking for member with email:', email);
+            return members.find(member => member.member_email_address === email);
+          };
+
+          const member = await fetchMemberData(loggedInEmail);
+          if (!member) throw new Error('Member not found for the logged-in email');
+          console.log('Logged-In User (Member Data):', member);
+
+          // Step 3: Fetch Orders
+          const fetchOrders = async (memberId) => {
+            const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+            if (!response.ok) throw new Error('Failed to fetch orders');
+            const orders = await response.json();
+            return orders.filter(order => order.customer_id === memberId);
+          };
+
+          const orders = await fetchOrders(member.member_id);
+          console.log('Orders for Logged-In User:', orders);
+
+          // Step 4: Extract Training IDs
+          const getTrainingIds = (orders) => {
+            return [...new Set(orders.map(order => order.training_id).filter(id => id))];
+          };
+
+          const trainingIds = getTrainingIds(orders);
+          console.log('Training IDs from Orders:', trainingIds);
+
+          // Step 5: Fetch Trainings
+          const fetchTrainings = async (trainingIds) => {
+            const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+            if (!response.ok) throw new Error('Failed to fetch trainings');
+            const trainings = await response.json();
+            return trainings.filter(training => trainingIds.includes(training.training_id));
+          };
+
+          const trainings = await fetchTrainings(trainingIds);
+          console.log('Trainings Associated with User:', trainings);
+
+          // Store trainings globally
+          allTrainings = trainings;
+          
+          // Initialize filters and search
+          populateStatusFilter();
+          handleFilters();
+          handleSearch();
+          
+          // Initial population of table
+          populateTrainingsTable(trainings);
+
+          return trainings;
+      } catch (error) {
+          console.error('Error:', error.message);
+          return [];
+      } finally {
+          hideLoader();
+      }
+  };
+
+  // Update populateTrainingsTable to handle empty state
+  const populateTrainingsTable = (trainings) => {
+      const tableBody = document.getElementById('training-body');
+      const totalTrainingsElement = document.getElementById('total_registered_trainings');
+      const upcomingTrainingsElement = document.getElementById('upcoming_trainings');
+      
+      tableBody.innerHTML = '';
+
+      if (trainings.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No trainings found.</td></tr>';
+          totalTrainingsElement.innerHTML = '0';
+          upcomingTrainingsElement.innerHTML = '0';
+          return;
+      }
+
+      totalTrainingsElement.innerHTML = trainings.length;
+
+      // Filter upcoming trainings
+      const upcomingTrainings = trainings.filter(
+          (training) =>
+              training.training_status === 'Postponed' || training.training_status === 'Scheduled'
+      );
+
+      // Update upcoming trainings count
+      upcomingTrainingsElement.innerHTML = upcomingTrainings.length;
+
+      trainings.forEach((training, index) => {
+          const row = document.createElement('tr');
+
+          const getStatusBgClass = (status) => {
+              switch (status) {
+                  case 'Scheduled':
+                      return 'btn btn-warning btn-sm'; // Yellow button for scheduled
+                  case 'Cancelled':
+                      return 'btn btn-danger btn-sm'; // Red button for cancelled
+                  case 'Postponed':
+                      return 'btn btn-info btn-sm'; // Blue button for postponed
+                  case 'Completed':
+                      return 'btn btn-success btn-sm'; // Green button for completed
+                  default:
+                      return 'btn btn-secondary btn-sm'; // Grey button for default/unknown status
+              }
+          };
+
+          row.innerHTML = `
+              <td>${index + 1}</td>
+              <td><b>${training.training_name || 'N/A'}</b></td>
+              <td><b>${training.training_venue || 'N/A'}</b></td>
+              <td>${training.training_date || 'N/A'}</td>
+              <td><b>₹ ${training.training_price || 'N/A'}</b></td>
+              <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
+              <td><button class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</button></td>
+          `;
+
+          tableBody.appendChild(row);
+      });
+  };
+
+  // Initialize everything when the page loads
+  document.addEventListener('DOMContentLoaded', () => {
+      fetchUserTrainings();
+  });
+
+  async function fetchAttendedTrainings() {
     try {
-        showLoader();
-        const loggedInEmail = getUserEmail();
-        if (!loggedInEmail) throw new Error('No valid email found in token');
-        console.log('Logged-In Email from token:', loggedInEmail);
+      console.log('=== FETCH ATTENDED TRAININGS START ===');
+      
+      // Step 1: Get user email from token
+      const userEmail = getUserEmail();
+      console.log('User Email:', userEmail);
 
-        // Step 2: Fetch Member Data
-        const fetchMemberData = async (email) => {
-          const response = await fetch('https://bni-data-backend.onrender.com/api/members');
-          if (!response.ok) throw new Error('Failed to fetch members data');
-          const members = await response.json();
-          console.log('Looking for member with email:', email);
-          return members.find(member => member.member_email_address === email);
-        };
-
-        const member = await fetchMemberData(loggedInEmail);
-        if (!member) throw new Error('Member not found for the logged-in email');
-        console.log('Logged-In User (Member Data):', member);
-
-        // Step 3: Fetch Orders
-        const fetchOrders = async (memberId) => {
-          const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-          if (!response.ok) throw new Error('Failed to fetch orders');
-          const orders = await response.json();
-          return orders.filter(order => order.customer_id === memberId);
-        };
-
-        const orders = await fetchOrders(member.member_id);
-        console.log('Orders for Logged-In User:', orders);
-
-        // Step 4: Extract Training IDs
-        const getTrainingIds = (orders) => {
-          return [...new Set(orders.map(order => order.training_id).filter(id => id))];
-        };
-
-        const trainingIds = getTrainingIds(orders);
-        console.log('Training IDs from Orders:', trainingIds);
-
-        // Step 5: Fetch Trainings
-        const fetchTrainings = async (trainingIds) => {
-          const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
-          if (!response.ok) throw new Error('Failed to fetch trainings');
-          const trainings = await response.json();
-          return trainings.filter(training => trainingIds.includes(training.training_id));
-        };
-
-        const trainings = await fetchTrainings(trainingIds);
-        console.log('Trainings Associated with User:', trainings);
-
-        // Store trainings globally
-        allTrainings = trainings;
-        
-        // Initialize filters and search
-        populateStatusFilter();
-        handleFilters();
-        handleSearch();
-        
-        // Initial population of table
-        populateTrainingsTable(trainings);
-
-        return trainings;
-    } catch (error) {
-        console.error('Error:', error.message);
-        return [];
-    } finally {
-        hideLoader();
-    }
-};
-
-// Update populateTrainingsTable to handle empty state
-const populateTrainingsTable = (trainings) => {
-    const tableBody = document.getElementById('training-body');
-    const totalTrainingsElement = document.getElementById('total_registered_trainings');
-    const upcomingTrainingsElement = document.getElementById('upcoming_trainings');
-    
-    tableBody.innerHTML = '';
-
-    if (trainings.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No trainings found.</td></tr>';
-        totalTrainingsElement.innerHTML = '0';
-        upcomingTrainingsElement.innerHTML = '0';
+      // Step 2: Fetch Member Data
+      const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+      const membersData = await membersResponse.json();
+      console.log('Looking for member with email:', userEmail);
+      
+      // Find member by email
+      const memberDetails = membersData.find(member => member.member_email_address === userEmail);
+      if (!memberDetails) {
+        console.log('Member not found for email:', userEmail);
         return;
+      }
+      
+      const memberId = memberDetails.member_id;
+      console.log('Found Member ID:', memberId);
+      console.log('Member Details:', memberDetails);
+
+      // Step 3: Fetch orders for this member
+      console.log('=== FETCHING ORDERS ===');
+      const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+      const ordersData = await ordersResponse.json();
+      
+      // Filter orders by member's customer_id
+      const memberOrders = ordersData.filter(order => order.customer_id === memberId);
+      console.log('Total orders found for member:', memberOrders.length);
+      console.log('Member Orders:', memberOrders);
+      
+      const orderIds = memberOrders.map(order => order.order_id);
+      console.log('Order IDs extracted:', orderIds);
+
+      // Step 4: Fetch all transactions
+      console.log('=== FETCHING TRANSACTIONS ===');
+      const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+      const transactions = await transactionsResponse.json();
+      
+      // Step 5: Map order IDs to transaction IDs
+      const transactionIds = transactions
+        .filter(transaction => orderIds.includes(transaction.order_id))
+        .map(transaction => transaction.cf_payment_id);
+      
+      console.log('Found Transaction IDs:', transactionIds);
+      console.log('Matching Transactions:', transactions.filter(t => orderIds.includes(t.order_id)));
+      
+      // Step 6: Fetch all checkins
+      console.log('=== FETCHING CHECKINS ===');
+      const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
+      const checkins = await checkinsResponse.json();
+      
+      // Step 7: Count matching checkins
+      const matchingCheckins = checkins.filter(checkin => 
+        transactionIds.includes(checkin.transaction_id)
+      );
+      const attendedCount = matchingCheckins.length;
+      
+      console.log('Matching Checkins:', matchingCheckins);
+      console.log('Final Attended Count:', attendedCount);
+      
+      // Step 8: Update the display
+      const countElement = document.getElementById('training-count');
+      countElement.setAttribute('data-count', attendedCount);
+      countElement.textContent = attendedCount;
+      
+      console.log('=== FETCH ATTENDED TRAININGS COMPLETE ===');
+      
+      // After calculating attendedCount
+      console.log('=== CALCULATING MISSED TRAININGS ===');
+      
+      // Get total registered trainings
+      const totalRegistered = parseInt(document.getElementById('total_registered_trainings').textContent);
+      console.log('Total Registered Trainings:', totalRegistered);
+      console.log('Total Attended Trainings:', attendedCount);
+      
+      // Calculate missed trainings
+      const missedTrainings = totalRegistered - attendedCount;
+      console.log('Calculated Missed Trainings:', missedTrainings);
+      
+      // Update missed trainings display
+      const missedElement = document.getElementById('missed-trainings-count');
+      missedElement.textContent = missedTrainings;
+      
+      console.log('=== MISSED TRAININGS CALCULATION COMPLETE ===');
+      
+    } catch (error) {
+      console.error('Error in fetchAttendedTrainings:', error);
     }
-
-    totalTrainingsElement.innerHTML = trainings.length;
-
-    // Filter upcoming trainings
-    const upcomingTrainings = trainings.filter(
-        (training) =>
-            training.training_status === 'Postponed' || training.training_status === 'Scheduled'
-    );
-
-    // Update upcoming trainings count
-    upcomingTrainingsElement.innerHTML = upcomingTrainings.length;
-
-    trainings.forEach((training, index) => {
-        const row = document.createElement('tr');
-
-        const getStatusBgClass = (status) => {
-            switch (status) {
-                case 'Scheduled':
-                    return 'btn btn-warning btn-sm'; // Yellow button for scheduled
-                case 'Cancelled':
-                    return 'btn btn-danger btn-sm'; // Red button for cancelled
-                case 'Postponed':
-                    return 'btn btn-info btn-sm'; // Blue button for postponed
-                case 'Completed':
-                    return 'btn btn-success btn-sm'; // Green button for completed
-                default:
-                    return 'btn btn-secondary btn-sm'; // Grey button for default/unknown status
-            }
-        };
-
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td><b>${training.training_name || 'N/A'}</b></td>
-            <td><b>${training.training_venue || 'N/A'}</b></td>
-            <td>${training.training_date || 'N/A'}</td>
-            <td><b>₹ ${training.training_price || 'N/A'}</b></td>
-            <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
-            <td><button class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</button></td>
-        `;
-
-        tableBody.appendChild(row);
-    });
-};
-
-// Initialize everything when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    fetchUserTrainings();
-});
-
-async function fetchAttendedTrainings() {
-  try {
-    console.log('=== FETCH ATTENDED TRAININGS START ===');
-    
-    // Step 1: Get user email from token
-    const userEmail = getUserEmail();
-    console.log('User Email:', userEmail);
-
-    // Step 2: Fetch Member Data
-    const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
-    const membersData = await membersResponse.json();
-    console.log('Looking for member with email:', userEmail);
-    
-    // Find member by email
-    const memberDetails = membersData.find(member => member.member_email_address === userEmail);
-    if (!memberDetails) {
-      console.log('Member not found for email:', userEmail);
-      return;
-    }
-    
-    const memberId = memberDetails.member_id;
-    console.log('Found Member ID:', memberId);
-    console.log('Member Details:', memberDetails);
-
-    // Step 3: Fetch orders for this member
-    console.log('=== FETCHING ORDERS ===');
-    const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-    const ordersData = await ordersResponse.json();
-    
-    // Filter orders by member's customer_id
-    const memberOrders = ordersData.filter(order => order.customer_id === memberId);
-    console.log('Total orders found for member:', memberOrders.length);
-    console.log('Member Orders:', memberOrders);
-    
-    const orderIds = memberOrders.map(order => order.order_id);
-    console.log('Order IDs extracted:', orderIds);
-
-    // Step 4: Fetch all transactions
-    console.log('=== FETCHING TRANSACTIONS ===');
-    const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
-    const transactions = await transactionsResponse.json();
-    
-    // Step 5: Map order IDs to transaction IDs
-    const transactionIds = transactions
-      .filter(transaction => orderIds.includes(transaction.order_id))
-      .map(transaction => transaction.cf_payment_id);
-    
-    console.log('Found Transaction IDs:', transactionIds);
-    console.log('Matching Transactions:', transactions.filter(t => orderIds.includes(t.order_id)));
-    
-    // Step 6: Fetch all checkins
-    console.log('=== FETCHING CHECKINS ===');
-    const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
-    const checkins = await checkinsResponse.json();
-    
-    // Step 7: Count matching checkins
-    const matchingCheckins = checkins.filter(checkin => 
-      transactionIds.includes(checkin.transaction_id)
-    );
-    const attendedCount = matchingCheckins.length;
-    
-    console.log('Matching Checkins:', matchingCheckins);
-    console.log('Final Attended Count:', attendedCount);
-    
-    // Step 8: Update the display
-    const countElement = document.getElementById('training-count');
-    countElement.setAttribute('data-count', attendedCount);
-    countElement.textContent = attendedCount;
-    
-    console.log('=== FETCH ATTENDED TRAININGS COMPLETE ===');
-    
-    // After calculating attendedCount
-    console.log('=== CALCULATING MISSED TRAININGS ===');
-    
-    // Get total registered trainings
-    const totalRegistered = parseInt(document.getElementById('total_registered_trainings').textContent);
-    console.log('Total Registered Trainings:', totalRegistered);
-    console.log('Total Attended Trainings:', attendedCount);
-    
-    // Calculate missed trainings
-    const missedTrainings = totalRegistered - attendedCount;
-    console.log('Calculated Missed Trainings:', missedTrainings);
-    
-    // Update missed trainings display
-    const missedElement = document.getElementById('missed-trainings-count');
-    missedElement.textContent = missedTrainings;
-    
-    console.log('=== MISSED TRAININGS CALCULATION COMPLETE ===');
-    
-  } catch (error) {
-    console.error('Error in fetchAttendedTrainings:', error);
   }
-}
 
 // Call the function when the page loads
 document.addEventListener('DOMContentLoaded', fetchAttendedTrainings);
