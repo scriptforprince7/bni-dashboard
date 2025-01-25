@@ -1404,11 +1404,11 @@
             const minutesLeft = Math.floor((timeLeft % 3600) / 60);
             const secondsLeft = timeLeft % 60;
             
-            console.log(`Time until logout: ${hoursLeft}h ${minutesLeft}m ${secondsLeft}s`);
+            // console.log(`Time until logout: ${hoursLeft}h ${minutesLeft}m ${secondsLeft}s`);
             
             if (timeLeft <= 0) {
                 clearInterval(countdownInterval);
-                console.log('Token expired - Logging out');
+                // console.log('Token expired - Logging out');
                 handleLogout();
             }
           }, 1000);
