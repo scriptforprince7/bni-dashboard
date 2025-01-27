@@ -272,12 +272,18 @@ const autofillFields = async () => {
                     window.location.href = '/ck/chapter-raiseBill';
                 });
             } else {
+                // Swal.fire({
+                //     icon: 'error',
+                //     title: 'Error',
+                //     text: result.message || 'Failed to add bill.',
+                //     confirmButtonText: 'OK'
+                // });
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: result.message || 'Failed to add bill.',
-                    confirmButtonText: 'OK'
-                });
+                    text: result.message || 'Failed to add bill',
+                    confirmButtonText: 'ok'
+                })
             }            
         } catch (error) {
             console.error('Error adding bill:', error);
@@ -358,7 +364,7 @@ function calculateBilling() {
             } else if (quarterStartMonth === 9 || quarterStartMonth === 10 || quarterStartMonth === 11) {
                 chapterDescription.value = 'Oct to Dec';
             } else {
-                chapterDescription.value = `${quarterStartMonthName} to ${quarterEndMonthName}`;
+                // chapterDescription.value = `${quarterStartMonthName} to ${quarterEndMonthName}`;
             }
             totalWeeks = getMeetingDaysCount(selectedDate, quarterEnd, current_user.chapter_meeting_day.toLowerCase());
             totalBillAmount = totalWeeks * meetingFee;
@@ -379,7 +385,7 @@ function calculateBilling() {
             totalWeeks = 52;
             totalBillAmount = totalWeeks * meetingFee;
             chapterDescription.value = `${currentYearMonth.toLocaleString('default', { month: 'short' })} to ${lastYearMonth.toLocaleString('default', { month: 'short' })}`;
-            console.log(currentYearMonth.getFullYear() + to + lastYearMonth.getMonth());
+            console.log(currentYearMonth.getFullYear() + "to" + lastYearMonth.getMonth());
             console.log('totalWeeks5');
             break;
 
@@ -399,12 +405,22 @@ dateElement.addEventListener('change', calculateBilling);
 
 // Refresh JavaScript on document load
 document.addEventListener('DOMContentLoaded', async () => {
-    await fetchChapterId();  // Ensure chapter data is fetched first
-    await fetchAllCurrentkittyPayments();  // Fetch all payments after the chapter data is ready
-    insertPaymentsIntoTable();  // Insert payments into table after data is fetched
-    await autofillFields();  // Autofil fields with chapter details
-    // await calculateBilling();  // Calculate billing based on selected date
-    updateTableWithPayments();  // Update the table with payments
-    fetchKittyPayments();  // Fetch the kitty payments if needed
+    // await fetchChapterId();  // Ensure chapter data is fetched first
+    // await fetchAllCurrentkittyPayments();  // Fetch all payments after the chapter data is ready
+    // insertPaymentsIntoTable();  // Insert payments into table after data is fetched
+    // await autofillFields();  // Autofil fields with chapter details
+    // // await calculateBilling();  // Calculate billing based on selected date
+    // updateTableWithPayments();  // Update the table with payments
+    // fetchKittyPayments();  // Fetch the kitty payments if needed
 
+    await fetchChapterId();
+    await fetchAllCurrentkittyPayments();
+    insertPaymentsIntoTable();
+    await autofillFields();
+    await calculateBilling();
+    updateTableWithPayments();
+    fetchKittyPayments();
 });
+
+
+
