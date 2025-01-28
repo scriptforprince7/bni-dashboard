@@ -379,7 +379,7 @@ function calculateBilling() {
             totalWeeks = 52;
             totalBillAmount = totalWeeks * meetingFee;
             chapterDescription.value = `${currentYearMonth.toLocaleString('default', { month: 'short' })} to ${lastYearMonth.toLocaleString('default', { month: 'short' })}`;
-            console.log(currentYearMonth.getFullYear() + to + lastYearMonth.getMonth());
+            console.log(currentYearMonth.getFullYear() + " to " + lastYearMonth.getMonth());
             console.log('totalWeeks5');
             break;
 
