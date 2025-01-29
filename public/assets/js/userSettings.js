@@ -300,6 +300,163 @@ async function savePaymentGatewaySettings(gateway) {
     }
 }
 
+// Function to update payment gateway status
+async function updatePaymentGatewayStatus(gatewayId) {
+    console.log('Starting payment gateway update process...');
+    
+    try {
+        // Check user authorization
+        const loginType = getUserLoginType();
+        console.log('User login type:', loginType);
+        
+        if (loginType !== 'ro_admin') {
+            console.error('Unauthorized: User is not ro_admin');
+            toastr.error('Only administrators can change payment gateway settings');
+            return false;
+        }
+
+        // Get token
+        const token = localStorage.getItem('token');
+        console.log('Token available:', !!token);
+
+        if (!token) {
+            console.error('No token found');
+            toastr.error('Authentication required');
+            return false;
+        }
+
+        console.log('Making API call to update gateway status for ID:', gatewayId);
+        const response = await fetch(`http://localhost:5000/api/payment-gateway/${gatewayId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                status: 'active'
+            })
+        });
+
+        console.log('API response status:', response.status);
+        const data = await response.json();
+        console.log('API response data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to update payment gateway');
+        }
+
+        return true;
+
+    } catch (error) {
+        console.error('Error updating payment gateway:', error);
+        toastr.error('Failed to update payment gateway status');
+        return false;
+    }
+}
+
+// Updated confirmGatewayChange function
+async function confirmGatewayChange(gateway) {
+    console.log('Starting gateway change confirmation for:', gateway);
+    
+    try {
+        // Get gateway ID from selected gateway name
+        const response = await fetch('http://localhost:5000/api/paymentGateway');
+        const gateways = await response.json();
+        console.log('Fetched gateways:', gateways);
+
+        const selectedGateway = gateways.find(g => g.gateway_name === gateway);
+        console.log('Selected gateway:', selectedGateway);
+
+        if (!selectedGateway) {
+            console.error('Gateway not found');
+            toastr.error('Selected gateway not found');
+            return;
+        }
+
+        // Update gateway status
+        const success = await updatePaymentGatewayStatus(selectedGateway.gateway_id);
+        console.log('Update status:', success);
+
+        if (success) {
+            toastr.success(`${gateway} has been set as the active payment gateway`);
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmGatewayModal'));
+            modal.hide();
+
+            // Refresh the payment gateway list
+            await handlePaymentGatewaySelection();
+        }
+
+    } catch (error) {
+        console.error('Error in confirmGatewayChange:', error);
+        toastr.error('Failed to update payment gateway');
+    }
+}
+
+// Function to handle payment gateway activation
+function handleSetActiveGateway() {
+    console.log('Setting up payment gateway activation handler');
+    
+    const setActiveBtn = document.getElementById('setActiveGatewayBtn');
+    const gatewaySelect = document.getElementById('payment-gateway-select');
+
+    if (setActiveBtn) {
+        setActiveBtn.addEventListener('click', function() {
+            console.log('Set Active Gateway button clicked');
+            
+            // Check if a gateway is selected
+            const selectedGateway = gatewaySelect.value;
+            if (!selectedGateway) {
+                toastr.error('Please select a payment gateway first');
+                return;
+            }
+
+            // Check if user is ro_admin
+            const loginType = getUserLoginType();
+            console.log('User login type:', loginType);
+            
+            if (loginType !== 'ro_admin') {
+                toastr.error('Only administrators can change payment gateway settings');
+                return;
+            }
+
+            // Show confirmation modal
+            const confirmHtml = `
+                <div class="modal fade" id="confirmGatewayModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Payment Gateway Change</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to set ${selectedGateway} as the active payment gateway?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-success" onclick="confirmGatewayChange('${selectedGateway}')">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('confirmGatewayModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add modal to document
+            document.body.insertAdjacentHTML('beforeend', confirmHtml);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('confirmGatewayModal'));
+            modal.show();
+        });
+    }
+}
+
 // Add to existing DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('=== PAGE INITIALIZATION START ===');
@@ -307,6 +464,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         await fetchCompanyInfo();
         await fetchLogoInfo();
         handlePaymentGatewaySelection(); // Initialize payment gateway handling
+        handleSetActiveGateway();
         console.log('=== PAGE INITIALIZATION COMPLETE ===');
     } catch (error) {
         console.error('Error during initialization:', error);

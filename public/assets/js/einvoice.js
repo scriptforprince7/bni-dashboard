@@ -19,6 +19,37 @@ function getQueryParam(param) {
 const invoiceData = JSON.parse(decodeURIComponent(getQueryParam("invoiceData")));
 const einvoiceData = JSON.parse(decodeURIComponent(getQueryParam("einvoiceData")));
 const universalLinkId = invoiceData.orderId.universal_link_id;
+const trainingId = invoiceData.orderId.training_id;
+
+// Add this line to show training_id in console
+console.log("Training ID:", trainingId);
+
+// Function to fetch training details
+async function fetchTrainingDetails(trainingId) {
+  console.log("Fetching training details for ID:", trainingId); // Debug log
+  try {
+    const response = await fetch("https://bni-data-backend.onrender.com/api/allTrainings");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const trainings = await response.json();
+    console.log("All trainings:", trainings); // Debug log
+
+    // Convert trainingId to string for comparison if needed
+    const training = trainings.find(t => String(t.training_id) === String(trainingId));
+    console.log("Found training:", training); // Debug log
+
+    if (!training) {
+      console.log("No training found for ID:", trainingId); // Debug log
+      return null;
+    }
+
+    return training.training_name;
+  } catch (error) {
+    console.error("Error in fetchTrainingDetails:", error); // Detailed error log
+    return null;
+  }
+}
 
 const apiUrl = "https://bni-data-backend.onrender.com/api/universalLinks";
 // Use `invoiceData` and `einvoiceData` as needed
@@ -168,25 +199,48 @@ document.querySelector(".ack_date").textContent = ackDate
     : "N/A";
     fetch(apiUrl)
   .then((response) => response.json())
-  .then((data) => {
-    // Find the universal link name corresponding to the universal_link_id
+  .then(async (data) => {
     const universalLink = data.find((item) => item.id === universalLinkId);
-
-    // Get the universal_link_name or set it to "N/A" if not found
+    console.log("Universal Link ID:", universalLinkId); // Debug log
+    console.log("Training ID:", trainingId); // Debug log
     const universalLinkName = universalLink ? universalLink.universal_link_name : "N/A";
 
-    // Update the innerHTML of the payment_type element
-    document.querySelector(".payment_type").innerHTML = `
-      <strong>${universalLinkName} - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>
-    `;
+    if (universalLinkId === 1) {
+      if (baseAmount === 56499) {
+        document.querySelector(".base_amount").textContent = `₹ 56499.00`;
+        document.querySelector(".base_amountt").textContent = `₹56499.00`;
+        document.querySelector(".payment_type").innerHTML = `<strong>New Member Payment - 2Year</strong>`;
+      } else {
+        document.querySelector(".base_amount").textContent = `₹ 35309.00`;
+        document.querySelector(".base_amountt").textContent = `₹35309.00`;
+        document.querySelector(".payment_type").innerHTML = `<strong>New Member Payment - 1Year</strong>`;
+      }
+      
+      // Add the additional row for One Time Registration Fee
+      const tableBody = document.querySelector("tbody");
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+        <td class="col-1 text-center lin">2</td>
+        <td class="col-3 lin"><b>One Time Registration Fee</b></td>
+        <td class="col-2 text-center lin">999511</td>
+        <td class="col-2 text-end lin">₹ 5999.00</td>
+        <td class="col-2 text-end lin">₹5999.00</td>
+      `;
+      tableBody.appendChild(newRow);
+    } else if (universalLinkId === 3) {
+      console.log("Fetching training name..."); // Debug log
+      const trainingName = await fetchTrainingDetails(trainingId);
+      console.log("Received training name:", trainingName); // Debug log
+      document.querySelector(".payment_type").innerHTML = `<strong>Training Payments - ${trainingName || 'N/A'}</strong>`;
+    } else {
+      document.querySelector(".payment_type").innerHTML = `
+        <strong>${universalLinkName} - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>
+      `;
+    }
   })
   .catch((error) => {
-    console.error("Error fetching universal links:", error);
-
-    // Fallback in case of error
-    document.querySelector(".payment_type").innerHTML = `
-      <strong>N/A - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>
-    `;
+    console.error("Error in main fetch:", error); // Detailed error log
+    document.querySelector(".payment_type").innerHTML = `<strong>New Member Payment - 1Year</strong>`;
   });
   
 document.querySelector(".base_amount").textContent = `₹ ${baseAmount.toFixed(2)}`;

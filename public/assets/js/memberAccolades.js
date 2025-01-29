@@ -22,8 +22,8 @@ function debugLog(message, data = null) {
 async function fetchMemberData() {
     try {
         showLoader();
-        // Get logged in email from localStorage
-        const loggedInEmail = localStorage.getItem('loggedInEmail');
+        // Decode the logged-in email from the token
+        const loggedInEmail = getUserEmail(); // Use the function from tokenUtils.js
         debugLog('Logged in email:', loggedInEmail);
 
         // Fetch members data

@@ -1,4 +1,15 @@
- <!-- header -->
+<!-- Add this script at the very top of your file, before any other content -->
+<script src="../../assets/js/tokenUtils.js"></script>
+<script>
+    // Get login type from token
+    const loginType = getUserLoginType();
+    
+    // If user is a member, redirect to home page
+    if (loginType === 'member') {
+        window.location.href = '/';
+    }
+</script>
+<!-- header -->
  <%- include('../partials/header') %> 
  <!-- end header -->
 

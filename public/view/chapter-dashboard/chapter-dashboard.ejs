@@ -1,12 +1,24 @@
- <!-- header -->
- <%- include('../partials/header') %> 
- <!-- end header -->
+<!-- Add this script at the very top of your file, before any other content -->
+<script src="../../assets/js/tokenUtils.js"></script>
+<script>
+    // Get login type from token
+    const loginType = getUserLoginType();
+    
+    // If user is a member, redirect to home page
+    if (loginType === 'member') {
+        window.location.href = '/';
+    }
+</script>
 
- <!-- sidebar -->
+<!-- header -->
+<%- include('../partials/header') %> 
+<!-- end header -->
 
- <%- include('../partials/chapter-sidebar') %>
+<!-- sidebar -->
 
- <!-- end sidebar -->
+<%- include('../partials/chapter-sidebar') %>
+
+<!-- end sidebar -->
 
       <!-- Start::app-content -->
       <div class="main-content app-content" style="background-color: #f4f4f4">
