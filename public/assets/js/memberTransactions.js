@@ -567,7 +567,7 @@ try {
               //   balanceColor: 'red',
               // })
 
-              currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance) || 10; // new op/pending bal wtf linked
+              currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance) || 0; // new op/pending bal wtf linked
               ledgerData.push(
                 {
                   sNo: ledgerData.length +1,
@@ -854,7 +854,7 @@ try {
               //   balanceColor: 'red',
               // })
 
-                currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance) || 10; // new op/pending bal wtf link
+                currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance) || 0; // new op/pending bal wtf link
               ledgerData.push(
                 {
                   sNo: ledgerData.length +1,
