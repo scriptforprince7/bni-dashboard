@@ -522,7 +522,7 @@ try {
             //     chapter_id: chapter_id
             //   })
             // });
-            const balancePaymentsResponse = await fetch(`http://localhost:5000/api/getPendingAmount?kitty_id=${currentRemainingKitty.kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
+            const balancePaymentsResponse = await fetch(`https://bni-data-backend.onrender.com/api/getPendingAmount?kitty_id=${currentRemainingKitty.kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json'
@@ -809,7 +809,7 @@ try {
             //     chapter_id: chapter_id
             //   })
             // });
-            const balancePaymentsResponse = await fetch(`http://localhost:5000/api/getPendingAmount?kitty_id=${currentRemainingKitty.kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
+            const balancePaymentsResponse = await fetch(`https://bni-data-backend.onrender.com/api/getPendingAmount?kitty_id=${currentRemainingKitty.kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json'
@@ -1256,7 +1256,7 @@ try {
 
         // if i means its not first transaction and need new api here for op bal wtf
         if(uniqueNO === 1){
-            const balancePaymentsResponse = await fetch(`http://localhost:5000/api/getPendingAmount?kitty_id=${activeKittyPayments[0].kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
+            const balancePaymentsResponse = await fetch(`https://bni-data-backend.onrender.com/api/getPendingAmount?kitty_id=${activeKittyPayments[0].kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
