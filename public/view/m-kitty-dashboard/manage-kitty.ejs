@@ -285,10 +285,10 @@ th {
                               </h1>
                               <div class="pb-0 mt-0">
                                 <div>
-                                  <h5 class="fw-medium mb-1">
-                                    <span class="count-up" data-count="385"
+                                  <h5 class="fw-medium mb-1">₹
+                                    <span class="count-up" data-count="385" id="totalKitty"
                                       ></span
-                                    >₹ 25,000
+                                    >
                                   </h5>
                                 </div>
                               </div>
@@ -338,7 +338,7 @@ th {
                         </div>
                       </div>
                     </div>
-                    <div class="col-xxl-3">
+                    <!-- <div class="col-xxl-3">
                       <div
                         class="card custom-card overflow-hidden main-content-card"
                       >
@@ -474,7 +474,7 @@ th {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </div>
@@ -550,6 +550,7 @@ function hideLoader() {
 
 
 async function fetchKittyPayments() {
+  let total_kitty_collected =0;
     try {
         showLoader();
 
@@ -564,6 +565,8 @@ async function fetchKittyPayments() {
         const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
         const chapters = await chapterResponse.json();
         const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter]));
+        const totalKittys = document.getElementById("totalKitty");
+
 
         const tableBody = document.querySelector('table tbody');
         tableBody.innerHTML = ''; // Clear existing data
@@ -572,6 +575,7 @@ async function fetchKittyPayments() {
 
             // Retrieve chapter details from the chapterMap
             const chapter = chapterMap.get(payment.chapter_id) || {};
+            total_kitty_collected+= parseFloat(chapter.chapter_kitty_fees);
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -596,6 +600,7 @@ async function fetchKittyPayments() {
       </td>
             `;
             tableBody.appendChild(row);
+            totalKittys.innerHTML=total_kitty_collected;
         });
     } catch (error) {
         console.error('Error fetching kitty payments:', error);
