@@ -55,7 +55,7 @@ try {
   }
   console.log(userData.member_id);
   console.log(userData.chapter_id);
-  console.log(userData);
+  console.log(userData.member_induction_date);
 
   const { meeting_opening_balance, meeting_payable_amount, chapter_id, member_id,member_email_address } = userData;
 
@@ -421,7 +421,7 @@ try {
         allKittyPaymentsExceptActive.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         // sort and separated
         console.log("sorted allKittyPayment :", allKittyPaymentsExceptActive);
-        // console.log("active kitty is :",activeKittyPayments); wtf not available as active kitty is not here 
+        // console.log("active kitty is :",activeKittyPayments); //wtf not available as active kitty is not here 
         let uniqueNO =0;
         
 
@@ -511,6 +511,28 @@ try {
           // if unique is 1 then fetch from new api  endpoint
           if(uniqueNO===1){
             console.log("its run. new api data fetch later")
+            // const balancePaymentsResponse = await fetch('https://bni-data-backend.onrender.com/api/getPendingAmount', {
+            //   method: 'POST',
+            //   headers: {
+            //     'Content-Type': 'application/json'
+            //   },
+            //   body: JSON.stringify({
+            //     kitty_id: currentRemainingKitty.kitty_bill_id,
+            //     member_id: member_id,
+            //     chapter_id: chapter_id
+            //   })
+            // });
+            const balancePaymentsResponse = await fetch(`https://bni-data-backend.onrender.com/api/getPendingAmount?kitty_id=${currentRemainingKitty.kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+              });
+              const balancePayments = await balancePaymentsResponse.json();
+              console.log("new data from db:",balancePayments);
+            // const balancePayments = await balancePaymentsResponse.json();
+            // console.log("new data from db:",balancePayments);
+
             const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
         
         console.log('Next kitty raised all available Order:',nextKittyAllOrders);
@@ -545,13 +567,13 @@ try {
               //   balanceColor: 'red',
               // })
 
-              currentBalance += parseFloat(meeting_opening_balance); // new op/pending bal wtf
+              currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance) || 0; // new op/pending bal wtf linked
               ledgerData.push(
                 {
                   sNo: ledgerData.length +1,
-                  date: formatDate(userData.member_induction_date), //date from new api of last pending bal wtf
+                  date: formatDate(balancePayments.data?.[0]?.date_of_update) || formatDate(userData.member_induction_date), //date from new api of last pending bal wtf //new data entry linked   ----- formatDate(10-12-1000) || 
                   description: 'Opening Balance',
-                  debit: meeting_opening_balance, // new bal api  wtf
+                  debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf linked
                   credit: 0,
                   balance: currentBalance, // Display opening balance here
                   balanceColor: 'red', // Set balance color to red
@@ -775,7 +797,29 @@ try {
           console.log('hello',currentRemainingKitty);
           // if unique is 1 then fetch from new api  endpoint
           if(uniqueNO===1){
-            console.log("its run. new api data fetch later")
+            console.log("its run. new api data fetch later");
+            // const balancePaymentsResponse = await fetch('https://bni-data-backend.onrender.com/api/getPendingAmount', {
+            //   method: 'POST',
+            //   headers: {
+            //     'Content-Type': 'application/json'
+            //   },
+            //   body: JSON.stringify({
+            //     kitty_id: currentRemainingKitty.kitty_bill_id,
+            //     member_id: member_id,
+            //     chapter_id: chapter_id
+            //   })
+            // });
+            const balancePaymentsResponse = await fetch(`https://bni-data-backend.onrender.com/api/getPendingAmount?kitty_id=${currentRemainingKitty.kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+              });
+              const balancePayments = await balancePaymentsResponse.json();
+              console.log("new data from db:",balancePayments);
+            // const balancePayments = await balancePaymentsResponse.json();
+            // console.log("new data from db:",balancePayments);
+
             const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
         
         console.log('Next kitty raised all available Order:',nextKittyAllOrders);
@@ -810,13 +854,13 @@ try {
               //   balanceColor: 'red',
               // })
 
-              currentBalance += parseFloat(meeting_opening_balance); // new op/pending bal wtf
+                currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance) || 0; // new op/pending bal wtf link
               ledgerData.push(
                 {
                   sNo: ledgerData.length +1,
-                  date: formatDate(userData.member_induction_date), //date from new api of last pending bal wtf
+                  date: formatDate(balancePayments.data?.[0]?.date_of_update) || 10-12-2000, //date from new api of last pending ---- formatDate(10-12-2025) ||    ----bal wtf link
                   description: 'Opening Balance',
-                  debit: meeting_opening_balance, // new bal api  wtf
+                  debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf link
                   credit: 0,
                   balance: currentBalance, // Display opening balance here
                   balanceColor: 'red', // Set balance color to red
@@ -1212,27 +1256,66 @@ try {
 
         // if i means its not first transaction and need new api here for op bal wtf
         if(uniqueNO === 1){
+            const balancePaymentsResponse = await fetch(`https://bni-data-backend.onrender.com/api/getPendingAmount?kitty_id=${activeKittyPayments[0].kitty_bill_id}&member_id=${member_id}&chapter_id=${chapter_id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+            });
+            const balancePayments = await balancePaymentsResponse.json();
+            console.log("new data from db:",balancePayments);
 
 
-          console.log("its run. new api data fetch later")
 
-          currentBalance += parseFloat(meeting_opening_balance); // new op/pending bal wtf
-              ledgerData.push(
-                {
-                  sNo: ledgerData.length +1,
-                  date: formatDate(userData.member_induction_date), //date from new api of last pending bal wtf
-                  description: 'Opening Balance',
-                  debit: meeting_opening_balance, // new bal api  wtf
-                  credit: 0,
-                  balance: currentBalance, // Display opening balance here
-                  balanceColor: 'red', // Set balance color to red
-                });
+          console.log("its run. new api data fetch later for which need sort in all ")
+
+          // currentBalance += parseFloat(balancePayments.data?.[0]?.member_pending_balance || 10); // new op/pending bal wtf link
+          //     ledgerData.push(
+          //       {
+          //         sNo: ledgerData.length +1,
+          //         date:formatDate(balancePayments.data?.[0]?.date_of_update) || formatDate(userData.member_induction_date), //date from new api of last pending bal wtf link ----- formatDate(10-12-1000) || 
+          //         description: 'Opening Balance',
+          //         debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf
+          //         credit: 0,
+          //         balance: currentBalance, // Display opening balance here
+          //         balanceColor: 'red', // Set balance color to red
+          //       });
+
+
+                // needto fetch all pending balance then sep on basis of member and chap then sort remaing on basis of date of update entry latest date is on 0th index
+                const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
+                const pendingBalances = await pendingBalanceResponse.json();
+
+                // Filter and sort pending balances
+                const filteredPendingBalances = pendingBalances
+                  .filter(balance => balance.member_id === member_id && balance.chapter_id === chapter_id)
+                  .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
+
+                // Use the latest pending balance
+                if (filteredPendingBalances.length > 0) {
+                  const latestPendingBalance = filteredPendingBalances[0];
+                  currentBalance += parseFloat(latestPendingBalance.member_pending_balance);
+                  ledgerData.push({
+                    sNo: ledgerData.length + 1,
+                    date: formatDate(latestPendingBalance.date_of_update),
+                    description: 'Opening Balance',
+                    debit: latestPendingBalance.member_pending_balance,
+                    credit: 0,
+                    balance: currentBalance,
+                    balanceColor: 'red',
+                  });
+                }
+
+
+
+
+
               currentBalance += parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18);
               ledgerData.push({
                 sNo: ledgerData.length +1,
                 date: formatDate(activeKittyPayments[0].raised_on),
                 description: `
-                  <b>Meeting Payable Amount</b><br>
+                  <b>Meeting Payable Amount ui</b><br>
                   <em>(bill for: ${activeKittyPayments[0].bill_type})</em> - 
                   <em>(${activeKittyPayments[0].description})</em>
                 `,
@@ -1246,7 +1329,7 @@ try {
 
             const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments[0].kitty_bill_id && order.customer_email=== member_email_address);
         
-        console.log('Next kitty raised all available Order:',nextKittyAllOrders);
+        console.log('last active Next kitty raised all available Order:',nextKittyAllOrders);
         
         if(nextKittyAllOrders.length>0){
           let transactions;
@@ -1258,7 +1341,8 @@ try {
 
             // here need to calll new api for new data
             if(transactions.length>0){
-              console.log("its kittyid is :",activeKittyPayments.kitty_bill_id);
+              console.log("active kitty is :",activeKittyPayments);
+              console.log("its kittyid is :",activeKittyPayments[0].kitty_bill_id);
               console.log('meeting_opening_balance:', meeting_opening_balance);
               console.log('meeting_payable_amount:', meeting_payable_amount);
               console.log('chapter_id:', chapter_id);
@@ -1415,34 +1499,34 @@ try {
 
         }else{
           // its first transaction of user and need to mark uniqueNO==1 if any transaction found success
-          const lastKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments.kitty_bill_id && order.customer_email=== member_email_address);
+          const lastKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments[0].kitty_bill_id && order.customer_email=== member_email_address);
         
           console.log('Next kitty raised all available Order:',lastKittyAllOrders);
 
 
           // op from member route
-          currentBalance += parseFloat(meeting_opening_balance); // new op/pending bal wtf
-              ledgerData.push(
-                {
-                  sNo: ledgerData.length +1,
-                  date: formatDate(userData.member_induction_date), //date from new api of last pending bal wtf
-                  description: 'Opening Balance',
-                  debit: meeting_opening_balance, // new bal api  wtf
-                  credit: 0,
-                  balance: currentBalance, // Display opening balance here
-                  balanceColor: 'red', // Set balance color to red
-                });
-              currentBalance += parseFloat(activeKittyPayments.total_bill_amount) + parseFloat(parseFloat(activeKittyPayments.total_bill_amount) * 0.18);
+          // currentBalance += parseFloat(meeting_opening_balance); // new op/pending bal wtf
+          //     ledgerData.push(
+          //       {
+          //         sNo: ledgerData.length +1,
+          //         date: formatDate(userData.member_induction_date), //date from new api of last pending bal wtf
+          //         description: 'Opening Balance',
+          //         debit: meeting_opening_balance, // new bal api  wtf
+          //         credit: 0,
+          //         balance: currentBalance, // Display opening balance here
+          //         balanceColor: 'red', // Set balance color to red
+          //       });
+              currentBalance += parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18);
                 ledgerData.push({
                   sNo: ledgerData.length +1,
-                  date: formatDate(activeKittyPayments.raised_on),
+                  date: formatDate(activeKittyPayments[0].raised_on),
                   description: `
                     <b>Meeting Payable Amount vs</b><br>
-                    <em>(bill for: ${activeKittyPayments.bill_type})</em> - 
-                    <em>(${activeKittyPayments.description})</em>
+                    <em>(bill for: ${activeKittyPayments[0].bill_type})</em> - 
+                    <em>(${activeKittyPayments[0].description})</em>
                   `,
                   // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                  debit: parseFloat(activeKittyPayments.total_bill_amount) + parseFloat(parseFloat(activeKittyPayments.total_bill_amount) * 0.18),
+                  debit: parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
                   credit: 0,
                   balance: currentBalance, // Show sum in Meeting Payable Amount row
                   balanceColor: 'red', // Set balance color to red
@@ -1458,7 +1542,7 @@ try {
                 uniqueNO = 1;
               }
               if(uniqueNO === 1){
-                console.log("its kittyid is :",activeKittyPayments.kitty_bill_id);
+                console.log("its kittyid is :",activeKittyPayments[0].kitty_bill_id);
                 console.log('meeting_opening_balance:', meeting_opening_balance);
                 console.log('meeting_payable_amount:', meeting_payable_amount);
                 console.log('chapter_id:', chapter_id);

@@ -368,8 +368,11 @@ function hideLoader() {
         //     // console.log(order);
         // });
 
+        const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
+        const pendingBalances = await pendingBalanceResponse.json();
 
-        chapterOrders.forEach((order) => {
+
+        chapterOrders.forEach(async (order) => {
             // Find matching transaction
             const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
             
@@ -383,8 +386,30 @@ function hideLoader() {
             // find current member
             currentChapterMember = chapterMembers.find(member => member.member_email_address === order.customer_email);
             console.log('Current Member:', currentChapterMember);
+            console.log("current member id:",currentChapterMember.member_id);
+            console.log("current chapter id:",currentChapterMember.chapter_id);
 
-            let payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
+            // let payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
+            
+
+                // Filter and sort pending balances
+                const filteredPendingBalances = pendingBalances
+                  .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
+                  .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
+                
+                  console.log("filtererdPending data:",filteredPendingBalances);
+
+                // // Use the latest pending balance
+                let payamount;
+                if (filteredPendingBalances.length > 1) {
+                  const latestPendingBalance = filteredPendingBalances[0];
+                  payamount = parseFloat(order.order_amount) - parseFloat(latestPendingBalance.member_pending_balance);
+                  console.log("new data");
+                } else{
+                    payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
+                    console.log("old data");
+                }
+            // let payamount = parseFloat(order.order_amount);
             
             console.log('payamount:', payamount);
             console.log('order.order_amount:', order.order_amount);

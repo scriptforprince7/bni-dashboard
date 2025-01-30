@@ -326,7 +326,7 @@ async function updatePaymentGatewayStatus(gatewayId) {
         }
 
         console.log('Making API call to update gateway status for ID:', gatewayId);
-        const response = await fetch(`http://localhost:5000/api/payment-gateway/${gatewayId}/status`, {
+        const response = await fetch(`https://bni-data-backend.onrender.com/api/payment-gateway/${gatewayId}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -360,7 +360,7 @@ async function confirmGatewayChange(gateway) {
     
     try {
         // Get gateway ID from selected gateway name
-        const response = await fetch('http://localhost:5000/api/paymentGateway');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/paymentGateway');
         const gateways = await response.json();
         console.log('Fetched gateways:', gateways);
 
