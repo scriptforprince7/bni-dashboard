@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function checkAttendanceStatus() {
     try {
-      const response = await fetch('http://localhost:5000/api/allCheckins');
+      const response = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -120,13 +120,13 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
       regionsResponse,
           // Added this new item
     ] = await Promise.all([
-      fetch(`http://localhost:5000/api/getTrainingOrder/${training_id}`),
-      fetch("http://localhost:5000/api/allTransactions"),
-      fetch("http://localhost:5000/api/chapters"),
-      fetch("http://localhost:5000/api/paymentGateway"),
-      fetch("http://localhost:5000/api/universalLinks"),
-      fetch("http://localhost:5000/api/regions"),
-      fetch("http://localhost:5000/api/allOrders"),
+      fetch(`https://bni-data-backend.onrender.com/api/getTrainingOrder/${training_id}`),
+      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
+      fetch("https://bni-data-backend.onrender.com/api/chapters"),
+      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
+      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      fetch("https://bni-data-backend.onrender.com/api/regions"),
+      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
       
     ]);
 
@@ -544,7 +544,7 @@ updateRegistrationCount();
                 const photoFileName = matchingMember.member_photo.split('/').pop(); // This will get the last part after '/'
                 console.log('Extracted photo filename:', photoFileName);
                 
-                const photoUrl = `http://localhost:5000/uploads/memberPhotos/${photoFileName}`;
+                const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${photoFileName}`;
                 console.log('Constructed photo URL:', photoUrl);
                 
                 // Test if image exists
@@ -586,7 +586,7 @@ updateRegistrationCount();
             }).then((result) => {
                 if (result.isConfirmed) {
                     // Send request to mark attendance
-                    fetch("http://localhost:5000/api/markAttendence", {
+                    fetch("https://bni-data-backend.onrender.com/api/markAttendence", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -660,7 +660,7 @@ updateRegistrationCount();
           try {
             // Step 1: Send request to save settlement data
             const saveResponse = await fetch(
-              `http://localhost:5000/api/orders/${orderId}/settlementStatus`,
+              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
               { method: 'GET' }
             );
     
@@ -673,7 +673,7 @@ updateRegistrationCount();
             const cfPaymentId = row.querySelector('.custom_id').innerText;
     
             const fetchResponse = await fetch(
-              `http://localhost:5000/api/settlement/${cfPaymentId}`
+              `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
             );
     
             if (!fetchResponse.ok) {
@@ -685,7 +685,7 @@ updateRegistrationCount();
             // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
-              fetch(`http://localhost:5000/api/einvoice/${settlement.order_id}`)
+              fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -751,7 +751,7 @@ updateRegistrationCount();
                               loaderDiv.remove();
 
                               // Fetch the transaction data to get the orderId
-                              fetch('http://localhost:5000/api/allTransactions')
+                              fetch('https://bni-data-backend.onrender.com/api/allTransactions')
                                   .then(response => response.json())
                                   .then(transactions => {
                                       // Find the transaction with the matching cf_payment_id
@@ -760,7 +760,7 @@ updateRegistrationCount();
                                           const orderId = transaction.order_id; // Get the order_id
 
                                           // Send both orderId and cf_payment_id to the backend
-                                          fetch('http://localhost:5000/api/send-qr-code', {
+                                          fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
                                               method: 'POST',
                                               headers: {
                                                   'Content-Type': 'application/json',
@@ -931,7 +931,7 @@ updateRegistrationCount();
 
                 try {
                   const backendResponse = await fetch(
-                    "http://localhost:5000/einvoice/generate-irn",
+                    "https://bni-data-backend.onrender.com/einvoice/generate-irn",
                     {
                       method: "POST",
                       headers: {
@@ -948,7 +948,7 @@ updateRegistrationCount();
                   
                     // Fetch IRN and QR code details after successful generation
                     const einvoiceResponse = await fetch(
-                      `http://localhost:5000/api/einvoice/${orderId}`
+                      `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
                     );
                     const einvoiceData = await einvoiceResponse.json();
                   
@@ -1037,7 +1037,7 @@ document.addEventListener('click', async function(event) {
     async function fetchTrainingDetails() {
       try {
         showLoader();
-        const response = await fetch(`http://localhost:5000/api/getTraining/${training_id}`);
+        const response = await fetch(`https://bni-data-backend.onrender.com/api/getTraining/${training_id}`);
         if (!response.ok) throw new Error('Failed to fetch training details');
         return await response.json(); // Return the training data
       } catch (error) {
@@ -1089,7 +1089,7 @@ document.addEventListener('click', async function(event) {
           const training_published_by = trainingData.training_published_by || '';
 
           // Fetch the transaction data to get the orderId
-          fetch('http://localhost:5000/api/allTransactions')
+          fetch('https://bni-data-backend.onrender.com/api/allTransactions')
               .then(response => response.json())
               .then(transactions => {
                   // Find the transaction with the matching cf_payment_id
@@ -1098,7 +1098,7 @@ document.addEventListener('click', async function(event) {
                       const orderId = transaction.order_id; // Get the order_id
 
                       // Send all details to the backend
-                      fetch('http://localhost:5000/api/send-qr-code', {
+                      fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
                           method: 'POST',
                           headers: {
                               'Content-Type': 'application/json',
@@ -1266,7 +1266,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (matchingMember && matchingMember.member_photo) {
                     // Extract just the filename from the member_photo path
                     const photoFileName = matchingMember.member_photo.split('/').pop();
-                    const photoUrl = `http://localhost:5000/uploads/memberPhotos/${photoFileName}`;
+                    const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${photoFileName}`;
                     console.log('Constructed photo URL:', photoUrl);
                     
                     // Test if image exists
@@ -1309,7 +1309,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (result.isConfirmed) {
                 try {
                     // Send the scanned QR code to the backend
-                    const response = await fetch("http://localhost:5000/api/verify-qr-code", {
+                    const response = await fetch("https://bni-data-backend.onrender.com/api/verify-qr-code", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",

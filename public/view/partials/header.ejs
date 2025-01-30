@@ -27,11 +27,11 @@
     <title>Manage All Things Under One Roof | BNI Management Software</title>
 
     <!-- Favicon -->
-    <link
-      rel="icon"
-      href="https://www.bni.com/wp-content/uploads/2020/05/bni_white_red.png?x13567"
-      type="image/x-icon"
-    />
+    <link 
+    rel="icon" 
+    href="../../assets/images/BNI_logo_favicon.png"   
+    type="image/png"
+/>
 
     <!-- Main Theme Js -->
     <script src="../../assets/main.js"></script>
@@ -1443,7 +1443,7 @@
 
             if (member && member.member_photo) {
                 const headerLogo = document.getElementById('headerLogo');
-                const photoUrl = `http://localhost:5000/uploads/memberPhotos/${member.member_photo}`;
+                const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${member.member_photo}`;
                 
                 // Set up error handling for the image
                 headerLogo.onerror = function() {

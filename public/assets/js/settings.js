@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (member.member_photo) {
                     // Construct the complete URL for the photo
-                    const photoUrl = `http://localhost:5000/uploads/memberPhotos/${member.member_photo}`;
+                    const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${member.member_photo}`;
                     console.log('Photo URL:', photoUrl);
                     
                     photoPreview.src = photoUrl;

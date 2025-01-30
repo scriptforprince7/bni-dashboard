@@ -133,7 +133,7 @@ function populateChapterLogo(chapter) {
 
         if (chapter.chapter_logo && chapter.chapter_logo !== 'Not Found') {
             console.log('Setting chapter logo with path');
-            const photoPath = `http://localhost:5000/uploads/chapterPhotos/${chapter.chapter_logo}`;
+            const photoPath = `https://bni-data-backend.onrender.com/uploads/chapterPhotos/${chapter.chapter_logo}`;
             console.log('Full photo path:', photoPath);
             logoPreview.src = photoPath;
             logoPreview.style.display = 'block';
@@ -232,7 +232,7 @@ async function saveChanges() {
         }
 
         // Send the update request
-        const response = await fetch('http://localhost:5000/api/updateChapterSettings', {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/updateChapterSettings', {
             method: 'PUT',
             body: formData
         });
