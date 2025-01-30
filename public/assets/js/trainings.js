@@ -162,7 +162,48 @@ searchInput.addEventListener('input', (e) => {
     }
 });
 
-// Render trainings to table
+// Add this new function for fetching registration count
+async function fetchRegistrationCount(training_id) {
+    console.log(`Fetching registration count for training_id: ${training_id}`);
+    try {
+        // Fetch all orders
+        const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const orders = await ordersResponse.json();
+        console.log(`Found ${orders.length} total orders`);
+
+        // Filter orders for this training
+        const trainingOrders = orders.filter(order => order.training_id === training_id);
+        console.log(`Found ${trainingOrders.length} orders for training ${training_id}`);
+
+        if (trainingOrders.length === 0) {
+            console.log(`No orders found for training ${training_id}`);
+            return 0;
+        }
+
+        // Get order_ids for this training
+        const orderIds = trainingOrders.map(order => order.order_id);
+        console.log(`Order IDs to check for training ${training_id}:`, orderIds);
+
+        // Fetch all transactions
+        const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const transactions = await transactionsResponse.json();
+        console.log(`Found ${transactions.length} total transactions`);
+
+        // Count successful payments for these orders
+        const successfulPayments = transactions.filter(transaction => 
+            orderIds.includes(transaction.order_id) && 
+            transaction.payment_status === 'SUCCESS'
+        );
+        console.log(`Found ${successfulPayments.length} successful payments for training ${training_id}`);
+
+        return successfulPayments.length;
+    } catch (error) {
+        console.error('Error fetching registration count:', error);
+        return 0;
+    }
+}
+
+// Modify only the relevant part of the existing renderTrainings function
 function renderTrainings(trainingsToShow) {
     trainingsTableBody.innerHTML = '';
 
@@ -174,7 +215,11 @@ function renderTrainings(trainingsToShow) {
         return;
     }
 
-    trainingsToShow.forEach((training, index) => {
+    trainingsToShow.forEach(async (training, index) => {
+        // Get registration count for this training
+        const registrationsCount = await fetchRegistrationCount(training.training_id);
+        console.log(`Registration count for training ${training.training_id}: ${registrationsCount}`);
+
         trainingsTableBody.innerHTML += `
             <tr>
                 <td>${index + 1}</td>
@@ -187,7 +232,7 @@ function renderTrainings(trainingsToShow) {
                     month: 'short',
                     year: 'numeric'
                 })}</b></td>
-                <td><b>${training.registrations_count || '0'}</b></td>
+                <td><b>${registrationsCount}</b></td>
                 <td class="text-center"><b>${training.training_price}</b></td>
                 <td>
                     <span class="badge bg-${getBadgeClass(training.training_status)}">${training.training_status}</span>

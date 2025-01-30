@@ -4,7 +4,7 @@
 
 <!-- sidebar -->
 
-<%- include('../partials/member-sidebar') %>
+<%- include('../partials/chapter-sidebar') %>
 
 <!-- Start::app-content -->
 <div class="main-content app-content">
@@ -74,7 +74,7 @@
                   ><i
                     class="ri-community-line me-2 align-middle fs-14 lh-1 text-primary"
                   ></i
-                  >Member Info</a
+                  >Chapter Info</a
                 >
               </li>
             </ul>
@@ -342,9 +342,9 @@
                       <div class="card-body">
                         <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
                           <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Display Profile Picture</p>
+                            <p class="fs-14 mb-1 fw-medium">Display Chapter logo </p>
                             <p class="fs-12 text-muted mb-0">
-                              Upload your profile picture here
+                              Upload your chapter logo here
                             </p>
                           </div>
                           <div class="mb-0 ms-0 mt-sm-0 mt-2" id="recovery-mail">
@@ -367,7 +367,6 @@
                   <div class="col-xxl-12">
                     <div class="card custom-card shadow-none mb-0">
                       <div class="card-body">
-
                         <!-- Phone Number -->
                         <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
                           <div class="w-75">
@@ -387,73 +386,46 @@
                             <input type="email" class="form-control" id="email-address-input"/>
                           </div>
                         </div>
-                        
-                        <!-- Company Name -->
+
+                        <!-- Chapter Vision -->
                         <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
                           <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Company Name:</p>
+                            <p class="fs-14 mb-1 fw-medium">Chapter Vision:</p>
                           </div>
                           <div class="w-25">
-                            <input type="text" class="form-control" id="company-name-input"/>
+                            <input type="text" class="form-control" id="chapter-vision-input"/>
                           </div>
                         </div>
 
-                        <!-- Company Address -->
+                        <!-- Chapter Mission -->
                         <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
                           <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Company Address:</p>
+                            <p class="fs-14 mb-1 fw-medium">Chapter Mission:</p>
                           </div>
                           <div class="w-25">
-                            <input type="text" class="form-control" id="company-address-input"/>
+                            <input type="text" class="form-control" id="chapter-mission-input"/>
                           </div>
                         </div>
 
-                        <!-- Company GSTIN -->
+                        <!-- Contact Person -->
                         <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
                           <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Company GSTIN:</p>
+                            <p class="fs-14 mb-1 fw-medium">Contact Person:</p>
                           </div>
                           <div class="w-25">
-                            <input type="text" class="form-control" id="company-gstin-input"/>
+                            <input type="text" class="form-control" id="contact-person-input"/>
                           </div>
                         </div>
 
-                        <!-- Current Membership -->
+                        <!-- Chapter Address -->
                         <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
                           <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Current Membership (In Years):</p>
+                            <p class="fs-14 mb-1 fw-medium">Chapter Address:</p>
                           </div>
                           <div class="w-25">
-                            <input type="text" class="form-control" id="current-membership-input" style="background-color: #DCDCDC;" readonly/>
+                            <input type="text" class="form-control" id="chapter-address-input"/>
                           </div>
                         </div>
-
-                        <!-- Renewal Date -->
-                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
-                          <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Renewal Date:</p>
-                          </div>
-                          <div class="w-25">
-                            <input type="text" class="form-control" id="renewal-date-input" style="background-color: #DCDCDC;" readonly/>
-                          </div>
-                        </div>
-
-                        <!-- Company Logo (moved to bottom) -->
-                        <div class="d-sm-flex d-block align-items-top mb-4 justify-content-between">
-                          <div class="w-75">
-                            <p class="fs-14 mb-1 fw-medium">Company Logo:</p>
-                            <p class="fs-12 text-muted mb-0">Upload your company logo here</p>
-                          </div>
-                          <div class="w-25">
-                            <input type="file" class="form-control" id="company-logo-input" accept="image/*"/>
-                            <div id="logo-container" class="mt-2">
-                              <img id="company-logo-preview" src="" alt="Company Logo" style="max-width: 100px; display: none;"/>
-                              <p id="no-logo-message" class="text-muted fs-12">No company logo uploaded</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        
                       </div>
                     </div>
                   </div>
@@ -483,7 +455,7 @@
 <script>
   console.log('Before loading settings.js');
 </script>
-<script src="/assets/js/settings.js"></script>
+<script src="/assets/js/chapterSettings.js"></script>
 <script>
   console.log('After loading settings.js');
 </script>
@@ -506,276 +478,7 @@
     </div>
   </div>
 </div>
-<script>
-  async function saveChanges() {
-    try {
-        const phoneNumber = document.getElementById('phone-number-input').value;
-        const companyName = document.getElementById('company-name-input').value;
-        const companyAddress = document.getElementById('company-address-input').value;
-        const gstNumber = document.getElementById('company-gstin-input').value;
-        const loggedInEmail = getUserEmail();
-        
-        // Basic validations
-        if (!phoneNumber || !companyName || !companyAddress) {
-            toastr.error("Please fill in all required fields", "Error");
-            return;
-        }
 
-        // Phone number validation
-        if (phoneNumber.length !== 10) {
-            toastr.error("Phone number must be exactly 10 digits", "Error");
-            return;
-        }
-
-        // Create FormData
-        const formData = new FormData();
-        
-        // Add all form fields
-        formData.append('member_email_address', loggedInEmail);
-        formData.append('member_phone_number', phoneNumber);
-        formData.append('member_company_address', companyAddress);
-        formData.append('member_company_name', companyName);
-        formData.append('member_gst_number', gstNumber);
-        
-        // Add social links
-        formData.append('member_facebook', document.getElementById('facebook').value.trim() || '');
-        formData.append('member_instagram', document.getElementById('Instagram').value.trim() || '');
-        formData.append('member_youtube', document.getElementById('Youtube').value.trim() || '');
-        formData.append('member_linkedin', document.getElementById('Linkedin').value.trim() || '');
-
-        // Add photo if selected
-        const memberPhotoInput = document.getElementById('member-photo-input');
-        if (memberPhotoInput && memberPhotoInput.files && memberPhotoInput.files[0]) {
-            const file = memberPhotoInput.files[0];
-            formData.append('member_photo', file);
-        }
-
-        const response = await fetch('http://localhost:5000/api/updateMemberSettings', {
-            method: 'PUT',
-            body: formData,
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Server error:', errorData);
-            throw new Error(errorData.message || 'Update failed');
-        }
-
-        const data = await response.json();
-        console.log('Response data:', data);
-
-        if (data.message === "Member settings updated successfully") {
-            // Close the confirmation modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
-            if (modal) {
-                modal.hide();
-            }
-
-            toastr.success("Changes have been saved successfully!", "Success");
-             // Reload the page after a short delay
-             setTimeout(() => {
-                    window.location.reload();
-                }, 1000); // 1 second delay to show the success message
-            // Update photo preview if a new photo was uploaded
-            if (data.photo_path) {
-                const photoPreview = document.getElementById('member-photo-preview');
-                const noPhotoMessage = document.getElementById('no-photo-message');
-                
-                // Extract just the filename from the path
-                const fileName = data.photo_path.split('/').pop();
-                
-                // Construct the complete URL
-                const photoUrl = `http://localhost:5000/uploads/memberPhotos/${fileName}`;
-
-                console.log('Photo URL:', photoUrl);
-                photoPreview.src = photoUrl;
-                photoPreview.style.display = 'block';
-                noPhotoMessage.style.display = 'none';
-            }
-
-            // Clear the file input
-            if (memberPhotoInput) {
-                memberPhotoInput.value = '';
-            }
-
-            // Refresh company info
-            if (typeof displayCompanyInfo === 'function') {
-                displayCompanyInfo();
-            }
-        }
-    } catch (error) {
-        console.error('Error in saveChanges:', error);
-        toastr.error(error.message || "Error saving changes. Please try again.", "Error");
-    }
-  }
-
-  // Add event listener for member photo upload preview
-  document.getElementById('member-photo-input').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    
-    // Check if file exists and validate type
-    if (file) {
-        if (!allowedTypes.includes(file.type)) {
-            toastr.error('Only JPG, JPEG and PNG files are allowed', 'Invalid File Type');
-            this.value = ''; // Clear the file input
-            return;
-        }
-
-        // Check file size (optional, set to 5MB here)
-        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-        if (file.size > maxSize) {
-            toastr.error('File size should not exceed 5MB', 'File Too Large');
-            this.value = ''; // Clear the file input
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const photoPreview = document.getElementById('member-photo-preview');
-            const noPhotoMessage = document.getElementById('no-photo-message');
-            
-            photoPreview.src = e.target.result;
-            photoPreview.style.display = 'block';
-            noPhotoMessage.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-    }
-  });
-
-  // Phone number input validation
-  document.getElementById('phone-number-input').addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '');
-    if (this.value.length > 10) {
-        this.value = this.value.slice(0, 10);
-    }
-  });
-
-  // Email input validation
-  document.getElementById('email-address-input').addEventListener('input', function(e) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(this.value) && this.value.length > 0) {
-        this.classList.add('is-invalid');
-        // Optional: Show immediate feedback
-        toastr.warning("Please enter a valid email address", "Warning");
-    } else {
-        this.classList.remove('is-invalid');
-    }
-  });
-
-  // Company name input validation - limit to 50 characters
-  document.getElementById('company-name-input').addEventListener('input', function(e) {
-    if (this.value.length > 50) {
-        this.value = this.value.slice(0, 50);
-        toastr.warning("Company name cannot exceed 50 characters", "Warning");
-    }
-  });
-
-  // Company address input validation - limit to 150 characters
-  document.getElementById('company-address-input').addEventListener('input', function(e) {
-    if (this.value.length > 150) {
-        this.value = this.value.slice(0, 150);
-        toastr.warning("Company address cannot exceed 150 characters", "Warning");
-    }
-  });
-
-  // GST number input validation - Show popup only when user tries to modify the value
-  document.getElementById('company-gstin-input').addEventListener('input', function(e) {
-    // Get the original value
-    const originalValue = this.getAttribute('data-original');
-    
-    // If user tries to change the value, show popup and revert the change
-    if (this.value !== originalValue) {
-        // Show GST update notification modal
-        const gstModal = new bootstrap.Modal(document.getElementById('gstUpdateModal'));
-        gstModal.show();
-    }
-  });
-
-  // Add event listener to OK button in GST modal
-  document.querySelector('#gstUpdateModal .btn-primary').addEventListener('click', function() {
-    const gstInput = document.getElementById('company-gstin-input');
-    const originalValue = gstInput.getAttribute('data-original');
-    gstInput.value = originalValue;
-  });
-
-  // Store original GST number when page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    const gstInput = document.getElementById('company-gstin-input');
-    if (gstInput) {
-        gstInput.setAttribute('data-original', gstInput.value);
-    }
-  });
-
-  // Improve URL validation for social links
-  const validateUrl = (url) => {
-    if (!url) return true; // Empty URLs are allowed
-    try {
-        new URL(url);
-        return true;
-    } catch {
-        return false;
-    }
-  };
-
-  const socialInputs = ['facebook', 'Instagram', 'Youtube', 'Linkedin'];
-  
-  socialInputs.forEach(id => {
-    document.getElementById(id).addEventListener('input', function(e) {
-        let value = this.value.trim();
-        
-        // Add https:// if not present and there's a value
-        if (value && !value.match(/^https?:\/\//)) {
-            value = 'https://' + value;
-            this.value = value;
-        }
-
-        // Validate URL
-        if (value && !validateUrl(value)) {
-            this.classList.add('is-invalid');
-            toastr.warning(`Please enter a valid URL for ${id}`, "Warning");
-        } else {
-            this.classList.remove('is-invalid');
-        }
-    });
-  });
-
-  // Function to load social links
-  async function loadSocialLinks() {
-    try {
-        const loggedInEmail = getUserEmail();
-        const response = await fetch(`https://bni-data-backend.onrender.com/api/getMemberSocialLinks?email=${loggedInEmail}`);
-        
-        if (!response.ok) {
-            throw new Error('Failed to load social links');
-        }
-
-        const data = await response.json();
-        
-        // Update social link inputs and handle null values
-        if (data.social_links) {
-            const links = data.social_links;
-            document.getElementById('facebook').value = links.facebook || '';
-            document.getElementById('Instagram').value = links.instagram || '';
-            document.getElementById('Youtube').value = links.youtube || '';
-            document.getElementById('Linkedin').value = links.linkedin || '';
-        }
-
-        console.log('Loaded social links:', data.social_links); // Debug log
-    } catch (error) {
-        console.error('Error loading social links:', error);
-        toastr.error("Failed to load social links", "Error");
-    }
-  }
-
-  // Call loadSocialLinks when page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    loadSocialLinks();
-  });
-</script>
 
 <!-- Add this modal HTML at the end of your settings.ejs file -->
 <div class="modal fade" id="gstUpdateModal" tabindex="-1" aria-labelledby="gstUpdateModalLabel" aria-hidden="true">
