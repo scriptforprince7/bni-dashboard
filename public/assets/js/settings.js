@@ -2,11 +2,13 @@ console.log('Settings.js loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded');
-    displayCompanyInfo();
-});
-
-function displayCompanyInfo() {
-    const userEmail = localStorage.getItem('loggedInEmail');
+    const userEmail = getUserEmail(); // Changed from localStorage to token-based
+    
+    if (!userEmail) {
+        console.error('No user email found in token');
+        window.location.href = '/login'; // Redirect to login if no email found
+        return;
+    }
     
     console.log('Attempting to fetch data for email:', userEmail);
     
@@ -48,12 +50,16 @@ function displayCompanyInfo() {
                     noLogoMessage.style.display = 'block';
                 }
 
-                // Handle member photo
+                // Handle member photo display
                 const photoPreview = document.getElementById('member-photo-preview');
                 const noPhotoMessage = document.getElementById('no-photo-message');
                 
-                if (member.member_photo && member.member_photo !== '{}') {
-                    photoPreview.src = member.member_photo;
+                if (member.member_photo) {
+                    // Construct the complete URL for the photo
+                    const photoUrl = `http://localhost:5000/uploads/memberPhotos/${member.member_photo}`;
+                    console.log('Photo URL:', photoUrl);
+                    
+                    photoPreview.src = photoUrl;
                     photoPreview.style.display = 'block';
                     noPhotoMessage.style.display = 'none';
                 } else {
@@ -79,7 +85,7 @@ function displayCompanyInfo() {
         .catch(error => {
             console.error('Error fetching member data:', error);
         });
-}
+});
 
 function saveChanges() {
     const loggedInEmail = localStorage.getItem('loggedInEmail');
@@ -150,7 +156,7 @@ document.getElementById('company-logo-input').addEventListener('change', functio
     }
 });
 
-// Add event listener for member photo upload
+// Update the member photo upload preview handler
 document.getElementById('member-photo-input').addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (file) {

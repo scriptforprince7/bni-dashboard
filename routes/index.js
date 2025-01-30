@@ -23,10 +23,11 @@ const memberAccoladesRoutes = require('./r-memberAccolades/memberAccolades')
 const memberTrainingsRoutes = require('./r-memberTraining/memberTrainings')
 const memberInvoiceRoutes = require('./r-memberInvoice/memberInvoice')
 const refundRoutes = require('./r-refund/refundRoutes')
-
+const chapterSettingsRoutes = require('./r-settings/settingsRoutes');
 const chapterMembersRoutes = require('./r-chapterMembers/chapterMembers');
 const chapterKitty = require('./r-chapterKitty/chapterKitty')
 const sendNotificationRoutes = require('./r-sendNotification/sendNotificationRoutes');
+
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
