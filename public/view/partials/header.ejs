@@ -27,11 +27,11 @@
     <title>Manage All Things Under One Roof | BNI Management Software</title>
 
     <!-- Favicon -->
-    <link
-      rel="icon"
-      href="https://www.bni.com/wp-content/uploads/2020/05/bni_white_red.png?x13567"
-      type="image/x-icon"
-    />
+    <link 
+    rel="icon" 
+    href="../../assets/images/BNI_logo_favicon.png"   
+    type="image/png"
+/>
 
     <!-- Main Theme Js -->
     <script src="../../assets/main.js"></script>
@@ -1307,7 +1307,8 @@
                 <li>
                   <a
                     class="dropdown-item d-flex align-items-center"
-                    href="/s/settings"
+                    href="javascript:void(0);"
+                    onclick="handleSettingsClick()"
                     ><i
                       class="fe fe-settings p-1 rounded-circle bg-primary-transparent ings me-2 fs-16"
                     ></i
@@ -1429,6 +1430,58 @@
 
       // Update the existing logout button handler
       document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+
+      // Add this script to update the header logo when page loads
+      document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const userEmail = getUserEmail();
+            if (!userEmail) return;
+
+            const response = await fetch(`https://bni-data-backend.onrender.com/api/members`);
+            const members = await response.json();
+            const member = members.find(m => m.member_email_address === userEmail);
+
+            if (member && member.member_photo) {
+                const headerLogo = document.getElementById('headerLogo');
+                const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${member.member_photo}`;
+                
+                // Set up error handling for the image
+                headerLogo.onerror = function() {
+                    this.onerror = null; // Prevent infinite loop
+                    this.src = 'https://cdn-icons-png.flaticon.com/512/194/194828.png';
+                };
+                
+                headerLogo.src = photoUrl;
+            }
+        } catch (error) {
+            console.error('Error loading member photo:', error);
+        }
+      });
+
+      function handleSettingsClick() {
+        const loginType = getUserLoginType();
+        console.log('User login type:', loginType);
+
+        let redirectPath;
+        switch(loginType) {
+            case 'member':
+                redirectPath = '/s/member-settings';
+                break;
+            case 'chapter':
+                redirectPath = '/s/chapter-settings';
+                break;
+            case 'ro_admin':
+                redirectPath = '/s/settings';
+                break;
+            default:
+                console.error('Unknown login type:', loginType);
+                toastr.error('Invalid user type');
+                return;
+        }
+
+        console.log('Redirecting to:', redirectPath);
+        window.location.href = redirectPath;
+      }
     </script>
   </body>
 </html>

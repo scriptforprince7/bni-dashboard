@@ -21,7 +21,7 @@
               </h1>
               <p>Manage kitty payments with just one click</p>
             </div>
-            <div class="dropdown">
+            <!-- <div class="dropdown">
               <button class="btn btn-danger dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Select Region
               </button>
@@ -38,6 +38,39 @@
                 <a class="dropdown-item" href="#">Another action</a>
                 <a class="dropdown-item" href="#">Something else here</a>
               </div>
+            </div> -->
+            <!-- <div class="dropdown">
+              <button class="btn btn-danger dropdown-toggle" type="button" id="regionDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Select Region
+              </button>
+              <div class="dropdown-menu" id="regionMenu" aria-labelledby="regionDropdown">
+                 Region options will be dynamically inserted here 
+              </div>
+            </div>
+            
+            Chapter Dropdown 
+            <div class="dropdown">
+              <button class="btn btn-danger dropdown-toggle" type="button" id="chapterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Select Chapter
+              </button>
+              <div class="dropdown-menu" id="chapterMenu" aria-labelledby="chapterDropdown">
+                 Chapter options will be dynamically inserted here 
+              </div>
+            </div> -->
+            <div class="dropdown me-2">
+              <a href="javascript:void(0);" class="btn btn-sm btn-light text-muted dropdown-toggle region-button" data-bs-toggle="dropdown" aria-expanded="true">
+                  <i class="ti ti-sort-descending-2 me-1"></i>Choose Region
+              </a>
+              <ul class="dropdown-menu" id="region-filter" role="menu">
+                <!-- Items will be dynamically inserted here -->
+              </ul>
+            
+<a href="javascript:void(0);" class="btn btn-sm btn-light text-muted dropdown-toggle chapter-button" data-bs-toggle="dropdown" aria-expanded="true">
+  <i class="ti ti-sort-descending-2 me-1"></i>Choose Chapter
+</a>
+           <ul class="dropdown-menu" id="chapter-filter" role="menu">
+             <!-- Items will be dynamically inserted here -->
+           </ul>
             </div>
             
             <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -102,7 +135,7 @@
                             >Total Kitty Balance</span
                           >
                           <h4 class="fw-medium mb-0">
-                            ₹ <span><b>1,00,000</b></span>
+                            ₹ <span ><b id="totalRaised">N/a</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -132,7 +165,7 @@
                             >Total Kitty Expense</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>50,000</b></span>
+                            ₹ <span><b>N/a</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -165,7 +198,7 @@
                             >Kitty Payment Pending</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>80,000</b></span>
+                            ₹ <span><b>N/a</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -198,7 +231,7 @@
                             >Total Kitty Received</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>2,00,000</b></span>
+                            ₹ <span><b>N/a</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -231,7 +264,7 @@
                             >Total Visitor Payment</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>2,00,000</b></span>
+                            ₹ <span><b>N/a</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -363,43 +396,43 @@
                   
                   
                     <!-- Payment Gateway Filter -->
-                    <div class="dropdown me-2">
+                    <!-- <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
                          data-bs-toggle="dropdown"
                          aria-expanded="true">
                         <i class="ti ti-sort-descending-2 me-1"></i> Gateway
                       </a>
-                      <ul class="dropdown-menu" id="payment-gateway-filter" role="menu">
+                      <ul class="dropdown-menu" id="payment-gateway-filter" role="menu"> -->
                         <!-- Items will be dynamically inserted here -->
-                      </ul>
-                    </div>
+                      <!-- </ul>
+                    </div> -->
                   
                     <!-- Payment Status Filter -->
-                    <div class="dropdown me-2">
+                    <!-- <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
                          data-bs-toggle="dropdown"
                          aria-expanded="true">
                         <i class="ti ti-sort-descending-2 me-1"></i> PG Status
                       </a>
-                      <ul class="dropdown-menu" id="payment-status-filter" role="menu">
+                      <ul class="dropdown-menu" id="payment-status-filter" role="menu"> -->
                         <!-- Items will be dynamically inserted here -->
-                      </ul>
-                    </div>
+                      <!-- </ul>
+                    </div> -->
                   
                     <!-- Payment Method Filter -->
-                    <div class="dropdown me-2">
+                    <!-- <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
                          data-bs-toggle="dropdown"
                          aria-expanded="true">
                         <i class="ti ti-sort-descending-2 me-1"></i> Method
                       </a>
-                      <ul class="dropdown-menu" id="payment-method-filter" role="menu">
+                      <ul class="dropdown-menu" id="payment-method-filter" role="menu"> -->
                         <!-- Items will be dynamically inserted here -->
-                      </ul>
-                    </div>
+                      <!-- </ul>
+                    </div> -->
                   
                     <!-- Apply Filter Button -->
                     <button href=""
@@ -420,23 +453,14 @@
                     <table class="table text-nowrap">
                       <thead>
                         <tr>
-                          <th scope="col">S.No.</th>
-                          <th scope="col">Date</th>
-                          <th scope="col">Member Name</th>
-                          <th scope="col">Chapter</th>
-                          <th scope="col">Amount</th>
-                          <th scope="col">Payment Method</th>
-                          <th scope="col">Order ID</th>
-                          <th scope="col">Transaction ID</th>
-                          <th scope="col">PG Status</th>
-                          <th scope="col">Gateway</th>
-                          <th scope="col">Payment Type</th>
-                          <th scope="col">Settlement Status</th>
-                          <th scope="col">Tranfer UTR</th>
-                          <th scope="col">Tranfer Time</th>
-                          <th scope="col">IRN</th>
-                          <th scope="col">QR Code</th>
-                          <th scope="col">E-Invoice Status</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">S.No.</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Raised On</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Chapter Name</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Kitty Amount</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Description</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Bill Type</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Total Weeks</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Status</th>
                         </tr>
                       </thead>
                       <tbody id="paymentsTableBody">

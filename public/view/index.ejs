@@ -468,12 +468,12 @@
                                         <div class="col-xl-12 mb-2" id="password-field">
                                             <label for="signin-password" class="form-label text-default d-block">
                                                 Password
-                                                <a href="#" class="float-end fw-normal text-muted">Forget password?</a>
+                                               
                                             </label>
                                             <div class="position-relative">
                                                 <input type="password" class="form-control create-password-input" id="signin-password" name="password" placeholder="Password" required>
-                                                <a href="javascript:void(0);" class="show-password-button text-muted" id="showPasswordButton">
-                                                    <i class="ri-eye-off-line align-middle"></i>
+                                                <a href="javascript:void(0);" class="show-password-button text-muted" id="showPasswordButton" onclick="togglePasswordVisibility()">
+                                                    <i class="ri-eye-off-line align-middle" id="passwordToggleIcon"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -520,6 +520,43 @@
 
         <script src="../assets/js/authentication.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('signin-password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            
+            // Toggle password visibility
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('ri-eye-off-line');
+                toggleIcon.classList.add('ri-eye-line');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('ri-eye-line');
+                toggleIcon.classList.add('ri-eye-off-line');
+            }
+        }
+
+        // Add some CSS to position the eye icon properly
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                .position-relative {
+                    position: relative;
+                }
+                .show-password-button {
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    cursor: pointer;
+                }
+                .show-password-button i {
+                    font-size: 1.2rem;
+                }
+            </style>
+        `);
+        </script>
 
     </body>
     

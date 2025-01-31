@@ -8,4 +8,6 @@ exports.settings = (req, res) => {
 exports.userSettings = (req, res) => {
     res.render('m-settings/userSettings', { title: 'userSettings' });
 };
-
+exports.chapterSettings = (req, res) => {
+    res.render('m-settings/chapterSettings', { title: 'chapterSettings' });
+};

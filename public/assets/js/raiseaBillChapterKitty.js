@@ -15,6 +15,8 @@ let allCurrentUserPayments;
 const chapterEmail = getUserEmail(); 
 console.log('chapterEmail:', chapterEmail);
 
+let total_kitty_raised= 0;
+
 const fetchChapterId = async () => {
 // async function fetchChapterId() {
     try {
@@ -87,6 +89,8 @@ const insertPaymentsIntoTable = () => {
     else{
         allCurrentUserPayments.forEach((payment , index)=> {
             const row = document.createElement('tr');
+            total_kitty_raised+=parseFloat(current_user.chapter_kitty_fees);
+            console.log("adding ................................");
             
     
             // const dateCell = document.createElement('td');
@@ -112,13 +116,17 @@ const insertPaymentsIntoTable = () => {
                 <td><b>${payment.raised_on}</b></td>
                 <td><b style="color: ${payment.delete_status === 0 ? 'green' : 'red'};">
                 ${payment.delete_status === 0 ? 'Active' : 'Inactive'}</b></td>
-                <td><b>${payment.date}</b></td>
+                
             `;
+            // <td><b>${payment.date}</b></td> //this line removed from last 
             
     
             tableBody.appendChild(row);
         });
     }
+    const totalBill = document.getElementById('totalKittyRaised');
+    totalBill.innerHTML = `₹ ${total_kitty_raised}`;
+    console.log("raised kitty value:",total_kitty_raised);
     // tableBody.style.fontWeight = 'bold';
     // row.style.fontWeight = 'bold';
 };
@@ -126,7 +134,7 @@ const insertPaymentsIntoTable = () => {
 fetchAllCurrentkittyPayments().then(insertPaymentsIntoTable);
 const updateTableWithPayments = async () => {
     await fetchAllCurrentkittyPayments();
-    insertPaymentsIntoTable();
+    // insertPaymentsIntoTable();
     await autofillFields();
 };
 
