@@ -1352,11 +1352,51 @@
         document.getElementById("login_type").textContent = userLoginType;
       }
 
-      // Logout functionality
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        localStorage.removeItem("token");
-        window.location.href = "/";
+      // Logout button functionality
+      document.getElementById("logoutBtn").addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent immediate redirect
+        
+        // Configure toastr options
+        toastr.options = {
+            timeOut: 3000,
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            preventDuplicates: true,
+            onclick: null
+        };
+        
+        // Show toaster and handle redirect
+        toastr.success('Logged out successfully! Redirecting...', 'Success');
+        
+        // Delay the logout action
+        setTimeout(() => {
+            localStorage.removeItem("token");
+            window.location.href = "/";
+        }, 3000);
       });
+
+      // Handle session expiration logout
+      function handleLogout() {
+        // Configure toastr options
+        toastr.options = {
+            timeOut: 3000,
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            preventDuplicates: true,
+            onclick: null
+        };
+        
+        // Show toaster and handle redirect
+        toastr.success('Session expired! Redirecting to login...', 'Logged Out');
+        
+        // Delay the logout action
+        setTimeout(() => {
+            localStorage.removeItem("token");
+            window.location.href = "/";
+        }, 3000);
+      }
 
       // Auth check
       if (!userEmail || !userLoginType) {
@@ -1420,16 +1460,8 @@
         }
       }
 
-      function handleLogout() {
-        localStorage.removeItem("token");
-        window.location.href = "/";
-      }
-
       // Start the token check when page loads or refreshes
       window.addEventListener('load', setupTokenExpirationCheck);
-
-      // Update the existing logout button handler
-      document.getElementById("logoutBtn").addEventListener("click", handleLogout);
 
       // Add this script to update the header logo when page loads
       document.addEventListener('DOMContentLoaded', async function() {

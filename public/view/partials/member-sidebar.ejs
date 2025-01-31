@@ -272,7 +272,7 @@
                     alt="img"
                     class="avatar avatar-sm"
                   />
-                  <span class="side-menu__label">Raja Shukla</span>
+                  <span class="side-menu__label" id="memberNameDisplay">Raja Shukla</span>
                 </a>
               </li>
               <!-- End::slide -->
@@ -395,6 +395,67 @@
 
       </script>
    
+
+      
+        
+<script>
+  document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM Content Loaded - Starting member name update process');
+
+    // Get user email from token
+    const userEmail = getUserEmail();
+    console.log('User email from token:', userEmail);
+    
+    if (userEmail) {
+      try {
+        console.log('Fetching members data from API...');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const members = await response.json();
+        console.log('Received members data:', members);
+        
+        // Find member with matching email
+        console.log('Searching for member with email:', userEmail);
+        const member = members.find(m => {
+          console.log('Comparing with member:', m.member_email_address);
+          return m.member_email_address.toLowerCase() === userEmail.toLowerCase();
+        });
+        
+        console.log('Found matching member:', member);
+        
+        if (member) {
+          const fullName = `${member.member_first_name} ${member.member_last_name}`;
+          console.log('Generated full name:', fullName);
+          
+          // Try multiple ways to update the name
+          const nameElement = document.getElementById('memberNameDisplay');
+          console.log('Name display element found:', nameElement ? 'Yes' : 'No');
+          
+          if (nameElement) {
+            console.log('Previous display name:', nameElement.textContent);
+            // Force update using multiple methods
+            nameElement.textContent = fullName;
+            nameElement.innerText = fullName;
+            nameElement.innerHTML = fullName;
+            console.log('Attempted to update display name to:', fullName);
+            
+            // Verify the update
+            setTimeout(() => {
+              console.log('Current display name after update:', nameElement.textContent);
+            }, 100);
+          } else {
+            console.error('Could not find memberNameDisplay element');
+          }
+        } else {
+          console.log('No member found matching email:', userEmail);
+        }
+      } catch (error) {
+        console.error('Error in member name update process:', error);
+      }
+    } else {
+      console.log('No user email found in token - cannot update member name');
+    }
+  });
+</script>
 
       
         

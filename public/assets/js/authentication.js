@@ -83,13 +83,23 @@ document.getElementById('signInForm').addEventListener('submit', async function 
         signInButton.disabled = false;
 
         if (response.ok && result.success) {
+            // Set up auto-redirect timer
+            const redirectTimer = setTimeout(() => {
+                window.location.href = `/auth/otp-verification?email=${encodeURIComponent(email)}&login_type=${encodeURIComponent(loginType)}`;
+            }, 3000);
+
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
                 text: 'Please Verify OTP sent on email!',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                window.location.href = `/auth/otp-verification?email=${encodeURIComponent(email)}&login_type=${encodeURIComponent(loginType)}`;
+                confirmButtonText: 'OK',
+                timer: 3000,
+                timerProgressBar: true
+            }).then((result) => {
+                clearTimeout(redirectTimer); // Clear timer if OK is clicked
+                if (result.isConfirmed || result.isDismissed) {
+                    window.location.href = `/auth/otp-verification?email=${encodeURIComponent(email)}&login_type=${encodeURIComponent(loginType)}`;
+                }
             });
         } else {
             Swal.fire({

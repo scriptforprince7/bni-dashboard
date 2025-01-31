@@ -233,6 +233,47 @@
                            
                             <!-- End::slide - Tab 3 -->
 
+              <!-- Start::slide__category -->
+              <li class="slide__category">
+                <span class="category-name">General</span>
+              </li>
+              <!-- End::slide__category -->
+
+              <!-- Start::slide - My Account -->
+              <li class="slide">
+                <a href="/s/chapter-settings" class="side-menu__item">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 side-menu__icon"
+                    fill="none"
+                    viewbox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"
+                    ></path>
+                  </svg>
+                  <span class="side-menu__label">My Account</span>
+                </a>
+              </li>
+              <!-- End::slide -->
+
+              <!-- Start::slide - User Profile -->
+              <li class="slide">
+                <a href="#" class="side-menu__item">
+                  <img
+                    src="../../assets/images/faces/15.jpg"
+                    alt="img"
+                    class="avatar avatar-sm"
+                  />
+                  <span class="side-menu__label" id="chapterNameDisplay">Raja Shukla</span>
+                </a>
+              </li>
+              <!-- End::slide -->
+
             <div class="slide-right" id="slide-right">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -273,58 +314,81 @@
       </style>
 
       <script>
-        document.addEventListener("DOMContentLoaded", function () {
-  const currentPath = window.location.pathname;
+        document.addEventListener("DOMContentLoaded", async function () {
+          // Fetch and update chapter name
+          const token = localStorage.getItem('token');
+          if (token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(window.atob(base64));
+            const userEmail = payload.email;
 
-  // Map menu items to their parent menu
-  const menuMapping = {
-    "/d/chapter-dashboard": ".dashboard-menu",
-    "/exp/manage-expenses": ".expense-menu",
-    "/exp/add-expenses": ".expense-menu",
-    "/exp/manage-expense-types": ".expense-type-menu",
-    "/exp/add-expense-type": ".expense-type-menu",
-    "/ck/manage-chapterKitty": ".kitty-menu",
-    "/ck/chapter-raiseBill": ".kitty-menu",
-    "/cm/managechaptermember": ".chapter-member-menu",
-    "/ck/addchaptermember": ".chapter-member-menu",
-  };
+            try {
+              const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+              const chapters = await response.json();
+              const matchingChapter = chapters.find(chapter => 
+                chapter.email_id.toLowerCase() === userEmail.toLowerCase()
+              );
 
-  // Mark the active menu and open its dropdown
-  if (menuMapping[currentPath]) {
-    const parentMenu = document.querySelector(menuMapping[currentPath]);
-    const childLink = document.querySelector(`a[href="${currentPath}"]`);
-    if (parentMenu) {
-      parentMenu.classList.add("active"); // Add active class to parent
-      parentMenu.nextElementSibling.classList.add("open"); // Open the dropdown
-    }
-    if (childLink) {
-      childLink.classList.add("active"); // Add active class to child link
-    }
-  }
+              if (matchingChapter) {
+                document.getElementById('chapterNameDisplay').textContent = matchingChapter.chapter_name;
+              }
+            } catch (error) {
+              console.error('Error fetching chapter name:', error);
+            }
+          }
 
-  // Sidebar toggle button functionality
-  const sidebarToggle = document.querySelector('.sidemenu-toggle');
-  sidebarToggle.addEventListener('click', () => {
-    const body = document.body;
-    const isSidebarHidden = body.classList.contains('sidebar-hidden');
+          const currentPath = window.location.pathname;
 
-    if (isSidebarHidden) {
-      // Sidebar is being shown: reopen dropdown for active menu
-      const activeMenu = document.querySelector('.slide.has-sub.active');
-      if (activeMenu) {
-        activeMenu.nextElementSibling.classList.add('open'); // Reopen dropdown
-      }
-    } else {
-      // Sidebar is being hidden: close all dropdowns
-      document.querySelectorAll('.slide-menu.open').forEach(menu => {
-        menu.classList.remove('open');
-      });
-    }
+          // Map menu items to their parent menu
+          const menuMapping = {
+            "/d/chapter-dashboard": ".dashboard-menu",
+            "/exp/manage-expenses": ".expense-menu",
+            "/exp/add-expenses": ".expense-menu",
+            "/exp/manage-expense-types": ".expense-type-menu",
+            "/exp/add-expense-type": ".expense-type-menu",
+            "/ck/manage-chapterKitty": ".kitty-menu",
+            "/ck/chapter-raiseBill": ".kitty-menu",
+            "/cm/managechaptermember": ".chapter-member-menu",
+            "/ck/addchaptermember": ".chapter-member-menu",
+          };
 
-    // Toggle the sidebar-hidden state on the body
-    body.classList.toggle('sidebar-hidden');
-  });
-});
+          // Mark the active menu and open its dropdown
+          if (menuMapping[currentPath]) {
+            const parentMenu = document.querySelector(menuMapping[currentPath]);
+            const childLink = document.querySelector(`a[href="${currentPath}"]`);
+            if (parentMenu) {
+              parentMenu.classList.add("active"); // Add active class to parent
+              parentMenu.nextElementSibling.classList.add("open"); // Open the dropdown
+            }
+            if (childLink) {
+              childLink.classList.add("active"); // Add active class to child link
+            }
+          }
+
+          // Sidebar toggle button functionality
+          const sidebarToggle = document.querySelector('.sidemenu-toggle');
+          sidebarToggle.addEventListener('click', () => {
+            const body = document.body;
+            const isSidebarHidden = body.classList.contains('sidebar-hidden');
+
+            if (isSidebarHidden) {
+              // Sidebar is being shown: reopen dropdown for active menu
+              const activeMenu = document.querySelector('.slide.has-sub.active');
+              if (activeMenu) {
+                activeMenu.nextElementSibling.classList.add('open'); // Reopen dropdown
+              }
+            } else {
+              // Sidebar is being hidden: close all dropdowns
+              document.querySelectorAll('.slide-menu.open').forEach(menu => {
+                menu.classList.remove('open');
+              });
+            }
+
+            // Toggle the sidebar-hidden state on the body
+            body.classList.toggle('sidebar-hidden');
+          });
+        });
 
       </script>
    
