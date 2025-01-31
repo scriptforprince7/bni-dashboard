@@ -1387,16 +1387,38 @@
           results.push(...adminEntries.filter(entry => entry.name.toLowerCase().includes(query)));
         }
          else if (userType === 'chapter') {
-          console.log("chapter");
-          
+          // console.log("chapter");
+          const chapterEntries = [
+            { name: 'Dashboard', link: '/d/chapter-dashboard' },
+            { name: 'Kitty Dashboard', link: '/ck/manage-chapterKitty' },
+            { name: 'Raise A Bill', link: '/ck/chapter-raiseBill' },
+            { name: 'View Expenses', link: '/exp/manage-expenses' },
+            { name: 'Add Expenses', link: '/exp/add-expenses' },
+            { name: 'View Expense Types', link: '/exp/manage-expense-types' },
+            { name: 'Add Expense Type', link: '/exp/add-expense-type' },
+            { name: 'View Chapter Member', link: '/cm/managechaptermember' },
+            { name: 'Add Chapter Member', link: '/cm/addchaptermember' },
+            { name: 'My Account', link: '/s/chapter-settings' }
+          ];
+          results.push(...chapterEntries.filter(entry => entry.name.toLowerCase().includes(query)));
           
         }
          else if (userType === 'member') {
           // console.log("member");
-          
-          if (query.includes('profile')) results.push({ name: 'Profile', link: '/member/profile' });
-          if (query.includes('events')) results.push({ name: 'Events', link: '/member/events' });
-          
+          const memberEntries = [
+            { name: 'Dashboard', link: '/d/member-dashboard' },
+            { name: 'Kitty Transactions Ledger', link: '/m/member-transactions' },
+            { name: 'All Transactions', link: '/m/member-allTransactions' },
+            { name: 'All Trainings', link: '/mtr/all-trainings' },
+            { name: 'My Trainings', link: '/mtr/my-training' },
+            { name: 'View All Accolades', link: '/macc/manage-memberAccolades' },
+            { name: 'Request A Accolade', link: '/macc/request-memberAccolades' },
+            { name: 'My Account', link: '/s/member-settings' }
+          ];
+          results.push(...memberEntries.filter(entry => entry.name.toLowerCase().includes(query)));
+          // if (query.includes('profile')) results.push({ name: 'Profile', link: '/member/profile' });
+          // if (query.includes('events')) results.push({ name: 'Events', link: '/member/events' });
+          // Add more member-specific entries here
         }
 
         const resultsContainer = document.getElementById('search-results');
@@ -1410,6 +1432,15 @@
           });
           resultsContainer.appendChild(resultItem);
         });
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', function(event) {
+        const searchInput = document.getElementById('header-search');
+        const searchResults = document.getElementById('search-results');
+        if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+          searchResults.innerHTML = '';
+        }
       });
     </script>
     <style>
