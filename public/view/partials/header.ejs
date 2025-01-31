@@ -985,6 +985,7 @@
               <a href="javascript:void(0);" class="header-search-icon border-0">
                 <i class="ri-search-line"></i>
               </a>
+              <div id="search-results" class="search-results"></div>
               <!-- End::header-link -->
             </div>
             <!-- End::header-element -->
@@ -1001,139 +1002,14 @@
                 data-bs-toggle="modal"
                 data-bs-target="#header-responsive-search"
               >
-                <!-- Start::header-link-icon -->
+                
                 <i class="bi bi-search header-link-icon"></i>
-                <!-- End::header-link-icon -->
+                
               </a>
             </li>
             <!-- End::header-element -->
 
-            <!-- Start::header-element -->
-            <!-- <li class="header-element country-selector dropdown">
-              Start::header-link|dropdown-toggle
-              <a
-                href="javascript:void(0);"
-                class="header-link dropdown-toggle"
-                data-bs-auto-close="outside"
-                data-bs-toggle="dropdown"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 header-link-icon"
-                  fill="none"
-                  viewbox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
-                  ></path>
-                </svg>
-              </a>
-              End::header-link|dropdown-toggle
-              <ul
-                class="main-header-dropdown dropdown-menu dropdown-menu-end"
-                data-popper-placement="none"
-              >
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <div
-                      class="d-flex align-items-center justify-content-between"
-                    >
-                      <div class="d-flex align-items-center">
-                        <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                          <img src="../../assets/images/flags/us_flag-1.jpg" alt="img" />
-                        </span>
-                        English
-                      </div>
-                    </div>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/spain_flag.jpg" alt="img" />
-                    </span>
-                    español
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/french_flag.jpg" alt="img" />
-                    </span>
-                    français
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/uae_flag.jpg" alt="img" />
-                    </span>
-                    عربي
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/germany_flag.jpg" alt="img" />
-                    </span>
-                    Deutsch
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/china_flag.jpg" alt="img" />
-                    </span>
-                    中国人
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/italy_flag.jpg" alt="img" />
-                    </span>
-                    Italiano
-                  </a>
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item d-flex align-items-center"
-                    href="javascript:void(0);"
-                  >
-                    <span class="avatar avatar-rounded avatar-xs lh-1 me-2">
-                      <img src="   images/flags/russia_flag.jpg" alt="img" />
-                    </span>
-                    Русский
-                  </a>
-                </li>
-              </ul>
-            </li> -->
-            <!-- End::header-element -->
+            
 
             <!-- Start::header-element -->
             <li
@@ -1287,22 +1163,7 @@
                     ></span>
                   </div>
                 </li>
-                <!-- <li>
-                  <a class="dropdown-item d-flex align-items-center" href="/s/my-profile"
-                    ><i
-                      class="fe fe-user p-1 rounded-circle bg-primary-transparent me-2 fs-16"
-                    ></i
-                    >Profile</a
-                  >
-                </li> -->
-                <!-- <li>
-                  <a class="dropdown-item d-flex align-items-center" href="#"
-                    ><i
-                      class="fe fe-mail p-1 rounded-circle bg-primary-transparent me-2 fs-16"
-                    ></i
-                    >Mail Inbox</a
-                  >
-                </li> -->
+                
 
                 <li>
                   <a
@@ -1482,6 +1343,92 @@
         console.log('Redirecting to:', redirectPath);
         window.location.href = redirectPath;
       }
+
+      document.getElementById('header-search').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const userType = getUserLoginType();
+        const results = [];
+        // console.log(userLoginType);
+
+        if (userType === 'ro_admin') {
+          const adminEntries = [
+            { name: 'Dashboard', link: '/d/ro-dashboard' },
+            { name: 'Manage Universal Links', link: '/u/manage-universal-links' },
+            { name: 'View All Regions', link: '/r/manage-region' },
+            { name: 'Add New Region', link: '/r/add-region' },
+            { name: 'View All Chapters', link: '/c/manage-chapter' },
+            { name: 'Add New Chapter', link: '/c/add-chapter' },
+            { name: 'View All Members', link: '/m/manage-members' },
+            { name: 'Add New Member', link: '/m/add-member' },
+            { name: 'All Transactions', link: '/t/all-transactions' },
+            { name: 'View All Trainings', link: '/tr/manage-trainings' },
+            { name: 'Add New Training', link: '/tr/add-training' },
+            { name: 'Kitty Dashboard', link: '/k/manage-kitty' },
+            { name: 'Raise New Bill', link: '/k/kitty-management' },
+            { name: 'View All Accolades', link: '/acc/manage-accolades' },
+            { name: 'Add New Accolade', link: '/acc/add-accolades' },
+            { name: 'Initiate a Refund', link: '/ref/initiate-refund' },
+            { name: 'All Refunds', link: '/ref/all-refunds' },
+            { name: 'View All Events', link: '/e/manage-events' },
+            { name: 'Add New Event', link: '/e/add-event' },
+            { name: 'View All Classifications', link: '/cl/manage-classifications' },
+            { name: 'Add New Classification', link: '/cl/add-classification' },
+            { name: 'View All Supplies', link: '/manage-supplies.html' },
+            { name: 'Add New Supply', link: '/add-supply.html' },
+            { name: 'View All Inventory', link: '/manage-inventory.html' },
+            { name: 'Add New Inventory', link: '/add-inventory.html' },
+            { name: 'View All Visitors', link: '/manage-visitors.html' },
+            { name: 'Add New Visitor', link: '/add-visitor.html' },
+            { name: 'View All Expenses', link: '/manage-expense.html' },
+            { name: 'Add New Expense', link: '/add-expense.html' },
+            { name: 'Set Notifications', link: '/add-notification.html' },
+            { name: 'My Account', link: '/s/settings' }
+          ];
+          results.push(...adminEntries.filter(entry => entry.name.toLowerCase().includes(query)));
+        }
+         else if (userType === 'chapter') {
+          console.log("chapter");
+          
+          
+        }
+         else if (userType === 'member') {
+          // console.log("member");
+          
+          if (query.includes('profile')) results.push({ name: 'Profile', link: '/member/profile' });
+          if (query.includes('events')) results.push({ name: 'Events', link: '/member/events' });
+          
+        }
+
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '';
+        results.forEach(result => {
+          const resultItem = document.createElement('div');
+          resultItem.className = 'search-result-item';
+          resultItem.textContent = result.name;
+          resultItem.addEventListener('click', () => {
+            window.location.href = result.link;
+          });
+          resultsContainer.appendChild(resultItem);
+        });
+      });
     </script>
+    <style>
+      .search-results {
+        position: absolute;
+        background: white;
+        border: 1px solid #ccc;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+      }
+      .search-result-item {
+        padding: 10px;
+        cursor: pointer;
+      }
+      .search-result-item:hover {
+        background: #f0f0f0;
+      }
+    </style>
   </body>
 </html>
