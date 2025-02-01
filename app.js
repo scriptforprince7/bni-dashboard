@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 // Use general routes
-app.use("/", routes);
+app.use("/dashboard", routes);
 
 // Use API routes
 app.use("/api", apiRoutes);
