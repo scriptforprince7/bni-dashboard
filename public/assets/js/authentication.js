@@ -89,7 +89,7 @@ document
       if (response.ok && result.success) {
         // Set up auto-redirect timer
         const redirectTimer = setTimeout(() => {
-          window.location.href = `/auth/otp-verification?email=${encodeURIComponent(
+          window.location.href = `/dashboard/auth/otp-verification?email=${encodeURIComponent(
             email
           )}&login_type=${encodeURIComponent(loginType)}`;
         }, 3000);
@@ -104,7 +104,7 @@ document
         }).then((result) => {
           clearTimeout(redirectTimer); // Clear timer if OK is clicked
           if (result.isConfirmed || result.isDismissed) {
-            window.location.href = `${base_url}/auth/otp-verification?email=${encodeURIComponent(
+            window.location.href = `/dashboard/auth/otp-verification?email=${encodeURIComponent(
               email
             )}&login_type=${encodeURIComponent(loginType)}`;
           }
