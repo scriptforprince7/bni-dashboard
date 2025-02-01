@@ -1,4 +1,4 @@
-      <!-- header -->
+<!-- header -->
       <%- include('../partials/header') %> 
 
       <style>
@@ -549,7 +549,235 @@ document.addEventListener('DOMContentLoaded', () => {
       <script src="../../assets/js/transactions.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-      <%- include('../partials/footer') %> 
+      <script>
+  // Function to fetch and update settlement data for a transaction
+  async function fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks) {
+    const orderId = transaction.order_id;
+    const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    const button = row.querySelector('.track-settlement');
+    const originalText = button.textContent;
+
+    try {
+      // Step 1: Send request to save settlement data
+      const saveResponse = await fetch(
+        `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+        { method: 'GET' }
+      );
+
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save settlement data.');
+      }
+
+      // Step 2: Fetch settlement data using cf_payment_id
+      const cfPaymentId = transaction.cf_payment_id;
+      const fetchResponse = await fetch(
+        `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+      );
+
+      if (!fetchResponse.ok) {
+        throw new Error('Failed to fetch settlement data.');
+      }
+
+      const { settlement } = await fetchResponse.json();
+
+      // Step 3: Update the table row based on settlement data
+      if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
+        fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+          .then(response => response.json())
+          .then(einvoiceData => {
+            const irnCell = row.querySelector(".irn");
+            const qrcodeCell = row.querySelector(".qrcode");
+            const btnCell = row.querySelector(".generate-invoice-btn");
+            const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
+            const orderId = settlement.order_id;
+            const orderr = orders.find((o) => o.order_id === orderId);
+            const transaction = transactions.find((t) => t.order_id === orderId);
+            const chapterName = chapterMap.get(settlement?.chapter_id) || "N/A";
+            const gatewayName = paymentGatewayMap.get(settlement?.payment_gateway_id) || "Unknown";
+            const universalLinkName = universalLinkMap.get(settlement?.universal_link_id) || "Not Applicable";
+
+            const invoiceData = {
+              orderId: orderr,
+              transactionId: transaction,
+              amount: transaction.payment_amount,
+              chapterName: chapterName,
+              gatewayName: gatewayName,
+              universalLinkName: universalLinkName,
+            };
+
+            // Display the IRN or a message if not available
+            irnCell.innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
+
+            // Check if both IRN and QR code are available
+            if (einvoiceData.irn && einvoiceData.qrcode) {
+              // Update the Generate E-Invoice button to View E-Invoice with link
+              const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+              const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+              btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+            }
+
+            // Check if QR code is already stored in localStorage for this order
+            if (localStorage.getItem(qrCodeKey)) {
+              // If QR code is stored, show the QR code image
+              qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+            } else if (einvoiceData.qrcode) {
+              // If QR code is available but not yet stored, show the button
+              qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+
+              // Add event listener to the button to display loading and then the QR code
+              row.querySelector(".generate-qr-btn").addEventListener("click", () => {
+                // Show "Loading..." message or spinner
+                qrcodeCell.innerHTML = "<em>Loading...</em>";
+
+                // Simulate loading for 3-4 seconds
+                setTimeout(() => {
+                  // Generate the QR code using the qrcode.js library
+                  const qrCodeData = einvoiceData.qrcode;
+
+                  // Generate the QR code and set it as an image
+                  QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+                    if (err) {
+                      console.error('Error generating QR Code:', err);
+                      qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
+                    } else {
+                      // Store the generated QR code URL in localStorage
+                      localStorage.setItem(qrCodeKey, url);
+
+                      // Display the generated QR code
+                      qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
+                    }
+                  });
+                }, 3000); // Delay for 3 seconds
+              });
+            } else {
+              qrcodeCell.innerHTML = "<em>Not Applicable</em>";
+            }
+          })
+          .catch(() => {
+            row.querySelector(".irn").innerHTML = "<em>Error Loading IRN</em>";
+            row.querySelector(".qrcode").innerHTML = "<em>Error Loading QR Code</em>";
+          });
+        button.textContent = 'Payment Settled ✔';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-success');
+        button.setAttribute('disabled', 'true');
+        toastr.success('Payment successfully settled!');
+
+        let e_invoice = row.querySelector('.generate-invoice-btn');
+        e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>`;
+
+        // Add UTR ID cell dynamically if it doesn't exist
+        let utrCell = row.querySelector('.utr-cell');
+        let settlementTime = row.querySelector('.settlement-time');
+        if (!utrCell) {
+          utrCell = document.createElement('td');
+          utrCell.classList.add('utr-cell');
+          utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+          row.appendChild(utrCell);
+        } else {
+          utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+        }
+        if (!settlementTime) {
+          settlementTime = document.createElement('td');
+          settlementTime.classList.add('utr-cell');
+
+          // Format the transfer time
+          const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+            dateStyle: 'medium', // Example: Jul 25, 2021
+            timeStyle: 'short', // Example: 7:27 AM
+          });
+
+          settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+          row.appendChild(settlementTime);
+        } else {
+          // Format the transfer time
+          const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+            dateStyle: 'medium', // Example: Jul 25, 2021
+            timeStyle: 'short', // Example: 7:27 AM
+          });
+
+          settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+        }
+
+      } else {
+        toastr.info('Settlement in process. Please track after some time.');
+        button.textContent = originalText; // Restore button text
+        button.disabled = false; // Re-enable the button
+      }
+    } catch (error) {
+      console.error('Error tracking settlement:', error.message);
+      toastr.error('An error occurred while tracking the settlement.');
+      button.textContent = originalText; // Restore button text
+      button.disabled = false; // Re-enable the button
+    }
+  }
+
+  // Function to automatically trigger track settlement on page load or refresh
+  async function autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks) {
+    for (const transaction of transactions) {
+      const orderId = transaction.order_id;
+      const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+      const button = row.querySelector('.track-settlement');
+
+      // Check if all required fields are present
+      const utrCell = row.querySelector('.utr-cell').textContent.trim();
+      const settlementTimeCell = row.querySelector('.settlement-time').textContent.trim();
+      const irnCell = row.querySelector('.irn').textContent.trim();
+      const qrcodeCell = row.querySelector('.qrcode').textContent.trim();
+
+      if (utrCell !== 'Not Available' && settlementTimeCell !== 'Not Available' && irnCell !== 'Not Applicable' && qrcodeCell !== 'Not Applicable') {
+        // All required fields are present, disable the button
+        button.textContent = 'Payment Settled ✔';
+        button.classList.add('btn-success');
+        button.setAttribute('disabled', 'true');
+      } else {
+        // Fetch and update settlement data
+        await fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks);
+      }
+    }
+  }
+
+  // On page load
+  document.addEventListener('DOMContentLoaded', async () => {
+    // ...existing code...
+
+    // Fetch data from all necessary endpoints
+    const [
+      ordersResponse,
+      transactionsResponse,
+      chaptersResponse,
+      paymentGatewayResponse,
+      universalLinksResponse,
+      regionsResponse,
+      paymentTypeResponse,
+    ] = await Promise.all([
+      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
+      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
+      fetch("https://bni-data-backend.onrender.com/api/chapters"),
+      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
+      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      fetch("https://bni-data-backend.onrender.com/api/regions"),
+      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+    ]);
+
+    const orders = await ordersResponse.json();
+    const transactions = await transactionsResponse.json();
+    const chapters = await chaptersResponse.json();
+    const paymentGateways = await paymentGatewayResponse.json();
+    const universalLinks = await universalLinksResponse.json();
+    const regions = await regionsResponse.json();
+    const paymentType = await paymentTypeResponse.json();
+
+    // ...existing code...
+
+    // Automatically trigger track settlement on page load or refresh
+    await autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks);
+
+    // ...existing code...
+  });
+</script>
+
+      <%- include('../partials/footer') %>
 
 
 

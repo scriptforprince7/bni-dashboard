@@ -78,6 +78,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   showLoader();
+  let isAutoTrack = 0;
+  let totalEntryis = 0;
   try {
     // Fetch data from all necessary endpoints
     const [
@@ -472,9 +474,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
-                <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
+                <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">
+                <span class="ename">${
                   order?.member_name || "Unknown"
-                }</td>
+                }</span></td>
                 <td><b><em>${chapterName}</em></b></td>
                 <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${
         transaction.order_id
@@ -503,10 +506,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     });
 
+      // Add a flag to differentiate between automatic and manual calls
+      // let isAutoTrack = true;
+
       // Add event listener for "Track Settlement" buttons
       document.addEventListener('click', async (event) => {
         if (event.target.classList.contains('track-settlement')) {
           event.preventDefault();
+    
+          // Set the flag to false for manual calls
+          // isAutoTrack = false;
     
           const button = event.target;
           const originalText = button.textContent; // Store the original button text
@@ -515,17 +524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const orderId = button.dataset.transactionId;
     
           try {
-            // Step 1: Send request to save settlement data
-            const saveResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
-              { method: 'GET' }
-            );
-    
-            if (!saveResponse.ok) {
-              throw new Error('Failed to save settlement data.');
-            }
-    
-            // Step 2: Fetch settlement data using cf_payment_id
+            // Step 1: Fetch settlement data using cf_payment_id
             const row = button.closest('tr');
             const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
     
@@ -539,7 +538,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
             const { settlement } = await fetchResponse.json();
     
-            // Step 3: Update the table row based on settlement data
+            // Step 2: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
               fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
@@ -548,7 +547,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                   const irnCell = row.querySelector(".irn");
                   const qrcodeCell = row.querySelector(".qrcode");
                   const btnCell = row.querySelector(".generate-invoice-btn");
-                  const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
                   const orderId = settlement.order_id;
                   const orderr = orders.find((o) => o.order_id === orderId);
                   const transaction = transactions.find((t) => t.order_id === orderId);
@@ -576,11 +574,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                       btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
                   }
         
-                  // Check if QR code is already stored in localStorage for this order
-                  if (localStorage.getItem(qrCodeKey)) {
-                      // If QR code is stored, show the QR code image
-                      qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
-                  } else if (einvoiceData.qrcode) {
+                  if (einvoiceData.qrcode) {
                       // If QR code is available but not yet stored, show the button
                       qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
         
@@ -600,9 +594,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                                       console.error('Error generating QR Code:', err);
                                       qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
                                   } else {
-                                      // Store the generated QR code URL in localStorage
-                                      localStorage.setItem(qrCodeKey, url);
-        
                                       // Display the generated QR code
                                       qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
                                   }
@@ -621,7 +612,9 @@ document.addEventListener("DOMContentLoaded", async () => {
               button.classList.remove('btn-success');
               button.classList.add('btn-success');
               button.setAttribute('disabled', 'true');
-              toastr.success('Payment successfully settled!');
+              if (isAutoTrack >= totalEntryis) {
+                toastr.success('Payment successfully settled!');
+              }
 
               let e_invoice = row.querySelector('.generate-invoice-btn');
               e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>
@@ -661,13 +654,17 @@ document.addEventListener("DOMContentLoaded", async () => {
               }
               
             } else {
-              toastr.info('Settlement in process. Please track after some time.');
+              if (isAutoTrack>=totalEntryis) {
+                toastr.info('Settlement in process. Please track after some time.');
+              }
               button.textContent = originalText; // Restore button text
               button.disabled = false; // Re-enable the button
             }
           } catch (error) {
+            if (isAutoTrack>=totalEntryis) {
+              toastr.error('An error occurred while tracking the settlement.');
+            }
             console.error('Error tracking settlement:', error.message);
-            toastr.error('An error occurred while tracking the settlement.');
             button.textContent = originalText; // Restore button text
             button.disabled = false; // Re-enable the button
           }
@@ -784,11 +781,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     transactionRow.querySelector(".irn").innerHTML =
                       einvoiceData.irn || "<em>Not Applicable</em>";
                   
-                    // Check if QR code is already stored in localStorage for this order
-                    if (localStorage.getItem(qrCodeKey)) {
-                      // If QR code is stored, show the QR code image
-                      transactionRow.querySelector(".qrcode").innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="30" height="30">`;
-                    } else if (einvoiceData.qrcode) {
+                    if (einvoiceData.qrcode) {
                       // If QR code is available but not yet stored, show the button
                       const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
                       const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
@@ -811,9 +804,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                               console.error('Error generating QR Code:', err);
                               transactionRow.querySelector(".qrcode").innerHTML = "<em>Error generating QR Code</em>";
                             } else {
-                              // Store the generated QR code URL in localStorage
-                              localStorage.setItem(qrCodeKey, url);
-                
                               // Display the generated QR code
                               transactionRow.querySelector(".qrcode").innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
                             }
@@ -878,11 +868,67 @@ document.addEventListener("DOMContentLoaded", async () => {
             row.style.display = matches ? '' : 'none';
         });
     });
+
+    
+    // Call the function after populating the table rows
+    setTimeout(() => { isAutoTrack = totalEntryis; hideLoader(); }, 20000);
+    setTimeout(() => { console.log("isautotrack vaklue:", isAutoTrack); }, 21000);
+    setTimeout(()=>{showLoader();autoTrackSettlement}, 10000); 
+   
+    console.log("totalEntryis",totalEntryis);
+    
   } catch (error) {
     console.error("Error loading data:", error);
   } finally {
     hideLoader();
   }
+
+  // Function to automatically trigger "Track Settlement" button and check data fields
+  async function autoTrackSettlement() {
+    const trackButtons = document.querySelectorAll('.track-settlement');
+
+    for (const button of trackButtons) {
+
+      const row = button.closest('tr');
+      const ename = row.querySelector('ename');
+      const utrCell = row.querySelector('.utr-cell');
+      const settlementTimeCell = row.querySelector('.settlement-time');
+      const irnCell = row.querySelector('.irn');
+      const qrcodeCell = row.querySelector('.qrcode');
+      const btnCell = row.querySelector('.generate-invoice-btn');
+      // if(ename==="prince sachdeva"){
+        // console.log("hello");
+        totalEntryis+=1;
+      // }
+
+      // Check if all required fields are present
+      if ((utrCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (settlementTimeCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (irnCell.textContent.trim()==="NotAvailable" || null ||undefined ) && qrcodeCell.querySelector('img')) {
+        // All fields are present, disable the button
+        // console.log("hello");
+
+        button.textContent = 'Payment Settled ✔';
+        button.classList.add('btn-success');
+        button.setAttribute('disabled', 'true');
+        console.log(utrCell);
+        console.log(settlementTimeCell);
+        console.log(irnCell);
+      } else {
+        // Trigger the "Track Settlement" button click event
+        // console.log("utr",utrCell);
+        // console.log("date",settlementTimeCell);
+        // console.log("id",irnCell);
+        console.log("hello");
+
+        button.click();
+      }
+    }
+    console.log("totalEntryis",totalEntryis);
+    // setTimeout(isAutoTrack = totalEntryis,40000);
+    // setTimeout(console.log("isautotrack :",isAutoTrack),41000);
+  }
+
+  // Call the function on page load
+  window.addEventListener("load", autoTrackSettlement);
 });
 
 
