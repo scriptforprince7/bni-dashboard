@@ -13,6 +13,9 @@ function showLoader() {
   const paymentTypeDropdown = document.getElementById("payment-type-filter");
   const paymentMethodDropdown = document.getElementById("payment-method-filter");
 
+  // Add this after your existing variable declarations
+  const searchInput = document.getElementById('searchChapterInput');
+  console.log('Search input initialized:', searchInput);
 
   // Populate a dropdown with options
 const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
@@ -322,6 +325,40 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
           <td><b><em>${paymentType}</em></b</td>
         `;
         transactionsBody.appendChild(row);
+      });
+
+      // Add search event listener
+      searchInput.addEventListener('input', function(e) {
+          const searchTerm = e.target.value.toLowerCase().trim();
+          console.log('Searching for:', searchTerm);
+
+          // Get all current table rows
+          const tableRows = document.querySelectorAll('.member-all-transactions tr');
+          console.log('Total rows to search:', tableRows.length);
+
+          tableRows.forEach(row => {
+              // Get the three searchable fields from the row
+              const orderId = row.querySelector('td:nth-child(5)')?.textContent || '';
+              const transactionId = row.querySelector('td:nth-child(6)')?.textContent || '';
+              const paymentType = row.querySelector('td:nth-child(8)')?.textContent || '';
+
+              console.log('Checking row:', {
+                  orderId,
+                  transactionId,
+                  paymentType
+              });
+
+              // Check if any field matches the search term
+              const matches = 
+                  orderId.toLowerCase().includes(searchTerm) ||
+                  transactionId.toLowerCase().includes(searchTerm) ||
+                  paymentType.toLowerCase().includes(searchTerm);
+
+              // Show/hide row based on match
+              row.style.display = matches ? '' : 'none';
+
+              console.log(`Row ${orderId}: ${matches ? 'matches' : 'does not match'}`);
+          });
       });
     } catch (error) {
       console.error('Error fetching transactions:', error);

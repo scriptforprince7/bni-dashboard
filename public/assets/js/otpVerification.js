@@ -55,25 +55,38 @@ document.getElementById('otpVerificationForm').addEventListener('submit', async 
             console.log('OTP verification successful');
             console.log('Storing token in localStorage');
             localStorage.setItem('token', result.token);
+            sessionStorage.setItem('newLogin', 'true');
+
+            // Determine redirect URL first
+            let redirectUrl = '/';
+            if (login_type === 'ro_admin') {
+                redirectUrl = '/d/ro-dashboard';
+            } else if (login_type === 'chapter') {
+                redirectUrl = '/d/chapter-dashboard';
+            } else if (login_type === 'member') {
+                redirectUrl = '/d/member-dashboard';
+            }
+            console.log('Redirect URL determined:', redirectUrl);
+
+            // Set up auto-redirect timer
+            const redirectTimer = setTimeout(() => {
+                console.log('Auto-redirecting after 3 seconds');
+                window.location.href = redirectUrl;
+            }, 3000);
 
             Swal.fire({
                 icon: 'success',
                 title: 'Login successful!',
                 text: 'You are being redirected...',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                console.log('Determining redirect URL');
-                // Use login_type from URL parameters instead of decoded token
-                let redirectUrl = '/';
-                if (login_type === 'ro_admin') {
-                    redirectUrl = '/d/ro-dashboard';
-                } else if (login_type === 'chapter') {
-                    redirectUrl = '/d/chapter-dashboard';
-                } else if (login_type === 'member') {
-                    redirectUrl = '/d/member-dashboard';
+                confirmButtonText: 'OK',
+                timer: 3000,
+                timerProgressBar: true
+            }).then((result) => {
+                clearTimeout(redirectTimer); // Clear the timer if OK is clicked
+                if (result.isConfirmed || result.isDismissed) {
+                    console.log('Manual redirect triggered');
+                    window.location.href = redirectUrl;
                 }
-                console.log('Redirecting to:', redirectUrl, 'Login type:', login_type);
-                window.location.href = redirectUrl;
             });
         } else {
             console.log('OTP verification failed:', result.message);
