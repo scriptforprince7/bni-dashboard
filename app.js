@@ -15,10 +15,9 @@ app.set("view engine", "ejs");
 // Serve static files
 app.use(express.static("public"));
 
-// Middleware to set base_url globally
+// Set base_url for all EJS views
 app.use((req, res, next) => {
-  res.locals.base_url = process.env.BASE_URL; // For EJS templates
-  req.base_url = process.env.BASE_URL; // For routes
+  res.locals.base_url = process.env.BASE_URL;
   next();
 });
 
