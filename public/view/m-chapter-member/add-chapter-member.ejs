@@ -1,5 +1,5 @@
 <!-- Add this script at the very top of your file, before any other content -->
-<script src="../../assets/js/tokenUtils.js"></script>
+<script src="<%= base_url %>/assets/js/tokenUtils.js"></script>
 <script>
     // Get login type from token
     const loginType = getUserLoginType();
@@ -1052,6 +1052,6 @@
     this.value = this.value.toUpperCase(); // Convert to uppercase automatically
   });
   </script>
-  <script src="../../assets/js/country.js"></script>
+  <script src="<%= base_url %>/assets/js/country.js"></script>
 
 <%- include('../partials/footer') %> 

@@ -1,242 +1,95 @@
-    <!-- header -->
-    <%- include('../partials/header') %> 
-    <!-- end header -->
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
 
-    <!-- sidebar -->
+<!-- sidebar -->
 
-    <%- include('../partials/member-sidebar') %>
-    <div id="loader">
-      <img src="../../assets/images/media/loader.svg" alt="" />
-    </div>
+<%- include('../partials/member-sidebar') %>
+<div id="loader">
+  <img src="<%= base_url %>/assets/images/media/loader.svg" alt="" />
+</div>
 
-      <!-- Start::app-content -->
-      <div class="main-content app-content">
-        <div class="container-fluid">
-          <!-- Page Header -->
-          <div
-            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
-          >
-            <div>
-              <nav>
-                <ol class="breadcrumb mb-1">
-                  <li class="breadcrumb-item">
-                    <a href="javascript:void(0);" style="color: #d01f2f"
-                      >Trainings Information</a
-                    >
-                  </li>
-                  <li class="breadcrumb-item Approved" aria-current="page">
-                    View All My Trainings
-                  </li>
-                </ol>
-              </nav>
-              <h1 class="page-title fw-medium fs-18 mb-0">
-                My Trainings
-              </h1>
-            </div>
-            <div class="col-xl-12">
-                <div class="row">
-                  <div class="col-xxl-12 col-xl-12">
-                    <div class="row" style="display: flex; justify-content: center;">
-                      <div class="col-xxl-3">
-                        <div
-                          class="card custom-card overflow-hidden main-content-card"
-                        >
-                          <div
-                            class="card-body p-4"
-                            style="background-color: gainsboro"
-                          >
-                            <div class="d-flex align-items-start gap-3">
-                              <div class="flex-fill">
-                                <h1 class="mb-2 fs-12 cus">
-                                  Total Registered Trainings
-                                </h1>
-                                <div class="pb-0 mt-0">
-                                  <div>
-                                    <h5 class="fw-medium mb-1">
-                                      <span class="count-up" id="total_registered_trainings"
-                                        >Loading..</span
-                                      >
-                                    </h5>
-                                  </div>
-                                </div>
-                              </div>
-                              <div
-                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Page Header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);" style="color: #d01f2f"
+                >Trainings Information</a
+              >
+            </li>
+            <li class="breadcrumb-item Approved" aria-current="page">
+              View All My Trainings
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">My Trainings</h1>
+      </div>
+      <div class="col-xl-12">
+        <div class="row">
+          <div class="col-xxl-12 col-xl-12">
+            <div class="row" style="display: flex; justify-content: center">
+              <div class="col-xxl-3">
+                <div class="card custom-card overflow-hidden main-content-card">
+                  <div
+                    class="card-body p-4"
+                    style="background-color: gainsboro"
+                  >
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="flex-fill">
+                        <h1 class="mb-2 fs-12 cus">
+                          Total Registered Trainings
+                        </h1>
+                        <div class="pb-0 mt-0">
+                          <div>
+                            <h5 class="fw-medium mb-1">
+                              <span
+                                class="count-up"
+                                id="total_registered_trainings"
+                                >Loading..</span
                               >
-                                <div
-                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
-                                >
-                                  <div class="avatar avatar-sm svg-white">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="44"
-                                      height="44"
-                                      viewBox="0 0 24 24"
-                                      stroke-width="1.5"
-                                      stroke="#d01f2f"
-                                      fill="none"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                    >
-                                      <path
-                                        stroke="none"
-                                        d="M0 0h24v24H0z"
-                                        fill="none"
-                                      />
-                                      <path
-                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
-                                      />
-                                      <path
-                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
-                                      />
-                                      <rect
-                                        x="3"
-                                        y="8"
-                                        width="18"
-                                        height="8"
-                                        rx="2"
-                                      />
-                                      <circle cx="16.5" cy="12" r="1.5" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                            </h5>
                           </div>
                         </div>
                       </div>
-                     
-                      
-                      <div class="col-xxl-3">
+                      <div
+                        class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                      >
                         <div
-                          class="card custom-card overflow-hidden main-content-card"
+                          class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
                         >
-                          <div
-                            class="card-body p-4"
-                            style="background-color: gainsboro"
-                          >
-                            <div class="d-flex align-items-start gap-3">
-                              <div class="flex-fill">
-                                <h6 class="mb-2 fs-12 cus">
-                                  Total Attended Training
-                                </h6>
-                                <div class="pb-0 mt-0">
-                                  <div>
-                                    <h5 class="fw-medium mb-1">
-                                      <span class="count-up" id="training-count" data-count="0">0</span>
-                                    </h5>
-                                  </div>
-                                </div>
-                              </div>
-                              <div
-                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
-                              >
-                                <div
-                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
-                                >
-                                  <div class="avatar avatar-sm svg-white">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="44"
-                                      height="44"
-                                      viewBox="0 0 24 24"
-                                      stroke-width="1.5"
-                                      stroke="#d01f2f"
-                                      fill="none"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                    >
-                                      <path
-                                        stroke="none"
-                                        d="M0 0h24v24H0z"
-                                        fill="none"
-                                      />
-                                      <path
-                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
-                                      />
-                                      <path
-                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
-                                      />
-                                      <rect
-                                        x="3"
-                                        y="8"
-                                        width="18"
-                                        height="8"
-                                        rx="2"
-                                      />
-                                      <circle cx="16.5" cy="12" r="1.5" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div class="col-xxl-3">
-                        <div
-                          class="card custom-card overflow-hidden main-content-card"
-                        >
-                          <div
-                            class="card-body p-4"
-                            style="background-color: gainsboro"
-                          >
-                            <div class="d-flex align-items-start gap-3">
-                              <div class="flex-fill">
-                                <h6 class="mb-2 fs-12 cus">
-                                  Total Missed Trainings
-                                </h6>
-                                <div class="pb-0 mt-0">
-                                  <div>
-                                    <h5 class="fw-medium mb-1">
-                                      <span class="count-up" id="missed-trainings-count">0</span>
-                                    </h5>
-                                  </div>
-                                </div>
-                              </div>
-                              <div
-                                class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
-                              >
-                                <div
-                                  class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
-                                >
-                                  <div class="avatar avatar-sm svg-white">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="44"
-                                      height="44"
-                                      viewBox="0 0 24 24"
-                                      stroke-width="1.5"
-                                      stroke="#d01f2f"
-                                      fill="none"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                    >
-                                      <path
-                                        stroke="none"
-                                        d="M0 0h24v24H0z"
-                                        fill="none"
-                                      />
-                                      <path
-                                        d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
-                                      />
-                                      <path
-                                        d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
-                                      />
-                                      <rect
-                                        x="3"
-                                        y="8"
-                                        width="18"
-                                        height="8"
-                                        rx="2"
-                                      />
-                                      <circle cx="16.5" cy="12" r="1.5" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                          <div class="avatar avatar-sm svg-white">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="44"
+                              height="44"
+                              viewBox="0 0 24 24"
+                              stroke-width="1.5"
+                              stroke="#d01f2f"
+                              fill="none"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path
+                                stroke="none"
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                              <path
+                                d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                              />
+                              <path
+                                d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                              />
+                              <rect x="3" y="8" width="18" height="8" rx="2" />
+                              <circle cx="16.5" cy="12" r="1.5" />
+                            </svg>
                           </div>
                         </div>
                       </div>
@@ -244,465 +97,760 @@
                   </div>
                 </div>
               </div>
+
+              <div class="col-xxl-3">
+                <div class="card custom-card overflow-hidden main-content-card">
+                  <div
+                    class="card-body p-4"
+                    style="background-color: gainsboro"
+                  >
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="flex-fill">
+                        <h6 class="mb-2 fs-12 cus">Total Attended Training</h6>
+                        <div class="pb-0 mt-0">
+                          <div>
+                            <h5 class="fw-medium mb-1">
+                              <span
+                                class="count-up"
+                                id="training-count"
+                                data-count="0"
+                                >0</span
+                              >
+                            </h5>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                      >
+                        <div
+                          class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                        >
+                          <div class="avatar avatar-sm svg-white">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="44"
+                              height="44"
+                              viewBox="0 0 24 24"
+                              stroke-width="1.5"
+                              stroke="#d01f2f"
+                              fill="none"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path
+                                stroke="none"
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                              <path
+                                d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                              />
+                              <path
+                                d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                              />
+                              <rect x="3" y="8" width="18" height="8" rx="2" />
+                              <circle cx="16.5" cy="12" r="1.5" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xxl-3">
+                <div class="card custom-card overflow-hidden main-content-card">
+                  <div
+                    class="card-body p-4"
+                    style="background-color: gainsboro"
+                  >
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="flex-fill">
+                        <h6 class="mb-2 fs-12 cus">Total Missed Trainings</h6>
+                        <div class="pb-0 mt-0">
+                          <div>
+                            <h5 class="fw-medium mb-1">
+                              <span class="count-up" id="missed-trainings-count"
+                                >0</span
+                              >
+                            </h5>
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                      >
+                        <div
+                          class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                        >
+                          <div class="avatar avatar-sm svg-white">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="44"
+                              height="44"
+                              viewBox="0 0 24 24"
+                              stroke-width="1.5"
+                              stroke="#d01f2f"
+                              fill="none"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path
+                                stroke="none"
+                                d="M0 0h24v24H0z"
+                                fill="none"
+                              />
+                              <path
+                                d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                              />
+                              <path
+                                d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                              />
+                              <rect x="3" y="8" width="18" height="8" rx="2" />
+                              <circle cx="16.5" cy="12" r="1.5" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <!-- Page Header Close -->
+        </div>
+      </div>
+    </div>
+    <!-- Page Header Close -->
 
-          <!-- Start::row-1 -->
-          <div class="card custom-card" style="background-color: gainsboro">
-            <div class="card-header justify-content-between">
-              <div class="card-title">My All Trainings</div>
-              <div class="d-flex gap-3 align-items-center flex-wrap">
-                <div class="btn-group"> 
-                  <div class="dropdown me-2">
-                    <a href="javascript:void(0);"
-                       class="btn btn-sm btn-light text-muted dropdown-toggle"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="true">
-                      <i class="ti ti-sort-descending-2 me-1"></i> Training Status
-                    </a>
-                    <ul class="dropdown-menu" id="trainings-status-filter" role="menu">
-                      <!-- Items will be dynamically inserted here -->
-                    </ul>
-                  </div>
+    <!-- Start::row-1 -->
+    <div class="card custom-card" style="background-color: gainsboro">
+      <div class="card-header justify-content-between">
+        <div class="card-title">My All Trainings</div>
+        <div class="d-flex gap-3 align-items-center flex-wrap">
+          <div class="btn-group">
+            <div class="dropdown me-2">
+              <a
+                href="javascript:void(0);"
+                class="btn btn-sm btn-light text-muted dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="true"
+              >
+                <i class="ti ti-sort-descending-2 me-1"></i> Training Status
+              </a>
+              <ul
+                class="dropdown-menu"
+                id="trainings-status-filter"
+                role="menu"
+              >
+                <!-- Items will be dynamically inserted here -->
+              </ul>
+            </div>
 
-                  <!-- Add Month Filter Dropdown -->
-                  <div class="dropdown me-2">
-                    <a href="javascript:void(0);"
-                       class="btn btn-sm btn-light text-muted dropdown-toggle"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="true">
-                      <i class="ti ti-calendar me-1"></i> Month
-                    </a>
-                    <ul class="dropdown-menu" id="month-filter" role="menu">
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="1">January</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="2">February</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="3">March</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="4">April</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="5">May</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="6">June</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="7">July</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="8">August</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="9">September</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="10">October</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="11">November</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0);" data-month="12">December</a></li>
-                    </ul>
-                  </div>
+            <!-- Add Month Filter Dropdown -->
+            <div class="dropdown me-2">
+              <a
+                href="javascript:void(0);"
+                class="btn btn-sm btn-light text-muted dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="true"
+              >
+                <i class="ti ti-calendar me-1"></i> Month
+              </a>
+              <ul class="dropdown-menu" id="month-filter" role="menu">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="1"
+                    >January</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="2"
+                    >February</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="3"
+                    >March</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="4"
+                    >April</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="5"
+                    >May</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="6"
+                    >June</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="7"
+                    >July</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="8"
+                    >August</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="9"
+                    >September</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="10"
+                    >October</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="11"
+                    >November</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="javascript:void(0);"
+                    data-month="12"
+                    >December</a
+                  >
+                </li>
+              </ul>
+            </div>
 
-                  <button id="apply-filters-btn" class="btn btn-sm btn-primary btn-wave waves-light">
-            Apply Filter
-          </button>
-          <button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light ms-2">
-            Reset Filter
-          </button>
-                  <!-- <a href="/tr/add-training"><button
+            <button
+              id="apply-filters-btn"
+              class="btn btn-sm btn-primary btn-wave waves-light"
+            >
+              Apply Filter
+            </button>
+            <button
+              id="reset-filters-btn"
+              class="btn btn-sm btn-danger btn-wave waves-light ms-2"
+            >
+              Reset Filter
+            </button>
+            <!-- <a href="/tr/add-training"><button
                     class="btn btn-outline-light border"
                     type="button"
                   >
                     + Add New Training
                   </button></a>  -->
-                </div>
-                <div class="custom-form-group flex-grow-1">
-                  <input
-                    type="text"
-                    id="searchAccolades"
-                    class="form-control"
-                    placeholder="Search Training.."
-                    aria-label="Search Training"
-                    aria-describedby="button-addon2"
-                  />
-                  <a
-                    href="javascript:void(0);"
-                    class="text-muted custom-form-btn"
-                    ><i class="ti ti-search"></i
-                  ></a>
-                </div>
-                
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table
-                  class="table table-hover text-nowrap chaptersTableBody"
-                  style="border: 1px solid grey">
-                  <thead>
-                    <tr>
-                      <th scope="col">S.No.</th>
-                      <th scope="col">Training Name</th>
-                      <th scope="col">Training Venue</th>
-                      <th scope="col">Registered On</th>
-                      <th scope="col">Paid Training Amount</th>
-                      <th scope="col">Training Date</th>
-                      <th scope="col">Training Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="training-body">
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="card-footer border-top-0">
-              <div class="d-flex align-items-center flex-wrap overflow-auto">
-                <div class="mb-2 mb-sm-0">
-                  Showing <b>1</b> to <b>10</b> entries
-                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
-                </div>
-                <div class="ms-auto">
-                  <ul class="pagination mb-0 overflow-auto">
-                    <li class="page-item disabled">
-                      <a class="page-link">Previous</a>
-                    </li>
-                    <li class="page-item Approved" aria-current="page">
-                      <a class="page-link" href="javascript:void(0)">1</a>
-                    </li>
-                    <li class="page-item">
-                      <a class="page-link" href="javascript:void(0)">Next</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
           </div>
-          <!--End::row-1 -->
+          <div class="custom-form-group flex-grow-1">
+            <input
+              type="text"
+              id="searchAccolades"
+              class="form-control"
+              placeholder="Search Training.."
+              aria-label="Search Training"
+              aria-describedby="button-addon2"
+            />
+            <a href="javascript:void(0);" class="text-muted custom-form-btn"
+              ><i class="ti ti-search"></i
+            ></a>
+          </div>
         </div>
       </div>
-      <!-- End::content  -->
-      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script src="/assets/js/tokenUtils.js"></script>
-      <script>
-        // Function to show the loader
-function showLoader() {
-  document.getElementById('loader').style.display = 'flex'; // Show loader
-}
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table
+            class="table table-hover text-nowrap chaptersTableBody"
+            style="border: 1px solid grey"
+          >
+            <thead>
+              <tr>
+                <th scope="col">S.No.</th>
+                <th scope="col">Training Name</th>
+                <th scope="col">Training Venue</th>
+                <th scope="col">Registered On</th>
+                <th scope="col">Paid Training Amount</th>
+                <th scope="col">Training Date</th>
+                <th scope="col">Training Status</th>
+              </tr>
+            </thead>
+            <tbody id="training-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer border-top-0">
+        <div class="d-flex align-items-center flex-wrap overflow-auto">
+          <div class="mb-2 mb-sm-0">
+            Showing <b>1</b> to <b>10</b> entries
+            <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+          </div>
+          <div class="ms-auto">
+            <ul class="pagination mb-0 overflow-auto">
+              <li class="page-item disabled">
+                <a class="page-link">Previous</a>
+              </li>
+              <li class="page-item Approved" aria-current="page">
+                <a class="page-link" href="javascript:void(0)">1</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="javascript:void(0)">Next</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+<!-- End::content  -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/assets/js/tokenUtils.js"></script>
+<script>
+  // Function to show the loader
+  function showLoader() {
+    document.getElementById("loader").style.display = "flex"; // Show loader
+  }
 
-// Function to hide the loader
-function hideLoader() {
-  document.getElementById('loader').style.display = 'none'; // Hide loader
-}
+  // Function to hide the loader
+  function hideLoader() {
+    document.getElementById("loader").style.display = "none"; // Hide loader
+  }
 
-// Store all trainings globally for filtering
+  // Store all trainings globally for filtering
   let allTrainings = [];
-  
 
   // Function to populate status filter dropdown
   const populateStatusFilter = () => {
-      const statusFilter = document.getElementById('trainings-status-filter');
-      const uniqueStatuses = [...new Set(allTrainings.map(t => t.training_status))];
-      
-      statusFilter.innerHTML = `
+    const statusFilter = document.getElementById("trainings-status-filter");
+    const uniqueStatuses = [
+      ...new Set(allTrainings.map((t) => t.training_status)),
+    ];
+
+    statusFilter.innerHTML = `
           <li><a class="dropdown-item" href="javascript:void(0);" data-status="all">All</a></li>
-          ${uniqueStatuses.map(status => 
-              `<li><a class="dropdown-item" href="javascript:void(0);" data-status="${status}">${status}</a></li>`
-          ).join('')}
+          ${uniqueStatuses
+            .map(
+              (status) =>
+                `<li><a class="dropdown-item" href="javascript:void(0);" data-status="${status}">${status}</a></li>`
+            )
+            .join("")}
       `;
   };
 
   // Function to filter trainings based on status, month, and search term
-  const filterTrainings = (trainings, statusFilter = 'all', monthFilter = null, searchTerm = '') => {
-      console.log('Filtering with status:', statusFilter, 'month:', monthFilter, 'search:', searchTerm);
-      
-      return trainings.filter(training => {
-          const matchesStatus = statusFilter === 'all' || training.training_status === statusFilter;
-          const trainingMonth = new Date(training.training_date).getMonth() + 1; // Get month (1-12)
-          const matchesMonth = monthFilter === null || trainingMonth === monthFilter; // Compare with selected month
-          const matchesSearch = searchTerm === '' || 
-              Object.values(training).some(value => 
-                  String(value).toLowerCase().includes(searchTerm.toLowerCase())
-              );
-          return matchesStatus && matchesMonth && matchesSearch;
-      });
+  const filterTrainings = (
+    trainings,
+    statusFilter = "all",
+    monthFilter = null,
+    searchTerm = ""
+  ) => {
+    console.log(
+      "Filtering with status:",
+      statusFilter,
+      "month:",
+      monthFilter,
+      "search:",
+      searchTerm
+    );
+
+    return trainings.filter((training) => {
+      const matchesStatus =
+        statusFilter === "all" || training.training_status === statusFilter;
+      const trainingMonth = new Date(training.training_date).getMonth() + 1; // Get month (1-12)
+      const matchesMonth =
+        monthFilter === null || trainingMonth === monthFilter; // Compare with selected month
+      const matchesSearch =
+        searchTerm === "" ||
+        Object.values(training).some((value) =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      return matchesStatus && matchesMonth && matchesSearch;
+    });
   };
 
   // Function to handle real-time search
   const handleSearch = () => {
-      const searchInput = document.getElementById('searchAccolades');
-      const selectedStatus = document.querySelector('#trainings-status-filter .active')?.dataset.status || 'all';
-      
-      searchInput.addEventListener('input', (e) => {
-          const searchTerm = e.target.value;
-          const filteredTrainings = filterTrainings(allTrainings, selectedStatus, null, searchTerm);
-          populateTrainingsTable(filteredTrainings);
-      });
+    const searchInput = document.getElementById("searchAccolades");
+    const selectedStatus =
+      document.querySelector("#trainings-status-filter .active")?.dataset
+        .status || "all";
+
+    searchInput.addEventListener("input", (e) => {
+      const searchTerm = e.target.value;
+      const filteredTrainings = filterTrainings(
+        allTrainings,
+        selectedStatus,
+        null,
+        searchTerm
+      );
+      populateTrainingsTable(filteredTrainings);
+    });
   };
 
   // Function to handle filter application
   const handleFilters = () => {
-      const applyFilterBtn = document.getElementById('apply-filters-btn');
-      const resetFilterBtn = document.getElementById('reset-filters-btn');
-      const statusFilter = document.getElementById('trainings-status-filter');
-      const monthFilter = document.getElementById('month-filter');
-      const searchInput = document.getElementById('searchAccolades');
+    const applyFilterBtn = document.getElementById("apply-filters-btn");
+    const resetFilterBtn = document.getElementById("reset-filters-btn");
+    const statusFilter = document.getElementById("trainings-status-filter");
+    const monthFilter = document.getElementById("month-filter");
+    const searchInput = document.getElementById("searchAccolades");
 
-      // Handle status selection
-      statusFilter.addEventListener('click', (e) => {
-          if (e.target.classList.contains('dropdown-item')) {
-              // Remove active class from all items
-              statusFilter.querySelectorAll('.dropdown-item').forEach(item => {
-                  item.classList.remove('active');
-              });
-              // Add active class to selected item
-              e.target.classList.add('active');
-          }
-      });
+    // Handle status selection
+    statusFilter.addEventListener("click", (e) => {
+      if (e.target.classList.contains("dropdown-item")) {
+        // Remove active class from all items
+        statusFilter.querySelectorAll(".dropdown-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+        // Add active class to selected item
+        e.target.classList.add("active");
+      }
+    });
 
-      // Handle month selection
-      monthFilter.addEventListener('click', (e) => {
-          if (e.target.classList.contains('dropdown-item')) {
-              // Remove active class from all items
-              monthFilter.querySelectorAll('.dropdown-item').forEach(item => {
-                  item.classList.remove('active');
-              });
-              // Add active class to selected item
-              e.target.classList.add('active');
-          }
-      });
+    // Handle month selection
+    monthFilter.addEventListener("click", (e) => {
+      if (e.target.classList.contains("dropdown-item")) {
+        // Remove active class from all items
+        monthFilter.querySelectorAll(".dropdown-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+        // Add active class to selected item
+        e.target.classList.add("active");
+      }
+    });
 
-      // Apply filter button click
-      applyFilterBtn.addEventListener('click', () => {
-          const selectedStatus = statusFilter.querySelector('.active')?.dataset.status || 'all';
-          const selectedMonth = monthFilter.querySelector('.active')?.dataset.month ? parseInt(monthFilter.querySelector('.active').dataset.month) : null;
-          const searchTerm = searchInput.value;
-          const filteredTrainings = filterTrainings(allTrainings, selectedStatus, selectedMonth, searchTerm);
-          populateTrainingsTable(filteredTrainings);
-      });
+    // Apply filter button click
+    applyFilterBtn.addEventListener("click", () => {
+      const selectedStatus =
+        statusFilter.querySelector(".active")?.dataset.status || "all";
+      const selectedMonth = monthFilter.querySelector(".active")?.dataset.month
+        ? parseInt(monthFilter.querySelector(".active").dataset.month)
+        : null;
+      const searchTerm = searchInput.value;
+      const filteredTrainings = filterTrainings(
+        allTrainings,
+        selectedStatus,
+        selectedMonth,
+        searchTerm
+      );
+      populateTrainingsTable(filteredTrainings);
+    });
 
-      // Reset filter button click
-      resetFilterBtn.addEventListener('click', () => {
-          // Clear search
-          searchInput.value = '';
-          // Reset status filter
-          statusFilter.querySelectorAll('.dropdown-item').forEach(item => {
-              item.classList.remove('active');
-          });
-          statusFilter.querySelector('[data-status="all"]').classList.add('active');
-          // Reset month filter
-          monthFilter.querySelectorAll('.dropdown-item').forEach(item => {
-              item.classList.remove('active');
-          });
-          monthFilter.querySelector('[data-month="1"]').classList.add('active'); // Default to January
-          // Show all trainings
-          populateTrainingsTable(allTrainings);
+    // Reset filter button click
+    resetFilterBtn.addEventListener("click", () => {
+      // Clear search
+      searchInput.value = "";
+      // Reset status filter
+      statusFilter.querySelectorAll(".dropdown-item").forEach((item) => {
+        item.classList.remove("active");
       });
+      statusFilter.querySelector('[data-status="all"]').classList.add("active");
+      // Reset month filter
+      monthFilter.querySelectorAll(".dropdown-item").forEach((item) => {
+        item.classList.remove("active");
+      });
+      monthFilter.querySelector('[data-month="1"]').classList.add("active"); // Default to January
+      // Show all trainings
+      populateTrainingsTable(allTrainings);
+    });
   };
 
   // Update the fetchUserTrainings function
   const fetchUserTrainings = async () => {
-      try {
-          showLoader();
-          const loggedInEmail = getUserEmail();
-          if (!loggedInEmail) throw new Error('No valid email found in token');
-          console.log('Logged-In Email from token:', loggedInEmail);
+    try {
+      showLoader();
+      const loggedInEmail = getUserEmail();
+      if (!loggedInEmail) throw new Error("No valid email found in token");
+      console.log("Logged-In Email from token:", loggedInEmail);
 
-          // Step 2: Fetch Member Data
-          const fetchMemberData = async (email) => {
-            const response = await fetch('https://bni-data-backend.onrender.com/api/members');
-            if (!response.ok) throw new Error('Failed to fetch members data');
-            const members = await response.json();
-            console.log('Looking for member with email:', email);
-            return members.find(member => member.member_email_address === email);
-          };
+      // Step 2: Fetch Member Data
+      const fetchMemberData = async (email) => {
+        const response = await fetch(
+          "https://bni-data-backend.onrender.com/api/members"
+        );
+        if (!response.ok) throw new Error("Failed to fetch members data");
+        const members = await response.json();
+        console.log("Looking for member with email:", email);
+        return members.find((member) => member.member_email_address === email);
+      };
 
-          const member = await fetchMemberData(loggedInEmail);
-          if (!member) throw new Error('Member not found for the logged-in email');
-          console.log('Logged-In User (Member Data):', member);
+      const member = await fetchMemberData(loggedInEmail);
+      if (!member) throw new Error("Member not found for the logged-in email");
+      console.log("Logged-In User (Member Data):", member);
 
-          // Step 3: Fetch Orders
-          const fetchOrders = async (memberId) => {
-            const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-            if (!response.ok) throw new Error('Failed to fetch orders');
-            const orders = await response.json();
-            return orders.filter(order => order.customer_id === memberId);
-          };
+      // Step 3: Fetch Orders
+      const fetchOrders = async (memberId) => {
+        const response = await fetch(
+          "https://bni-data-backend.onrender.com/api/allOrders"
+        );
+        if (!response.ok) throw new Error("Failed to fetch orders");
+        const orders = await response.json();
+        return orders.filter((order) => order.customer_id === memberId);
+      };
 
-          const orders = await fetchOrders(member.member_id);
-          console.log('Orders for Logged-In User:', orders);
+      const orders = await fetchOrders(member.member_id);
+      console.log("Orders for Logged-In User:", orders);
 
-          // Step 4: Extract Training IDs
-          const getTrainingIds = (orders) => {
-            return [...new Set(orders.map(order => order.training_id).filter(id => id))];
-          };
+      // Step 4: Extract Training IDs
+      const getTrainingIds = (orders) => {
+        return [
+          ...new Set(
+            orders.map((order) => order.training_id).filter((id) => id)
+          ),
+        ];
+      };
 
-          const trainingIds = getTrainingIds(orders);
-          console.log('Training IDs from Orders:', trainingIds);
+      const trainingIds = getTrainingIds(orders);
+      console.log("Training IDs from Orders:", trainingIds);
 
-          // Step 5: Fetch Trainings
-          const fetchTrainings = async (trainingIds) => {
-            const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
-            if (!response.ok) throw new Error('Failed to fetch trainings');
-            const trainings = await response.json();
-            return trainings.filter(training => trainingIds.includes(training.training_id));
-          };
+      // Step 5: Fetch Trainings
+      const fetchTrainings = async (trainingIds) => {
+        const response = await fetch(
+          "https://bni-data-backend.onrender.com/api/allTrainings"
+        );
+        if (!response.ok) throw new Error("Failed to fetch trainings");
+        const trainings = await response.json();
+        return trainings.filter((training) =>
+          trainingIds.includes(training.training_id)
+        );
+      };
 
-          const trainings = await fetchTrainings(trainingIds);
-          console.log('Trainings Associated with User:', trainings);
+      const trainings = await fetchTrainings(trainingIds);
+      console.log("Trainings Associated with User:", trainings);
 
-          // Store trainings globally
-          allTrainings = trainings;
-          
-          // Initialize filters and search
-          populateStatusFilter();
-          handleFilters();
-          handleSearch();
-          
-          // Initial population of table
-          populateTrainingsTable(trainings);
+      // Store trainings globally
+      allTrainings = trainings;
 
-          return trainings;
-      } catch (error) {
-          console.error('Error:', error.message);
-          return [];
-      } finally {
-          hideLoader();
-      }
+      // Initialize filters and search
+      populateStatusFilter();
+      handleFilters();
+      handleSearch();
+
+      // Initial population of table
+      populateTrainingsTable(trainings);
+
+      return trainings;
+    } catch (error) {
+      console.error("Error:", error.message);
+      return [];
+    } finally {
+      hideLoader();
+    }
   };
 
   // Update populateTrainingsTable to handle empty state
   const populateTrainingsTable = (trainings) => {
-      const tableBody = document.getElementById('training-body');
-      const totalTrainingsElement = document.getElementById('total_registered_trainings');
-      
-      tableBody.innerHTML = '';
+    const tableBody = document.getElementById("training-body");
+    const totalTrainingsElement = document.getElementById(
+      "total_registered_trainings"
+    );
 
-      if (trainings.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No trainings found.</td></tr>';
-          if (totalTrainingsElement) {
-              totalTrainingsElement.innerHTML = '0';
-          }
-          return;
-      }
+    tableBody.innerHTML = "";
 
+    if (trainings.length === 0) {
+      tableBody.innerHTML =
+        '<tr><td colspan="7" class="text-center">No trainings found.</td></tr>';
       if (totalTrainingsElement) {
-          totalTrainingsElement.innerHTML = trainings.length;
+        totalTrainingsElement.innerHTML = "0";
       }
+      return;
+    }
 
-      trainings.forEach((training, index) => {
-          const row = document.createElement('tr');
-          const getStatusBgClass = (status) => {
-              switch (status) {
-                  case 'Scheduled': return 'btn btn-warning btn-sm';
-                  case 'Cancelled': return 'btn btn-danger btn-sm';
-                  case 'Postponed': return 'btn btn-info btn-sm';
-                  case 'Completed': return 'btn btn-success btn-sm';
-                  default: return 'btn btn-secondary btn-sm';
-              }
-          };
+    if (totalTrainingsElement) {
+      totalTrainingsElement.innerHTML = trainings.length;
+    }
 
-          row.innerHTML = `
+    trainings.forEach((training, index) => {
+      const row = document.createElement("tr");
+      const getStatusBgClass = (status) => {
+        switch (status) {
+          case "Scheduled":
+            return "btn btn-warning btn-sm";
+          case "Cancelled":
+            return "btn btn-danger btn-sm";
+          case "Postponed":
+            return "btn btn-info btn-sm";
+          case "Completed":
+            return "btn btn-success btn-sm";
+          default:
+            return "btn btn-secondary btn-sm";
+        }
+      };
+
+      row.innerHTML = `
               <td>${index + 1}</td>
-              <td><b>${training.training_name || 'N/A'}</b></td>
-              <td><b>${training.training_venue || 'N/A'}</b></td>
-              <td>${training.training_date || 'N/A'}</td>
-              <td><b>₹ ${training.training_price || 'N/A'}</b></td>
-              <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
-              <td><button class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</button></td>
+              <td><b>${training.training_name || "N/A"}</b></td>
+              <td><b>${training.training_venue || "N/A"}</b></td>
+              <td>${training.training_date || "N/A"}</td>
+              <td><b>₹ ${training.training_price || "N/A"}</b></td>
+              <td><b>${
+                training.training_date
+                  ? training.training_date.split("T")[0]
+                  : "N/A"
+              }</b></td>
+              <td><button class="${getStatusBgClass(
+                training.training_status
+              )}">${training.training_status || "N/A"}</button></td>
           `;
 
-          tableBody.appendChild(row);
-      });
+      tableBody.appendChild(row);
+    });
   };
 
   // Initialize everything when the page loads
-  document.addEventListener('DOMContentLoaded', () => {
-      fetchUserTrainings();
+  document.addEventListener("DOMContentLoaded", () => {
+    fetchUserTrainings();
   });
 
   async function fetchAttendedTrainings() {
     try {
-      console.log('=== FETCH ATTENDED TRAININGS START ===');
-      
+      console.log("=== FETCH ATTENDED TRAININGS START ===");
+
       // Step 1: Get user email from token
       const userEmail = getUserEmail();
-      console.log('User Email:', userEmail);
+      console.log("User Email:", userEmail);
 
       // Step 2: Fetch Member Data
-      const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+      const membersResponse = await fetch(
+        "https://bni-data-backend.onrender.com/api/members"
+      );
       const membersData = await membersResponse.json();
-      console.log('Looking for member with email:', userEmail);
-      
+      console.log("Looking for member with email:", userEmail);
+
       // Find member by email
-      const memberDetails = membersData.find(member => member.member_email_address === userEmail);
+      const memberDetails = membersData.find(
+        (member) => member.member_email_address === userEmail
+      );
       if (!memberDetails) {
-        console.log('Member not found for email:', userEmail);
+        console.log("Member not found for email:", userEmail);
         return;
       }
-      
+
       const memberId = memberDetails.member_id;
-      console.log('Found Member ID:', memberId);
-      console.log('Member Details:', memberDetails);
+      console.log("Found Member ID:", memberId);
+      console.log("Member Details:", memberDetails);
 
       // Step 3: Fetch orders for this member
-      console.log('=== FETCHING ORDERS ===');
-      const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+      console.log("=== FETCHING ORDERS ===");
+      const ordersResponse = await fetch(
+        "https://bni-data-backend.onrender.com/api/allOrders"
+      );
       const ordersData = await ordersResponse.json();
-      
+
       // Filter orders by member's customer_id
-      const memberOrders = ordersData.filter(order => order.customer_id === memberId);
-      console.log('Total orders found for member:', memberOrders.length);
-      console.log('Member Orders:', memberOrders);
-      
-      const orderIds = memberOrders.map(order => order.order_id);
-      console.log('Order IDs extracted:', orderIds);
+      const memberOrders = ordersData.filter(
+        (order) => order.customer_id === memberId
+      );
+      console.log("Total orders found for member:", memberOrders.length);
+      console.log("Member Orders:", memberOrders);
+
+      const orderIds = memberOrders.map((order) => order.order_id);
+      console.log("Order IDs extracted:", orderIds);
 
       // Step 4: Fetch all transactions
-      console.log('=== FETCHING TRANSACTIONS ===');
-      const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+      console.log("=== FETCHING TRANSACTIONS ===");
+      const transactionsResponse = await fetch(
+        "https://bni-data-backend.onrender.com/api/allTransactions"
+      );
       const transactions = await transactionsResponse.json();
-      
+
       // Step 5: Map order IDs to transaction IDs
       const transactionIds = transactions
-        .filter(transaction => orderIds.includes(transaction.order_id))
-        .map(transaction => transaction.cf_payment_id);
-      
-      console.log('Found Transaction IDs:', transactionIds);
-      console.log('Matching Transactions:', transactions.filter(t => orderIds.includes(t.order_id)));
-      
+        .filter((transaction) => orderIds.includes(transaction.order_id))
+        .map((transaction) => transaction.cf_payment_id);
+
+      console.log("Found Transaction IDs:", transactionIds);
+      console.log(
+        "Matching Transactions:",
+        transactions.filter((t) => orderIds.includes(t.order_id))
+      );
+
       // Step 6: Fetch all checkins
-      console.log('=== FETCHING CHECKINS ===');
-      const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
+      console.log("=== FETCHING CHECKINS ===");
+      const checkinsResponse = await fetch(
+        "https://bni-data-backend.onrender.com/api/allCheckins"
+      );
       const checkins = await checkinsResponse.json();
-      
+
       // Step 7: Count matching checkins
-      const matchingCheckins = checkins.filter(checkin => 
+      const matchingCheckins = checkins.filter((checkin) =>
         transactionIds.includes(checkin.transaction_id)
       );
       const attendedCount = matchingCheckins.length;
-      
-      console.log('Matching Checkins:', matchingCheckins);
-      console.log('Final Attended Count:', attendedCount);
-      
+
+      console.log("Matching Checkins:", matchingCheckins);
+      console.log("Final Attended Count:", attendedCount);
+
       // Step 8: Update the display
-      const countElement = document.getElementById('training-count');
-      countElement.setAttribute('data-count', attendedCount);
+      const countElement = document.getElementById("training-count");
+      countElement.setAttribute("data-count", attendedCount);
       countElement.textContent = attendedCount;
-      
-      console.log('=== FETCH ATTENDED TRAININGS COMPLETE ===');
-      
+
+      console.log("=== FETCH ATTENDED TRAININGS COMPLETE ===");
+
       // After calculating attendedCount
-      console.log('=== CALCULATING MISSED TRAININGS ===');
-      
+      console.log("=== CALCULATING MISSED TRAININGS ===");
+
       // Get total registered trainings
-      const totalRegistered = parseInt(document.getElementById('total_registered_trainings').textContent);
-      console.log('Total Registered Trainings:', totalRegistered);
-      console.log('Total Attended Trainings:', attendedCount);
-      
+      const totalRegistered = parseInt(
+        document.getElementById("total_registered_trainings").textContent
+      );
+      console.log("Total Registered Trainings:", totalRegistered);
+      console.log("Total Attended Trainings:", attendedCount);
+
       // Calculate missed trainings
       const missedTrainings = totalRegistered - attendedCount;
-      console.log('Calculated Missed Trainings:', missedTrainings);
-      
+      console.log("Calculated Missed Trainings:", missedTrainings);
+
       // Update missed trainings display
-      const missedElement = document.getElementById('missed-trainings-count');
+      const missedElement = document.getElementById("missed-trainings-count");
       missedElement.textContent = missedTrainings;
-      
-      console.log('=== MISSED TRAININGS CALCULATION COMPLETE ===');
-      
+
+      console.log("=== MISSED TRAININGS CALCULATION COMPLETE ===");
     } catch (error) {
-      console.error('Error in fetchAttendedTrainings:', error);
+      console.error("Error in fetchAttendedTrainings:", error);
     }
   }
 
-// Call the function when the page loads
-document.addEventListener('DOMContentLoaded', fetchAttendedTrainings);
-      </script>
-      
+  // Call the function when the page loads
+  document.addEventListener("DOMContentLoaded", fetchAttendedTrainings);
+</script>
 
-      <%- include('../partials/footer') %> 
+<%- include('../partials/footer') %>

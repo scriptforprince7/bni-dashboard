@@ -1,27 +1,26 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
 
-    <!-- header -->
-    <%- include('../partials/header') %> 
-    <!-- end header -->
+<!-- sidebar -->
 
-    <!-- sidebar -->
-
-    <%- include('../partials/sidebar') %>
-      <!-- Start::app-content -->
-      <div class="main-content app-content" style="background-color: #f4f4f4">
-        <div class="container-fluid">
-          <!-- Start::page-header -->
-          <div
-            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+<%- include('../partials/sidebar') %>
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins"
+            >Kitty Dashboard</span
           >
-            <div>
-              <h1 class="page-title fw-medium fs-18 mb-0">
-                <span style="font-weight: 700; font-family: Poppins"
-                  >Kitty Dashboard</span
-                >
-              </h1>
-              <p>Manage kitty payments with just one click</p>
-            </div>
-            <!-- <div class="dropdown">
+        </h1>
+        <p>Manage kitty payments with just one click</p>
+      </div>
+      <!-- <div class="dropdown">
               <button class="btn btn-danger dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Select Region
               </button>
@@ -39,7 +38,7 @@
                 <a class="dropdown-item" href="#">Something else here</a>
               </div>
             </div> -->
-            <!-- <div class="dropdown">
+      <!-- <div class="dropdown">
               <button class="btn btn-danger dropdown-toggle" type="button" id="regionDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Select Region
               </button>
@@ -57,23 +56,33 @@
                  Chapter options will be dynamically inserted here 
               </div>
             </div> -->
-            <div class="dropdown me-2">
-              <a href="javascript:void(0);" class="btn btn-sm btn-light text-muted dropdown-toggle region-button" data-bs-toggle="dropdown" aria-expanded="true">
-                  <i class="ti ti-sort-descending-2 me-1"></i>Choose Region
-              </a>
-              <ul class="dropdown-menu" id="region-filter" role="menu">
-                <!-- Items will be dynamically inserted here -->
-              </ul>
-            
-<a href="javascript:void(0);" class="btn btn-sm btn-light text-muted dropdown-toggle chapter-button" data-bs-toggle="dropdown" aria-expanded="true">
-  <i class="ti ti-sort-descending-2 me-1"></i>Choose Chapter
-</a>
-           <ul class="dropdown-menu" id="chapter-filter" role="menu">
-             <!-- Items will be dynamically inserted here -->
-           </ul>
-            </div>
-            
-            <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="dropdown me-2">
+        <a
+          href="javascript:void(0);"
+          class="btn btn-sm btn-light text-muted dropdown-toggle region-button"
+          data-bs-toggle="dropdown"
+          aria-expanded="true"
+        >
+          <i class="ti ti-sort-descending-2 me-1"></i>Choose Region
+        </a>
+        <ul class="dropdown-menu" id="region-filter" role="menu">
+          <!-- Items will be dynamically inserted here -->
+        </ul>
+
+        <a
+          href="javascript:void(0);"
+          class="btn btn-sm btn-light text-muted dropdown-toggle chapter-button"
+          data-bs-toggle="dropdown"
+          aria-expanded="true"
+        >
+          <i class="ti ti-sort-descending-2 me-1"></i>Choose Chapter
+        </a>
+        <ul class="dropdown-menu" id="chapter-filter" role="menu">
+          <!-- Items will be dynamically inserted here -->
+        </ul>
+      </div>
+
+      <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
               <div class="form-group">
                 <div class="input-group">
                   <div class="input-group-text bg-white border">
@@ -96,129 +105,117 @@
                 </button>
               </div>
             </div> -->
-          </div>
-          <!-- End::page-header -->
-          <style>
-            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+    </div>
+    <!-- End::page-header -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
-            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
-          </style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+    </style>
 
-          <style>
-            * {
-              font-family: Montserrat !important;
-              font-weight: 800px;
-            }
-            .text-muted {
-              color: black !important;
-              font-family: Montserrat Alternates;
-            }
-            .popins {
-              font-family: Poppins;
-            }
-          </style>
+    <style>
+      * {
+        font-family: Montserrat !important;
+        font-weight: 800px;
+      }
+      .text-muted {
+        color: black !important;
+        font-family: Montserrat Alternates;
+      }
+      .popins {
+        font-family: Poppins;
+      }
+    </style>
 
-          <!-- Start:: row-1 -->
-          <div class="row">
-            <div class="col-xl-12">
-              <div class="row">
-                <div class="col-xxl-4 col-xl-6">
-                  <div
-                    class="card custom-card overflow-hidden main-content-card"
-                  >
-                    <div class="card-body" style="background-color: #cccccc">
-                      <div
-                        class="d-flex align-items-start justify-content-between mb-2"
-                      >
-                        <div>
-                          <span class="text-muted d-block mb-1 popins"
-                            >Total Kitty Bill Raised</span
-                          >
-                          <h4 class="fw-medium mb-0">
-                            ₹ <span ><b id="totalRaised">N/a</b></span>
-                          </h4>
-                        </div>
-                        <div class="lh-1">
-                          <span
-                            class="avatar avatar-md avatar-rounded bg-primary"
-                          >
-                            <i class="ti ti-shopping-cart fs-5"></i>
-                          </span>
-                        </div>
-                      </div>
-                      <!-- <a href=""
-                        ><div class="text-muted fs-13">See Statistics ▶</div></a
-                      > -->
-                    </div>
+    <!-- Start:: row-1 -->
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="row">
+          <div class="col-xxl-4 col-xl-6">
+            <div class="card custom-card overflow-hidden main-content-card">
+              <div class="card-body" style="background-color: #cccccc">
+                <div
+                  class="d-flex align-items-start justify-content-between mb-2"
+                >
+                  <div>
+                    <span class="text-muted d-block mb-1 popins"
+                      >Total Kitty Bill Raised</span
+                    >
+                    <h4 class="fw-medium mb-0">
+                      ₹ <span><b id="totalRaised">N/a</b></span>
+                    </h4>
+                  </div>
+                  <div class="lh-1">
+                    <span class="avatar avatar-md avatar-rounded bg-primary">
+                      <i class="ti ti-shopping-cart fs-5"></i>
+                    </span>
                   </div>
                 </div>
-                <div class="col-xxl-4 col-xl-6">
-                  <div
-                    class="card custom-card overflow-hidden main-content-card"
-                  >
-                    <div class="card-body" style="background-color: #e8e8e8">
-                      <div
-                        class="d-flex align-items-start justify-content-between mb-2"
-                      >
-                        <div>
-                          <span class="d-block text-muted mb-1 popins"
-                            >Total Kitty Expense</span
-                          >
-                          <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>N/a</b></span>
-                          </h4>
-                        </div>
-                        <div class="lh-1">
-                          <span
-                            class="avatar avatar-md avatar-rounded bg-primary1"
-                          >
-                            <i class="ti ti-users fs-5"></i>
-                          </span>
-                        </div>
-                      </div>
-                      <!-- <div class="text-muted fs-13">
+                <!-- <a href=""
+                        ><div class="text-muted fs-13">See Statistics ▶</div></a
+                      > -->
+              </div>
+            </div>
+          </div>
+          <div class="col-xxl-4 col-xl-6">
+            <div class="card custom-card overflow-hidden main-content-card">
+              <div class="card-body" style="background-color: #e8e8e8">
+                <div
+                  class="d-flex align-items-start justify-content-between mb-2"
+                >
+                  <div>
+                    <span class="d-block text-muted mb-1 popins"
+                      >Total Kitty Expense</span
+                    >
+                    <h4 class="fw-medium mb-0 bol">
+                      ₹ <span><b>N/a</b></span>
+                    </h4>
+                  </div>
+                  <div class="lh-1">
+                    <span class="avatar avatar-md avatar-rounded bg-primary1">
+                      <i class="ti ti-users fs-5"></i>
+                    </span>
+                  </div>
+                </div>
+                <!-- <div class="text-muted fs-13">
                         Increased By
                         <span class="text-success"
                           >0.34%<i class="ti ti-arrow-narrow-up fs-16"></i
                         ></span>
                       </div> -->
-                    </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xxl-4 col-xl-6">
+            <div class="card custom-card overflow-hidden main-content-card">
+              <div class="card-body" style="background-color: #e8e8e8">
+                <div
+                  class="d-flex align-items-start justify-content-between mb-2"
+                >
+                  <div>
+                    <span class="text-muted d-block mb-1 popins"
+                      >Kitty Payment Pending</span
+                    >
+                    <h4 class="fw-medium mb-0 bol">
+                      ₹ <span><b>N/a</b></span>
+                    </h4>
+                  </div>
+                  <div class="lh-1">
+                    <span class="avatar avatar-md avatar-rounded bg-primary2">
+                      <i class="ti ti-currency-dollar fs-5"></i>
+                    </span>
                   </div>
                 </div>
-                <div class="col-xxl-4 col-xl-6">
-                  <div
-                    class="card custom-card overflow-hidden main-content-card"
-                  >
-                    <div class="card-body" style="background-color: #e8e8e8">
-                      <div
-                        class="d-flex align-items-start justify-content-between mb-2"
-                      >
-                        <div>
-                          <span class="text-muted d-block mb-1 popins"
-                            >Kitty Payment Pending</span
-                          >
-                          <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>N/a</b></span>
-                          </h4>
-                        </div>
-                        <div class="lh-1">
-                          <span
-                            class="avatar avatar-md avatar-rounded bg-primary2"
-                          >
-                            <i class="ti ti-currency-dollar fs-5"></i>
-                          </span>
-                        </div>
-                      </div>
-                      <!-- <div class="text-muted fs-13">
+                <!-- <div class="text-muted fs-13">
                         Increased By
                         <span class="text-success"
                           >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
                         ></span>
                       </div> -->
-                    </div>
-                  </div>
-                </div>
-                <!-- <div class="col-xxl-4 col-xl-6">
+              </div>
+            </div>
+          </div>
+          <!-- <div class="col-xxl-4 col-xl-6">
                   <div
                     class="card custom-card overflow-hidden main-content-card"
                   >
@@ -242,16 +239,16 @@
                           </span>
                         </div>
                       </div> -->
-                      <!-- <div class="text-muted fs-13">
+          <!-- <div class="text-muted fs-13">
                         Increased By
                         <span class="text-success"
                           >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
                         ></span>
                       </div> -->
-                    <!-- </div>
+          <!-- </div>
                   </div>
                 </div> -->
-                <!-- <div class="col-xxl-4 col-xl-6">
+          <!-- <div class="col-xxl-4 col-xl-6">
                   <div
                     class="card custom-card overflow-hidden main-content-card"
                   >
@@ -275,16 +272,16 @@
                           </span>
                         </div>
                       </div> -->
-                      <!-- <div class="text-muted fs-13">
+          <!-- <div class="text-muted fs-13">
                         Increased By
                         <span class="text-success"
                           >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
                         ></span>
                       </div> -->
-                    <!-- </div>
+          <!-- </div>
                   </div>
                 </div> -->
-                <!-- <div class="col-xxl-4 col-xl-6">
+          <!-- <div class="col-xxl-4 col-xl-6">
                   <div class="card custom-card overflow-hidden">
                     <div class="card-header pb-0 justify-content-between">
                       <div class="card-title">Order Statistics</div>
@@ -366,37 +363,36 @@
                     </div>
                   </div>
                 </div> -->
-              </div>
-            </div>
-          </div>
-          <!-- End:: row-1 -->
-          <div class="row">
-            <div class="col-xl-12">
-              <div class="card custom-card">
-                <div
-                  class="card-header justify-content-between"
-                  style="background-color: gainsboro !important"
+        </div>
+      </div>
+    </div>
+    <!-- End:: row-1 -->
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div
+            class="card-header justify-content-between"
+            style="background-color: gainsboro !important"
+          >
+            <div class="card-title">All Kitty Transactions</div>
+            <div class="d-flex">
+              <!-- Month Filter -->
+              <div class="dropdown me-2">
+                <a
+                  href="javascript:void(0);"
+                  class="btn btn-sm btn-light text-muted dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="true"
                 >
-                  <div class="card-title">All Kitty Transactions</div>
-                  <div class="d-flex">
+                  <i class="ti ti-sort-descending-2 me-1"></i> Month
+                </a>
+                <ul class="dropdown-menu" id="month-filter" role="menu">
+                  <!-- Items will be dynamically inserted here -->
+                </ul>
+              </div>
 
-                  
-                    <!-- Month Filter -->
-                    <div class="dropdown me-2">
-                      <a href="javascript:void(0);"
-                         class="btn btn-sm btn-light text-muted dropdown-toggle"
-                         data-bs-toggle="dropdown"
-                         aria-expanded="true">
-                        <i class="ti ti-sort-descending-2 me-1"></i> Month
-                      </a>
-                      <ul class="dropdown-menu" id="month-filter" role="menu">
-                        <!-- Items will be dynamically inserted here -->
-                      </ul>
-                    </div>
-                  
-                  
-                    <!-- Payment Gateway Filter -->
-                    <!-- <div class="dropdown me-2">
+              <!-- Payment Gateway Filter -->
+              <!-- <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
                          data-bs-toggle="dropdown"
@@ -404,12 +400,12 @@
                         <i class="ti ti-sort-descending-2 me-1"></i> Gateway
                       </a>
                       <ul class="dropdown-menu" id="payment-gateway-filter" role="menu"> -->
-                        <!-- Items will be dynamically inserted here -->
-                      <!-- </ul>
+              <!-- Items will be dynamically inserted here -->
+              <!-- </ul>
                     </div> -->
-                  
-                    <!-- Payment Status Filter -->
-                    <!-- <div class="dropdown me-2">
+
+              <!-- Payment Status Filter -->
+              <!-- <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
                          data-bs-toggle="dropdown"
@@ -417,12 +413,12 @@
                         <i class="ti ti-sort-descending-2 me-1"></i> PG Status
                       </a>
                       <ul class="dropdown-menu" id="payment-status-filter" role="menu"> -->
-                        <!-- Items will be dynamically inserted here -->
-                      <!-- </ul>
+              <!-- Items will be dynamically inserted here -->
+              <!-- </ul>
                     </div> -->
-                  
-                    <!-- Payment Method Filter -->
-                    <!-- <div class="dropdown me-2">
+
+              <!-- Payment Method Filter -->
+              <!-- <div class="dropdown me-2">
                       <a href="javascript:void(0);"
                          class="btn btn-sm btn-light text-muted dropdown-toggle"
                          data-bs-toggle="dropdown"
@@ -430,67 +426,109 @@
                         <i class="ti ti-sort-descending-2 me-1"></i> Method
                       </a>
                       <ul class="dropdown-menu" id="payment-method-filter" role="menu"> -->
-                        <!-- Items will be dynamically inserted here -->
-                      <!-- </ul>
+              <!-- Items will be dynamically inserted here -->
+              <!-- </ul>
                     </div> -->
-                  
-                    <!-- Apply Filter Button -->
-                    <button href=""
-                            id="apply-filters-btn"
-                            class="btn btn-sm btn-primary btn-wave waves-light">
-                      Apply Filter
-                    </button>
-                    <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
-                      Reset Filter
-                    </button></div>
-                    
-                    
-                  </div>
-                  
-                </div>
-                <div class="card-body p-0">
-                  <div class="table-responsive">
-                    <table class="table text-nowrap">
-                      <thead>
-                        <tr>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">S.No.</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Raised On</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Chapter Name</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Kitty Amount</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Description</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Bill Type</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Total Weeks</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody id="paymentsTableBody">
-                       
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="card-footer border-top-0">
-                  <nav aria-label="Page navigation">
-                    <ul class="pagination mb-0 float-end">
-                      <li class="page-item disabled">
-                        <a class="page-link">Previous</a>
-                      </li>
-                      <li class="page-item active">
-                        <a class="page-link" href="javascript:void(0);">1</a>
-                      </li>
-                      <li class="page-item">
-                        <a class="page-link" href="javascript:void(0);">Next</a>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
+
+              <!-- Apply Filter Button -->
+              <button
+                href=""
+                id="apply-filters-btn"
+                class="btn btn-sm btn-primary btn-wave waves-light"
+              >
+                Apply Filter
+              </button>
+              <div style="margin-left: 3px">
+                <button
+                  id="reset-filters-btn"
+                  class="btn btn-sm btn-danger btn-wave waves-light"
+                >
+                  Reset Filter
+                </button>
               </div>
             </div>
           </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table text-nowrap">
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      S.No.
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Raised On
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Chapter Name
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Kitty Amount
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Description
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Bill Type
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Total Weeks
+                    </th>
+                    <th
+                      scope="col"
+                      style="border: 1px solid lightgrey; text-align: center"
+                    >
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer border-top-0">
+            <nav aria-label="Page navigation">
+              <ul class="pagination mb-0 float-end">
+                <li class="page-item disabled">
+                  <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item active">
+                  <a class="page-link" href="javascript:void(0);">1</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="javascript:void(0);">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
-      <!-- End::content  -->
+    </div>
+  </div>
+</div>
+<!-- End::content  -->
 
-      <script src="../../assets/js/kittyDashboard.js"></script>
+<script src="<%= base_url %>/assets/js/kittyDashboard.js"></script>
 
-      <%- include('../partials/footer') %> 
+<%- include('../partials/footer') %>

@@ -5,9 +5,21 @@
 <!-- sidebar -->
 
 <%- include('../partials/sidebar') %>
- <!-- Loader -->
- <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
-  <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+<!-- Loader -->
+<div
+  id="loader"
+  style="
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 99999;
+    background-color: red;
+  "
+>
+  <img
+    src="<%= base_url %>/assets/images/media/loader-5.svg"
+    alt="Loading..."
+  />
 </div>
 
 <!-- Loader -->
@@ -274,16 +286,15 @@
 
                     <th scope="col">Date</th>
                     <th scope="col">Chapter</th>
-                    <th scope="col"> PG Status</th>
+                    <th scope="col">PG Status</th>
                     <th scope="col">order_id</th>
-                 
+
                     <th scope="col">Transaction Id</th>
                     <th scope="col">Gateway</th>
                     <th scope="col">IRN</th>
                     <th scope="col">QR Code</th>
                     <th scope="col">E-Invoice</th>
                     <th scope="col">Action</th>
-                   
                   </tr>
                 </thead>
                 <tbody>
@@ -773,8 +784,6 @@
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-
-
 <script>
   // Function to get URL parameter
   function getUrlParameter(name) {
@@ -931,7 +940,7 @@
     ulid,
     paymentGateway,
     chapters
-    )  {
+  ) {
     let totalTransactionAmount = 0;
     let settledPayments = 0;
     let pendingPayments = 0;
@@ -1002,9 +1011,11 @@
     });
 
     const paymentMethod = filteredTransactions.map((transaction) => {
-  const order = orders.find((order) => order.order_id === transaction.order_id);
-  return order || null; // Return null if order is not found
-});
+      const order = orders.find(
+        (order) => order.order_id === transaction.order_id
+      );
+      return order || null; // Return null if order is not found
+    });
 
     console.log("fghjk", orders);
     // console.log(transactionsWithOrder);

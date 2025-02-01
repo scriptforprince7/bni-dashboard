@@ -1,192 +1,194 @@
-    <!-- header -->
-    <%- include('../partials/header') %> 
-    <!-- end header -->
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
 
-    <!-- sidebar -->
+<!-- sidebar -->
 
-    <%- include('../partials/sidebar') %>
+<%- include('../partials/sidebar') %>
 
-      <!-- Start::app-content -->
-      <div class="main-content app-content" style="background-color: #f4f4f4">
-        <div class="container-fluid">
-          <!-- Start::page-header -->
-          <div
-            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins"
+            >Add New Training</span
           >
-            <div>
-              <h1 class="page-title fw-medium fs-18 mb-0">
-                <span style="font-weight: 700; font-family: Poppins"
-                  >Add New Training</span
-                >
-              </h1>
-              <!-- <p>Manage kitty payments with just one click</p> -->
-            </div>
-          </div>
-          <!-- End::page-header -->
-          <style>
-            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+        </h1>
+        <!-- <p>Manage kitty payments with just one click</p> -->
+      </div>
+    </div>
+    <!-- End::page-header -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
-            @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
-          </style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+    </style>
 
-          <style>
-            * {
-              font-family: Montserrat !important;
-              font-weight: 800px;
-            }
-            .text-muted {
-              color: black !important;
-              font-family: Montserrat Alternates;
-            }
-            .popins {
-              font-family: Poppins;
-            }
-          </style>
+    <style>
+      * {
+        font-family: Montserrat !important;
+        font-weight: 800px;
+      }
+      .text-muted {
+        color: black !important;
+        font-family: Montserrat Alternates;
+      }
+      .popins {
+        font-family: Poppins;
+      }
+    </style>
 
-          <div class="row">
-            <div class="col-xl-12">
-              <div class="card custom-card">
-                <div class="card-body add-products">
-                    <div class="row gx-4">
-                        <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
-                          <div class="card custom-card shadow-none mb-0 border-0">
-                            <div class="card-body p-0">
-                              <div class="row gy-3">
-                                <div class="col-xl-12">
-                                  <label for="product-cost-add" class="form-label"
-                                    ><span style="font-size: 15px"
-                                      ><b>Let's Add Training!</b></span
-                                    ></label
-                                  >
-                                </div>
-                                <div class="col-xl-6">
-                                  <label for="training_name" class="form-label"
-                                    >Training Name</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="training_name"
-                                    name="training_name"
-                                    placeholder="Training Name"
-                                  />
-                                  <label
-                                    for="product-cost-add"
-                                    class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
-                                    ><span style="color: red"
-                                      >*Check & acknowledged name of the Training</span
-                                    ></label
-                                  >
-                                </div>    
-                                <div class="col-xl-6">
-                                  <label for="billing_company" class="form-label"
-                                    >Billing Company</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="billing_company"
-                                    name="billing_company"
-                                    placeholder="ADI Corporate Training"
-                                    value="1"
-                                    readonly
-                                  />
-                                </div> 
-                                <div class="col-xl-6">
-                                  <label for="training_venue" class="form-label"
-                                    >Training Venue</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="training_venue"
-                                    name="training_venue"
-                                    placeholder="The Roseate House.."
-                                  />
-                                </div> 
-          
-                                <div class="col-xl-6">
-                                  <label for="training_ticket_price" class="form-label"
-                                    >Training Venue Fee</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="training_ticket_price"
-                                    name="training_ticket_price"
-                                    placeholder="₹26,5000/-.."
-                                  />
-                                </div> 
-                                <div class="col-xl-6">
-                                  <label for="training_date" class="form-label"
-                                    >Training Date</label
-                                  >
-                                  <input
-                                    type="date"
-                                    class="form-control"
-                                    id="training_date"
-                                    name="training_date"
-                                    placeholder="Stock in date.."
-                                  />
-                                </div>
-                                <div class="col-xl-6">
-                                  <label for="training_note" class="form-label"
-                                    >Training Note</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="training_note"
-                                    name="training_note"
-                                    placeholder="training note.."
-                                  />
-                                </div>
-                                <div class="col-xl-6">
-                                  <label for="training_published_by" class="form-label"
-                                    >Training Published by</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="training_published_by"
-                                    name="training_published_by"
-                                    placeholder="Raja Shukla.."
-                                  />
-                                </div>
-                                <div class="col-xl-6">
-                                  <label for="training_status" class="form-label">Training Status</label>
-                                  <select class="form-control" name="training_status" id="training_status">
-                                    <option value="">Select</option>
-                                    <option value="Scheduled">Scheduled</option>
-                                    <option value="Completed">Completed</option>
-                                    <option value="Postponed">Postponed</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                  </select>
-                                </div>
-                              
-                                
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>Let's Add Training!</b></span
+                          ></label
+                        >
                       </div>
-                </div>
-                <div
-                  class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end"
-                >
-                  <button class="btn btn-success me-2 mb-2 mb-sm-0" id="submit-event">
-                    Add Training<i class="bi bi-plus-lg ms-2"></i>
-                  </button>
+                      <div class="col-xl-6">
+                        <label for="training_name" class="form-label"
+                          >Training Name</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="training_name"
+                          name="training_name"
+                          placeholder="Training Name"
+                        />
+                        <label
+                          for="product-cost-add"
+                          class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                          ><span style="color: red"
+                            >*Check & acknowledged name of the Training</span
+                          ></label
+                        >
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="billing_company" class="form-label"
+                          >Billing Company</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="billing_company"
+                          name="billing_company"
+                          placeholder="ADI Corporate Training"
+                          value="1"
+                          readonly
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="training_venue" class="form-label"
+                          >Training Venue</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="training_venue"
+                          name="training_venue"
+                          placeholder="The Roseate House.."
+                        />
+                      </div>
+
+                      <div class="col-xl-6">
+                        <label for="training_ticket_price" class="form-label"
+                          >Training Venue Fee</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="training_ticket_price"
+                          name="training_ticket_price"
+                          placeholder="₹26,5000/-.."
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="training_date" class="form-label"
+                          >Training Date</label
+                        >
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="training_date"
+                          name="training_date"
+                          placeholder="Stock in date.."
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="training_note" class="form-label"
+                          >Training Note</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="training_note"
+                          name="training_note"
+                          placeholder="training note.."
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="training_published_by" class="form-label"
+                          >Training Published by</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="training_published_by"
+                          name="training_published_by"
+                          placeholder="Raja Shukla.."
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="training_status" class="form-label"
+                          >Training Status</label
+                        >
+                        <select
+                          class="form-control"
+                          name="training_status"
+                          id="training_status"
+                        >
+                          <option value="">Select</option>
+                          <option value="Scheduled">Scheduled</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Postponed">Postponed</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
+          <div
+            class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end"
+          >
+            <button class="btn btn-success me-2 mb-2 mb-sm-0" id="submit-event">
+              Add Training<i class="bi bi-plus-lg ms-2"></i>
+            </button>
+          </div>
         </div>
       </div>
-      <!-- End::content  -->
+    </div>
+  </div>
+</div>
+<!-- End::content  -->
 
-
-      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script src="../../assets/js/addTraining.js"></script>
-      <%- include('../partials/footer') %> 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="<%= base_url %>/assets/js/addTraining.js"></script>
+<%- include('../partials/footer') %>

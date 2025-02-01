@@ -15,9 +15,9 @@
 
 	<!-- Stylesheet
 ======================= -->
-	<link rel="stylesheet" type="text/css" href="../../assets/einvoice/vendor/bootstrap/css/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="../../assets/einvoice/vendor/font-awesome/css/all.min.css">
-	<link rel="stylesheet" type="text/css" href="../../assets/einvoice/css/stylesheet.css">
+	<link rel="stylesheet" type="text/css" href="<%= base_url %>/assets/einvoice/vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="<%= base_url %>/assets/einvoice/vendor/font-awesome/css/all.min.css">
+	<link rel="stylesheet" type="text/css" href="<%= base_url %>/assets/einvoice/css/stylesheet.css">
 	<style>
 		.lin {
 			border: 1px solid grey;
@@ -29,7 +29,7 @@
 	<!-- Container -->
 	<div class="container-fluid invoice-container">
 		<div id="loader">
-			<img src="../../assets/images/media/loader.svg" alt="" />
+			<img src="<%= base_url %>/assets/images/media/loader.svg" alt="" />
 		  </div>
 		<!-- Header -->
 		<header>
@@ -171,7 +171,7 @@
 					Download</a> </div>
 		</footer>
 		<script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
-		<script src="../../assets/js/einvoice.js"></script>
+		<script src="<%= base_url %>/assets/js/einvoice.js"></script>
 	</div>
 </body>
 

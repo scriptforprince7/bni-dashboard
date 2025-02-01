@@ -8,9 +8,21 @@
 
 <!-- end sidebar -->
 
-  <!-- Loader -->
-  <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
-    <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+<!-- Loader -->
+<div
+  id="loader"
+  style="
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 99999;
+    background-color: red;
+  "
+>
+  <img
+    src="<%= base_url %>/assets/images/media/loader-5.svg"
+    alt="Loading..."
+  />
 </div>
 
 <!-- Loader -->
@@ -520,16 +532,21 @@
                         </div>
 
                         <div class="col-xl-6">
-                          <label for="billing_frequency" class="form-label">Kitty Billing Frequency <a href="/r/add-region">
-                          </a></label>
-                          <select class="form-control" name="billing_frequency" id="billing_frequency">
+                          <label for="billing_frequency" class="form-label"
+                            >Kitty Billing Frequency
+                            <a href="/r/add-region"> </a
+                          ></label>
+                          <select
+                            class="form-control"
+                            name="billing_frequency"
+                            id="billing_frequency"
+                          >
                             <option value="">Select</option>
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                             <option value="quartely">Quartely</option>
                             <option value="half_yearly">Half Yearly</option>
                             <option value="yearly">Yearly</option>
-                        
                           </select>
                         </div>
 
@@ -560,12 +577,17 @@
                         </div>
 
                         <div class="col-xl-6">
-                          <label for="chapter_status" class="form-label">Chapter Status</label>
-                          <select class="form-control" id="chapter_status" name="chapter_status">
+                          <label for="chapter_status" class="form-label"
+                            >Chapter Status</label
+                          >
+                          <select
+                            class="form-control"
+                            id="chapter_status"
+                            name="chapter_status"
+                          >
                             <option value="">Select</option>
                           </select>
                         </div>
-                        
 
                         <div class="col-xl-6">
                           <label for="chapter_logo" class="form-label"
@@ -924,7 +946,11 @@
                 />
               </div>
 
-              <button type="button" id="updateChapterBtn" class="btn btn-success me-2 mb-2 mb-sm-0">
+              <button
+                type="button"
+                id="updateChapterBtn"
+                class="btn btn-success me-2 mb-2 mb-sm-0"
+              >
                 Edit Chapter
               </button>
             </div>
@@ -937,7 +963,7 @@
 </div>
 <!-- End::content  -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- <script src="../../assets/js/country.js"></script> -->
-<script src="../../assets/js/editChapter.js"></script>
+<!-- <script src="<%= base_url %>/assets/js/country.js"></script> -->
+<script src="<%= base_url %>/assets/js/editChapter.js"></script>
 
 <%- include('../partials/footer') %>
