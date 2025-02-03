@@ -68,7 +68,7 @@
 
               <!-- Start::slide -->
               <li class="slide">
-                <a href="/d/chapter-dashboard" class="side-menu__item dashboard-menu">
+                <a href="/dashboard/d/chapter-dashboard" class="side-menu__item dashboard-menu">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 side-menu__icon"
@@ -109,10 +109,10 @@
                 </a>
                 <ul class="slide-menu child1">
                   <li class="slide">
-                    <a href="/ck/manage-chapterKitty" class="side-menu__item">Kitty Dashboard</a>
+                    <a href="/dashboard/ck/manage-chapterKitty" class="side-menu__item">Kitty Dashboard</a>
                   </li>
                   <li class="slide">
-                    <a href="/ck/chapter-raiseBill" class="side-menu__item">Raise a Bill</a>
+                    <a href="/dashboard/ck/chapter-raiseBill" class="side-menu__item">Raise a Bill</a>
                   </li>
                 </ul>
               </li>
@@ -142,12 +142,12 @@
                 </a>
                 <ul class="slide-menu child1">
                   <li class="slide">
-                    <a href="/exp/manage-expenses" class="side-menu__item"
+                    <a href="/dashboard/exp/manage-expenses" class="side-menu__item"
                       >View Expenses</a
                     >
                   </li>
                   <li class="slide">
-                    <a href="/exp/add-expenses" class="side-menu__item"
+                    <a href="/dashboard/exp/add-expenses" class="side-menu__item"
                       >Add Expenses</a
                     >
                   </li>
@@ -181,10 +181,10 @@
                 </a>
                 <ul class="slide-menu child1">
                   <li class="slide">
-                    <a href="/exp/manage-expense-types" class="side-menu__item">View Expense Types</a>
+                    <a href="/dashboard/exp/manage-expense-types" class="side-menu__item">View Expense Types</a>
                   </li>
                   <li class="slide">
-                    <a href="/exp/add-expense-type" class="side-menu__item">Add Expense Type</a>
+                    <a href="/dashboard/exp/add-expense-type" class="side-menu__item">Add Expense Type</a>
                   </li>
                 </ul>
               </li>
@@ -216,12 +216,12 @@
                               </a>
                               <ul class="slide-menu child1">
                                 <li class="slide">
-                                  <a href="/cm/managechaptermember" class="side-menu__item"
+                                  <a href="/dashboard/cm/managechaptermember" class="side-menu__item"
                                     >View Chapter Member</a
                                   >
                                 </li>
                                 <li class="slide">
-                                  <a href="addchaptermember" class="side-menu__item"
+                                  <a href="dashboard/addchaptermember" class="side-menu__item"
                                     >Add Chapter Member</a
                                   >
                                 </li>
@@ -241,7 +241,7 @@
 
               <!-- Start::slide - My Account -->
               <li class="slide">
-                <a href="/s/chapter-settings" class="side-menu__item">
+                <a href="/dashboard/s/chapter-settings" class="side-menu__item">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="w-6 h-6 side-menu__icon"
@@ -342,15 +342,15 @@
 
           // Map menu items to their parent menu
           const menuMapping = {
-            "/d/chapter-dashboard": ".dashboard-menu",
-            "/exp/manage-expenses": ".expense-menu",
-            "/exp/add-expenses": ".expense-menu",
-            "/exp/manage-expense-types": ".expense-type-menu",
-            "/exp/add-expense-type": ".expense-type-menu",
-            "/ck/manage-chapterKitty": ".kitty-menu",
-            "/ck/chapter-raiseBill": ".kitty-menu",
-            "/cm/managechaptermember": ".chapter-member-menu",
-            "/ck/addchaptermember": ".chapter-member-menu",
+            "/dashboard/d/chapter-dashboard": ".dashboard-menu",
+            "/dashboard/exp/manage-expenses": ".expense-menu",
+            "/dashboard/exp/add-expenses": ".expense-menu",
+            "/dashboard/exp/manage-expense-types": ".expense-type-menu",
+            "/dashboard/exp/add-expense-type": ".expense-type-menu",
+            "/dashboard/ck/manage-chapterKitty": ".kitty-menu",
+            "/dashboard/ck/chapter-raiseBill": ".kitty-menu",
+            "/dashboard/cm/managechaptermember": ".chapter-member-menu",
+            "/dashboard/ck/addchaptermember": ".chapter-member-menu",
           };
 
           // Mark the active menu and open its dropdown

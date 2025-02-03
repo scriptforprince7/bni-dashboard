@@ -1235,7 +1235,7 @@
         // Delay the logout action
         setTimeout(() => {
           localStorage.removeItem("token");
-          window.location.href = "/";
+          window.location.href = "/dashboard";
         }, 3000);
       });
 
@@ -1260,13 +1260,13 @@
         // Delay the logout action
         setTimeout(() => {
           localStorage.removeItem("token");
-          window.location.href = "/";
+          window.location.href = "/dashboard";
         }, 3000);
       }
 
       // Auth check
       if (!userEmail || !userLoginType) {
-        window.location.href = "/";
+        window.location.href = "/dashboard";
       }
 
       // Logo check
@@ -1369,13 +1369,13 @@
         let redirectPath;
         switch (loginType) {
           case "member":
-            redirectPath = "/s/member-settings";
+            redirectPath = "/dashboard/s/member-settings";
             break;
           case "chapter":
-            redirectPath = "/s/chapter-settings";
+            redirectPath = "/dashboard/s/chapter-settings";
             break;
           case "ro_admin":
-            redirectPath = "/s/settings";
+            redirectPath = "/dashboard/s/settings";
             break;
           default:
             console.error("Unknown login type:", loginType);
@@ -1397,46 +1397,46 @@
 
           if (userType === "ro_admin") {
             const adminEntries = [
-              { name: "Dashboard", link: "/d/ro-dashboard" },
+              { name: "Dashboard", link: "/dashboard/d/ro-dashboard" },
               {
                 name: "Manage Universal Links",
-                link: "/u/manage-universal-links",
+                link: "/dashboard/u/manage-universal-links",
               },
-              { name: "View All Regions", link: "/r/manage-region" },
-              { name: "Add New Region", link: "/r/add-region" },
-              { name: "View All Chapters", link: "/c/manage-chapter" },
-              { name: "Add New Chapter", link: "/c/add-chapter" },
-              { name: "View All Members", link: "/m/manage-members" },
-              { name: "Add New Member", link: "/m/add-member" },
-              { name: "All Transactions", link: "/t/all-transactions" },
-              { name: "View All Trainings", link: "/tr/manage-trainings" },
-              { name: "Add New Training", link: "/tr/add-training" },
-              { name: "Kitty Dashboard", link: "/k/manage-kitty" },
-              { name: "Raise New Bill", link: "/k/kitty-management" },
-              { name: "View All Accolades", link: "/acc/manage-accolades" },
-              { name: "Add New Accolade", link: "/acc/add-accolades" },
-              { name: "Initiate a Refund", link: "/ref/initiate-refund" },
-              { name: "All Refunds", link: "/ref/all-refunds" },
-              { name: "View All Events", link: "/e/manage-events" },
-              { name: "Add New Event", link: "/e/add-event" },
+              { name: "View All Regions", link: "/dashboard/r/manage-region" },
+              { name: "Add New Region", link: "/dashboard/r/add-region" },
+              { name: "View All Chapters", link: "/dashboard/c/manage-chapter" },
+              { name: "Add New Chapter", link: "/dashboard/c/add-chapter" },
+              { name: "View All Members", link: "/dashboard/m/manage-members" },
+              { name: "Add New Member", link: "/dashboard/m/add-member" },
+              { name: "All Transactions", link: "/dashboard/t/all-transactions" },
+              { name: "View All Trainings", link: "/dashboard/tr/manage-trainings" },
+              { name: "Add New Training", link: "/dashboard/tr/add-training" },
+              { name: "Kitty Dashboard", link: "/dashboard/k/manage-kitty" },
+              { name: "Raise New Bill", link: "/dashboard/k/kitty-management" },
+              { name: "View All Accolades", link: "/dashboard/acc/manage-accolades" },
+              { name: "Add New Accolade", link: "/dashboard/acc/add-accolades" },
+              { name: "Initiate a Refund", link: "/dashboard/ref/initiate-refund" },
+              { name: "All Refunds", link: "/dashboard/ref/all-refunds" },
+              { name: "View All Events", link: "/dashboard/e/manage-events" },
+              { name: "Add New Event", link: "/dashboard/e/add-event" },
               {
                 name: "View All Classifications",
-                link: "/cl/manage-classifications",
+                link: "/dashboard/cl/manage-classifications",
               },
               {
                 name: "Add New Classification",
-                link: "/cl/add-classification",
+                link: "/dashboard/dashboard/cl/add-classification",
               },
-              { name: "View All Supplies", link: "/manage-supplies.html" },
-              { name: "Add New Supply", link: "/add-supply.html" },
-              { name: "View All Inventory", link: "/manage-inventory.html" },
-              { name: "Add New Inventory", link: "/add-inventory.html" },
-              { name: "View All Visitors", link: "/manage-visitors.html" },
-              { name: "Add New Visitor", link: "/add-visitor.html" },
-              { name: "View All Expenses", link: "/manage-expense.html" },
-              { name: "Add New Expense", link: "/add-expense.html" },
-              { name: "Set Notifications", link: "/add-notification.html" },
-              { name: "My Account", link: "/s/settings" },
+              { name: "View All Supplies", link: "/dashboard/manage-supplies.html" },
+              { name: "Add New Supply", link: "/dashboard/add-supply.html" },
+              { name: "View All Inventory", link: "/dashboard/manage-inventory.html" },
+              { name: "Add New Inventory", link: "/dashboard/add-inventory.html" },
+              { name: "View All Visitors", link: "/dashboard/manage-visitors.html" },
+              { name: "Add New Visitor", link: "/dashboard/add-visitor.html" },
+              { name: "View All Expenses", link: "/dashboard/manage-expense.html" },
+              { name: "Add New Expense", link: "/dashboard/add-expense.html" },
+              { name: "Set Notifications", link: "/dashboard/add-notification.html" },
+              { name: "My Account", link: "/dashboard/s/settings" },
             ];
             results.push(
               ...adminEntries.filter((entry) =>
@@ -1446,16 +1446,16 @@
           } else if (userType === "chapter") {
             // console.log("chapter");
             const chapterEntries = [
-              { name: "Dashboard", link: "/d/chapter-dashboard" },
-              { name: "Kitty Dashboard", link: "/ck/manage-chapterKitty" },
-              { name: "Raise A Bill", link: "/ck/chapter-raiseBill" },
-              { name: "View Expenses", link: "/exp/manage-expenses" },
-              { name: "Add Expenses", link: "/exp/add-expenses" },
-              { name: "View Expense Types", link: "/exp/manage-expense-types" },
-              { name: "Add Expense Type", link: "/exp/add-expense-type" },
-              { name: "View Chapter Member", link: "/cm/managechaptermember" },
-              { name: "Add Chapter Member", link: "/cm/addchaptermember" },
-              { name: "My Account", link: "/s/chapter-settings" },
+              { name: "Dashboard", link: "/dashboard/d/chapter-dashboard" },
+              { name: "Kitty Dashboard", link: "/dashboard/ck/manage-chapterKitty" },
+              { name: "Raise A Bill", link: "/dashboard/ck/chapter-raiseBill" },
+              { name: "View Expenses", link: "/dashboard/exp/manage-expenses" },
+              { name: "Add Expenses", link: "/dashboard/exp/add-expenses" },
+              { name: "View Expense Types", link: "/dashboard/exp/manage-expense-types" },
+              { name: "Add Expense Type", link: "/dashboard/exp/add-expense-type" },
+              { name: "View Chapter Member", link: "/dashboard/cm/managechaptermember" },
+              { name: "Add Chapter Member", link: "/dashboard/cm/addchaptermember" },
+              { name: "My Account", link: "/dashboard/s/chapter-settings" },
             ];
             results.push(
               ...chapterEntries.filter((entry) =>
@@ -1465,23 +1465,23 @@
           } else if (userType === "member") {
             // console.log("member");
             const memberEntries = [
-              { name: "Dashboard", link: "/d/member-dashboard" },
+              { name: "Dashboard", link: "/dashboard/d/member-dashboard" },
               {
                 name: "Kitty Transactions Ledger",
                 link: "/m/member-transactions",
               },
-              { name: "All Transactions", link: "/m/member-allTransactions" },
-              { name: "All Trainings", link: "/mtr/all-trainings" },
-              { name: "My Trainings", link: "/mtr/my-training" },
+              { name: "All Transactions", link: "/dashboard/m/member-allTransactions" },
+              { name: "All Trainings", link: "/dashboard/mtr/all-trainings" },
+              { name: "My Trainings", link: "/dashboard/mtr/my-training" },
               {
                 name: "View All Accolades",
-                link: "/macc/manage-memberAccolades",
+                link: "/dashboard/macc/manage-memberAccolades",
               },
               {
                 name: "Request A Accolade",
-                link: "/macc/request-memberAccolades",
+                link: "/dashboard/macc/request-memberAccolades",
               },
-              { name: "My Account", link: "/s/member-settings" },
+              { name: "My Account", link: "/dashboard/s/member-settings" },
             ];
             results.push(
               ...memberEntries.filter((entry) =>

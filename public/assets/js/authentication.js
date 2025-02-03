@@ -8,6 +8,8 @@ function hideLoader() {
   document.getElementById("loader").style.display = "none";
 }
 
+// console.log(process.env.BASE_URL);
+
 // Function to handle login type change
 function handleLoginTypeChange() {
   showLoader(); // Show loader on login type change
@@ -85,11 +87,12 @@ document
       const result = await response.json();
       hideLoader();
       signInButton.disabled = false;
+      // console.log('uubase url :',process.env.BASE_URL);
 
       if (response.ok && result.success) {
         // Set up auto-redirect timer
         const redirectTimer = setTimeout(() => {
-          window.location.href = `/dashboard/auth/otp-verification?email=${encodeURIComponent(
+          window.location.href = `${process.env.BASE_URL}/auth/otp-verification?email=${encodeURIComponent(
             email
           )}&login_type=${encodeURIComponent(loginType)}`;
         }, 3000);
@@ -104,7 +107,7 @@ document
         }).then((result) => {
           clearTimeout(redirectTimer); // Clear timer if OK is clicked
           if (result.isConfirmed || result.isDismissed) {
-            window.location.href = `/dashboard/auth/otp-verification?email=${encodeURIComponent(
+            window.location.href = `${process.env.BASE_URL}/auth/otp-verification?email=${encodeURIComponent(
               email
             )}&login_type=${encodeURIComponent(loginType)}`;
           }
