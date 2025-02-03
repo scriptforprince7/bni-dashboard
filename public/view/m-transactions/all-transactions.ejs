@@ -611,7 +611,7 @@
               const encodedEinvoiceData = encodeURIComponent(
                 JSON.stringify(einvoiceData)
               );
-              btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+              btnCell.innerHTML = `<a href="<%= base_url %>/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
             }
 
             // Check if QR code is already stored in localStorage for this order

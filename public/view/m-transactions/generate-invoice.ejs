@@ -67,7 +67,7 @@
               </h1>
             </div>
             <div class="btn-list">
-                <a href="/t/all-transactions"><button
+                <a href="<%= base_url %>/t/all-transactions"><button
                     class="btn btn-primary btn-wave me-0"
                   >
                     <i class="ri-share-forward-line me-1"></i> View All Transactions
@@ -118,7 +118,7 @@ async function fetchUniversalLinkss() {
         col.className = 'col'; // Use Bootstrap's `col` class for automatic grid layout
 
         col.innerHTML = `
-          <a href="/t/new-invoice?id=${link.id}" class="card custom-card overflow-hidden main-content-card text-decoration-none car">
+          <a href="<%= base_url %>/t/new-invoice?id=${link.id}" class="card custom-card overflow-hidden main-content-card text-decoration-none car">
             <div class="card-body p-4" style="background-color: #f33041">
               <div class="d-flex align-items-start gap-3">
                 <div class="flex-fill">

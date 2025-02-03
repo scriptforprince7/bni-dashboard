@@ -266,7 +266,7 @@
                 <i class="ti ti-sort-descending-2 me-1"></i> Filter
               </button>
               <a
-                href="/t/new-invoice"
+                href="<%= base_url %>/t/new-invoice"
                 class="btn btn-sm btn-primary btn-wave waves-light"
                 style="background-color: #d01f2f Im !important"
                 ><i class="ri-add-line fw-medium align-middle me-1"></i> Create
@@ -1101,7 +1101,7 @@
         <td>
           ${
             transaction.order_status === "ACTIVE"
-              ? `<a href="/t/new-invoice" class="btn btn-sm btn-success btn-wave waves-light">Generate E-Invoice</a>`
+              ? `<a href="<%= base_url %>/t/new-invoice" class="btn btn-sm btn-success btn-wave waves-light">Generate E-Invoice</a>`
               : "Not Applicable"
           }
         </td>

@@ -513,7 +513,7 @@
                               >
                             </div>
                             <div class="col-xl-6">
-                              <label for="region_id" class="form-label">Choose Region <a href="/r/add-region">
+                              <label for="region_id" class="form-label">Choose Region <a href="<%= base_url %>/r/add-region">
                                 <button type="button" class="btn btn-outline-info btn-sm">Add Region +</button>
                               </a></label>
                               <select class="form-control" name="region_id" id="region_id">
@@ -522,7 +522,7 @@
                             </div>
                             
                             <div class="col-xl-6">
-                              <label for="chapter_id" class="form-label">Choose Chapter <a href="/c/add-chapter">
+                              <label for="chapter_id" class="form-label">Choose Chapter <a href="<%= base_url %>/c/add-chapter">
                                 <button type="button" class="btn btn-outline-info btn-sm">Add Chapter +</button>
                               </a></label>
                               <select class="form-control" name="chapter_id" id="chapter_id">
@@ -532,7 +532,7 @@
                             
                             <div class="col-xl-6">
                               <label for="accolades_id" class="form-label">Accolades
-                                <a href="/m/add-member">
+                                <a href="<%= base_url %>/m/add-member">
                                   <button type="button" class="btn btn-outline-info btn-sm">Add Accolades +</button>
                                 </a>
                               </label>
@@ -1008,7 +1008,7 @@
         toastr.success('Member added successfully!');
         document.getElementById("formMessage").innerText = "Member added successfully!";
         setTimeout(() => {
-          window.location.href = '/m/manage-members';
+          window.location.href = '<%= base_url %>/m/manage-members';
         }, 1200);
       } else {
         document.getElementById("formMessage").innerText = `Error: ${result.message}`;

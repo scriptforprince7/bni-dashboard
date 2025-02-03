@@ -130,7 +130,7 @@
                   </div>
                 </div>
                 <a
-                  href="http://localhost:3000/dashboard/m/member-allTransactions"
+                  href="<%= base_url %>/m/member-allTransactions"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -178,7 +178,7 @@
                   </div>
                 </div>
                 <a
-                  href="http://localhost:3000/dashboard/m/member-transactions"
+                  href="<%= base_url %>/m/member-transactions"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -245,7 +245,7 @@
                   </div>
                 </div>
                 <a
-                  href="http://localhost:3000/dashboard/macc/manage-memberAccolades"
+                  href="<%= base_url %>/macc/manage-memberAccolades"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -257,7 +257,7 @@
               <div class="card-header justify-content-between">
                 <div class="card-title">Transactions History</div>
                 <a
-                  href="http://localhost:3000/dashboard/m/member-allTransactions"
+                  href="<%= base_url %>/m/member-allTransactions"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -4048,7 +4048,7 @@
 
                         <td class="text-end">
                           <a
-                            href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
+                            href="<%= base_url %>/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
                             ><span class="badge bg-success">Register </span></a
                           >
                         </td>
@@ -4062,7 +4062,7 @@
 
                         <td class="text-end">
                           <a
-                            href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
+                            href="<%= base_url %>/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
                             ><span class="badge bg-success">Register </span></a
                           >
                         </td>
@@ -4076,7 +4076,7 @@
 
                         <td class="text-end">
                           <a
-                            href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
+                            href="<%= base_url %>/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
                             ><span class="badge bg-success">Register </span></a
                           >
                         </td>
@@ -4090,7 +4090,7 @@
 
                         <td class="text-end">
                           <a
-                            href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
+                            href="<%= base_url %>/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1"
                             ><span class="badge bg-success">Register </span></a
                           >
                         </td>
@@ -4130,7 +4130,7 @@
                         const formattedDate = trainingDate.toLocaleDateString(); // Format the date as needed
 
                         // Construct the registration link dynamically (you may need to adjust this based on your actual data)
-                        const registrationLink = `https://bninewdelhi.com/training-payments/${training.training_id}/bdbe4592-738e-42b1-ad02-beea957a3f9d/1`;
+                        const registrationLink = `<%= base_url %>/training-payments/${training.training_id}/bdbe4592-738e-42b1-ad02-beea957a3f9d/1`;
 
                         const trainingRow = document.createElement("tr");
                         trainingRow.innerHTML = `
@@ -4192,7 +4192,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/ecommerce/jpg/4.jpg"
+                                    src="<%= base_url %>/assets/images/ecommerce/jpg/4.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4213,7 +4213,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/ecommerce/jpg/6.jpg"
+                                    src="<%= base_url %>/assets/images/ecommerce/jpg/6.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4234,7 +4234,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/ecommerce/jpg/3.jpg"
+                                    src="<%= base_url %>/assets/images/ecommerce/jpg/3.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4255,7 +4255,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/ecommerce/jpg/1.jpg"
+                                    src="<%= base_url %>/assets/images/ecommerce/jpg/1.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4276,7 +4276,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/ecommerce/jpg/2.jpg"
+                                    src="<%= base_url %>/assets/images/ecommerce/jpg/2.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4297,7 +4297,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/ecommerce/jpg/5.jpg"
+                                    src="<%= base_url %>/assets/images/ecommerce/jpg/5.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4673,7 +4673,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/faces/1.jpg"
+                                    src="<%= base_url %>/assets/images/faces/1.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4727,7 +4727,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/faces/12.jpg"
+                                    src="<%= base_url %>/assets/images/faces/12.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4782,7 +4782,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/faces/6.jpg"
+                                    src="<%= base_url %>/assets/images/faces/6.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4837,7 +4837,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/faces/14.jpg"
+                                    src="<%= base_url %>/assets/images/faces/14.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4891,7 +4891,7 @@
                               <div class="lh-1">
                                 <span class="avatar avatar-sm">
                                   <img
-                                    src=" assets/images/faces/3.jpg"
+                                    src="<%= base_url %>/assets/images/faces/3.jpg"
                                     alt=""
                                   />
                                 </span>
@@ -4953,7 +4953,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/us_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/us_flag.jpg"
                               alt=""
                             />
                           </span>
@@ -4989,7 +4989,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/italy_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/italy_flag.jpg"
                               alt=""
                             />
                           </span>
@@ -5025,7 +5025,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/spain_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/spain_flag.jpg"
                               alt=""
                             />
                           </span>
@@ -5061,7 +5061,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/uae_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/uae_flag.jpg"
                               alt=""
                             />
                           </span>
@@ -5095,7 +5095,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/argentina_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/argentina_flag.jpg"
                               alt=""
                             />
                           </span>
@@ -5131,7 +5131,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/china_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/china_flag.jpg"
                               alt=""
                             />
                           </span>
@@ -5167,7 +5167,7 @@
                         <div class="lh-1">
                           <span class="avatar avatar-sm p-1 bg-light border">
                             <img
-                              src=" assets/images/flags/french_flag.jpg"
+                              src="<%= base_url %>/assets/images/flags/french_flag.jpg"
                               alt=""
                             />
                           </span>

@@ -421,7 +421,7 @@
           document.getElementById("formMessage").innerText =
             "Region added successfully!";
           setTimeout(() => {
-            window.location.href = "/r/manage-region"; // Redirect to the region page
+            window.location.href = "<%= base_url %>/r/manage-region"; // Redirect to the region page
           }, 1200);
         } else {
           document.getElementById(
