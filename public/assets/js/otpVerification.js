@@ -60,11 +60,11 @@ document.getElementById('otpVerificationForm').addEventListener('submit', async 
             // Determine redirect URL first
             let redirectUrl = '/';
             if (login_type === 'ro_admin') {
-                redirectUrl = '/d/ro-dashboard';
+                redirectUrl = '/dashboard/d/ro-dashboard';
             } else if (login_type === 'chapter') {
-                redirectUrl = '/d/chapter-dashboard';
+                redirectUrl = '/dashboard/d/chapter-dashboard';
             } else if (login_type === 'member') {
-                redirectUrl = '/d/member-dashboard';
+                redirectUrl = '/dashboard/d/member-dashboard';
             }
             console.log('Redirect URL determined:', redirectUrl);
 
