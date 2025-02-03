@@ -107,7 +107,7 @@ document
         }).then((result) => {
           clearTimeout(redirectTimer); // Clear timer if OK is clicked
           if (result.isConfirmed || result.isDismissed) {
-            window.location.href = `${process.env.BASE_URL}/auth/otp-verification?email=${encodeURIComponent(
+            window.location.href = `dashboard/auth/otp-verification?email=${encodeURIComponent(
               email
             )}&login_type=${encodeURIComponent(loginType)}`;
           }
