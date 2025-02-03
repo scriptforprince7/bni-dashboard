@@ -92,7 +92,7 @@ document
       if (response.ok && result.success) {
         // Set up auto-redirect timer
         const redirectTimer = setTimeout(() => {
-          window.location.href = `${process.env.BASE_URL}/auth/otp-verification?email=${encodeURIComponent(
+          window.location.href = `dashboard/auth/otp-verification?email=${encodeURIComponent(
             email
           )}&login_type=${encodeURIComponent(loginType)}`;
         }, 3000);
