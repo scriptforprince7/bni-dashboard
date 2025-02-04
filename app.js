@@ -4,6 +4,7 @@ const express = require("express");
 const path = require("path");
 const routes = require("./routes");
 
+
 const app = express();
 
 // Set custom views directory
@@ -33,5 +34,3 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Base URL is set to ${process.env.BASE_URL}`);
 });
-
-// test

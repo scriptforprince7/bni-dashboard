@@ -1,12 +1,25 @@
+// const { BaseURLGlob } = require('./authentication.js');
+// const {BASE_URL} = require('../../../app.js');
+// const BASE_URL = process.env.BASE_URL;
+
+
 // Extract email and login_type from query params
 const urlParams = new URLSearchParams(window.location.search);
 const email = urlParams.get('email');
 const login_type = urlParams.get('login_type');
+const baseUrl = urlParams.get('baseurl');
 
 document.querySelector('.email b').textContent = email;
-
+// const baseUrl = window.BaseURLGlob; // Access BaseURLGlob from the window object
 console.log(email);
 console.log(login_type);
+// console.log(window.BaseURLGlob);
+console.log(baseUrl);
+// console.log(process.env.BASE_URL);
+// console.log(window.BASE_URI);
+// console.log(window.BASE_URL);
+// console.log(BASE_URL);
+// console.log(BASE_URL);
 
 document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
   input.addEventListener('input', () => {
@@ -58,13 +71,13 @@ document.getElementById('otpVerificationForm').addEventListener('submit', async 
             sessionStorage.setItem('newLogin', 'true');
 
             // Determine redirect URL first
-            let redirectUrl = '/';
+            let redirectUrl = `${baseUrl}`;
             if (login_type === 'ro_admin') {
-                redirectUrl = `${process.env.BASE_URL}/d/ro-dashboard`;
+                redirectUrl = `${baseUrl}/d/ro-dashboard`;
             } else if (login_type === 'chapter') {
-                redirectUrl = `${process.env.BASE_URL}/d/chapter-dashboard`;
+                redirectUrl = `${baseUrl}/d/chapter-dashboard`;
             } else if (login_type === 'member') {
-                redirectUrl = `${process.env.BASE_URL}/d/member-dashboard`;
+                redirectUrl = `${baseUrl}/d/member-dashboard`;
             }
             console.log('Redirect URL determined:', redirectUrl);
 

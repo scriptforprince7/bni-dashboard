@@ -7,6 +7,11 @@ function showLoader() {
 function hideLoader() {
   document.getElementById("loader").style.display = "none";
 }
+// const baseUrl = '<%= baseUrl %>';
+console.log(BASE_URL);
+window.BASE_URI = BASE_URL;
+console.log(window.BASE_URI);
+// export const BaseURLGlob = BASE_URL;
 
 // console.log(process.env.BASE_URL);
 
@@ -92,9 +97,10 @@ document
       if (response.ok && result.success) {
         // Set up auto-redirect timer
         const redirectTimer = setTimeout(() => {
-          window.location.href = `dashboard/auth/otp-verification?email=${encodeURIComponent(
+          window.BASE_URL ;
+          window.location.href = `${BASE_URL}/auth/otp-verification?email=${encodeURIComponent(
             email
-          )}&login_type=${encodeURIComponent(loginType)}`;
+          )}&login_type=${encodeURIComponent(loginType)}&baseurl=${encodeURIComponent(BASE_URL)}`;
         }, 3000);
 
         Swal.fire({
@@ -107,9 +113,10 @@ document
         }).then((result) => {
           clearTimeout(redirectTimer); // Clear timer if OK is clicked
           if (result.isConfirmed || result.isDismissed) {
-            window.location.href = `dashboard/auth/otp-verification?email=${encodeURIComponent(
+            window.BASE_URL ;
+            window.location.href = `${BASE_URL}/auth/otp-verification?email=${encodeURIComponent(
               email
-            )}&login_type=${encodeURIComponent(loginType)}`;
+            )}&login_type=${encodeURIComponent(loginType)}&baseurl=${encodeURIComponent(BASE_URL)}`;
           }
         });
       } else {
