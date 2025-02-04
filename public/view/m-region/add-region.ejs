@@ -303,19 +303,38 @@
                         <label for="chapterStatus" class="form-label">Chapter Status</label>
                         <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <div class="form-check">
-                            <input class="form-check-input" type="radio" id="statusRunning" name="chapterStatus" value="Running" />
+                            <input class="form-check-input" type="radio" id="statusRunning" name="chapterStatus[]" value="Running" />
                             <label class="form-check-label" for="statusRunning">Running</label>
                           </div>
                           <div class="form-check">
-                            <input class="form-check-input" type="radio" id="statusPreLaunch" name="chapterStatus" value="Pre-Launch" />
+                            <input class="form-check-input" type="radio" id="statusPreLaunch" name="chapterStatus[]" value="Pre-Launch" />
                             <label class="form-check-label" for="statusPreLaunch">Pre-Launch</label>
                           </div>
                           <div class="form-check">
-                            <input class="form-check-input" type="radio" id="statusReLaunch" name="chapterStatus" value="Re-Launch" />
+                            <input class="form-check-input" type="radio" id="statusReLaunch" name="chapterStatus[]" value="Re-Launch" />
                             <label class="form-check-label" for="statusReLaunch">Re-Launch</label>
                           </div>
                         </div>
                       </div>
+                      
+                      <!-- old -->
+                      <!-- <div class="col-xl-6">
+                        <label for="chapterStatus" class="form-label">Chapter Status</label>
+                        <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="statusRunning" name="chapterStatus[]" value="Running" />
+                            <label class="form-check-label" for="statusRunning">Running</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="statusPreLaunch" name="chapterStatus[]" value="Pre-Launch" />
+                            <label class="form-check-label" for="statusPreLaunch">Pre-Launch</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="statusReLaunch" name="chapterStatus[]" value="Re-Launch" />
+                            <label class="form-check-label" for="statusReLaunch">Re-Launch</label>
+                          </div>
+                        </div>
+                      </div> -->
                       
                       <div class="col-xl-6">
                         <label for="accolades" class="form-label">
@@ -1227,22 +1246,22 @@
     
 
     // State validation
-    if (!formDataObj['state'] || formDataObj['state'].trim() === '') {
-      toastr.error("State/Province is required.");
-      return;
-    }
+    // if (!formDataObj['state'] || formDataObj['state'].trim() === '') {
+    //   toastr.error("State/Province is required.");
+    //   return;
+    // }
 
     // City validation
-    if (!formDataObj['city'] || formDataObj['city'].trim() === '') {
-      toastr.error("City is required.");
-      return;
-    }
+    // if (!formDataObj['city'] || formDataObj['city'].trim() === '') {
+    //   toastr.error("City is required.");
+    //   return;
+    // }
 
     // Street Address validation
-    if (!formDataObj['street_address_line_1'] || formDataObj['street_address_line_1'].trim() === '') {
-      toastr.error("Street Address Line 1 is required.");
-      return;
-    }
+    // if (!formDataObj['street_address_line_1'] || formDataObj['street_address_line_1'].trim() === '') {
+    //   toastr.error("Street Address Line 1 is required.");
+    //   return;
+    // }
 
     // Postal Code validation
     if (!formDataObj['postal_code'] || formDataObj['postal_code'].trim() === '') {
