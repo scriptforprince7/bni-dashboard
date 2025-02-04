@@ -1,7 +1,10 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.apiUrl = 'https://bni-data-backend.onrender.com/api/regions';
-
+let total_regions =0;
+let active_total =0;
+let chapter_total = 0;
+let member_total = 0;
 // Use window.BNI namespace for other global variables
 window.BNI.state = {
     allRegions: [],
@@ -92,6 +95,12 @@ function displayRegions(regions) {
         const { chaptersCount, membersCount } = getCountsForRegion(region.region_id);
         const row = document.createElement('tr');
         row.classList.add('order-list');
+        total_regions= total_regions +1;
+        if(region.region_status === 'active' ){
+            active_total= active_total +1;
+        }
+        chapter_total = parseFloat(chapter_total)+ (chaptersCount);
+        member_total = parseFloat(member_total) + (membersCount) ;
 
         // Add table cells with region data
         row.innerHTML = `
@@ -125,7 +134,20 @@ function displayRegions(regions) {
 
         // Append the row to the table body
         tableBody.appendChild(row);
+
     });
+    const tot_region_display = document.getElementById("totalRegions");
+    const tot_active_display = document.getElementById("activeTotal");
+    const tot_inactive_display = document.getElementById("inactiveTotal");
+    const tot_chapter_display = document.getElementById("chapterTotal");
+    const tot_member_display = document.getElementById("memberTotal");
+
+    
+    tot_region_display.innerHTML = total_regions;
+    tot_active_display.innerHTML = active_total;
+    tot_inactive_display.innerHTML = parseFloat(total_regions) - parseFloat(active_total);
+    tot_chapter_display.innerHTML = chapter_total;
+    tot_member_display.innerHTML = member_total;
 
     // Hide the loader after the regions are displayed
     hideLoader();
