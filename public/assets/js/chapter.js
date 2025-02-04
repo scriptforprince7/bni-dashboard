@@ -5,6 +5,8 @@ window.BNI.endpoints = {
     regions: "https://bni-data-backend.onrender.com/api/regions",
     members: "https://bni-data-backend.onrender.com/api/members"
 };
+let active_total =0;
+let member_total = 0;
 
 // Use window.BNI namespace for other global variables
 window.BNI.state = window.BNI.state || {
@@ -86,6 +88,11 @@ const displayChapters = (chapters) => {
         const regionName = getRegionNameById(chapter.region_id);
         console.log(`Processing chapter: ${chapter.chapter_name}, Region: ${regionName}, Members: ${membersCount}`);
 
+
+        member_total = parseFloat(member_total) + parseFloat(membersCount);
+        if(chapter.chapter_status === "running"){
+            active_total= parseFloat(active_total) + 1;
+        }
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>${index + 1}</td>
@@ -115,6 +122,13 @@ const displayChapters = (chapters) => {
             </td>
         `;
         tableBody.appendChild(row);
+    const tot_member_display = document.getElementById("memberTotal");
+    const tot_running_display = document.getElementById("RunningChapter");
+    const tot_inactive_display = document.getElementById("InactiveChapter");
+    tot_running_display.innerHTML = active_total;
+    tot_inactive_display.innerHTML = parseFloat(chapters.length) - parseFloat(active_total);
+    tot_member_display.innerHTML = member_total;
+
     });
 };
 

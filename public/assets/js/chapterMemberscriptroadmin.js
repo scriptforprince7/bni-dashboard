@@ -1,5 +1,5 @@
 const apiUrl = 'https://bni-data-backend.onrender.com/api/members';
-const chaptersApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
+const chapterssApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
 // const regionsApiUrl = 'https://bni-data-backend.onrender.com/api/regions';
 const categoriesApiUrl = 'https://bni-data-backend.onrender.com/api/memberCategory';
 const accoladesApiUrl = 'https://bni-data-backend.onrender.com/api/accolades';
@@ -18,6 +18,19 @@ const membershipDropdown = document.getElementById("membership-filter");
 const categoryDropdown = document.getElementById("category-filter");
 const accoladesDropdown = document.getElementById("accolades-filter");
 const statusDropdown = document.getElementById("status-filter");
+
+// Function to get `chapter_id` from the URL added by vs
+function getChapterIdFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('chapter_id'); // Adjust key if needed
+}
+const chapterId = getChapterIdFromUrl();
+
+// Function to get `member_id` from the URL
+function getMemberIdFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('member_id'); // Adjust key if needed
+}
 
 function showLoader() { 
   document.getElementById('loader').style.display = 'flex';
@@ -263,42 +276,34 @@ const updateDropdownText = (dropdown, selectedValue) => {
 
 // Attach event listener to a "Filter" button or trigger
 document.getElementById("apply-filters-btn").addEventListener("click", () => {
-//   const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-//   const chapterId = chapterDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const chapterId = getChapterIdFromUrl(); // Ensure chapter_id is preserved
   const membershipYear = membershipDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const categoryId = categoryDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const accoladesId = accoladesDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const status = statusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
 
   const queryParams = new URLSearchParams();
-
-//   if (regionId) queryParams.append('region_id', regionId);
-//   if (chapterId) queryParams.append('chapter_id', chapterId);
+  if (chapterId) queryParams.append('chapter_id', chapterId); // Preserve chapter_id
   if (membershipYear) queryParams.append('membership_year', membershipYear);
   if (categoryId) queryParams.append('category_id', categoryId);
   if (accoladesId) queryParams.append('accolades_id', accoladesId);
   if (status) queryParams.append('status', status);
 
-  const filterUrl = `/cm/managechaptermember?${queryParams.toString()}`;
+  const filterUrl = `/c/view-chapter/?${queryParams.toString()}`;
   window.location.href = filterUrl;
 });
-
 
 // On page load, check for any applied filters in the URL params
 window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
 
   // Get the filter values from URL params
-//   const regionId = urlParams.get("region_id");
-//   const chapterId = urlParams.get("chapter_id");
   const membershipYear = urlParams.get("membership_year");
   const categoryId = urlParams.get("category_id");
   const accoladesId = urlParams.get("accolades_id");
   const status = urlParams.get("status");
 
   // Update the dropdowns with the selected filter values
-//   if (regionId) updateDropdownText(regionsDropdown, regionId);
-//   if (chapterId) updateDropdownText(chapterDropdown, chapterId);
   if (membershipYear) updateDropdownText(membershipDropdown, membershipYear); // Ensure chapter type is uppercased
   if (categoryId) updateDropdownText(categoryDropdown, categoryId); // Ensure chapter status is uppercased
   if (accoladesId) updateDropdownText(accoladesDropdown, accoladesId); // Ensure chapter status is uppercased
@@ -309,12 +314,13 @@ window.addEventListener('load', () => {
 
 // Attach event listener to "Reset Filter" button to clear query params
 document.getElementById("reset-filters-btn").addEventListener("click", () => {
-  // Clear all query parameters from the URL
+  const chapterId = getChapterIdFromUrl(); // Ensure chapter_id is preserved
+  // Clear all query parameters except chapter_id from the URL
   const url = new URL(window.location);
   url.search = ''; // Remove query parameters
-
+  if (chapterId) url.searchParams.append('chapter_id', chapterId); // Preserve chapter_id
   // Reload the page without filters (cleared query string)
-  window.location.href = url.toString();
+  window.location.href = `/c/view-chapter/?${url.searchParams.toString()}`;
 });
 
 // Check for filters on page load 
@@ -331,14 +337,15 @@ const updateActiveInactiveMembersCount = () => {
 // added by vasusri
 async function fetchChapters() {
   try {
-    const response = await fetch(chaptersApiUrl);
+    const response = await fetch(chapterssApiUrl);
     if (!response.ok) throw new Error('Network response was not ok');
     const chapters = await response.json();
     chapters.forEach(chapter => {
       chaptersMap[chapter.chapter_id] = chapter.chapter_name;
     });
-     usedEmail = chapters.find(t => t.email_id === userEmail);
-    console.log(`email is new:${usedEmail.email_id}`);
+     usedEmail = chapters.find(t => t.chapter_id === parseInt(chapterId));
+     console.log("url chapterid is  :",chapterId);
+    console.log(usedEmail);
 
 
     console.log(`email is new:${usedEmail.chapter_id}`);
@@ -432,7 +439,7 @@ function displayMembers(members) {
           <span class="avatar avatar-sm me-2 avatar-rounded">
             <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
           </span>
-          <a href="/cm/viewchaptermember/?member_id=${member.member_id}">${fullName}</a>
+          <a href="/m/view-member/?member_id=${member.member_id}">${fullName}</a>
         </div>
       </td>
       <td style="border: 1px solid grey;">
@@ -452,7 +459,7 @@ function displayMembers(members) {
       </td>
        <td style="border: 1px solid grey">
         <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
-           <a href="/cm/editchaptermember/?member_id=${member.member_id} "style="cursor:pointer; color:white;">Edit</a>
+           <a href="/m/edit-member/?member_id=${member.member_id} "style="cursor:pointer; color:white;">Edit</a>
         </span>
         <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
      Delete
@@ -622,7 +629,7 @@ const deleteMember = async (member_id) => {
           if (response.ok) {
               const data = await response.json();
               Swal.fire('Deleted!', data.message, 'success');
-              // After deletion, remove the region from the table
+              // After deletion, remove the member from the table
               document.querySelector(`[data-member-id="${member_id}"]`).closest('tr').remove();
           } else {
               const errorResponse = await response.json();
