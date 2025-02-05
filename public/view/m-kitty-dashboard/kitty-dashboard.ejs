@@ -132,10 +132,10 @@
                       >
                         <div>
                           <span class="text-muted d-block mb-1 popins"
-                            >Total Kitty Bill Raised</span
+                            >Total Available Fund</span
                           >
                           <h4 class="fw-medium mb-0">
-                            ₹ <span ><b id="totalRaised">N/a</b></span>
+                            ₹ <span ><b id="totalRaised">0</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -162,10 +162,10 @@
                       >
                         <div>
                           <span class="d-block text-muted mb-1 popins"
-                            >Total Kitty Expense</span
+                            >Total Received Payments</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>N/a</b></span>
+                            ₹ <span><b id="receivedPayments">0</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -195,10 +195,76 @@
                       >
                         <div>
                           <span class="text-muted d-block mb-1 popins"
-                            >Kitty Payment Pending</span
+                            >Total Paid Expenses</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>N/a</b></span>
+                            ₹ <span><b id="paidExpenses">0</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary2"
+                          >
+                            <i class="ti ti-currency-dollar fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <div class="text-muted fs-13">
+                        Increased By
+                        <span class="text-success"
+                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
+                        ></span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #e8e8e8">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Total Pending Expenses</span
+                          >
+                          <h4 class="fw-medium mb-0 bol">
+                            ₹ <span><b id="pendingExpenses">0</b></span>
+                          </h4>
+                        </div>
+                        <div class="lh-1">
+                          <span
+                            class="avatar avatar-md avatar-rounded bg-primary2"
+                          >
+                            <i class="ti ti-currency-dollar fs-5"></i>
+                          </span>
+                        </div>
+                      </div>
+                      <!-- <div class="text-muted fs-13">
+                        Increased By
+                        <span class="text-success"
+                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
+                        ></span>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xxl-4 col-xl-6">
+                  <div
+                    class="card custom-card overflow-hidden main-content-card"
+                  >
+                    <div class="card-body" style="background-color: #e8e8e8">
+                      <div
+                        class="d-flex align-items-start justify-content-between mb-2"
+                      >
+                        <div>
+                          <span class="text-muted d-block mb-1 popins"
+                            >Total Pending Amount</span
+                          >
+                          <h4 class="fw-medium mb-0 bol">
+                            ₹ <span><b id="totalPendingAmount">0</b></span>
                           </h4>
                         </div>
                         <div class="lh-1">
@@ -454,13 +520,12 @@
                       <thead>
                         <tr>
                           <th scope="col" style="border: 1px solid lightgrey; text-align: center;">S.No.</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Raised On</th>
                           <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Chapter Name</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Kitty Amount</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Description</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Bill Type</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Total Weeks</th>
-                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Status</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Available Fund</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Received Payments</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Total Pending</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Paid Expenses</th>
+                          <th scope="col" style="border: 1px solid lightgrey; text-align: center;">Pending Expenses</th>
                         </tr>
                       </thead>
                       <tbody id="paymentsTableBody">

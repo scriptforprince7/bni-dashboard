@@ -452,14 +452,18 @@
                           <th scope="col">Gateway</th>
                           <th scope="col">Payment Type</th>
                           <th scope="col">Settlement Status</th>
-                          <th scope="col">Tranfer UTR</th>
-                          <th scope="col">Tranfer Time</th>
+                          <th scope="col">Transfer UTR</th>
+                          <th scope="col">Transfer Time</th>
                           <th scope="col">IRN</th>
                           <th scope="col">QR Code</th>
                           <th scope="col">E-Invoice Status</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody id="transactionsTableBody">
+                        <!-- Placeholder for no transactions -->
+                        <tr id="no-transactions-row" style="display: none;">
+                          <td colspan="17" style="text-align: center; font-weight: bold;">Currently, there are no transactions available.</td>
+                        </tr>
                         <tr class="invoice-list">
                         </tr>
                       </tbody>

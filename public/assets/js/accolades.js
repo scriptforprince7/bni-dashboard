@@ -15,6 +15,15 @@ function showLoader() {
     document.getElementById('loader').style.display = 'none'; // Hide loader
   }
 
+// Function to update the total accolades count
+function updateTotalAccoladesCount(accolades) {
+    const totalCount = accolades ? accolades.length : 0;
+    const countElement = document.getElementById('total-accolades-count');
+    if (countElement) {
+        countElement.innerHTML = `<b>${totalCount}</b>`;
+    }
+}
+
 // Function to fetch and display accolades
 async function fetchAndDisplayAccolades() {
   try {
@@ -26,8 +35,25 @@ async function fetchAndDisplayAccolades() {
 
     const accolades = await response.json();
 
+    // Update the total count
+    updateTotalAccoladesCount(accolades);
+
     // Clear the table body
     accoladesTableBody.innerHTML = '';
+
+    // Check if there are no accolades
+    if (!accolades || accolades.length === 0) {
+        accoladesTableBody.innerHTML = `
+            <tr>
+                <td colspan="10" style="text-align: center; padding: 20px;">
+                    <div style="font-size: 14px; color: #666;">
+                        Currently, there are no accolades available.
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
     // Loop through accolades and populate the table
     accolades.forEach((accolade, index) => {
@@ -107,7 +133,7 @@ async function fetchAndDisplayAccolades() {
     console.error('Error fetching accolades data:', error);
     accoladesTableBody.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center text-danger">Error fetching accolades data.</td>
+        <td colspan="10" class="text-center text-danger">Error fetching accolades data.</td>
       </tr>
     `;
   } finally {

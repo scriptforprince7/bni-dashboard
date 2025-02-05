@@ -379,6 +379,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       return isValid;
     });
 
+    // After filtering transactions and before displaying them
+    if (filteredTransactions.length === 0) {
+        document.getElementById("no-transactions-row").style.display = "table-row"; // Show the no transactions message
+    } else {
+        document.getElementById("no-transactions-row").style.display = "none"; // Hide the no transactions message
+    }
+
     // Map chapter names by chapter_id for quick access
     const chapterMap = new Map();
     chapters.forEach((chapter) => {

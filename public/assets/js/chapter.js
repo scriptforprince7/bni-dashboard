@@ -53,6 +53,15 @@ function getRegionNameById(regionId) {
     return region ? region.region_name : 'Unknown Region';
 }
 
+// Function to update the running chapters count
+function updateRunningChaptersCount() {
+    const runningCount = window.BNI.state.filteredChapters.filter(chapter => chapter.chapter_status === 'running').length;
+    const runningChaptersElement = document.getElementById("running-chapters-count");
+    if (runningChaptersElement) {
+        runningChaptersElement.innerHTML = `<b>${runningCount}</b>`;
+    }
+}
+
 // Function to display chapters
 const displayChapters = (chapters) => {
     console.log("Displaying chapters:", chapters);
@@ -116,6 +125,9 @@ const displayChapters = (chapters) => {
         `;
         tableBody.appendChild(row);
     });
+
+    // Update the running chapters count after displaying chapters
+    updateRunningChaptersCount();
 };
 
 // Function to populate filter dropdowns
