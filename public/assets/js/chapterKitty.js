@@ -3,6 +3,8 @@ let selectedGateway = null;
 let selectedMonth = null;
 let selectedPgStatus = null;
 let selectedMethod = null;
+let total_pending_expense = 0;
+let total_paid_expense = 0;
 
 // Function to populate Gateway filter dropdown
 async function populateGatewayFilter() {
@@ -208,6 +210,24 @@ function hideLoader() {
 }
     try {
         showLoader();
+        const expenseResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
+        const expenses = await expenseResponse.json();
+        console.log("expense", expenses);
+
+        // let total_pending_expense = 0;
+        // let total_paid_expense = 0;
+
+        expenses.forEach(expense => {
+            if (expense.payment_status === 'pending') {
+            total_pending_expense += parseFloat(expense.amount);
+            } else if (expense.payment_status === 'paid') {
+            total_paid_expense += parseFloat(expense.amount);
+            }
+        });
+
+        console.log("Total Pending Expense:", total_pending_expense);
+        console.log("Total Paid Expense:", total_paid_expense);
+
         // Step 1: Get logged-in chapter email from token
         const chapterEmail = getUserEmail();
         console.log('Logged-in chapter email:', chapterEmail);
@@ -497,6 +517,9 @@ function hideLoader() {
         const formattedKittyReceived = indianCurrencyFormatter.format(totalKittyAmountReceived);
         const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
         const formattedMiscellaneousAmount = indianCurrencyFormatter.format(totalPendingMiscellaneousAmount);
+        const formattedTotalPaidExpense = indianCurrencyFormatter.format(total_paid_expense);
+        let availableAmount = parseFloat(totalKittyAmountReceived)-parseFloat(total_paid_expense);
+        const formattedAvailableAmount = indianCurrencyFormatter.format(availableAmount);
 
         // Step 9: Update the UI with fetched values
         document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
@@ -508,6 +531,8 @@ function hideLoader() {
         document.querySelector('.total_weeks').textContent = total_weeks;
         document.querySelector('.member_count').textContent = memberCount;
         document.querySelector('.total_miscellaneous_amount').textContent = formattedMiscellaneousAmount;
+        document.querySelector('#total_expense_amount').textContent = formattedTotalPaidExpense;
+        document.querySelector('#total_available_amount').textContent = formattedAvailableAmount;
 
         // Populate all filter dropdowns
         await populateGatewayFilter();
