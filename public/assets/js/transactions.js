@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+  let no_of_transaction = 0;
+  const no_Of_Transaction = document.getElementById('no_of_transaction');
   const regionsDropdown = document.getElementById("region-filter");
   const chaptersDropdown = document.getElementById("chapter-filter");
   const monthsDropdown = document.getElementById("month-filter");
@@ -9,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const paymentMethodDropdown = document.getElementById("payment-method-filter");
   const searchInput = document.getElementById('searchChapterInput');
   console.log('Search input initialized:', searchInput);
+  no_Of_Transaction.textContent = no_of_transaction;
 
   // Function to show the loader
   function showLoader() {
@@ -478,6 +481,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const row = document.createElement("tr");
       row.classList.add("invoice-list");
 
+      no_of_transaction = parseFloat(no_of_transaction) + 1;
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
@@ -512,6 +516,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       tableBody.appendChild(row);
     
     });
+    no_Of_Transaction.textContent = no_of_transaction;
 
       // Add a flag to differentiate between automatic and manual calls
       // let isAutoTrack = true;
