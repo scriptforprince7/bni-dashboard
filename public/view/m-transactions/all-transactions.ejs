@@ -58,11 +58,11 @@
               </h1>
             </div>
             <div class="btn-list">
-              <!-- <a href="/t/generate-invoice"><button
+              <a href="/t/generate-invoice"><button
                 class="btn btn-primary btn-wave me-0"
               >
                 <i class="ri-share-plus me-1"></i> Generate Invoice +
-              </button></a> -->
+              </button></a>
              <a href="https://bni-data-backend.onrender.com/api/export-orders"><button
               class="btn btn-primary btn-wave me-0"
               style="background-color: #fb3e4e!important; border: #fb3e4e"
@@ -88,6 +88,73 @@
               <div class="col-xxl-12 col-xl-12">
                 <div class="row" style="display: flex; justify-content: center;">
                   <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h1 class="mb-2 fs-12 cus">
+                              Total No of Transactions
+                            </h1>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span  id="no_of_transaction"
+                                    >0</span>
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- <div class="col-xxl-3">
                     <div
                       class="card custom-card overflow-hidden main-content-card"
                     >
@@ -154,8 +221,8 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="col-xxl-3">
+                  </div> -->
+                  <!-- <div class="col-xxl-3">
                     <div
                       class="card custom-card overflow-hidden main-content-card"
                     >
@@ -222,8 +289,8 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="col-xxl-3">
+                  </div> -->
+                  <!-- <div class="col-xxl-3">
                     <div
                       class="card custom-card overflow-hidden main-content-card"
                     >
@@ -296,7 +363,7 @@
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> -->
                 </div>
               </div>
             </div>
@@ -780,6 +847,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ...existing code...
   });
 </script>
+
+
 
       <%- include('../partials/footer') %>
 

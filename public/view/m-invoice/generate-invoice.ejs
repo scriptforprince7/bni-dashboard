@@ -68,7 +68,6 @@
           <a class="dropdown-item" href="javascript:void(0);">This Week</a>
         </li>
       </ul>
-                
     </div>
 
     <!-- Start::row-1 -->
@@ -539,6 +538,7 @@
         document.getElementById("universal-link-name").textContent =
           "Universal Link not found";
       }
+      hideLoader();
     } catch (error) {
       console.error("Error fetching universal links:", error);
       document.getElementById("universal-link-name").textContent =
