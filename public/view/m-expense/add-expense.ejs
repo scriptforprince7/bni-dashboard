@@ -108,9 +108,18 @@
                           <input type="text" class="form-control" id="submitted_by" name="submitted_by" placeholder="Enter Name" maxlength="50" required />
                         </div>
 
-                        <div class="col-xl-6">
-                          <label for="description" class="form-label">Description</label>
-                          <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="3" maxlength="200" required></textarea>
+                        <div class="row">
+                          <div class="col-xl-6">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="3" maxlength="200" required></textarea>
+                          </div>
+
+                          <div class="col-xl-6">
+                            <label for="chapter" class="form-label">Chapter</label>
+                            <select class="form-control" name="chapter" id="chapter" required>
+                              <option value="">Select Chapter</option>
+                            </select>
+                          </div>
                         </div>
 
                         <div id="membershipFeesContainer" class="container">
@@ -169,6 +178,15 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
+  // First get the login type and email from token
+  const loginType = getUserLoginType();
+  const userEmail = getUserEmail();
+  
+  console.log('Current user details:', {
+    loginType: loginType,
+    email: userEmail
+  });
+
   // Fetch data for "Type of Expense"
   try {
     const response = await fetch("https://bni-data-backend.onrender.com/api/expenseType");
@@ -193,19 +211,109 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.error("Error fetching expense types:", error);
   }
 
+  // Fetch and populate chapters dropdown
+  try {
+    console.log('Fetching chapters data...');
+    const response = await fetch("https://bni-data-backend.onrender.com/api/chapters");
+    const chapters = await response.json();
+    console.log("All available chapters:", chapters);
+
+    const chapterDropdown = document.getElementById("chapter");
+    chapterDropdown.innerHTML = '<option value="">Select Chapter</option>';
+
+    // Filter chapters based on login type and email
+    let filteredChapters = [];
+    if (loginType === 'ro_admin') {
+      console.log('User is RO Admin - showing all chapters');
+      filteredChapters = chapters;
+    } else {
+      console.log('User is not RO Admin - filtering chapters by email');
+      filteredChapters = chapters.filter(chapter => chapter.email_id === userEmail);
+      console.log('Filtered chapters by email:', filteredChapters);
+    }
+
+    // Sort filtered chapters by name
+    filteredChapters.sort((a, b) => a.chapter_name.localeCompare(b.chapter_name));
+    console.log('Sorted chapters to display:', filteredChapters);
+
+    // Populate dropdown with filtered chapters
+    if (filteredChapters.length > 0) {
+      filteredChapters.forEach((chapter) => {
+        const option = document.createElement("option");
+        option.value = chapter.chapter_id;
+        option.textContent = chapter.chapter_name;
+        chapterDropdown.appendChild(option);
+        console.log(`Added chapter to dropdown: ${chapter.chapter_name} (ID: ${chapter.chapter_id})`);
+      });
+    } else {
+      console.log('No chapters available for this user');
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No chapters available";
+      chapterDropdown.appendChild(option);
+    }
+
+  } catch (error) {
+    console.error("Error in chapter dropdown population:", error);
+    const chapterDropdown = document.getElementById("chapter");
+    chapterDropdown.innerHTML = '<option value="">Error loading chapters</option>';
+  }
+
   const addExpenseButton = document.getElementById("addExpenseButton");
 
   addExpenseButton.addEventListener("click", async function () {
     const form = document.getElementById("addExpenseForm");
     const formData = new FormData(form);
 
-    // Debug: Log all form data for verification
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
+    // Get selected chapter and convert ID to number
+    const selectedChapter = document.getElementById("chapter");
+    const selectedChapterId = parseInt(selectedChapter.value, 10); // Convert to number
+    
+    // Validate chapter selection
+    if (!selectedChapterId || isNaN(selectedChapterId)) {
+      Swal.fire('Error!', 'Please select a valid chapter', 'error');
+      console.error('Invalid chapter selection:', {
+        originalValue: selectedChapter.value,
+        parsedValue: selectedChapterId
+      });
+      return;
+    }
+
+    // Remove existing chapter_id from formData if it exists
+    formData.delete('chapter_id');
+    // Add the numeric chapter_id
+    formData.append('chapter_id', selectedChapterId);
+
+    // Debug: Log all form data and selected chapter
+    console.log('Chapter Selection:', {
+      originalValue: selectedChapter.value,
+      convertedId: selectedChapterId,
+      chapterName: selectedChapter.options[selectedChapter.selectedIndex].text
+    });
+
+    // Log all form data for verification
+    const formDataObject = {
+      expense_type: parseInt(document.getElementById('expense_type').value, 10),
+      expense_type_name: document.getElementById('expense_type').options[document.getElementById('expense_type').selectedIndex].text,
+      submitted_by: document.getElementById('submitted_by').value,
+      description: document.getElementById('description').value,
+      chapter_id: selectedChapterId, // Now using the converted number
+      chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
+      amount: parseFloat(document.getElementById('amount').value),
+      payment_status: document.getElementById('payment_status').value,
+      bill_date: document.getElementById('bill_date').value,
+      bill_no: document.getElementById('bill_no').value,
+      transaction_no: document.getElementById('transaction_no').value,
+      upload_bill: document.getElementById('upload_bill').files[0]?.name || 'No file selected'
+    };
+
+    console.log('Complete Form Data:', formDataObject);
+    console.log('FormData entries:');
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
     }
 
     try {
-      // Show loading indicator
       showLoader();
 
       const response = await fetch("https://bni-data-backend.onrender.com/api/addExpense", {
@@ -215,6 +323,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('API Response:', data);
+        
         Swal.fire({
           title: 'Success!',
           text: data.message,
@@ -222,24 +332,34 @@ document.addEventListener("DOMContentLoaded", async function () {
           confirmButtonText: 'OK'
         }).then((result) => {
           if (result.isConfirmed) {
-            // Redirect to manage-expenses page after clicking OK
             window.location.href = '/exp/manage-expenses';
           }
         });
         form.reset();
       } else {
         const errorResponse = await response.json();
+        console.error('API Error Response:', errorResponse);
         Swal.fire('Failed!', errorResponse.message, 'error');
       }
     } catch (error) {
       console.error('Error adding expense:', error);
       Swal.fire('Error!', 'Failed to add expense. Please try again.', 'error');
     } finally {
-      // Hide loading indicator
       hideLoader();
     }
   });
 });
+
+// Helper function to check if arrays are equal (for debugging)
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 </script>
 
 <script src="../../assets/js/expense.js"></script>
