@@ -38,30 +38,79 @@ const updateExpenseTotals = (expenses) => {
   document.querySelector('[data-pending-expenses]').textContent = `₹ ${pendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-// Fetch expenses with the applied filter
+// Function to fetch and display expenses based on user's email and chapter
 const fetchExpenses = async (sortDirection = 'asc') => {
   try {
     showLoader();
+    
+    // Get user email from token
+    const userEmail = getUserEmail();
+    console.log('Current user email:', userEmail);
 
+    // First fetch chapters to get the user's chapter_id
+    const chaptersResponse = await fetch("https://bni-data-backend.onrender.com/api/chapters");
+    const chapters = await chaptersResponse.json();
+    console.log('All chapters:', chapters);
+
+    // Find user's chapter based on email
+    const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+    console.log('User chapter details:', userChapter);
+
+    if (!userChapter && getUserLoginType() !== 'ro_admin') {
+      console.log('No matching chapter found for user email');
+      hideLoader();
+      return;
+    }
+
+    // Fetch expense types for mapping
     const expenseTypesResponse = await fetch(
       "https://bni-data-backend.onrender.com/api/expenseType"
     );
-    if (!expenseTypesResponse.ok)
+    if (!expenseTypesResponse.ok) {
       throw new Error("Failed to fetch expense types");
+    }
     expenseTypes = await expenseTypesResponse.json();
+    console.log('Expense types:', expenseTypes);
 
+    // Fetch all expenses
     const response = await fetch(`${apiUrl}`);
     if (!response.ok) throw new Error("Network response was not ok");
 
-    allExpenses = await response.json();
+    const allExpensesData = await response.json();
+    console.log('All expenses:', allExpensesData);
+
+    // Filter expenses based on user type and chapter
+    if (getUserLoginType() === 'ro_admin') {
+      console.log('User is RO Admin - showing all expenses');
+      allExpenses = allExpensesData;
+    } else {
+      console.log('Filtering expenses for chapter_id:', userChapter.chapter_id);
+      allExpenses = allExpensesData.filter(expense => 
+        expense.chapter_id === userChapter.chapter_id
+      );
+      console.log('Filtered expenses for chapter:', allExpenses);
+    }
+
     filteredExpenses = [...allExpenses];
+    console.log('Initial filtered expenses:', filteredExpenses);
+
+    // Sort expenses
     sortExpenses(sortDirection);
-    displayExpenses(filteredExpenses.slice(0, entriesPerPage));
+    
+    // Display first page of expenses
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    const expensesToDisplay = filteredExpenses.slice(startIndex, endIndex);
+    console.log('Displaying expenses:', expensesToDisplay);
+    
+    displayExpenses(expensesToDisplay);
 
     // Update the expense totals
     updateExpenseTotals(allExpenses);
+    console.log('Updated expense totals');
+
   } catch (error) {
-    console.error("There was a problem fetching the data:", error);
+    console.error("Error in fetchExpenses:", error);
   } finally {
     hideLoader();
   }
@@ -170,15 +219,26 @@ AddExpenseType();
 });
 // Function to display expenses in the table
 function displayExpenses(expenses) {
+  console.log('Displaying expenses:', expenses);
   const tableBody = document.getElementById("expensesTableBody");
   tableBody.innerHTML = "";
+
+  if (expenses.length === 0) {
+    console.log('No expenses to display');
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td colspan="8" class="text-center">No expenses found</td>
+    `;
+    tableBody.appendChild(row);
+    return;
+  }
 
   expenses.forEach((expense, index) => {
     const row = document.createElement("tr");
     row.setAttribute("data-expense-id", expense.expense_id);
     row.classList.add("order-list");
 
-    // expense_type ID से expense_name ढूंढें
+    // Find expense type name
     const expenseTypeObj = expenseTypes.find(
       (type) => type.expense_id === expense.expense_type
     );
@@ -189,30 +249,30 @@ function displayExpenses(expenses) {
     const billDate = new Date(expense.bill_date);
     const formattedBillDate = billDate.toLocaleDateString();
 
+    console.log('Creating row for expense:', {
+      id: expense.expense_id,
+      type: expenseName,
+      submittedBy: expense.submitted_by,
+      amount: expense.amount,
+      status: expense.payment_status,
+      date: formattedBillDate
+    });
+
     row.innerHTML = `
-            <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
-            <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
-            <td style="border: 1px solid grey;"><b>${
-              expense.submitted_by
-            }</b></td>
-            <td style="border: 1px solid grey;"><b>${
-              expense.description
-            }</b></td>
-            <td style="border: 1px solid grey;"><b>₹ ${expense.amount}</b></td>
-            <td style="border: 1px solid grey;">
-                <span class="badge bg-${
-                  expense.payment_status === "pending" ? "warning" : "success"
-                }">${expense.payment_status}</span>
-            </td>
-            <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
-            <td style="border: 1px solid grey">
-<a href="/exp/edit-expense/?expense_id=${expense.expense_id}" 
-   class="badge" 
-   style="background-color: #10b981; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); transition: all 0.3s ease; hover: {opacity: 0.9};">Edit Bill</a>                <span class="badge bg-danger delete-btn" style="cursor:pointer; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); font-weight: bold;" data-expense-id="${
-     expense.expense_id
-   }">Delete</span>
-            </td>
-        `;
+      <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
+      <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
+      <td style="border: 1px solid grey;"><b>${expense.submitted_by}</b></td>
+      <td style="border: 1px solid grey;"><b>${expense.description}</b></td>
+      <td style="border: 1px solid grey;"><b>₹ ${expense.amount}</b></td>
+      <td style="border: 1px solid grey;">
+        <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
+      </td>
+      <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
+      <td style="border: 1px solid grey">
+        <a href="/exp/edit-expense/?expense_id=${expense.expense_id}" class="badge" style="background-color: #10b981; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); transition: all 0.3s ease; hover: {opacity: 0.9};">Edit Bill</a>
+        <span class="badge bg-danger delete-btn" style="cursor:pointer; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); font-weight: bold;" data-expense-id="${expense.expense_id}">Delete</span>
+      </td>
+    `;
     tableBody.appendChild(row);
   });
 }
@@ -306,10 +366,15 @@ document.getElementById("sortButton").addEventListener("click", () => {
   sortExpenses(newSort);
 });
 
-// Initial fetch and sorting (default sort: ascending A-Z)
+// Initial fetch when page loads
 window.addEventListener("DOMContentLoaded", async () => {
+  console.log('Page loaded - fetching expenses');
+  console.log('User login type:', getUserLoginType());
+  console.log('User email:', getUserEmail());
+  
   showLoader();
   await fetchExpenses("asc");
+  
   // Set initial button text
   const button = document.getElementById("sortButton");
   button.textContent = "↑ (A-Z)";
