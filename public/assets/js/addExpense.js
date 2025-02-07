@@ -1,4 +1,4 @@
-let apiUrl = "https://bni-data-backend.onrender.com/api/allExpenses"; // API for expenses
+let apiUrI = "https://bni-data-backend.onrender.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let entriesPerPage = 10; // Number of entries to display per page
@@ -73,7 +73,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('Expense types:', expenseTypes);
 
     // Fetch all expenses
-    const response = await fetch(`${apiUrl}`);
+    const response = await fetch(`${apiUrI}`);
     if (!response.ok) throw new Error("Network response was not ok");
 
     const allExpensesData = await response.json();
@@ -145,7 +145,7 @@ const sortExpenses = (filter) => {
   displayExpenses(filteredExpenses.slice(startIndex, endIndex));
 };
 
-const AddExpenseType = async () => {
+const AddExpenseTypero = async () => {
   // Show confirmation using SweetAlert with an input field and dropdown
   const result = await Swal.fire({
     title: 'Add Expense',
@@ -182,13 +182,13 @@ const AddExpenseType = async () => {
       try {
         showLoader(); // Show loading indicator
 
-        // Call the API to add the expense (replace with the actual API endpoint)
+        // Call the API to add the expense
         const response = await fetch(`https://bni-data-backend.onrender.com/api/expenseType`, {
-          method: 'POST', // Use POST to add an expense
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ expense_name: expenseType, expense_status:status }), // Send the expense name and status
+          body: JSON.stringify({ expense_name: expenseType, expense_status: status }),
         });
 
         if (response.ok) {
@@ -211,13 +211,9 @@ const AddExpenseType = async () => {
   }
 };
 
-document.getElementById('addNewExpenseBtn').addEventListener('click', (event) => {
+document.getElementById('opBtn').addEventListener('click', (event) => {
   console.log("Button clicked");
-// Get the region_id from the button's data attribute
-const region_name = event.target.getAttribute('data-region-id');
-console.log("Region Name:", region_name); // Log the region name from button's data attribute
-// Call AddExpense function with the region_name
-AddExpenseType();
+  AddExpenseTypero(); // Call the function to add expense type
 });
 
 // Function to display expenses in the table
