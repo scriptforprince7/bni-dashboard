@@ -48,21 +48,6 @@ function formatDate(dateStr) {
             });
         }
 
-        // Get user role to handle different access types
-        const userRole = getUserLoginType();
-        console.log('User Role:', userRole);
-
-        // Handle admin member access if applicable
-        const adminAccess = getAdminMemberAccess();
-        if (userRole === 'ro_admin' && adminAccess) {
-            member_id = adminAccess.member_id;
-            member_email = adminAccess.member_email;
-            console.log('Admin access details:', {
-                member_id: member_id,
-                member_email: member_email
-            });
-        }
-
         if (!member_email) {
             console.error('No member email found from any source');
             hideLoader();
@@ -930,10 +915,10 @@ function formatDate(dateStr) {
               ledgerData.push(
                 {
                   sNo: ledgerData.length +1,
-                  date: formatDate(balancePayments.data?.[0]?.date_of_update) || 10-12-2000, //date from new api of last pending ---- formatDate(10-12-2025) ||    ----bal wtf link
+                  date: formatDate(balancePayments.data?.[0]?.date_of_update) || formatDate(userData.member_induction_date), //date from new api of last pending bal wtf //new data entry linked   ----- formatDate(10-12-1000) || 
                   description: 'Opening Balance',
                   billAmount: balancePayments.data?.[0]?.member_pending_balance || 10,
-                  debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf link
+                  debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf linked
                   credit: 0,
                   gst: 0,
                   balance: currentBalance, // Display opening balance here

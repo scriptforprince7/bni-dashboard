@@ -290,11 +290,12 @@
             <script>
               document.addEventListener("DOMContentLoaded", async function () {
                 try {
-                    // Step 1: Try getting member details from multiple sources
+                    console.log('=== Starting Member Dashboard ===');
+                    
+                    // Step 1: Get member details from localStorage first
                     let member_id = localStorage.getItem('current_member_id');
                     let member_email = localStorage.getItem('current_member_email');
                     
-                    console.log('=== Starting Member Dashboard ===');
                     console.log('Initial check from localStorage:', {
                         member_id: member_id,
                         member_email: member_email
@@ -304,21 +305,6 @@
                     if (!member_email) {
                         member_email = getUserEmail();
                         console.log('Retrieved from token:', {
-                            member_email: member_email
-                        });
-                    }
-
-                    // Get user role to handle different access types
-                    const userRole = getUserLoginType();
-                    console.log('User Role:', userRole);
-
-                    // Handle admin member access if applicable
-                    const adminAccess = getAdminMemberAccess();
-                    if (userRole === 'ro_admin' && adminAccess) {
-                        member_id = adminAccess.member_id;
-                        member_email = adminAccess.member_email;
-                        console.log('Admin access details:', {
-                            member_id: member_id,
                             member_email: member_email
                         });
                     }
@@ -336,49 +322,44 @@
                     const membersData = await membersResponse.json();
                     console.log("Members data received:", membersData);
 
-                    // Find member_id by matching email
+                    // Find member by email
                     console.log("Searching for member with email:", member_email);
                     const memberInfo = membersData.find(
                         member => member.member_email_address === member_email
                     );
-                    console.log("Found member info:", memberInfo);
-                    
+
                     if (!memberInfo) {
                         console.error("Member not found for email:", member_email);
                         return;
                     }
 
-                    const memberId = memberInfo.member_id;
-                    console.log("Member ID found:", memberId);
+                    console.log("Found member info:", memberInfo);
+                    member_id = member_id || memberInfo.member_id;
+                    console.log("Using Member ID:", member_id);
 
                     // Fetch orders data
-                    console.log("Fetching orders data...");
                     const ordersResponse = await fetch(
                         "https://bni-data-backend.onrender.com/api/allOrders"
                     );
                     const ordersData = await ordersResponse.json();
-                    console.log("Orders data received:", ordersData);
 
-                    // Filter orders by matching customer_id with member_id
-                    console.log("Filtering orders for member_id:", memberId);
+                    // Filter orders for this member
                     const memberOrders = ordersData.filter(
-                        order => order.customer_id === memberId
+                        order => order.customer_id === member_id
                     );
-                    console.log("Filtered member orders:", memberOrders);
+                    console.log("Member orders found:", memberOrders.length);
 
-                    // Get the 5 most recent orders
+                    // Get recent transactions
                     const recentOrders = memberOrders.slice(-5);
-                    console.log("5 most recent orders:", recentOrders);
+                    console.log("Recent orders for display:", recentOrders);
 
-                    // Display the orders
+                    // Update transactions history
                     const transactionsHistoryDiv = document.querySelector(
                         "#transactions-history tbody"
                     );
-                    console.log("Clearing and updating transactions display...");
-                    transactionsHistoryDiv.innerHTML = ""; // Clear existing content
+                    transactionsHistoryDiv.innerHTML = "";
 
                     recentOrders.forEach((order, index) => {
-                        console.log(`Processing order ${index + 1}:`, order);
                         const transactionRow = document.createElement("tr");
                         transactionRow.innerHTML = `
                             <td>
@@ -395,15 +376,13 @@
                             </td>
                         `;
                         transactionsHistoryDiv.appendChild(transactionRow);
-                        console.log(`Added transaction row ${index + 1} to display`);
                     });
 
-                    // Hide the message for more entries
                     document.getElementById("more-entries").style.display = "none";
-                    console.log("Transaction display update complete");
+                    console.log("Dashboard update complete");
 
                 } catch (error) {
-                    console.error("Error in transaction processing:", error);
+                    console.error("Error in dashboard processing:", error);
                     console.error("Error stack:", error.stack);
                 }
               });
