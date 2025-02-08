@@ -118,59 +118,65 @@ function formatDate(dateStr) {
       document.querySelector('.description').innerHTML = '-';
       document.getElementById('billType').textContent = '-';
       document.getElementById('tot_weeks').textContent = '-';
-                }
-                const ledgerData = [
-                  {
-                    sNo: 1,
-                    date: formatDate(userData.member_induction_date), //date wtf
-                    description: 'Opening Balance',
-                    debit: meeting_opening_balance,
-                    credit: 0,
-                    balance: currentBalance, // Display opening balance here
-                    balanceColor: 'red', // Set balance color to red
-                  },
-                  
-                ];
+        }
+        const ledgerData = [
+          {
+            sNo: 1,
+            date: formatDate(userData.member_induction_date), //date wtf
+            description: 'Opening Balance',
+            billAmount: 0,
+            debit: meeting_opening_balance,
+            credit: 0,
+            gst: 0,
+            balance: currentBalance, // Display opening balance here
+            balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
+          },
+          
+        ];
 
-              console.log('here available kitty id is :',allTimeRaisedKitty[0]); 
-              const itsCurrentOrder = allAvailableOrders.filter(order => order.kitty_bill_id === allTimeRaisedKitty[0].kitty_bill_id && order.customer_email=== member_email);
-              
-              if(matchFounded){
-                // push active raised kitty in bill 
-                currentBalance += parseFloat(meeting_payable_amount) + parseFloat(meeting_payable_amount * 0.18);
-                ledgerData.push({
-                  sNo: 2,
-                  date: formatDate(allTimeRaisedKitty[0].raised_on),
-                  description: `
-                    <b>Meeting Payable Amount vs</b><br>
-                    <em>(bill for: ${allTimeRaisedKitty[0].bill_type})</em> - 
-                    <em>(${allTimeRaisedKitty[0].description})</em>
-                  `,
-                  debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                  credit: 0,
-                  balance: currentBalance, // Show sum in Meeting Payable Amount row
-                  balanceColor: 'red', // Set balance color to red
-                });
-              } else{
-                currentBalance += parseFloat(meeting_payable_amount) + parseFloat(meeting_payable_amount * 0.18);
-                ledgerData.push({
-                  sNo: 2,
-                  date: formatDate(allTimeRaisedKitty[0].raised_on),
-                  description: `
-                    <b>Meeting Payable Amount vs</b><br>
-                    <em>(bill for: ${allTimeRaisedKitty[0].bill_type})</em> - 
-                    <em>(${allTimeRaisedKitty[0].description})</em>
-                  `,
-                  debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                  credit: 0,
-                  balance: currentBalance, // Show sum in Meeting Payable Amount row
-                  balanceColor: 'red', // Set balance color to red
-                });
-              }
-              
-              if(itsCurrentOrder.length === 0){
-                // alert('No Order found.');
-              //   console.log('meeting_opening_balance:', meeting_opening_balance);
+      console.log('here available kitty id is :',allTimeRaisedKitty[0]); 
+      const itsCurrentOrder = allAvailableOrders.filter(order => order.kitty_bill_id === allTimeRaisedKitty[0].kitty_bill_id && order.customer_email=== member_email_address);
+      
+      if(matchFounded){
+        // push active raised kitty in bill 
+        currentBalance += parseFloat(meeting_payable_amount) + parseFloat(meeting_payable_amount * 0.18);
+        ledgerData.push({
+          sNo: 2,
+          date: formatDate(allTimeRaisedKitty[0].raised_on),
+          description: `
+            <b>Meeting Payable Amount vs</b><br>
+            <em>(bill for: ${allTimeRaisedKitty[0].bill_type})</em> - 
+            <em>(${allTimeRaisedKitty[0].description})</em>
+          `,
+          billAmount: meeting_payable_amount + (meeting_payable_amount * 0.18),
+          debit: meeting_payable_amount,
+          credit: 0,
+          gst: meeting_payable_amount * 0.18,
+          balance: currentBalance, // Show sum in Meeting Payable Amount row
+          balanceColor: 'red', // Set balance color to red
+        });
+      } else{
+        currentBalance += parseFloat(meeting_payable_amount) + parseFloat(meeting_payable_amount * 0.18);
+        ledgerData.push({
+          sNo: 2,
+          date: formatDate(allTimeRaisedKitty[0].raised_on),
+          description: `
+            <b>Meeting Payable Amount vs</b><br>
+            <em>(bill for: ${allTimeRaisedKitty[0].bill_type})</em> - 
+            <em>(${allTimeRaisedKitty[0].description})</em>
+          `,
+          billAmount: meeting_payable_amount + (meeting_payable_amount * 0.18),
+          debit: meeting_payable_amount,
+          credit: 0,
+          gst: meeting_payable_amount * 0.18,
+          balance: currentBalance, // Show sum in Meeting Payable Amount row
+          balanceColor: 'red', // Set balance color to red
+        });
+      }
+      
+      if(itsCurrentOrder.length === 0){
+        // alert('No Order found.');
+      //   console.log('meeting_opening_balance:', meeting_opening_balance);
       // console.log('meeting_payable_amount:', meeting_payable_amount);
       // console.log('chapter_id:', chapter_id);
       // console.log('member_id:', member_id);
@@ -308,9 +314,12 @@ function formatDate(dateStr) {
             sNo: ledgerData.length + 1,
             date: formatDate(itsCurrentTransaction[0].payment_time),
             description: 'Meeting Fee Paid',
+            billAmount: itsCurrentTransaction[0].payment_amount,
             debit: 0,
-            credit: itsCurrentTransaction[0].payment_amount,
+            credit: itsCurrentTransaction[0].payment_amount / 1.18,
+            gst: itsCurrentTransaction[0].payment_amount - (itsCurrentTransaction[0].payment_amount / 1.18),
             balance: currentBalance,
+            balanceColor: currentBalance >= 0 ? 'green' : 'red',
           });
         }
       
@@ -363,19 +372,30 @@ function formatDate(dateStr) {
     ledgerData.forEach(entry => {
       const row = document.createElement('tr');
       
-      // For Opening Balance and Meeting Payable Amount, always show in red with a '-' wtf
-      const balanceColor = (entry.sNo === 1 || entry.sNo === 2) ? 'red' : (entry.balance >= 0 ? 'green' : 'red');
-      const balanceSign = (entry.sNo === 1 || entry.sNo === 2) ? '-' : (entry.balance >= 0 ? '+' : '-');
+      let balanceColor = entry.balance >= 0 ? 'green' : 'red';
+      let balanceValue = entry.balance;
+      
+      
+
+      if (entry.debit && entry.debit > 0) {
+        balanceColor = 'red';
+        balanceValue = -Math.abs(entry.balance);
+      } else if (entry.credit && entry.balance < 0) {
+        balanceColor = 'green';
+        balanceValue = Math.abs(entry.balance);
+      }
     
       row.innerHTML = `
         <td>${entry.sNo}</td>
         <td><b>${entry.date}</b></td>
         <td><b>${entry.description}</b></td>
+        <td><b>${entry.billAmount ? parseFloat(entry.billAmount).toFixed(2) : '-'}</b></td>
         <td><b style="color: ${entry.debit ? 'red' : 'inherit'}">${entry.debit ? parseFloat(entry.debit).toFixed(2) : '-'}</b></td>
         <td><b style="color: ${entry.credit ? 'green' : 'inherit'}">${entry.credit ? parseFloat(entry.credit).toFixed(2) : '-'}</b></td>
+        <td>${entry.gst ? parseFloat(entry.gst).toFixed(2) : '-'}</td>
         <td>
           <b style="color: ${balanceColor}">
-            ${balanceSign}${parseFloat(entry.balance).toFixed(2)}
+        ${parseFloat(balanceValue).toFixed(2)}
           </b>
         </td>
       `;
@@ -405,10 +425,12 @@ function formatDate(dateStr) {
           sNo: 1,
           date: formatDate(userData.member_induction_date),
           description: 'Opening Balance',
+          billAmount: 0,
           debit: meeting_opening_balance,
           credit: 0,
+          gst: 0,
           balance: currentBalance, // Display opening balance here
-          balanceColor: 'red', // Set balance color to red
+          balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
         },
         
       ];
@@ -505,10 +527,12 @@ function formatDate(dateStr) {
                   <em>(${allKittyPaymentsExceptActive[0].description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit: parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) + parseFloat(parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) * 0.18),
+                billAmount: parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) + parseFloat(parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) * 0.18),
+                debit: parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
               currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -519,9 +543,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               });
               // console.log("payable amount :");
             }
@@ -601,10 +628,12 @@ function formatDate(dateStr) {
                   sNo: ledgerData.length +1,
                   date: formatDate(balancePayments.data?.[0]?.date_of_update) || formatDate(userData.member_induction_date), //date from new api of last pending bal wtf //new data entry linked   ----- formatDate(10-12-1000) || 
                   description: 'Opening Balance',
+                  billAmount: balancePayments.data?.[0]?.member_pending_balance || 10,
                   debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf linked
                   credit: 0,
+                  gst: 0,
                   balance: currentBalance, // Display opening balance here
-                  balanceColor: 'red', // Set balance color to red
+                  balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
                 });
               currentBalance += parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18);
               ledgerData.push({
@@ -616,10 +645,12 @@ function formatDate(dateStr) {
                   <em>(${currentRemainingKitty.description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                billAmount: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                debit: parseFloat(currentRemainingKitty.total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
               currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -630,9 +661,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               }); 
 
               // currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -689,7 +723,7 @@ function formatDate(dateStr) {
               //   description: 'Opening Balance',
               //   debit: meeting_opening_balance,
               //   credit: 0,
-              //   balance: meeting_opening_balance, // Display opening balance here
+              //   balance: currentBalance, // Display opening balance here
               //   balanceColor: 'red',
               // })
               currentBalance += parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18);
@@ -702,10 +736,12 @@ function formatDate(dateStr) {
                   <em>(${currentRemainingKitty.description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                billAmount: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                debit: parseFloat(currentRemainingKitty.total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
 
@@ -715,9 +751,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               });
               // console.log("payable amount :");
             }
@@ -792,10 +831,12 @@ function formatDate(dateStr) {
                   <em>(${allKittyPaymentsExceptActive[0].description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit: parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) + parseFloat(parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) * 0.18),
+                billAmount: parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) + parseFloat(parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) * 0.18),
+                debit: parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(allKittyPaymentsExceptActive[0].total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
               currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -806,9 +847,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               });
               // console.log("payable amount :");
             }
@@ -888,10 +932,12 @@ function formatDate(dateStr) {
                   sNo: ledgerData.length +1,
                   date: formatDate(balancePayments.data?.[0]?.date_of_update) || 10-12-2000, //date from new api of last pending ---- formatDate(10-12-2025) ||    ----bal wtf link
                   description: 'Opening Balance',
+                  billAmount: balancePayments.data?.[0]?.member_pending_balance || 10,
                   debit: balancePayments.data?.[0]?.member_pending_balance || 10, // new bal api  wtf link
                   credit: 0,
+                  gst: 0,
                   balance: currentBalance, // Display opening balance here
-                  balanceColor: 'red', // Set balance color to red
+                  balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
                 });
               currentBalance += parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18);
               ledgerData.push({
@@ -903,10 +949,12 @@ function formatDate(dateStr) {
                   <em>(${currentRemainingKitty.description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                billAmount: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                debit: parseFloat(currentRemainingKitty.total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
               currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -917,9 +965,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               }); 
 
               // currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -976,7 +1027,7 @@ function formatDate(dateStr) {
               //   description: 'Opening Balance',
               //   debit: meeting_opening_balance,
               //   credit: 0,
-              //   balance: meeting_opening_balance, // Display opening balance here
+              //   balance: currentBalance, // Display opening balance here
               //   balanceColor: 'red',
               // })
               currentBalance += parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18);
@@ -989,10 +1040,12 @@ function formatDate(dateStr) {
                   <em>(${currentRemainingKitty.description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                billAmount: parseFloat(currentRemainingKitty.total_bill_amount) + parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
+                debit: parseFloat(currentRemainingKitty.total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(currentRemainingKitty.total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
 
@@ -1002,9 +1055,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               });
               // console.log("payable amount :");
             }
@@ -1327,10 +1383,12 @@ function formatDate(dateStr) {
                     sNo: ledgerData.length + 1,
                     date: formatDate(latestPendingBalance.date_of_update),
                     description: 'Opening Balance',
+                    billAmount: latestPendingBalance.member_pending_balance,
                     debit: latestPendingBalance.member_pending_balance,
                     credit: 0,
+                    gst: 0,
                     balance: currentBalance,
-                    balanceColor: 'red',
+                    balanceColor: currentBalance >= 0 ? 'green' : 'red',
                   });
                 }
 
@@ -1348,10 +1406,12 @@ function formatDate(dateStr) {
                   <em>(${activeKittyPayments[0].description})</em>
                 `,
                 // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                debit:parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
+                billAmount:parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
+                debit:parseFloat(activeKittyPayments[0].total_bill_amount),
                 credit: 0,
+                gst: parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
                 balance: currentBalance, // Show sum in Meeting Payable Amount row
-                balanceColor: 'red', // Set balance color to red
+                balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
               });
 
 
@@ -1425,9 +1485,12 @@ function formatDate(dateStr) {
                 sNo: ledgerData.length + 1,
                 date: formatDate(transactions[0].payment_time),
                 description: 'Meeting Fee Paid',
+                billAmount: transactions[0].payment_amount,
                 debit: 0,
-                credit: transactions[0].payment_amount,
+                credit: transactions[0].payment_amount / 1.18,
+                gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                 balance: currentBalance,
+                balanceColor: currentBalance >= 0 ? 'green' : 'red',
               }); 
 
               // currentBalance -= parseFloat(transactions[0].payment_amount);
@@ -1508,7 +1571,7 @@ function formatDate(dateStr) {
         //       totalMeetingFeePaid += parseFloat(transactions[0].payment_amount);
         //       ledgerData.push({
         //         sNo: ledgerData.length + 1,
-        //         date: formatDate(transactions.payment_time),
+        //         date: new Date(transactions.payment_time).toLocaleDateString(),
         //         description: 'Meeting Fee Paid',
         //         debit: 0,
         //         credit: transactions[0].payment_amount,
@@ -1554,10 +1617,12 @@ function formatDate(dateStr) {
                     <em>(${activeKittyPayments[0].description})</em>
                   `,
                   // debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-                  debit: parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
+                  billAmount: parseFloat(activeKittyPayments[0].total_bill_amount) + parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
+                  debit: parseFloat(activeKittyPayments[0].total_bill_amount),
                   credit: 0,
+                  gst: parseFloat(parseFloat(activeKittyPayments[0].total_bill_amount) * 0.18),
                   balance: currentBalance, // Show sum in Meeting Payable Amount row
-                  balanceColor: 'red', // Set balance color to red
+                  balanceColor: currentBalance >= 0 ? 'green' : 'red', // Set balance color to red
                 });
           
           if(lastKittyAllOrders.length>0){
@@ -1611,9 +1676,12 @@ function formatDate(dateStr) {
                   sNo: ledgerData.length + 1,
                   date: formatDate(transactions[0].payment_time),
                   description: 'Meeting Fee Paid',
+                  billAmount: transactions[0].payment_amount,
                   debit: 0,
-                  credit: transactions[0].payment_amount,
+                  credit: transactions[0].payment_amount / 1.18,
+                  gst: transactions[0].payment_amount - (transactions[0].payment_amount / 1.18),
                   balance: currentBalance,
+                  balanceColor: currentBalance >= 0 ? 'green' : 'red',
                 });
                 // console.log("payable amount :");
               }
@@ -1694,48 +1762,7 @@ function formatDate(dateStr) {
         //         balance: currentBalance,
         //       });
         //       // console.log("payable amount :");
-        //     } else if( transactions.length>0 && uniqueNO !==1){
-        //       currentBalance -= parseFloat(transactions[0].payment_amount);
-        //       totalMeetingFeePaid += parseFloat(transactions[0].payment_amount);
-
-        //       ledgerData.push({
-        //         sNo: ledgerData.length + 1,
-        //         date: formatDate(userData.member_induction_date),
-        //         description: 'Opening Balance',
-        //         debit: meeting_payable_amount + (meeting_payable_amount * 0.18),
-        //         credit: 0,
-        //         balance: currentBalance, // Display opening balance here
-        //         balanceColor: 'red',
-        //       })
-
-        //       currentBalance -= parseFloat(transactions[0].payment_amount);
-        //       totalMeetingFeePaid += parseFloat(transactions[0].payment_amount);
-
-              
-        //       ledgerData.push({
-        //         sNo: ledgerData.length + 1,
-        //         date: formatDate(transactions[0].raised_on),
-        //         description: `
-        //           <b>Meeting Payable Amount</b><br>
-        //           <em>(bill for: ${transactions[0].bill_type})</em> - 
-        //           <em>(${transactions[0].description})</em>
-        //         `,
-        //         debit: transactions[0].total_bill_amount + (transactions[0].total_bill_amount * 0.18),//with gst
-        //         credit: 0,
-        //         balance: currentBalance, // Show sum in Meeting Payable Amount row 
-        //         balanceColor: 'red', // Set balance color to red
-        //       });
-
-
-        //       ledgerData.push({
-        //         sNo: ledgerData.length + 1,
-        //         date: new Date(transactions.payment_time).toLocaleDateString(),
-        //         description: 'Meeting Fee Paid',
-        //         debit: 0,
-        //         credit: transactions[0].payment_amount,
-        //         balance: currentBalance,
-        //       });
-        //     }
+            
         //     // transactions.forEach(transaction => {
         //     //   totalMeetingFeePaid += parseFloat(transaction.payment_amount || 0);
         //     //   currentBalance -= parseFloat(transaction.payment_amount || 0);
@@ -1794,15 +1821,6 @@ function formatDate(dateStr) {
         }
         // document.getElementById('total-kitty-amount').textContent = (meeting_payable_amount + (meeting_payable_amount * 0.18));
         // if (meeting_opening_balance === 0) {
-        //   document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid;
-        //   document.getElementById('pending_payment_amount').textContent = currentBalance;
-        // } else {
-        //   if (currentBalance === 0) {
-        //     document.getElementById('pending_payment_amount').textContent = currentBalance;
-        //   } else {
-        //     document.getElementById('pending_payment_amount').innerHTML = `${currentBalance} <span style="color: green;">(inc. opening balance ${meeting_opening_balance})</span>`;
-        //   }
-        //   if (totalMeetingFeePaid === 0) {
         //     document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid;
         //   } else {
         //     document.getElementById('success_kitty_amount').innerHTML = `${totalMeetingFeePaid} <span style="color: green;">(inc. opening balance ${meeting_opening_balance})</span>`;
@@ -1816,18 +1834,20 @@ function formatDate(dateStr) {
     const row = document.createElement('tr');
     
     // For Opening Balance and Meeting Payable Amount, always show in red with a '-'
-    const balanceColor = (entry.sNo === 1 || entry.sNo === 2) ? 'red' : (entry.balance >= 0 ? 'green' : 'red');
-    const balanceSign = (entry.sNo === 1 || entry.sNo === 2) ? '-' : (entry.balance >= 0 ? '+' : '-');
+    const balanceColor = entry.debit ? 'red' : (entry.balance >= 0 ? 'green' : 'red');
+    const balanceValue = entry.debit ? -Math.abs(entry.balance) : entry.balance;
   
     row.innerHTML = `
       <td>${entry.sNo}</td>
       <td><b>${entry.date}</b></td>
       <td><b>${entry.description}</b></td>
+      <td><b>${entry.billAmount ? parseFloat(entry.billAmount).toFixed(2) : '-'}</b></td>
       <td><b style="color: ${entry.debit ? 'red' : 'inherit'}">${entry.debit ? parseFloat(entry.debit).toFixed(2) : '-'}</b></td>
       <td><b style="color: ${entry.credit ? 'green' : 'inherit'}">${entry.credit ? parseFloat(entry.credit).toFixed(2) : '-'}</b></td>
+      <td>${entry.gst ? parseFloat(entry.gst).toFixed(2) : '-'}</td>
       <td>
         <b style="color: ${balanceColor}">
-          ${balanceSign}${parseFloat(entry.balance).toFixed(2)}
+          ${parseFloat(balanceValue).toFixed(2)}
         </b>
       </td>
     `;
@@ -1851,8 +1871,10 @@ function formatDate(dateStr) {
         sNo: 1,
         date: formatDate(userData.member_induction_date),//needwtf
         description: 'Opening Balance',
+        billAmount: 0,
         debit: meeting_opening_balance,
         credit: 0,
+        gst: 0,
         balance: meeting_opening_balance, // Display opening balance here
         balanceColor: 'red', // Set balance color to red
       },
@@ -1880,18 +1902,20 @@ function formatDate(dateStr) {
     const row = document.createElement('tr');
     
     // For Opening Balance and Meeting Payable Amount, always show in red with a '-'
-    const balanceColor = (entry.sNo === 1 || entry.sNo === 2) ? 'red' : (entry.balance >= 0 ? 'green' : 'red');
-    const balanceSign = (entry.sNo === 1 || entry.sNo === 2) ? '-' : (entry.balance >= 0 ? '+' : '-');
+    const balanceColor = entry.debit ? 'red' : (entry.balance >= 0 ? 'green' : 'red');
+    const balanceValue = entry.debit ? -Math.abs(entry.balance) : entry.balance;
   
     row.innerHTML = `
       <td>${entry.sNo}</td>
       <td><b>${entry.date}</b></td>
       <td><b>${entry.description}</b></td>
+      <td><b>${entry.billAmount ? parseFloat(entry.billAmount).toFixed(2) : '-'}</b></td>
       <td><b style="color: ${entry.debit ? 'red' : 'inherit'}">${entry.debit ? parseFloat(entry.debit).toFixed(2) : '-'}</b></td>
       <td><b style="color: ${entry.credit ? 'green' : 'inherit'}">${entry.credit ? parseFloat(entry.credit).toFixed(2) : '-'}</b></td>
+      <td>${entry.gst ? parseFloat(entry.gst).toFixed(2) : '-'}</td>
       <td>
         <b style="color: ${balanceColor}">
-          ${balanceSign}${parseFloat(entry.balance).toFixed(2)}
+          ${parseFloat(balanceValue).toFixed(2)}
         </b>
       </td>
     `;

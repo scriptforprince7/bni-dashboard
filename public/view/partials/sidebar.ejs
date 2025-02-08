@@ -326,6 +326,41 @@
                                                             </ul>
                                                           </li>
                                                           <li class="slide has-sub">
+                                                            <a href="javascript:void(0);" class="side-menu__item ro-expense-menu">
+                                                              <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                class="w-6 h-6 side-menu__icon"
+                                                                fill="none"
+                                                                viewbox="0 0 24 24"
+                                                                stroke-width="1.5"
+                                                                stroke="currentColor"
+                                                              >
+                                                                <path
+                                                                  stroke-linecap="round"
+                                                                  stroke-linejoin="round"
+                                                                  d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                                                                ></path>
+                                                              </svg>
+                                                              <span class="side-menu__label"
+                                                                >Manage 
+                                                               Expenses</span
+                                                              >
+                                                              <i class="ri-arrow-down-s-line side-menu__angle"></i>
+                                                            </a>
+                                                            <ul class="slide-menu child1">
+                                                              <li class="slide">
+                                                                <a href="/rexp/view-expenses" class="side-menu__item"
+                                                                  >View Expenses</a
+                                                                >
+                                                              </li>
+                                                              <li class="slide">
+                                                                <a href="/rexp/add-expense" class="side-menu__item"
+                                                                  >Add New Expense</a
+                                                                >
+                                                              </li>
+                                                            </ul>
+                                                          </li>
+                                                          <li class="slide has-sub">
                                                             <a href="javascript:void(0);" class="side-menu__item accolade-menu">
                                                               <svg
                                                               xmlns="http://www.w3.org/2000/svg"
@@ -362,7 +397,7 @@
                                                           </li>
 
                                                            <!-- Start::slide -->
-              <li class="slide has-sub">
+              <!-- <li class="slide has-sub">
                 <a href="javascript:void(0);" class="side-menu__item refund-menu">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -393,7 +428,7 @@
                     >
                   </li>
                 </ul>
-              </li>
+              </li> -->
               <!-- End::slide -->
 
                                                                         <!-- Start::slide -->
@@ -472,7 +507,7 @@
                                                           <!-- End::slide -->
 
               <!-- Start::slide -->
-              <li class="slide has-sub">
+              <!-- <li class="slide has-sub">
                 <a href="javascript:void(0);" class="side-menu__item supplies-menu">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -506,10 +541,10 @@
                     >
                   </li>
                 </ul>
-              </li>
+              </li> -->
               <!-- End::slide -->
                                                  <!-- Start::slide -->
-                 <li class="slide has-sub">
+                 <!-- <li class="slide has-sub">
                   <a href="javascript:void(0);" class="side-menu__item inventory-menu">
                     <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -543,7 +578,7 @@
                       >
                     </li>
                   </ul>
-                </li>
+                </li> -->
                 <!-- End::slide -->
 
                                                               <!-- Start::slide -->
@@ -588,7 +623,7 @@
               <!-- End::slide -->
 
               <!-- Start::slide -->
-              <li class="slide has-sub">
+              <!-- <li class="slide has-sub">
                 <a href="javascript:void(0);" class="side-menu__item expenses-menu">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -609,21 +644,21 @@
                 </a>
                 <ul class="slide-menu child1">
                   <li class="slide">
-                    <a href="./manage-expense.html" class="side-menu__item"
+                    <a href="/d/manage-expense" class="side-menu__item"
                       >View All Expenses</a
                     >
                   </li>
                   <li class="slide">
-                    <a href="./add-expense.html" class="side-menu__item"
+                    <a href="/d/add-expense" class="side-menu__item"
                       >Add New Expense</a
                     >
                   </li>
                 </ul>
-              </li>
+              </li> -->
               <!-- End::slide -->
 
               <!-- Start::slide -->
-              <li class="slide">
+              <!-- <li class="slide">
                 <a href="./add-notification.html" class="side-menu__item notification-menu">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -641,7 +676,7 @@
                   </svg>
                   <span class="side-menu__label">Set Notifications</span>
                 </a>
-              </li>
+              </li> -->
               <!-- End::slide -->
 
               <!-- Start::slide__category -->
@@ -830,6 +865,8 @@
     "/k/add-credit": ".kitty-menu",
     "/ref/initiate-refund": ".refund-menu",
     "/ref/all-refunds": ".refund-menu",
+    "/rexp/view-expenses": ".ro-expense-menu",
+    "/rexp/add-expense": ".ro-expense-menu",
   };
 
   // Mark the active menu and open its dropdown

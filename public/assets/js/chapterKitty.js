@@ -210,23 +210,7 @@ function hideLoader() {
 }
     try {
         showLoader();
-        const expenseResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
-        const expenses = await expenseResponse.json();
-        console.log("expense", expenses);
-
-        // let total_pending_expense = 0;
-        // let total_paid_expense = 0;
-
-        expenses.forEach(expense => {
-            if (expense.payment_status === 'pending') {
-            total_pending_expense += parseFloat(expense.amount);
-            } else if (expense.payment_status === 'paid') {
-            total_paid_expense += parseFloat(expense.amount);
-            }
-        });
-
-        console.log("Total Pending Expense:", total_pending_expense);
-        console.log("Total Paid Expense:", total_paid_expense);
+        
 
         // Step 1: Get logged-in chapter email based on login type
         const loginType = getUserLoginType();
@@ -266,8 +250,39 @@ function hideLoader() {
             return;
         }
 
-        const { chapter_id } = loggedInChapter;
+        const { chapter_id, available_fund } = loggedInChapter;
+        // let availableAmount = 0;
+        // console.log("available_fund",available_fund);
+        // availableAmount = parseFloat(availableAmount) + parseFloat(available_fund) ;
         console.log('Logged-in chapter ID:', chapter_id);
+        const expenseResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
+        const expenses = await expenseResponse.json();
+        console.log("expense", expenses);
+
+        // let total_pending_expense = 0;
+        // let total_paid_expense = 0;
+
+        // expenses.forEach(expense => {
+        //     if (expense.payment_status === 'pending') {
+        //     total_pending_expense += parseFloat(expense.amount);
+        //     } else if (expense.payment_status === 'paid') {
+        //     total_paid_expense += parseFloat(expense.amount);
+        //     }
+        // });
+        expenses.forEach(expense => {
+            if (expense.chapter_id === chapter_id) {
+            // if (expense.payment_status === 'pending') {
+            //     total_pending_expense += parseFloat(expense.amount);
+            // } else if (expense.payment_status === 'paid') {
+            //     total_paid_expense += parseFloat(expense.amount);
+            // }
+            console.log();
+            total_paid_expense += parseFloat(expense.amount);
+            }
+        });
+
+        console.log("Total Pending Expense:", total_pending_expense);
+        console.log("Total Paid Expense:", total_paid_expense);
 
         // Step 3: Fetch kitty payments using chapter_id
         const kittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
@@ -542,7 +557,7 @@ function hideLoader() {
         const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
         const formattedMiscellaneousAmount = indianCurrencyFormatter.format(totalPendingMiscellaneousAmount);
         const formattedTotalPaidExpense = indianCurrencyFormatter.format(total_paid_expense);
-        let availableAmount = parseFloat(totalKittyAmountReceived)-parseFloat(total_paid_expense);
+        let availableAmount = parseFloat(totalKittyAmountReceived)-parseFloat(total_paid_expense) + parseFloat(available_fund);
         const formattedAvailableAmount = indianCurrencyFormatter.format(availableAmount);
 
         // Step 9: Update the UI with fetched values
