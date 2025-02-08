@@ -288,7 +288,7 @@
                       </div>
                     </div>
                   </div>
-                  <!-- <div class="col-xxl-3">
+                    <div class="col-xxl-3" style="display: none;">
                     <div
                       class="card custom-card overflow-hidden main-content-card"
                     >
@@ -355,8 +355,8 @@
                         </div>
                       </div>
                     </div>
-                  </div> -->
-                  <!-- <div class="col-xxl-3">
+                  </div>
+                  <div class="col-xxl-3" style="display: none;" >
                     <div
                       class="card custom-card overflow-hidden main-content-card"
                     >
@@ -423,8 +423,8 @@
                         </div>
                       </div>
                     </div>
-                  </div> -->
-                  <!-- <div class="col-xxl-3">
+                  </div>
+                  <div class="col-xxl-3" style="display: none;">
                     <div
                       class="card custom-card overflow-hidden main-content-card"
                     >
@@ -497,7 +497,7 @@
                         </div>
                       </div>
                     </div>
-                  </div> -->
+                  </div>
                 </div>
               </div>
             </div>
@@ -758,8 +758,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Function to fetch and update settlement data for a transaction
   async function fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks) {
     const orderId = transaction.order_id;
+    console.log("hello--4444yyy---------------------------");
+
     const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    // if (!row) return; // Add null check for row
     const button = row.querySelector('.track-settlement');
+    // if (!button) return; // Add null check for button
     const originalText = button.textContent;
 
     try {
@@ -921,16 +925,20 @@ document.addEventListener('DOMContentLoaded', () => {
   async function autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks) {
     for (const transaction of transactions) {
       const orderId = transaction.order_id;
+      console.log("hello-----------------------------");
       const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+      // if (!row) continue; // Add null check for row
       const button = row.querySelector('.track-settlement');
+      // if (!button) continue; // Add null check for button
 
       // Check if all required fields are present
-      const utrCell = row.querySelector('.utr-cell').textContent.trim();
-      const settlementTimeCell = row.querySelector('.settlement-time').textContent.trim();
-      const irnCell = row.querySelector('.irn').textContent.trim();
-      const qrcodeCell = row.querySelector('.qrcode').textContent.trim();
+      const utrCell = row.querySelector('.utr-cell')?.textContent.trim() || 'Not Available';
+      const settlementTimeCell = row.querySelector('.settlement-time')?.textContent.trim() || 'Not Available';
+      const irnCell = row.querySelector('.irn')?.textContent.trim() || 'Not Applicable';
+      const qrcodeCell = row.querySelector('.qrcode')?.textContent.trim() || 'Not Applicable';
 
       if (utrCell !== 'Not Available' && settlementTimeCell !== 'Not Available' && irnCell !== 'Not Applicable' && qrcodeCell !== 'Not Applicable') {
+      // if((utrCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (settlementTimeCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (irnCell.textContent.trim()==="NotAvailable" || null ||undefined ) && qrcodeCell.querySelector('img')){
         // All required fields are present, disable the button
         button.textContent = 'Payment Settled ✔';
         button.classList.add('btn-success');

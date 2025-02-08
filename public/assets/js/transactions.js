@@ -883,9 +883,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     
     // Call the function after populating the table rows
-    setTimeout(() => { isAutoTrack = totalEntryis; hideLoader(); }, 20000);
-    setTimeout(() => { console.log("isautotrack vaklue:", isAutoTrack); }, 21000);
-    setTimeout(()=>{showLoader();autoTrackSettlement}, 10000); 
+    setTimeout(() => { isAutoTrack = totalEntryis; hideLoader(); }, 7000);
+    setTimeout(() => { console.log("isautotrack vaklue:", isAutoTrack); }, 9000);
+    setTimeout(()=>{autoTrackSettlement}, 4000); //
    
     console.log("totalEntryis",totalEntryis);
     
@@ -897,6 +897,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to automatically trigger "Track Settlement" button and check data fields
   async function autoTrackSettlement() {
+    console.log("hello-------------------55555----------");
+
     const trackButtons = document.querySelectorAll('.track-settlement');
 
     for (const button of trackButtons) {

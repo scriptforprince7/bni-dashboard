@@ -494,9 +494,9 @@
   </select>
 </div>
 
-<div class="col-xl-6">
+<div class="col-xl-4">
   <label for="chapter_kitty_fees" class="form-label"
-    >Chapter Meeting/Kitty Fees <span style="color: #d01f2f;">(Weekly)</span> </label
+    >Chapter Meeting/Kitty Fees  </label
   >
   <input
     type="text"
@@ -506,23 +506,8 @@
     
     placeholder="17,700/-.."
   />
-  <!-- <div class="form-check mt-2">
-    <input
-      type="checkbox"
-      class="form-check-input"
-      id="taxable1"
-      data-bs-toggle="modal"
-      data-bs-target="#taxModal1"
-    />
-    <label
-      class="form-check-label"
-      for="taxable1"
-      style="color: red"
-      >Taxable?</label
-    >
-  </div> -->
 </div>
-<div class="col-xl-6">
+<div class="col-xl-4">
   <label for="chapter_visitor_fees" class="form-label"
     >Chapter Visitor Fee</label
   >
@@ -534,21 +519,20 @@
     
     placeholder="1,200/-.."
   />
-  <!-- <div class="form-check mt-2">
-    <input
-      type="checkbox"
-      class="form-check-input"
-      id="taxable1"
-      data-bs-toggle="modal"
-      data-bs-target="#taxModal1"
-    />
-    <label
-      class="form-check-label"
-      for="taxable1"
-      style="color: red"
-      >Taxable?</label
-    >
-  </div> -->
+</div>
+
+<div class="col-xl-4">
+  <label for="chapter_available_fund" class="form-label"
+    >Chapter Available Fund</label
+  >
+  <input
+    type="text"
+    class="form-control"
+    id="chapter_available_fund"
+    name="chapter_available_fund"
+    
+    placeholder="50,000/-.."
+  />
 </div>
 
 <div class="col-xl-6">
@@ -1288,6 +1272,16 @@
     }
     if (isNaN(parseFloat(formDataObj['chapter_visitor_fees']))) {
       toastr.error("Visitor fee must be a valid number.");
+      return;
+    }
+
+    // Chapter available fund validation
+    if (!formDataObj['chapter_available_fund'] || formDataObj['chapter_available_fund'].trim() === '') {
+      toastr.error("Chapter available fund is required.");
+      return;
+    }
+    if (isNaN(parseFloat(formDataObj['chapter_available_fund']))) {
+      toastr.error("Available Fund must be a valid number.");
       return;
     }
 
