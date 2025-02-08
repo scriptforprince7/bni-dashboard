@@ -1,7 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-  let no_of_transaction = 0;
-  const no_Of_Transaction = document.getElementById('no_of_transaction');
   const regionsDropdown = document.getElementById("region-filter");
   const chaptersDropdown = document.getElementById("chapter-filter");
   const monthsDropdown = document.getElementById("month-filter");
@@ -9,44 +7,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   const paymentTypeDropdown = document.getElementById("payment-type-filter");
   const paymentGatewayDropdown = document.getElementById("payment-gateway-filter");
   const paymentMethodDropdown = document.getElementById("payment-method-filter");
-  const searchInput = document.getElementById('searchChapterInput');
-  console.log('Search input initialized:', searchInput);
-  no_Of_Transaction.textContent = no_of_transaction;
-
   // Function to show the loader
-  function showLoader() {
-    document.getElementById('loader').style.display = 'flex';
-  }
+function showLoader() {
+  document.getElementById('loader').style.display = 'flex';
+}
 
-  // Function to hide the loader
-  function hideLoader() {
-    document.getElementById('loader').style.display = 'none';
-  }
+// Function to hide the loader
+function hideLoader() {
+  document.getElementById('loader').style.display = 'none';
+}
 
-  // Populate a dropdown with options
-  const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
-    // Clear the dropdown
-    dropdown.innerHTML = '';
+// Populate a dropdown with options
+const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
+  // Clear the dropdown
+  dropdown.innerHTML = '';
 
-    // Add a default option
+  // Add a default option
+  dropdown.innerHTML += `
+    <li>
+      <a class="dropdown-item" href="javascript:void(0);" data-value="">
+        ${defaultText}
+      </a>
+    </li>
+  `;
+
+  // Add options dynamically
+  data.forEach(item => {
     dropdown.innerHTML += `
       <li>
-        <a class="dropdown-item" href="javascript:void(0);" data-value="">
-          ${defaultText}
+        <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
+          ${item[textField]}
         </a>
       </li>
     `;
-
-    // Add options dynamically
-    data.forEach(item => {
-      dropdown.innerHTML += `
-        <li>
-          <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
-            ${item[textField]}
-          </a>
-        </li>
-      `;
-    });
+  });
 
     // Attach event listeners
     attachDropdownListeners(dropdown);
@@ -80,9 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   };
 
-  showLoader();
-  let isAutoTrack = 0;
-  let totalEntryis = 0;
+showLoader();
   try {
     // Fetch data from all necessary endpoints
     const [
@@ -118,276 +110,269 @@ document.addEventListener("DOMContentLoaded", async () => {
     populateDropdown(paymentGatewayDropdown, paymentGateways, "gateway_id", "gateway_name", "Select Gateway");
 
     // Populate month dropdown
-    const populateMonthDropdown = () => {
-      const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-      ];
-      monthsDropdown.innerHTML = ""; // Clear existing options
-      months.forEach((month, index) => {
-        monthsDropdown.innerHTML += `<li>
-          <a class="dropdown-item" href="javascript:void(0);" data-value="${index + 1}">
-            ${month}
-          </a>
-        </li>`;
-      });
-      // Attach listeners after populating
-      attachDropdownListeners(monthsDropdown);
-    };
+const populateMonthDropdown = () => {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  monthsDropdown.innerHTML = ""; // Clear existing options
+  months.forEach((month, index) => {
+    monthsDropdown.innerHTML += `<li>
+      <a class="dropdown-item" href="javascript:void(0);" data-value="${index + 1}">
+        ${month}
+      </a>
+    </li>`;
+  });
+  // Attach listeners after populating
+  attachDropdownListeners(monthsDropdown);
+};
 
-    // Call the function to populate months
-    populateMonthDropdown();
+// Call the function to populate months
+populateMonthDropdown();
 
-    // Populate payment status dropdown
-    const populatePaymentStatusDropdown = () => {
-      try {
-        const uniqueStatuses = [...new Set(transactions.map(transaction => transaction.payment_status))];
-        paymentStatusDropdown.innerHTML = ""; // Clear existing options
-        uniqueStatuses.forEach(status => {
-          paymentStatusDropdown.innerHTML += `<li>
-            <a class="dropdown-item" href="javascript:void(0);" data-value="${status.toUpperCase()}">
-              ${status}
-            </a>
-          </li>`;
-        });
-        // Attach listeners after populating
-        attachDropdownListeners(paymentStatusDropdown);
-      } catch (error) {
-        console.error("Error populating payment status dropdown:", error);
-      }
-    };
-
-    populatePaymentStatusDropdown();
-    // Populate payment method dropdown
-    const populatePaymentMethodDropdown = () => {
-      try {
-        const uniqueMethods = [...new Set(transactions.map(transaction => transaction.payment_group))];
-        paymentMethodDropdown.innerHTML = ""; // Clear existing options
-        uniqueMethods.forEach(method => {
-          paymentMethodDropdown.innerHTML += `<li>
-            <a class="dropdown-item" href="javascript:void(0);" data-value="${method.toUpperCase()}">
-              ${method}
-            </a>
-          </li>`;
-        });
-        // Attach listeners after populating
-        attachDropdownListeners(paymentMethodDropdown);
-      } catch (error) {
-        console.error("Error populating payment method dropdown:", error);
-      }
-    };
-
-    // Call the function to populate payment methods
-    populatePaymentMethodDropdown();
-
-    // Function to check if there are any filters in the query parameters
-    function checkFiltersAndToggleResetButton() {
-      const urlParams = new URLSearchParams(window.location.search);
-
-      // Check if any query parameters exist (indicating filters are applied)
-      if (urlParams.toString()) {
-        // Show the Reset Filter button if filters are applied
-        document.getElementById("reset-filters-btn").style.display = "inline-block";
-      } else {
-        // Hide the Reset Filter button if no filters are applied
-        document.getElementById("reset-filters-btn").style.display = "none";
-      }
-    }
-
-    // Call this function on page load to check the filters
-    window.addEventListener("load", checkFiltersAndToggleResetButton);
-
-    // Attach event listener to a "Filter" button or trigger
-    document.getElementById("apply-filters-btn").addEventListener("click", () => {
-      // Capture selected values
-      const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-      const chapterId = chaptersDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-      const month = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-      const paymentStatus = paymentStatusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-      const paymentType = paymentTypeDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-      const paymentGateway = paymentGatewayDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
-      const paymentMethod = (paymentMethodDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '').toLowerCase();
-
-
-      // Construct the query string
-      const queryParams = new URLSearchParams();
-
-      if (regionId) queryParams.append('region_id', regionId);
-      if (chapterId) queryParams.append('chapter_id', chapterId);
-      if (month) queryParams.append('month', month);
-      if (paymentStatus) queryParams.append('payment_status', paymentStatus);
-      if (paymentType) queryParams.append('payment_type', paymentType);
-      if (paymentGateway) queryParams.append('payment_gateway', paymentGateway);
-      if (paymentMethod) queryParams.append('payment_method', paymentMethod);
-
-      // Redirect to the filtered URL
-      const filterUrl = `/t/all-transactions?${queryParams.toString()}`;
-      window.location.href = filterUrl;
+// Populate payment status dropdown
+const populatePaymentStatusDropdown = () => {
+  try {
+    const uniqueStatuses = [...new Set(transactions.map(transaction => transaction.payment_status))];
+    paymentStatusDropdown.innerHTML = ""; // Clear existing options
+    uniqueStatuses.forEach(status => {
+      paymentStatusDropdown.innerHTML += `<li>
+        <a class="dropdown-item" href="javascript:void(0);" data-value="${status.toUpperCase()}">
+          ${status}
+        </a>
+      </li>`;
     });
+    // Attach listeners after populating
+    attachDropdownListeners(paymentStatusDropdown);
+  } catch (error) {
+    console.error("Error populating payment status dropdown:", error);
+  }
+};
 
-    // Attach event listener to "Reset Filter" button to clear query params
-    document.getElementById("reset-filters-btn").addEventListener("click", () => {
-      // Clear all query parameters from the URL
-      const url = new URL(window.location);
-      url.search = ''; // Remove query parameters
-
-      // Reload the page without filters (cleared query string)
-      window.location.href = url.toString();
+populatePaymentStatusDropdown();
+// Populate payment method dropdown
+const populatePaymentMethodDropdown = () => {
+  try {
+    const uniqueMethods = [...new Set(transactions.map(transaction => transaction.payment_group))];
+    paymentMethodDropdown.innerHTML = ""; // Clear existing options
+    uniqueMethods.forEach(method => {
+      paymentMethodDropdown.innerHTML += `<li>
+        <a class="dropdown-item" href="javascript:void(0);" data-value="${method.toUpperCase()}">
+          ${method}
+        </a>
+      </li>`;
     });
+    // Attach listeners after populating
+    attachDropdownListeners(paymentMethodDropdown);
+  } catch (error) {
+    console.error("Error populating payment method dropdown:", error);
+  }
+};
 
-    // Check for filters on page load
-    checkFiltersAndToggleResetButton();
+// Call the function to populate payment methods
+populatePaymentMethodDropdown();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const filters = {
-      region_id: urlParams.get("region_id"),
-      chapter_id: urlParams.get("chapter_id"),
-      month: urlParams.get("month"),
-      payment_status: urlParams.get("payment_status"),
-      payment_type: urlParams.get("payment_type"),
-      payment_gateway: urlParams.get("payment_gateway"),
-      payment_method: urlParams.get("payment_method"),
-    };
+// Function to check if there are any filters in the query parameters
+function checkFiltersAndToggleResetButton() {
+  const urlParams = new URLSearchParams(window.location.search);
 
-    // Show filters in the console for debugging
-    console.log(filters);
+  // Check if any query parameters exist (indicating filters are applied)
+  if (urlParams.toString()) {
+    // Show the Reset Filter button if filters are applied
+    document.getElementById("reset-filters-btn").style.display = "inline-block";
+  } else {
+    // Hide the Reset Filter button if no filters are applied
+    document.getElementById("reset-filters-btn").style.display = "none";
+  }
+}
+
+// Call this function on page load to check the filters
+window.addEventListener("load", checkFiltersAndToggleResetButton);
+
+// Attach event listener to a "Filter" button or trigger
+document.getElementById("apply-filters-btn").addEventListener("click", () => {
+  // Capture selected values
+  const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const chapterId = chaptersDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const month = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const paymentStatus = paymentStatusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const paymentType = paymentTypeDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const paymentGateway = paymentGatewayDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const paymentMethod = (paymentMethodDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '').toLowerCase();
 
 
-    // Filter transactions based on the region_id
-    const filteredTransactions = transactions.filter((transaction) => {
-      let isValid = true;
+  // Construct the query string
+  const queryParams = new URLSearchParams();
 
-      // console.log("Checking transaction for region:", transaction.order_id);
+  if (regionId) queryParams.append('region_id', regionId);
+  if (chapterId) queryParams.append('chapter_id', chapterId);
+  if (month) queryParams.append('month', month);
+  if (paymentStatus) queryParams.append('payment_status', paymentStatus);
+  if (paymentType) queryParams.append('payment_type', paymentType);
+  if (paymentGateway) queryParams.append('payment_gateway', paymentGateway);
+  if (paymentMethod) queryParams.append('payment_method', paymentMethod);
 
-      if (filters.region_id && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-        if (order) {
-          // Ensure both region_id values are strings (or numbers)
-          const orderRegionId = String(order.region_id);  // Convert to string
-          const filterRegionId = String(filters.region_id);  // Convert to string
+  // Redirect to the filtered URL
+  const filterUrl = `/t/all-transactions?${queryParams.toString()}`;
+  window.location.href = filterUrl;
+});
 
-          // Compare as strings (or numbers, depending on the data type)
-          if (orderRegionId !== filterRegionId) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
+// Attach event listener to "Reset Filter" button to clear query params
+document.getElementById("reset-filters-btn").addEventListener("click", () => {
+  // Clear all query parameters from the URL
+  const url = new URL(window.location);
+  url.search = ''; // Remove query parameters
+
+  // Reload the page without filters (cleared query string)
+  window.location.href = url.toString();
+});
+
+// Check for filters on page load
+checkFiltersAndToggleResetButton();
+
+const urlParams = new URLSearchParams(window.location.search);
+const filters = {
+  region_id: urlParams.get("region_id"),
+  chapter_id: urlParams.get("chapter_id"),
+  month: urlParams.get("month"),
+  payment_status: urlParams.get("payment_status"),
+  payment_type: urlParams.get("payment_type"),
+  payment_gateway: urlParams.get("payment_gateway"),
+  payment_method: urlParams.get("payment_method"),
+};
+
+// Show filters in the console for debugging
+console.log(filters);
+
+
+// Filter transactions based on the region_id
+const filteredTransactions = transactions.filter((transaction) => {
+  let isValid = true;
+
+  // console.log("Checking transaction for region:", transaction.order_id);
+
+  if (filters.region_id && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+    if (order) {
+      // Ensure both region_id values are strings (or numbers)
+      const orderRegionId = String(order.region_id);  // Convert to string
+      const filterRegionId = String(filters.region_id);  // Convert to string
+
+      // Compare as strings (or numbers, depending on the data type)
+      if (orderRegionId !== filterRegionId) {
+        isValid = false;
       }
-
-      if (filters.chapter_id && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-
-        if (order) {
-          // Ensure both region_id values are strings (or numbers)
-          const orderChapterId = String(order.chapter_id);  // Convert to string
-          const filterChapterId = String(filters.chapter_id);  // Convert to string
-
-          // Compare as strings (or numbers, depending on the data type)
-          if (orderChapterId !== filterChapterId) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
-      }
-
-      if (filters.payment_type && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-
-        if (order) {
-          // Ensure both region_id values are strings (or numbers)
-          const orderPaymentId = String(order.universal_link_id);  // Convert to string
-          const filterPaymentId = String(filters.payment_type);  // Convert to string
-
-          // Compare as strings (or numbers, depending on the data type)
-          if (orderPaymentId !== filterPaymentId) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
-      }
-
-      if (filters.payment_gateway && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-
-        if (order) {
-          // Ensure both region_id values are strings (or numbers)
-          const orderGatewayId = String(order.payment_gateway_id);  // Convert to string
-          const filterGatewayId = String(filters.payment_gateway);  // Convert to string
-
-          // Compare as strings (or numbers, depending on the data type)
-          if (orderGatewayId !== filterGatewayId) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
-      }
-
-      if (filters.payment_status && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-
-        if (order) {
-          // Ensure both region_id values are strings (or numbers)
-          const orderPaymentStatus = transaction.payment_status; 
-          const filterPaymentStatus = filters.payment_status;
-
-          // Compare as strings (or numbers, depending on the data type)
-          if (orderPaymentStatus !== filterPaymentStatus) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
-      }
-
-      if (filters.payment_method && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-
-        if (order) {
-          // Ensure both region_id values are strings (or numbers)
-          const orderPaymentMethodStatus = transaction.payment_group; 
-          const filterPaymentMethodStatus = filters.payment_method;
-
-          // Compare as strings (or numbers, depending on the data type)
-          if (orderPaymentMethodStatus !== filterPaymentMethodStatus) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
-      }
-
-      // Assuming `filters.month` is the selected month filter (e.g., "4" for April)
-      if (filters.month && transaction.order_id) {
-        const order = orders.find(order => order.order_id === transaction.order_id);
-
-        if (order) {
-          // Ensure both the order's created_at and the filter are in comparable formats
-          const orderDate = new Date(order.created_at);  // Convert the created_at string to a Date object
-          const orderMonth = orderDate.getMonth() + 1; // Get the month (1-12, because we add 1 to zero-indexed value)
-          const filterMonth = parseInt(filters.month, 10); // Convert the filter to an integer
-
-          // Compare the months (both are now 1-12 values)
-          if (orderMonth !== filterMonth) {
-            isValid = false;
-          }
-        } else {
-          console.log(`No matching order found for transaction ${transaction.order_id}`);
-        }
-      }
-
-      return isValid;
-    });
-
-    // After filtering transactions and before displaying them
-    if (filteredTransactions.length === 0) {
-        document.getElementById("no-transactions-row").style.display = "table-row"; // Show the no transactions message
     } else {
-        document.getElementById("no-transactions-row").style.display = "none"; // Hide the no transactions message
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
+  }
+
+  if (filters.chapter_id && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+
+    if (order) {
+      // Ensure both region_id values are strings (or numbers)
+      const orderChapterId = String(order.chapter_id);  // Convert to string
+      const filterChapterId = String(filters.chapter_id);  // Convert to string
+
+      // Compare as strings (or numbers, depending on the data type)
+      if (orderChapterId !== filterChapterId) {
+        isValid = false;
+      }
+    } else {
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
+    }
+  }
+
+  if (filters.payment_type && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+
+    if (order) {
+      // Ensure both region_id values are strings (or numbers)
+      const orderPaymentId = String(order.universal_link_id);  // Convert to string
+      const filterPaymentId = String(filters.payment_type);  // Convert to string
+
+      // Compare as strings (or numbers, depending on the data type)
+      if (orderPaymentId !== filterPaymentId) {
+        isValid = false;
+      }
+    } else {
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
+    }
+  }
+
+  if (filters.payment_gateway && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+
+    if (order) {
+      // Ensure both region_id values are strings (or numbers)
+      const orderGatewayId = String(order.payment_gateway_id);  // Convert to string
+      const filterGatewayId = String(filters.payment_gateway);  // Convert to string
+
+      // Compare as strings (or numbers, depending on the data type)
+      if (orderGatewayId !== filterGatewayId) {
+        isValid = false;
+      }
+    } else {
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
+    }
+  }
+
+  if (filters.payment_status && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+
+    if (order) {
+      // Ensure both region_id values are strings (or numbers)
+      const orderPaymentStatus = transaction.payment_status; 
+      const filterPaymentStatus = filters.payment_status;
+
+      // Compare as strings (or numbers, depending on the data type)
+      if (orderPaymentStatus !== filterPaymentStatus) {
+        isValid = false;
+      }
+    } else {
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
+    }
+  }
+
+  if (filters.payment_method && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+
+    if (order) {
+      // Ensure both region_id values are strings (or numbers)
+      const orderPaymentMethodStatus = transaction.payment_group; 
+      const filterPaymentMethodStatus = filters.payment_method;
+
+      // Compare as strings (or numbers, depending on the data type)
+      if (orderPaymentMethodStatus !== filterPaymentMethodStatus) {
+        isValid = false;
+      }
+    } else {
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
+    }
+  }
+
+  // Assuming `filters.month` is the selected month filter (e.g., "4" for April)
+if (filters.month && transaction.order_id) {
+  const order = orders.find(order => order.order_id === transaction.order_id);
+
+  if (order) {
+    // Ensure both the order's created_at and the filter are in comparable formats
+    const orderDate = new Date(order.created_at);  // Convert the created_at string to a Date object
+    const orderMonth = orderDate.getMonth() + 1; // Get the month (1-12, because we add 1 to zero-indexed value)
+    const filterMonth = parseInt(filters.month, 10); // Convert the filter to an integer
+
+    // Compare the months (both are now 1-12 values)
+    if (orderMonth !== filterMonth) {
+      isValid = false;
+    }
+  } else {
+    console.log(`No matching order found for transaction ${transaction.order_id}`);
+  }
+}
+
+  return isValid;
+});
 
     // Map chapter names by chapter_id for quick access
     const chapterMap = new Map();
@@ -481,14 +466,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const row = document.createElement("tr");
       row.classList.add("invoice-list");
 
-      no_of_transaction = parseFloat(no_of_transaction) + 1;
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
-                <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">
-                <span class="ename">${
+                <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
                   order?.member_name || "Unknown"
-                }</span></td>
+                }</td>
                 <td><b><em>${chapterName}</em></b></td>
                 <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${
         transaction.order_id
@@ -516,18 +499,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       tableBody.appendChild(row);
     
     });
-    no_Of_Transaction.textContent = no_of_transaction;
-
-      // Add a flag to differentiate between automatic and manual calls
-      // let isAutoTrack = true;
 
       // Add event listener for "Track Settlement" buttons
       document.addEventListener('click', async (event) => {
         if (event.target.classList.contains('track-settlement')) {
           event.preventDefault();
-    
-          // Set the flag to false for manual calls
-          // isAutoTrack = false;
     
           const button = event.target;
           const originalText = button.textContent; // Store the original button text
@@ -536,7 +512,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           const orderId = button.dataset.transactionId;
     
           try {
-            // Step 1: Fetch settlement data using cf_payment_id
+            // Step 1: Send request to save settlement data
+            const saveResponse = await fetch(
+              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+              { method: 'GET' }
+            );
+    
+            if (!saveResponse.ok) {
+              throw new Error('Failed to save settlement data.');
+            }
+    
+            // Step 2: Fetch settlement data using cf_payment_id
             const row = button.closest('tr');
             const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
     
@@ -550,7 +536,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
             const { settlement } = await fetchResponse.json();
     
-            // Step 2: Update the table row based on settlement data
+            // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
               fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
@@ -559,6 +545,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                   const irnCell = row.querySelector(".irn");
                   const qrcodeCell = row.querySelector(".qrcode");
                   const btnCell = row.querySelector(".generate-invoice-btn");
+                  const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
                   const orderId = settlement.order_id;
                   const orderr = orders.find((o) => o.order_id === orderId);
                   const transaction = transactions.find((t) => t.order_id === orderId);
@@ -586,7 +573,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                       btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
                   }
         
-                  if (einvoiceData.qrcode) {
+                  // Check if QR code is already stored in localStorage for this order
+                  if (localStorage.getItem(qrCodeKey)) {
+                      // If QR code is stored, show the QR code image
+                      qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+                  } else if (einvoiceData.qrcode) {
                       // If QR code is available but not yet stored, show the button
                       qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
         
@@ -606,6 +597,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                                       console.error('Error generating QR Code:', err);
                                       qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
                                   } else {
+                                      // Store the generated QR code URL in localStorage
+                                      localStorage.setItem(qrCodeKey, url);
+        
                                       // Display the generated QR code
                                       qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
                                   }
@@ -624,9 +618,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               button.classList.remove('btn-success');
               button.classList.add('btn-success');
               button.setAttribute('disabled', 'true');
-              if (isAutoTrack >= totalEntryis) {
-                toastr.success('Payment successfully settled!');
-              }
+              toastr.success('Payment successfully settled!');
 
               let e_invoice = row.querySelector('.generate-invoice-btn');
               e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>
@@ -666,17 +658,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               }
               
             } else {
-              if (isAutoTrack>=totalEntryis) {
-                toastr.info('Settlement in process. Please track after some time.');
-              }
+              toastr.info('Settlement in process. Please track after some time.');
               button.textContent = originalText; // Restore button text
               button.disabled = false; // Re-enable the button
             }
           } catch (error) {
-            if (isAutoTrack>=totalEntryis) {
-              toastr.error('An error occurred while tracking the settlement.');
-            }
             console.error('Error tracking settlement:', error.message);
+            toastr.error('An error occurred while tracking the settlement.');
             button.textContent = originalText; // Restore button text
             button.disabled = false; // Re-enable the button
           }
@@ -765,7 +753,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 try {
                   const backendResponse = await fetch(
-                    "http://localhost:5000/einvoice/generate-irn",
+                    "https://bni-data-backend.onrender.com/einvoice/generate-irn",
                     {
                       method: "POST",
                       headers: {
@@ -793,7 +781,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                     transactionRow.querySelector(".irn").innerHTML =
                       einvoiceData.irn || "<em>Not Applicable</em>";
                   
-                    if (einvoiceData.qrcode) {
+                    // Check if QR code is already stored in localStorage for this order
+                    if (localStorage.getItem(qrCodeKey)) {
+                      // If QR code is stored, show the QR code image
+                      transactionRow.querySelector(".qrcode").innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="30" height="30">`;
+                    } else if (einvoiceData.qrcode) {
                       // If QR code is available but not yet stored, show the button
                       const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
                       const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
@@ -816,6 +808,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                               console.error('Error generating QR Code:', err);
                               transactionRow.querySelector(".qrcode").innerHTML = "<em>Error generating QR Code</em>";
                             } else {
+                              // Store the generated QR code URL in localStorage
+                              localStorage.setItem(qrCodeKey, url);
+                
                               // Display the generated QR code
                               transactionRow.querySelector(".qrcode").innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
                             }
@@ -845,104 +840,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
     });
-
-    // Add search event listener
-    searchInput.addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        console.log('Searching for:', searchTerm);
-
-        // Get all current table rows
-        const tableRows = document.querySelectorAll('.table tbody tr');
-        console.log('Total rows to search:', tableRows.length);
-
-        tableRows.forEach(row => {
-            // Get searchable content from the row
-            const memberName = row.querySelector('td:nth-child(3)')?.textContent || '';
-            const chapterName = row.querySelector('td:nth-child(4)')?.textContent || '';
-            const orderId = row.querySelector('td:nth-child(7)')?.textContent || '';
-            const transactionId = row.querySelector('td:nth-child(8)')?.textContent || '';
-
-            console.log('Checking row:', {
-                memberName,
-                chapterName,
-                orderId,
-                transactionId
-            });
-
-            // Check if any field matches the search term
-            const matches = 
-                memberName.toLowerCase().includes(searchTerm) ||
-                chapterName.toLowerCase().includes(searchTerm) ||
-                orderId.toLowerCase().includes(searchTerm) ||
-                transactionId.toLowerCase().includes(searchTerm);
-
-            // Show/hide row based on match
-            row.style.display = matches ? '' : 'none';
-        });
-    });
-
-    
-    // Call the function after populating the table rows
-    setTimeout(() => { isAutoTrack = totalEntryis; hideLoader(); }, 7000);
-    setTimeout(() => { console.log("isautotrack vaklue:", isAutoTrack); }, 9000);
-    setTimeout(()=>{autoTrackSettlement}, 4000); //
-   
-    console.log("totalEntryis",totalEntryis);
-    
   } catch (error) {
     console.error("Error loading data:", error);
   } finally {
     hideLoader();
-  }
-
-  // Function to automatically trigger "Track Settlement" button and check data fields
-  async function autoTrackSettlement() {
-    console.log("hello-------------------55555----------");
-
-    const trackButtons = document.querySelectorAll('.track-settlement');
-
-    for (const button of trackButtons) {
-
-      const row = button.closest('tr');
-      const ename = row.querySelector('ename');
-      const utrCell = row.querySelector('.utr-cell');
-      const settlementTimeCell = row.querySelector('.settlement-time');
-      const irnCell = row.querySelector('.irn');
-      const qrcodeCell = row.querySelector('.qrcode');
-      const btnCell = row.querySelector('.generate-invoice-btn');
-      // if(ename==="prince sachdeva"){
-        // console.log("hello");
-        totalEntryis+=1;
-      // }
-
-      // Check if all required fields are present
-      if ((utrCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (settlementTimeCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (irnCell.textContent.trim()==="NotAvailable" || null ||undefined ) && qrcodeCell.querySelector('img')) {
-        // All fields are present, disable the button
-        // console.log("hello");
-
-        button.textContent = 'Payment Settled ✔';
-        button.classList.add('btn-success');
-        button.setAttribute('disabled', 'true');
-        console.log(utrCell);
-        console.log(settlementTimeCell);
-        console.log(irnCell);
-      } else {
-        // Trigger the "Track Settlement" button click event
-        // console.log("utr",utrCell);
-        // console.log("date",settlementTimeCell);
-        // console.log("id",irnCell);
-        console.log("hello");
-
-        button.click();
-      }
-    }
-    console.log("totalEntryis",totalEntryis);
-    // setTimeout(isAutoTrack = totalEntryis,40000);
-    // setTimeout(console.log("isautotrack :",isAutoTrack),41000);
-  }
-
-  // Call the function on page load
-  window.addEventListener("load", autoTrackSettlement);
+}
 });
 
 

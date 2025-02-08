@@ -1,3 +1,17 @@
+<!-- Add at the top of the file -->
+<script src="../../assets/js/tokenUtils.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      const loginType = getUserLoginType();
+      const adminAccess = getAdminMemberAccess();
+      
+      // Allow access only if user is RO admin with member access or is the member themselves
+      if (loginType !== 'member' && !(loginType === 'ro_admin' && adminAccess)) {
+          window.location.href = '/';
+      }
+  });
+</script>
+
 <!-- header -->
 <%- include('../partials/header') %>
 <!-- end header -->
@@ -275,12 +289,46 @@
             </div>
             <script>
               document.addEventListener("DOMContentLoaded", async function () {
-                // Get user email from token
-                const userEmail = getUserEmail();
-                console.log("Decoded user email from token:", userEmail);
-                
                 try {
-                    // Fetch members data
+                    // Step 1: Try getting member details from multiple sources
+                    let member_id = localStorage.getItem('current_member_id');
+                    let member_email = localStorage.getItem('current_member_email');
+                    
+                    console.log('=== Starting Member Dashboard ===');
+                    console.log('Initial check from localStorage:', {
+                        member_id: member_id,
+                        member_email: member_email
+                    });
+
+                    // If not in localStorage, try getting from token
+                    if (!member_email) {
+                        member_email = getUserEmail();
+                        console.log('Retrieved from token:', {
+                            member_email: member_email
+                        });
+                    }
+
+                    // Get user role to handle different access types
+                    const userRole = getUserLoginType();
+                    console.log('User Role:', userRole);
+
+                    // Handle admin member access if applicable
+                    const adminAccess = getAdminMemberAccess();
+                    if (userRole === 'ro_admin' && adminAccess) {
+                        member_id = adminAccess.member_id;
+                        member_email = adminAccess.member_email;
+                        console.log('Admin access details:', {
+                            member_id: member_id,
+                            member_email: member_email
+                        });
+                    }
+
+                    if (!member_email) {
+                        console.error('No member email found from any source');
+                        return;
+                    }
+
+                    // Step 2: Fetch members data
                     console.log("Fetching members data...");
                     const membersResponse = await fetch(
                         "https://bni-data-backend.onrender.com/api/members"
@@ -289,14 +337,14 @@
                     console.log("Members data received:", membersData);
 
                     // Find member_id by matching email
-                    console.log("Searching for member with email:", userEmail);
+                    console.log("Searching for member with email:", member_email);
                     const memberInfo = membersData.find(
-                        member => member.member_email_address === userEmail
+                        member => member.member_email_address === member_email
                     );
                     console.log("Found member info:", memberInfo);
                     
                     if (!memberInfo) {
-                        console.log("Member not found for email:", userEmail);
+                        console.error("Member not found for email:", member_email);
                         return;
                     }
 
@@ -2065,7 +2113,7 @@
                               clip-path="url(#gridRectMask2xjixwaa)"
                               filter="url(#SvgjsFilter4765)"
                               pathTo="M 25.275410970052082 156.4338285714286C 42.96819864908854 156.4338285714286 58.133445231119794 24.066742857142856 75.82623291015625 24.066742857142856C 93.5190205891927 24.066742857142856 108.68426717122395 67.38688000000002 126.37705485026041 67.38688000000002C 144.06984252929686 67.38688000000002 159.2350891113281 144.40045714285714 176.92787679036456 144.40045714285714C 194.62066446940102 144.40045714285714 209.78591105143227 54.15017142857144 227.47869873046872 54.15017142857144C 245.17148640950518 54.15017142857144 260.33673299153645 6.016685714285728 278.0295206705729 6.016685714285728C 295.72230834960936 6.016685714285728 310.8875549316406 79.72108571428572 328.58034261067706 79.72108571428572C 346.27313028971355 79.72108571428572 361.43837687174477 55.654342857142865 379.13116455078125 55.654342857142865C 396.82395222981773 55.654342857142865 411.98919881184895 18.651725714285732 429.68198649088544 18.651725714285732C 447.3747741699219 18.651725714285732 462.54002075195314 74.0052342857143 480.2328084309896 74.0052342857143C 497.92559611002605 74.0052342857143 513.0908426920573 52.646000000000015 530.7836303710938 52.646000000000015C 548.4764180501302 52.646000000000015 563.6416646321615 141.39211428571429 581.3344523111979 141.39211428571429C 581.3344523111979 141.39211428571429 581.3344523111979 141.39211428571429 581.3344523111979 210.584 L 25.275410970052082 210.584z"
-                              pathFrom="M 0 210.584 L 0 210.584 L 75.82623291015625 210.584 L 126.37705485026041 210.584 L 176.92787679036456 210.584 L 227.47869873046872 210.584 L 278.0295206705729 210.584 L 328.58034261067706 210.584 L 379.13116455078125 210.584 L 429.68198649088544 210.584 L 480.2328084309896 210.584 L 530.7836303710938 210.584 L 581.3344523111979 210.584z"
+                              pathFrom="M 0 210.584 L 0 210.584 L 75.82623291015625 210.584 L 126.37705485026041 210.584 L 176.92787679036456 210.584 L 227.47869873046872 210.584 L 278.0295206705729 210.584 L 328.58034261067706 210.584 L 379.13116455078125 210.584 L 429.68198649088544 210.584 L 480.2328084309896 210.584 L 530.7836303710938 210.584 L 581.3344523111979 210.584"
                             ></path>
                             <path
                               id="SvgjsPath4774"
@@ -2082,7 +2130,7 @@
                               clip-path="url(#gridRectMask2xjixwaa)"
                               filter="url(#SvgjsFilter4775)"
                               pathTo="M 25.275410970052082 156.4338285714286C 42.96819864908854 156.4338285714286 58.133445231119794 24.066742857142856 75.82623291015625 24.066742857142856C 93.5190205891927 24.066742857142856 108.68426717122395 67.38688000000002 126.37705485026041 67.38688000000002C 144.06984252929686 67.38688000000002 159.2350891113281 144.40045714285714 176.92787679036456 144.40045714285714C 194.62066446940102 144.40045714285714 209.78591105143227 54.15017142857144 227.47869873046872 54.15017142857144C 245.17148640950518 54.15017142857144 260.33673299153645 6.016685714285728 278.0295206705729 6.016685714285728C 295.72230834960936 6.016685714285728 310.8875549316406 79.72108571428572 328.58034261067706 79.72108571428572C 346.27313028971355 79.72108571428572 361.43837687174477 55.654342857142865 379.13116455078125 55.654342857142865C 396.82395222981773 55.654342857142865 411.98919881184895 18.651725714285732 429.68198649088544 18.651725714285732C 447.3747741699219 18.651725714285732 462.54002075195314 74.0052342857143 480.2328084309896 74.0052342857143C 497.92559611002605 74.0052342857143 513.0908426920573 52.646000000000015 530.7836303710938 52.646000000000015C 548.4764180501302 52.646000000000015 563.6416646321615 141.39211428571429 581.3344523111979 141.39211428571429C 581.3344523111979 141.39211428571429 581.3344523111979 141.39211428571429 581.3344523111979 210.584 L 25.275410970052082 210.584z"
-                              pathFrom="M 0 210.584 L 0 210.584 L 75.82623291015625 210.584 L 126.37705485026041 210.584 L 176.92787679036456 210.584 L 227.47869873046872 210.584 L 278.0295206705729 210.584 L 328.58034261067706 210.584 L 379.13116455078125 210.584 L 429.68198649088544 210.584 L 480.2328084309896 210.584 L 530.7836303710938 210.584 L 581.3344523111979 210.584z"
+                              pathFrom="M 0 210.584 L 0 210.584 L 75.82623291015625 210.584 L 126.37705485026041 210.584 L 176.92787679036456 210.584 L 227.47869873046872 210.584 L 278.0295206705729 210.584 L 328.58034261067706 210.584 L 379.13116455078125 210.584 L 429.68198649088544 210.584 L 480.2328084309896 210.584 L 530.7836303710938 210.584 L 581.3344523111979 210.584"
                               fill-rule="evenodd"
                             ></path>
                             <g

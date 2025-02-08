@@ -27,66 +27,94 @@ function formatDate(dateStr) {
 }
 
 (async function generateLedger() {
-  // Get email from decoded token instead of localStorage
-  const email = getUserEmail(); // Using the function from tokenUtils.js
+    try {
+        showLoader();
+        
+        // Step 1: Try getting member details from multiple sources
+        let member_id = localStorage.getItem('current_member_id');
+        let member_email = localStorage.getItem('current_member_email');
+        
+        console.log('=== Starting Member Transactions ===');
+        console.log('Initial check from localStorage:', {
+            member_id: member_id,
+            member_email: member_email
+        });
 
-  if (!email) {
-    alert('You are not logged in. Redirecting to login...');
-    window.location.href = '/';
-    return;
-  }
-
-  
-
-// new changes --3rd logic
-try {
-  showLoader(); // Show loader
-
-  // Fetch member data
-  const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
-  const members = await memberResponse.json();
-
-  // Filter data for logged-in user
-  const userData = members.find(member => member.member_email_address === email);
-
-  if (!userData) {
-    alert('No data found for the logged-in user.');
-    return;
-  }
-  console.log(userData.member_id);
-  console.log(userData.chapter_id);
-  console.log(userData.member_induction_date);
-
-  const { meeting_opening_balance, meeting_payable_amount, chapter_id, member_id,member_email_address } = userData;
-
-  const AllTimeRaisedKittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments');
-  const AllTimeRaisedKitty = await AllTimeRaisedKittyResponse.json();
-  const allTimeRaisedKitty = AllTimeRaisedKitty.filter(kitty => kitty.chapter_id === chapter_id); 
-  console.log("heree",allTimeRaisedKitty);
-
-  if(allTimeRaisedKitty.length > 0){
-    // Fetch chapter description and bill type using chapter_id
-    const kittyPaymentsResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
-    const kittyPayments = await kittyPaymentsResponse.json();
-    const allAvailableOrdersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-    const allAvailableOrders = await allAvailableOrdersResponse.json();
-    const allAvailableTransactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
-    const allAvailableTransactions = await allAvailableTransactionsResponse.json();
-    
-    if(allTimeRaisedKitty.length === 1){
-        // if founded kitty is matched with allactivekitty
-        const matchFounded = kittyPayments.find(activekitty => activekitty.kitty_bill_id === allTimeRaisedKitty[0].kitty_bill_id);
-        let currentBalance = parseFloat(meeting_opening_balance);
-        let totalMeetingFeePaid = parseFloat(0);
-      
-        if(matchFounded){
-          document.getElementById('total-kitty-amount').textContent = `${matchFounded.total_bill_amount}`;
-      document.querySelector('.description').innerHTML = `${matchFounded.description}`;
-      document.getElementById('billType').textContent = `${matchFounded.bill_type}`;
-      document.getElementById('tot_weeks').textContent = `${matchFounded.total_weeks}`;
+        // If not in localStorage, try getting from token
+        if (!member_email) {
+            member_email = getUserEmail();
+            console.log('Retrieved from token:', {
+                member_email: member_email
+            });
         }
-        else{
-          document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
+
+        // Get user role to handle different access types
+        const userRole = getUserLoginType();
+        console.log('User Role:', userRole);
+
+        // Handle admin member access if applicable
+        const adminAccess = getAdminMemberAccess();
+        if (userRole === 'ro_admin' && adminAccess) {
+            member_id = adminAccess.member_id;
+            member_email = adminAccess.member_email;
+            console.log('Admin access details:', {
+                member_id: member_id,
+                member_email: member_email
+            });
+        }
+
+        if (!member_email) {
+            console.error('No member email found from any source');
+            hideLoader();
+            return;
+        }
+
+        // Step 2: Fetch member data using the email
+        const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const members = await memberResponse.json();
+        
+        console.log('Looking for member with email:', member_email);
+        const userData = members.find(member => member.member_email_address === member_email);
+
+        if (!userData) {
+            console.error('No member found with email:', member_email);
+            hideLoader();
+            return;
+        }
+
+        console.log('Found member data:', userData);
+        
+        // Continue with your existing logic using userData
+        const { meeting_opening_balance, meeting_payable_amount, chapter_id } = userData;
+        
+        const AllTimeRaisedKittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments');
+        const AllTimeRaisedKitty = await AllTimeRaisedKittyResponse.json();
+        const allTimeRaisedKitty = AllTimeRaisedKitty.filter(kitty => kitty.chapter_id === chapter_id); 
+        console.log("heree",allTimeRaisedKitty);
+
+        if(allTimeRaisedKitty.length > 0){
+            // Fetch chapter description and bill type using chapter_id
+            const kittyPaymentsResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
+            const kittyPayments = await kittyPaymentsResponse.json();
+            const allAvailableOrdersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+            const allAvailableOrders = await allAvailableOrdersResponse.json();
+            const allAvailableTransactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+            const allAvailableTransactions = await allAvailableTransactionsResponse.json();
+            
+            if(allTimeRaisedKitty.length === 1){
+                // if founded kitty is matched with allactivekitty
+                const matchFounded = kittyPayments.find(activekitty => activekitty.kitty_bill_id === allTimeRaisedKitty[0].kitty_bill_id);
+                let currentBalance = parseFloat(meeting_opening_balance);
+                let totalMeetingFeePaid = parseFloat(0);
+              
+                if(matchFounded){
+                  document.getElementById('total-kitty-amount').textContent = `${matchFounded.total_bill_amount}`;
+              document.querySelector('.description').innerHTML = `${matchFounded.description}`;
+              document.getElementById('billType').textContent = `${matchFounded.bill_type}`;
+              document.getElementById('tot_weeks').textContent = `${matchFounded.total_weeks}`;
+                }
+                else{
+                  document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
       document.querySelector('.description').innerHTML = '-';
       document.getElementById('billType').textContent = '-';
       document.getElementById('tot_weeks').textContent = '-';
@@ -454,7 +482,7 @@ try {
         // for allkittyPaymentExceptActive [0]
         // console.log("first of sorted ..",allKittyPaymentsExceptActive[0]);
         console.log("first kitty id is in sort array:",allKittyPaymentsExceptActive[0].kitty_bill_id);
-        const firstKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === allKittyPaymentsExceptActive[0].kitty_bill_id && order.customer_email=== member_email_address);
+        const firstKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === allKittyPaymentsExceptActive[0].kitty_bill_id && order.customer_email=== member_email);
         
         console.log('first raised all available Order:',firstKittyAllOrders);
         
@@ -560,7 +588,7 @@ try {
             // const balancePayments = await balancePaymentsResponse.json();
             // console.log("new data from db:",balancePayments);
 
-            const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
+            const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email);
         
         console.log('Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -666,7 +694,7 @@ try {
 
           // else from member take opening amount and then set unique no to 1
           else {
-             const nextKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
+             const nextKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email);
         
         console.log('Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -758,7 +786,7 @@ try {
 // for allkittyPaymentExceptActive [0]
         // console.log("first of sorted ..",allKittyPaymentsExceptActive[0]);
         console.log("first kitty id is in sort array:",allKittyPaymentsExceptActive[0].kitty_bill_id);
-        const firstKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === allKittyPaymentsExceptActive[0].kitty_bill_id && order.customer_email=== member_email_address);
+        const firstKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === allKittyPaymentsExceptActive[0].kitty_bill_id && order.customer_email=== member_email);
         
         console.log('first raised all available Order:',firstKittyAllOrders);
         
@@ -864,7 +892,7 @@ try {
             // const balancePayments = await balancePaymentsResponse.json();
             // console.log("new data from db:",balancePayments);
 
-            const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
+            const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email);
         
         console.log('Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -970,7 +998,7 @@ try {
 
           // else from member take opening amount and then set unique no to 1
           else {
-             const nextKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
+             const nextKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email);
         
         console.log('Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -1048,7 +1076,7 @@ try {
         // for allkittyPaymentExceptActive [0]
         // console.log("first of sorted ..",allKittyPaymentsExceptActive[0]);
       //   console.log("first kitty id is in sort array:",allKittyPaymentsExceptActive[0].kitty_bill_id);
-      //   const firstKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === allKittyPaymentsExceptActive[0].kitty_bill_id && order.customer_email=== member_email_address);
+      //   const firstKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === allKittyPaymentsExceptActive[0].kitty_bill_id && order.customer_email=== member_email);
         
       //   console.log('first raised all available Order:',firstKittyAllOrders);
         
@@ -1128,7 +1156,7 @@ try {
       //     // if unique is 1 then fetch from new api  endpoint
       //     if(uniqueNO===1){
       //       console.log("its run.")
-      //       const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
+      //       const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email);
         
       //   console.log('Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -1215,7 +1243,7 @@ try {
 
       //     // else from member take opening amount and then set unique no to 1
       //     else {
-      //        const nextKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email_address);
+      //        const nextKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === currentRemainingKitty.kitty_bill_id && order.customer_email=== member_email);
         
       //   console.log('Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -1387,7 +1415,7 @@ try {
               });
 
 
-            const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments[0].kitty_bill_id && order.customer_email=== member_email_address);
+            const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments[0].kitty_bill_id && order.customer_email=== member_email);
         
         console.log('last active Next kitty raised all available Order:',nextKittyAllOrders);
         
@@ -1487,7 +1515,7 @@ try {
 
 
           //------------------------------------------------------ old
-        //   const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments.kitty_bill_id && order.customer_email=== member_email_address);
+        //   const nextKittyAllOrders = allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments.kitty_bill_id && order.customer_email=== member_email);
         
         // console.log('Last kitty raised all available Order:',nextKittyAllOrders);
         
@@ -1562,7 +1590,7 @@ try {
 
         }else{
           // its first transaction of user and need to mark uniqueNO==1 if any transaction found success
-          const lastKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments[0].kitty_bill_id && order.customer_email=== member_email_address);
+          const lastKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments[0].kitty_bill_id && order.customer_email=== member_email);
         
           console.log('Next kitty raised all available Order:',lastKittyAllOrders);
 
@@ -1669,7 +1697,7 @@ try {
 
 
           // -----------------------------------------------------old
-        //   const lastKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments.kitty_bill_id && order.customer_email=== member_email_address);
+        //   const lastKittyAllOrders =allAvailableOrders.filter(order => order.kitty_bill_id === activeKittyPayments.kitty_bill_id && order.customer_email=== member_email);
         
         // console.log('last kitty raised all available Order:',lastKittyAllOrders);
         
