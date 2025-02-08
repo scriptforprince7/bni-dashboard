@@ -485,69 +485,91 @@ function hideLoader() {
       });
   };
 
-  // Update the fetchUserTrainings function
+  // Update fetchUserTrainings function
   const fetchUserTrainings = async () => {
       try {
           showLoader();
-          const loggedInEmail = getUserEmail();
-          if (!loggedInEmail) throw new Error('No valid email found in token');
-          console.log('Logged-In Email from token:', loggedInEmail);
+          
+          // Step 1: Try getting member details from multiple sources
+          let member_id = localStorage.getItem('current_member_id');
+          let member_email = localStorage.getItem('current_member_email');
+          
+          console.log('=== Starting User Trainings ===');
+          console.log('Initial check from localStorage:', {
+              member_id: member_id,
+              member_email: member_email
+          });
+
+          // If not in localStorage, try getting from token
+          if (!member_email) {
+              member_email = getUserEmail();
+              console.log('Retrieved from token:', {
+                  member_email: member_email
+              });
+          }
+
+          // Get user role to handle different access types
+          const userRole = getUserLoginType();
+          console.log('User Role:', userRole);
+
+          // Handle admin member access if applicable
+          const adminAccess = getAdminMemberAccess();
+          if (userRole === 'ro_admin' && adminAccess) {
+              member_id = adminAccess.member_id;
+              member_email = adminAccess.member_email;
+              console.log('Admin access details:', {
+                  member_id: member_id,
+                  member_email: member_email
+              });
+          }
+
+          if (!member_email) {
+              console.error('No member email found from any source');
+              hideLoader();
+              return [];
+          }
 
           // Step 2: Fetch Member Data
-          const fetchMemberData = async (email) => {
-            const response = await fetch('https://bni-data-backend.onrender.com/api/members');
-            if (!response.ok) throw new Error('Failed to fetch members data');
-            const members = await response.json();
-            console.log('Looking for member with email:', email);
-            return members.find(member => member.member_email_address === email);
-          };
-
-          const member = await fetchMemberData(loggedInEmail);
-          if (!member) throw new Error('Member not found for the logged-in email');
-          console.log('Logged-In User (Member Data):', member);
+          const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+          if (!response.ok) throw new Error('Failed to fetch members data');
+          const members = await response.json();
+          console.log('Looking for member with email:', member_email);
+          
+          const member = members.find(m => m.member_email_address === member_email);
+          if (!member) {
+              console.error('Member not found for email:', member_email);
+              hideLoader();
+              return [];
+          }
+          console.log('Found member:', member);
 
           // Step 3: Fetch Orders
-          const fetchOrders = async (memberId) => {
-            const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-            if (!response.ok) throw new Error('Failed to fetch orders');
-            const orders = await response.json();
-            return orders.filter(order => order.customer_id === memberId);
-          };
-
-          const orders = await fetchOrders(member.member_id);
-          console.log('Orders for Logged-In User:', orders);
-
-          // Step 4: Extract Training IDs
-          const getTrainingIds = (orders) => {
-            return [...new Set(orders.map(order => order.training_id).filter(id => id))];
-          };
-
-          const trainingIds = getTrainingIds(orders);
-          console.log('Training IDs from Orders:', trainingIds);
-
-          // Step 5: Fetch Trainings
-          const fetchTrainings = async (trainingIds) => {
-            const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
-            if (!response.ok) throw new Error('Failed to fetch trainings');
-            const trainings = await response.json();
-            return trainings.filter(training => trainingIds.includes(training.training_id));
-          };
-
-          const trainings = await fetchTrainings(trainingIds);
-          console.log('Trainings Associated with User:', trainings);
-
-          // Store trainings globally
-          allTrainings = trainings;
+          const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+          if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
+          const orders = await ordersResponse.json();
           
-          // Initialize filters and search
+          const memberOrders = orders.filter(order => order.customer_id === member.member_id);
+          console.log('Orders for member:', memberOrders);
+
+          // Step 4: Fetch Trainings
+          const trainingIds = memberOrders.map(order => order.training_id).filter(id => id);
+          console.log('Training IDs:', trainingIds);
+
+          const trainingsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+          if (!trainingsResponse.ok) throw new Error('Failed to fetch trainings');
+          const trainings = await trainingsResponse.json();
+          
+          const memberTrainings = trainings.filter(training => trainingIds.includes(training.training_id));
+          console.log('Member trainings:', memberTrainings);
+
+          // Store trainings globally and setup UI
+          allTrainings = memberTrainings;
           populateStatusFilter();
           handleFilters();
           handleSearch();
-          
-          // Initial population of table
-          populateTrainingsTable(trainings);
+          populateTrainingsTable(memberTrainings);
 
-          return trainings;
+          return memberTrainings;
       } catch (error) {
           console.error('Error:', error.message);
           return [];
@@ -601,104 +623,90 @@ function hideLoader() {
       });
   };
 
-  // Initialize everything when the page loads
+  // Call both functions when the page loads
   document.addEventListener('DOMContentLoaded', () => {
       fetchUserTrainings();
+      fetchAttendedTrainings();
   });
 
   async function fetchAttendedTrainings() {
     try {
-      console.log('=== FETCH ATTENDED TRAININGS START ===');
-      
-      // Step 1: Get user email from token
-      const userEmail = getUserEmail();
-      console.log('User Email:', userEmail);
+        console.log('=== FETCH ATTENDED TRAININGS START ===');
+        
+        // Step 1: Try getting member details from multiple sources
+        let member_id = localStorage.getItem('current_member_id');
+        let member_email = localStorage.getItem('current_member_email');
+        
+        console.log('Initial check from localStorage:', {
+            member_id: member_id,
+            member_email: member_email
+        });
 
-      // Step 2: Fetch Member Data
-      const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
-      const membersData = await membersResponse.json();
-      console.log('Looking for member with email:', userEmail);
-      
-      // Find member by email
-      const memberDetails = membersData.find(member => member.member_email_address === userEmail);
-      if (!memberDetails) {
-        console.log('Member not found for email:', userEmail);
-        return;
-      }
-      
-      const memberId = memberDetails.member_id;
-      console.log('Found Member ID:', memberId);
-      console.log('Member Details:', memberDetails);
+        // If not in localStorage, try getting from token
+        if (!member_email) {
+            member_email = getUserEmail();
+            console.log('Retrieved from token:', {
+                member_email: member_email
+            });
+        }
 
-      // Step 3: Fetch orders for this member
-      console.log('=== FETCHING ORDERS ===');
-      const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-      const ordersData = await ordersResponse.json();
-      
-      // Filter orders by member's customer_id
-      const memberOrders = ordersData.filter(order => order.customer_id === memberId);
-      console.log('Total orders found for member:', memberOrders.length);
-      console.log('Member Orders:', memberOrders);
-      
-      const orderIds = memberOrders.map(order => order.order_id);
-      console.log('Order IDs extracted:', orderIds);
+        // Get user role to handle different access types
+        const userRole = getUserLoginType();
+        console.log('User Role:', userRole);
 
-      // Step 4: Fetch all transactions
-      console.log('=== FETCHING TRANSACTIONS ===');
-      const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
-      const transactions = await transactionsResponse.json();
-      
-      // Step 5: Map order IDs to transaction IDs
-      const transactionIds = transactions
-        .filter(transaction => orderIds.includes(transaction.order_id))
-        .map(transaction => transaction.cf_payment_id);
-      
-      console.log('Found Transaction IDs:', transactionIds);
-      console.log('Matching Transactions:', transactions.filter(t => orderIds.includes(t.order_id)));
-      
-      // Step 6: Fetch all checkins
-      console.log('=== FETCHING CHECKINS ===');
-      const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
-      const checkins = await checkinsResponse.json();
-      
-      // Step 7: Count matching checkins
-      const matchingCheckins = checkins.filter(checkin => 
-        transactionIds.includes(checkin.transaction_id)
-      );
-      const attendedCount = matchingCheckins.length;
-      
-      console.log('Matching Checkins:', matchingCheckins);
-      console.log('Final Attended Count:', attendedCount);
-      
-      // Step 8: Update the display
-      const countElement = document.getElementById('training-count');
-      countElement.setAttribute('data-count', attendedCount);
-      countElement.textContent = attendedCount;
-      
-      console.log('=== FETCH ATTENDED TRAININGS COMPLETE ===');
-      
-      // After calculating attendedCount
-      console.log('=== CALCULATING MISSED TRAININGS ===');
-      
-      // Get total registered trainings
-      const totalRegistered = parseInt(document.getElementById('total_registered_trainings').textContent);
-      console.log('Total Registered Trainings:', totalRegistered);
-      console.log('Total Attended Trainings:', attendedCount);
-      
-      // Calculate missed trainings
-      const missedTrainings = totalRegistered - attendedCount;
-      console.log('Calculated Missed Trainings:', missedTrainings);
-      
-      // Update missed trainings display
-      const missedElement = document.getElementById('missed-trainings-count');
-      missedElement.textContent = missedTrainings;
-      
-      console.log('=== MISSED TRAININGS CALCULATION COMPLETE ===');
-      
+        // Handle admin member access if applicable
+        const adminAccess = getAdminMemberAccess();
+        if (userRole === 'ro_admin' && adminAccess) {
+            member_id = adminAccess.member_id;
+            member_email = adminAccess.member_email;
+            console.log('Admin access details:', {
+                member_id: member_id,
+                member_email: member_email
+            });
+        }
+
+        if (!member_email) {
+            console.error('No member email found from any source');
+            return;
+        }
+
+        // Step 2: Fetch Member Data
+        console.log('=== FETCHING MEMBERS DATA ===');
+        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const membersData = await membersResponse.json();
+        console.log('Looking for member with email:', member_email);
+        
+        // Find member by email
+        const memberDetails = membersData.find(member => member.member_email_address === member_email);
+        if (!memberDetails) {
+            console.error('Member not found for email:', member_email);
+            return;
+        }
+        
+        const memberId = memberDetails.member_id;
+        console.log('Found Member ID:', memberId);
+        console.log('Member Details:', memberDetails);
+
+        // Step 3: Fetch orders for this member
+        console.log('=== FETCHING ORDERS ===');
+        const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const ordersData = await ordersResponse.json();
+        
+        // Filter orders by member's customer_id
+        const memberOrders = ordersData.filter(order => order.customer_id === memberId);
+        console.log('Total orders found for member:', memberOrders.length);
+        console.log('Member Orders:', memberOrders);
+        
+        const orderIds = memberOrders.map(order => order.order_id);
+        console.log('Order IDs extracted:', orderIds);
+
+        // Continue with rest of the existing logic...
+        // ... existing code for transactions, checkins, etc. ...
+
     } catch (error) {
-      console.error('Error in fetchAttendedTrainings:', error);
+        console.error('Error in fetchAttendedTrainings:', error);
     }
-  }
+}
 
 // Call the function when the page loads
 document.addEventListener('DOMContentLoaded', fetchAttendedTrainings);

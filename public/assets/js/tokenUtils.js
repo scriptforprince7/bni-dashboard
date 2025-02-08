@@ -115,3 +115,54 @@ function handleChapterDashboardAccess() {
     
     return null;
 }
+
+// Add after handleChapterDashboardAccess()
+
+function setMemberAccessForAdmin(memberData) {
+    const loginType = getUserLoginType();
+    
+    // Allow both RO admin and member access
+    if (loginType !== 'ro_admin' && loginType !== 'member') {
+        console.error('Unauthorized access');
+        return false;
+    }
+
+    // For RO admin, store additional access data
+    if (loginType === 'ro_admin') {
+        sessionStorage.setItem('admin_member_access', JSON.stringify({
+            member_id: memberData.member_id,
+            member_email: memberData.email_id,
+            accessed_by: getUserEmail(),
+            timestamp: new Date().getTime()
+        }));
+    }
+    
+    return true;
+}
+
+function getAdminMemberAccess() {
+    const accessData = sessionStorage.getItem('admin_member_access');
+    return accessData ? JSON.parse(accessData) : null;
+}
+
+function handleMemberDashboardAccess() {
+    const loginType = getUserLoginType();
+    const adminAccess = getAdminMemberAccess();
+    
+    // For RO admin with specific member access
+    if (loginType === 'ro_admin' && adminAccess) {
+        return {
+            member_id: adminAccess.member_id,
+            member_email: adminAccess.member_email
+        };
+    }
+    
+    // For regular member login
+    if (loginType === 'member') {
+        return {
+            member_email: getUserEmail()
+        };
+    }
+    
+    return null;
+}
