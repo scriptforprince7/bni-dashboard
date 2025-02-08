@@ -6,5 +6,6 @@ const memberController = require('../../controllers/c-dashboard/dashboardControl
 router.get('/ro-dashboard', memberController.roDashboard);
 router.get('/chapter-dashboard', memberController.chapterDashboard);
 router.get('/member-dashboard', memberController.memberDashboard);
+router.get('/chapter-dashboard/:id', memberController.chapterDashboard);
 
 module.exports = router;
