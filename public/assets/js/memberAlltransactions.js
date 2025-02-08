@@ -96,21 +96,6 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
             });
         }
 
-        // Get user role to handle different access types
-        const userRole = getUserLoginType();
-        console.log('User Role:', userRole);
-
-        // Handle admin member access if applicable
-        const adminAccess = getAdminMemberAccess();
-        if (userRole === 'ro_admin' && adminAccess) {
-            member_id = adminAccess.member_id;
-            member_email = adminAccess.member_email;
-            console.log('Admin access details:', {
-                member_id: member_id,
-                member_email: member_email
-            });
-        }
-
         if (!member_email) {
             console.error('No member email found from any source');
             hideLoader();

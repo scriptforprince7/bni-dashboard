@@ -150,7 +150,7 @@ function handleMemberDashboardAccess() {
     const adminAccess = getAdminMemberAccess();
     
     // For RO admin with specific member access
-    if (loginType === 'ro_admin' && adminAccess) {
+    if (loginType === 'ro_admin') {
         return {
             member_id: adminAccess.member_id,
             member_email: adminAccess.member_email
