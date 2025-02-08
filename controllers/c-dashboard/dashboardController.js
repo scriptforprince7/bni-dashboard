@@ -7,5 +7,5 @@ exports.chapterDashboard = (req, res) => {
 };
 
 exports.memberDashboard = (req, res) => {
-    res.render('member-dashboard/member-dashboard', { title: 'Member' });
+        res.render('member-dashboard/member-dashboard', { title: 'Member' });
 };

@@ -63,3 +63,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
 });
+
+// Add after getUserLoginType()
+
+function setChapterAccessForAdmin(chapterData) {
+    const loginType = getUserLoginType();
+    
+    // Allow both RO admin and chapter access
+    if (loginType !== 'ro_admin' && loginType !== 'chapter') {
+        console.error('Unauthorized access');
+        return false;
+    }
+
+    // For RO admin, store additional access data
+    if (loginType === 'ro_admin') {
+        sessionStorage.setItem('admin_chapter_access', JSON.stringify({
+            chapter_id: chapterData.chapter_id,
+            chapter_email: chapterData.email_id,
+            accessed_by: getUserEmail(),
+            timestamp: new Date().getTime()
+        }));
+    }
+    
+    return true;
+}
+
+function getAdminChapterAccess() {
+    const accessData = sessionStorage.getItem('admin_chapter_access');
+    return accessData ? JSON.parse(accessData) : null;
+}
+
+// Add this function to handle chapter dashboard access
+function handleChapterDashboardAccess() {
+    const loginType = getUserLoginType();
+    const adminAccess = getAdminChapterAccess();
+    
+    // For RO admin with specific chapter access
+    if (loginType === 'ro_admin' && adminAccess) {
+        return {
+            chapter_id: adminAccess.chapter_id,
+            chapter_email: adminAccess.chapter_email
+        };
+    }
+    
+    // For regular chapter login
+    if (loginType === 'chapter') {
+        return {
+            chapter_email: getUserEmail()
+        };
+    }
+    
+    return null;
+}
