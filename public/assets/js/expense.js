@@ -1,4 +1,4 @@
-let apiUrl = "https://bni-data-backend.onrender.com/api/allExpenses"; // API for expenses
+// let apiUrl = "https://bni-data-backend.onrender.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let entriesPerPage = 10; // Number of entries to display per page
@@ -73,7 +73,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('Expense types:', expenseTypes);
 
     // Fetch all expenses
-    const response = await fetch(`${apiUrl}`);
+    const response = await fetch("https://bni-data-backend.onrender.com/api/allExpenses");
     if (!response.ok) throw new Error("Network response was not ok");
 
     const allExpensesData = await response.json();

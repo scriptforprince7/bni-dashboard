@@ -1,13 +1,4 @@
-<script src="../../assets/js/tokenUtils.js"></script>
-<script>
-    // Get login type from token
-    const loginType = getUserLoginType();
-    
-    // If user is a member, redirect to home page
-    if (loginType === 'member') {
-        window.location.href = '/';
-    }
-</script>
+
  
  <!-- header -->
  <%- include('../partials/header') %> 
@@ -36,7 +27,7 @@
            <ol class="breadcrumb mb-1">
              <li class="breadcrumb-item">
                <a href="javascript:void(0);" style="color: #d01f2f"
-                 >Manage Expenses</a
+                 >Expenses Management</a
                >
              </li>
              <li class="breadcrumb-item 989178547 " aria-current="page">
