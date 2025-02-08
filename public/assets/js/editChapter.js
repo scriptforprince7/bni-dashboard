@@ -183,6 +183,7 @@ const populateChapterFields = (data) => {
   document.getElementById("chapter_website").value = data.chapter_website || "Not Found";
   document.getElementById("one_time_registration_fee").value = data.one_time_registration_fee || "Not Found";
   document.getElementById("chapter_late_fees").value = data.chapter_late_fees || "Not Found";
+  document.getElementById("chapter_available_fund").value = data.available_fund || "Not Found";
   document.getElementById("chapter_membership_fee").value = data.chapter_membership_fee || "Not Found";
   document.getElementById("chapter_membership_fee_two_year").value = data.chapter_membership_fee_two_year || "Not Found";
   document.getElementById("chapter_membership_fee_five_year").value = data.chapter_membership_fee_five_year || "Not Found";
@@ -361,6 +362,7 @@ const collectChapterFormData = () => {
       chapter_membership_fee_two_year: document.querySelector("#chapter_membership_fee_two_year").value,
       chapter_membership_fee_five_year: document.querySelector("#chapter_membership_fee_five_year").value,
       billing_frequency: document.querySelector("#billing_frequency").value,
+      chapter_available_fund: document.querySelector("#chapter_available_fund").value,
   };
 
   return chapterData;
