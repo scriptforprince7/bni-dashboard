@@ -131,11 +131,11 @@
 
                             <div class="col-xl-4 col-md-4">
                               <label for="payment_status" class="form-label">Payment Status</label>
-                              <select class="form-control" name="payment_status" id="payment_status">
+                                <select class="form-control" name="payment_status" id="payment_status" required>
                                 <option value="">Payment Status</option>
                                 <option value="paid">Paid</option>
                                 <option value="pending">Pending</option>
-                              </select>
+                                </select>
                             </div>
 
                             <div class="col-xl-4 col-md-4">
@@ -147,7 +147,7 @@
                           <div class="row">
                             <div class="col-xl-4">
                               <label for="upload_bill" class="form-label">Upload Bill</label>
-                              <input type="file" class="form-control" id="upload_bill" name="upload_bill" required />
+                              <input type="file" class="form-control" id="upload_bill" name="upload_bill" />
                             </div>
                             <div class="col-xl-4">
                               <label for="bill_no" class="form-label">Bill No.</label>
@@ -237,7 +237,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log('Sorted chapters to display:', filteredChapters);
 
     // Populate dropdown with filtered chapters
-    if (filteredChapters.length > 0) {
+    if (filteredChapters.length === 1) {
+      const chapter = filteredChapters[0];
+      const option = document.createElement("option");
+      option.value = chapter.chapter_id;
+      option.textContent = chapter.chapter_name;
+      option.selected = true;
+      chapterDropdown.appendChild(option);
+      chapterDropdown.disabled = true; // Disable the dropdown
+      console.log(`Preselected chapter: ${chapter.chapter_name} (ID: ${chapter.chapter_id})`);
+    } else if (filteredChapters.length > 0) {
       filteredChapters.forEach((chapter) => {
         const option = document.createElement("option");
         option.value = chapter.chapter_id;
@@ -276,6 +285,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         originalValue: selectedChapter.value,
         parsedValue: selectedChapterId
       });
+      return;
+    }
+
+    const selectedPaymentStatus = document.getElementById('payment_status').value;
+   
+    if (selectedPaymentStatus !== "paid" && selectedPaymentStatus !== "pending") {
+      console.log("selectedPaymentStatus", selectedPaymentStatus);
+      Swal.fire('Error!', 'Please select a valid payment status', 'error');
       return;
     }
 
@@ -351,15 +368,15 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 // Helper function to check if arrays are equal (for debugging)
-function arraysEqual(a, b) {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; ++i) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
+// function arraysEqual(a, b) {
+//   if (a === b) return true;
+//   if (a == null || b == null) return false;
+//   if (a.length !== b.length) return false;
+//   for (let i = 0; i < a.length; ++i) {
+//     if (a[i] !== b[i]) return false;
+//   }
+//   return true;
+// }
 </script>
 
 <script src="../../assets/js/expense.js"></script>
