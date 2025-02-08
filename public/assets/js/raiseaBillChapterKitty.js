@@ -103,6 +103,17 @@ const fetchAllCurrentkittyPayments = async () => {
 
 const tableBody = document.querySelector('table tbody');
 
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 const insertPaymentsIntoTable = () => {
     tableBody.innerHTML = ''; // Clear existing table rows
 
@@ -134,14 +145,14 @@ const insertPaymentsIntoTable = () => {
             // row.appendChild(descriptionCell);
             row.innerHTML = `
                 <td><b>${index + 1}</b></td>
-                <td><b>${payment.raised_on || 'N/A'}</b></td>
+                <td><b>${formatDate(payment.raised_on) || 'N/A'}</b></td>
                 <td><b>${current_user.chapter_meeting_day || 'N/A'}</b></td>
                 <td><b>${current_user.chapter_kitty_fees || 'N/A'}</b></td>
                 <td><b>${payment.bill_type || 'N/A'}</b></td>
                 <td><b>${payment.description || 'N/A'}</b></td>
                 <td><b>${payment.total_weeks || 'N/A'}</b></td>
                 <td><b>${payment.total_bill_amount || 'N/A'}</b></td>
-                <td><b>${payment.kitty_due_date || 'N/A'}</b></td>
+                <td><b>${formatDate(payment.kitty_due_date) || 'N/A'}</b></td>
                 <td><b style="color: ${payment.delete_status === 0 ? 'green' : 'red'};">
                 ${payment.delete_status === 0 ? 'Active' : 'Inactive'}</b></td>
             `;
@@ -278,7 +289,7 @@ const autofillFields = async () => {
         try {
             showLoader();
 
-            const response = await fetch('http://localhost:5000/api/addKittyPayment', {
+            const response = await fetch('https://bni-data-backend.onrender.com/api/addKittyPayment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
