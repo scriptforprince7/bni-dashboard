@@ -494,7 +494,7 @@ function displayMembers(members) {
                     <span class="avatar avatar-sm me-2 avatar-rounded">
                         <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
                     </span>
-                    <a href="/m/view-member/?member_id=${member.member_id}">${fullName}</a>
+                    <a href="javascript:void(0);" class="member-name" data-member-id="${member.member_id}" data-member-email="${member.member_email_address}">${fullName}</a>
                 </div>
             </td>
             <td style="border: 1px solid grey;">
@@ -521,6 +521,53 @@ function displayMembers(members) {
                 </span>
             </td>
         `;
+
+        // Add click handler for member name
+        const memberNameLink = row.querySelector('.member-name');
+        memberNameLink.style.cursor = 'pointer';
+        memberNameLink.style.color = '#d01f2f'; // Add styling to make it look clickable
+        memberNameLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const memberData = {
+                    member_id: memberNameLink.dataset.memberId,
+                    email_id: memberNameLink.dataset.memberEmail
+                };
+                
+                console.log('=== Starting Member Access ===');
+                console.log('Member data to be stored:', memberData);
+                
+                // Store the data
+                localStorage.setItem('current_member_email', memberData.email_id);
+                localStorage.setItem('current_member_id', memberData.member_id);
+                
+                // Verify storage
+                const storedEmail = localStorage.getItem('current_member_email');
+                const storedId = localStorage.getItem('current_member_id');
+                
+                console.log('Verification of stored member data:', {
+                    originalEmail: memberData.email_id,
+                    storedEmail: storedEmail,
+                    originalId: memberData.member_id,
+                    storedId: storedId
+                });
+
+                if (!storedEmail || !storedId) {
+                    throw new Error('Failed to store member access data');
+                }
+
+                // Only redirect if data is properly stored
+                window.location.href = `/d/member-dashboard/${memberData.member_id}`;
+            } catch (error) {
+                console.error('Error in member access:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Access Error',
+                    text: 'Unable to access member dashboard. Please try again.'
+                });
+            }
+        });
+
         tableBody.appendChild(row);
     });
 }
