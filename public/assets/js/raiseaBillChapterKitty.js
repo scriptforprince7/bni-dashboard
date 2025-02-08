@@ -133,18 +133,17 @@ const insertPaymentsIntoTable = () => {
             // descriptionCell.textContent = payment.description;
             // row.appendChild(descriptionCell);
             row.innerHTML = `
-                <td><b>${index+1}</b></td>
-                <td><b>${payment.payment_date}</b></td>
-                <td><b>${current_user.chapter_meeting_day}</b></td>
-                <td><b>${current_user.chapter_kitty_fees}</b></td>
-                <td><b>${payment.bill_type}</b></td>
-                <td><b>${payment.description}</b></td>
-                <td><b>${payment.total_weeks}</b></td>
-                <td><b>${payment.total_bill_amount}</b></td>
-                <td><b>${payment.raised_on}</b></td>
+                <td><b>${index + 1}</b></td>
+                <td><b>${payment.raised_on || 'N/A'}</b></td>
+                <td><b>${current_user.chapter_meeting_day || 'N/A'}</b></td>
+                <td><b>${current_user.chapter_kitty_fees || 'N/A'}</b></td>
+                <td><b>${payment.bill_type || 'N/A'}</b></td>
+                <td><b>${payment.description || 'N/A'}</b></td>
+                <td><b>${payment.total_weeks || 'N/A'}</b></td>
+                <td><b>${payment.total_bill_amount || 'N/A'}</b></td>
+                <td><b>${payment.kitty_due_date || 'N/A'}</b></td>
                 <td><b style="color: ${payment.delete_status === 0 ? 'green' : 'red'};">
                 ${payment.delete_status === 0 ? 'Active' : 'Inactive'}</b></td>
-                
             `;
             // <td><b>${payment.date}</b></td> //this line removed from last 
             
@@ -268,9 +267,10 @@ const autofillFields = async () => {
         const description = document.querySelector('#contact_person').value;
         const total_weeks = parseInt(document.querySelector('.total_weeks').value) || 0;
         const total_bill_amount = parseFloat(document.querySelector('.total_bill_amount').value) || 0;
+        const due_date = document.querySelector('#due_date').value;
 
-        console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount });
-        if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0) {
+        console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount, due_date });
+        if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
             alert("Please fill all fields correctly.");
             return;
         }
@@ -278,7 +278,7 @@ const autofillFields = async () => {
         try {
             showLoader();
 
-            const response = await fetch('https://bni-data-backend.onrender.com/api/addKittyPayment', {
+            const response = await fetch('http://localhost:5000/api/addKittyPayment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -290,6 +290,7 @@ const autofillFields = async () => {
                     description,
                     total_weeks,
                     total_bill_amount,
+                    due_date,
                 }),
             });
 
