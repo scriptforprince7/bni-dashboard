@@ -27,6 +27,7 @@ const chapterSettingsRoutes = require('./r-settings/settingsRoutes');
 const chapterMembersRoutes = require('./r-chapterMembers/chapterMembers');
 const chapterKitty = require('./r-chapterKitty/chapterKitty')
 const sendNotificationRoutes = require('./r-sendNotification/sendNotificationRoutes');
+const roExpenseRoutes = require('./r-roExpense/roExpense');
 
 // Use all the imported routes
 router.use('/', indexRoutes);
@@ -46,12 +47,12 @@ router.use('/cl', classificationRoutes);
 router.use('/e', eventsRoutes);
 router.use('/tr', trainingsRoutes);
 router.use('/k', kittyDashboardRoutes);
-router .use('/exp', expenseRoutes);
-router .use('/mtr', memberTrainingsRoutes);
-router .use('/minv', memberInvoiceRoutes);
+router.use('/exp', expenseRoutes);
+router.use('/mtr', memberTrainingsRoutes);
+router.use('/minv', memberInvoiceRoutes);
 router.use('/ref', refundRoutes);
-
 router.use('/cm', chapterMembersRoutes);
 router.use('/ck', chapterKitty);
 router.use('/sn', sendNotificationRoutes);
+router.use('/rexp', roExpenseRoutes);
 module.exports = router;

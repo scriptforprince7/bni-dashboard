@@ -1,13 +1,15 @@
 <!-- Add this script at the very top of your file, before any other content -->
 <script src="../../assets/js/tokenUtils.js"></script>
 <script>
-    // Get login type from token
-    const loginType = getUserLoginType();
-    
+  document.addEventListener('DOMContentLoaded', () => {
+      const loginType = getUserLoginType();
+      const adminAccess = getAdminChapterAccess();
+      
     // If user is a member, redirect to home page
     if (loginType === 'member') {
         window.location.href = '/';
     }
+  });
 </script>
 
 <!-- header -->
@@ -4046,5 +4048,28 @@
             sessionStorage.removeItem('newLogin');
         }
     });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // Add token to all API requests
+    if (token) {
+        // Add token to current URL if not present
+        if (!window.location.search.includes('token')) {
+            const separator = window.location.search ? '&' : '?';
+            window.history.replaceState(
+                null, 
+                '', 
+                `${window.location.pathname}${window.location.search}${separator}token=${token}`
+            );
+        }
+    } else {
+        // No token found, redirect to login
+        window.location.href = '/login';
+    }
+});
 </script>
   

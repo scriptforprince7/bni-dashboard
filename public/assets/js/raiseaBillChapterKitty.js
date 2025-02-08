@@ -9,39 +9,67 @@ function hideLoader() {
 // const apiUrl = 'https://bni-data-backend.onrender.com/api/members';
 const chaptersApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
 
-let current_user ;
+let current_user;
 let allCurrentUserPayments;
-
-const chapterEmail = getUserEmail(); 
-console.log('chapterEmail:', chapterEmail);
-
-let total_kitty_raised= 0;
+let total_kitty_raised = 0;
 
 const fetchChapterId = async () => {
-// async function fetchChapterId() {
     try {
         showLoader();
-      const response = await fetch(chaptersApiUrl);
-      if (!response.ok) throw new Error('Network response was not ok');
-      const chapters = await response.json();
-    current_user = chapters.find(chapter => chapter.email_id === chapterEmail);
-    if (current_user) {
-      console.log('chapter id:', current_user.chapter_id);
-      console.log('chapter frequency:', current_user.kitty_billing_frequency);
-    } else {
-      console.error('Chapter not found for the logged-in email:', chapterEmail);
-    }
-  console.log(current_user.chapter_id);
-  
-    //   console.log(`chapter_id:${usedEmail.chapter_id}`);
-  
+        console.log('=== Starting fetchChapterId ===');
+        
+        // Get chapter email based on login type
+        const loginType = getUserLoginType();
+        console.log('Current login type:', loginType);
+        
+        let chapterEmail;
+        if (loginType === 'ro_admin') {
+            // Get and verify the stored data
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            const chapterId = localStorage.getItem('current_chapter_id');
+            
+            console.log('RO Admin - Checking stored data:', {
+                storedEmail: chapterEmail,
+                storedId: chapterId,
+                allLocalStorage: { ...localStorage }
+            });
+            
+            if (!chapterEmail || !chapterId) {
+                console.error('Missing required data in localStorage:', {
+                    email: chapterEmail,
+                    id: chapterId
+                });
+                return;
+            }
+        } else {
+            chapterEmail = getUserEmail();
+            console.log('Chapter user email from token:', chapterEmail);
+        }
+
+        console.log('Using chapter email:', chapterEmail);
+
+        // Fetch chapter details
+        const response = await fetch(chaptersApiUrl);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const chapters = await response.json();
+        current_user = chapters.find(chapter => chapter.email_id === chapterEmail);
+        
+        if (current_user) {
+            console.log('Found chapter details:', {
+                id: current_user.chapter_id,
+                name: current_user.chapter_name,
+                frequency: current_user.kitty_billing_frequency
+            });
+        } else {
+            console.error('Chapter not found for email:', chapterEmail);
+        }
+        
     } catch (error) {
-      console.error('Error fetching chapters:', error);
-      
+        console.error('Error in fetchChapterId:', error);
     } finally {
-      hideLoader();
+        hideLoader();
     }
-  }
+}
 
 fetchChapterId();
 

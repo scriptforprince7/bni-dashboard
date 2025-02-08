@@ -106,7 +106,7 @@ const displayChapters = (chapters) => {
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>
-                <a href="/c/view-chapter/?chapter_id=${chapter.chapter_id}">
+                <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
                     <b>${chapter.chapter_name}</b>
                 </a>
             </td>
@@ -355,3 +355,72 @@ document.getElementById("chaptersTableBody")?.addEventListener("click", async (e
         }
     }
 });
+
+// Add this function at the bottom of the file
+async function handleChapterAccess(chapterId, chapterEmail) {
+    console.log('=== Starting handleChapterAccess ===');
+    console.log('Params received:', { chapterId, chapterEmail });
+    
+    const loginType = getUserLoginType();
+    console.log('Current user login type:', loginType);
+    
+    try {
+        if (loginType === 'ro_admin') {
+            const chapterData = {
+                chapter_id: chapterId,
+                email_id: chapterEmail
+            };
+            
+            if (setChapterAccessForAdmin(chapterData)) {
+                // First store the data
+                localStorage.setItem('current_chapter_email', chapterEmail);
+                localStorage.setItem('current_chapter_id', chapterId);
+                
+                // Verify the data was stored
+                const storedEmail = localStorage.getItem('current_chapter_email');
+                const storedId = localStorage.getItem('current_chapter_id');
+                
+                console.log('Verification of stored data:', {
+                    originalEmail: chapterEmail,
+                    storedEmail: storedEmail,
+                    originalId: chapterId,
+                    storedId: storedId
+                });
+
+                if (!storedEmail || !storedId) {
+                    throw new Error('Failed to store chapter access data');
+                }
+
+                // Only redirect if data is properly stored
+                window.location.href = `/d/chapter-dashboard/${chapterId}`;
+            } else {
+                throw new Error('Failed to set admin chapter access');
+            }
+        } else if (loginType === 'chapter') {
+            const userEmail = getUserEmail();
+            console.log('Chapter access check:', { 
+                userEmail, 
+                requestedEmail: chapterEmail 
+            });
+            
+            if (userEmail === chapterEmail) {
+                console.log('Chapter accessing own dashboard');
+                localStorage.setItem('current_chapter_email', chapterEmail);
+                localStorage.setItem('current_chapter_id', chapterId);
+                window.location.href = `/d/chapter-dashboard/${chapterId}`;
+            } else {
+                throw new Error('Chapter attempting to access unauthorized dashboard');
+            }
+        } else {
+            console.log('Regular user access - redirecting to view-chapter');
+            window.location.href = `/c/view-chapter/?chapter_id=${chapterId}`;
+        }
+    } catch (error) {
+        console.error('Error in handleChapterAccess:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Access Error',
+            text: error.message || 'Failed to access chapter dashboard'
+        });
+    }
+}

@@ -212,9 +212,33 @@ function hideLoader() {
         showLoader();
         
 
-        // Step 1: Get logged-in chapter email from token
-        const chapterEmail = getUserEmail();
-        console.log('Logged-in chapter email:', chapterEmail);
+        // Step 1: Get logged-in chapter email based on login type
+        const loginType = getUserLoginType();
+        console.log('Current login type:', loginType);
+        
+        let chapterEmail;
+        if (loginType === 'ro_admin') {
+            // Get and verify the stored data
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            const chapterId = localStorage.getItem('current_chapter_id');
+            
+            console.log('RO Admin - Checking stored data:', {
+                storedEmail: chapterEmail,
+                storedId: chapterId,
+                allLocalStorage: { ...localStorage }
+            });
+            
+            if (!chapterEmail || !chapterId) {
+                console.error('Missing required data in localStorage:', {
+                    email: chapterEmail,
+                    id: chapterId
+                });
+                return;
+            }
+        } else {
+            chapterEmail = getUserEmail();
+            console.log('Chapter user email from token:', chapterEmail);
+        }
 
         // Step 2: Fetch chapter details using chapter email
         const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
