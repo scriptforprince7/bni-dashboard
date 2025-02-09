@@ -1,0 +1,300 @@
+
+<!-- Add this script at the very top of your file, before any other content -->
+<script src="../../assets/js/tokenUtils.js"></script>
+<script>
+    // Get login type from token
+    const loginType = getUserLoginType();
+    
+    // If user is a member, redirect to home page
+    if (loginType === 'member') {
+        window.location.href = '/';
+    }
+</script>
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <style>
+        /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+  max-height: 200px; /* Adjust the height as needed */
+  overflow-y: auto;  /* Enables vertical scrolling */
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker shade on hover */
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid rgba(90, 80, 80, 0.689); /* Adds border to the table, headers, and cells */
+}
+
+td, th {
+    padding: 8px; /* Adds some spacing within the cells */
+    text-align: center; /* Centers the text horizontally */
+    vertical-align: middle; /* Centers the text vertically */
+}
+
+th {
+    background-color: #f2f2f2; /* Optional: Adds a light background to the headers */
+}
+
+
+      </style>
+      
+
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+    @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+  </style>
+
+  <style>
+    * {
+      font-family: Montserrat !important;
+      font-weight: 800px;
+    }
+    .text-muted {
+      color: black !important;
+      font-family: Montserrat Alternates;
+    }
+    .popins {
+      font-family: Poppins;
+    }
+  </style>
+
+    <%- include('../partials/chapter-sidebar') %>
+      <!-- Start::app-content -->
+      <div class="main-content app-content" style="background-color: #f4f4f4">
+        <div class="container-fluid">
+          <!-- Start::page-header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                <span style="font-weight: 700; font-family: Poppins"
+                  >Give a Credit</span
+                >
+              </h1>
+              <p>Manage all credit history here</p>
+            </div>
+            
+            <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="form-group">
+                <div class="input-group">
+                  <div class="input-group-text bg-white border">
+                    <i class="ri-calendar-line"></i>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control breadcrumb-input"
+                    id="daterange"
+                    placeholder="Search By Date Range"
+                  />
+                </div>
+              </div>
+            </div> -->
+          </div>
+          <!-- End::page-header -->
+
+          <div class="row">
+            <div class="col-xl-12 chapter-information" style="display: none;">
+              <div class="card custom-card">
+                <div class="card-body add-products" style="background-color: 	#F5F5F5; box-shadow: 0px 2px 8px rgb(251, 109, 109);">
+                  <div class="row gx-4">
+                    <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                      <div class="card custom-card shadow-none mb-0 border-0" style="background-color: 	#F5F5F5;">
+                        <div class="card-body p-0">
+                          <div class="row gy-3">
+                            <div class="col-xl-2">
+                              <label for="chapter_name" class="form-label"
+                                ><b>Chapter Name</b></label
+                              >
+                              <p class="chapter_name">Prolific</p>
+                            </div>
+                              <div class="col-xl-2">
+                                <label for="chapter_day" class="form-label"
+                                  ><b>Chapter Day</b></label
+                                >
+                                <p class="chapter_day">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="meeting_venue" class="form-label"
+                                  ><b>Meeting Venue</b></label
+                                >
+                                <p class="meeting_venue">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="meeting_fee" class="form-label"
+                                  ><b>Meeting Fee</b></label
+                                >
+                                <p class="meeting_fee">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="visitor_fee" class="form-label"
+                                  ><b>Visitor Fee</b></label
+                                >
+                                <p class="visitor_fee">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="region_name" class="form-label"
+                                  ><b>Total Members</b></label
+                                >
+                                <p class="total_members">Prolific</p>
+                              </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div class="card-body add-products">
+                  <div class="row gx-4">
+                    <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                      <div class="card custom-card shadow-none mb-0 border-0">
+                        <div class="card-body p-0">
+                          <div class="row gy-3">
+                            <div class="col-xl-1">
+                              <label for="region_name" class="form-label"
+                                >Credit Date</label
+                              >
+                              <input
+                                type="date"
+                                class="form-control"
+                                id="region_name"
+                                name="region_name"
+                                placeholder="New region name.."
+                              />
+                            </div>
+                            <div class="col-xl-3">
+                                <label for="kitty_billing_frequency" class="form-label">Choose Member</label>
+                                <!-- <select class="form-control" name="kitty_billing_frequency" id="kitty_billing_frequency" disabled> -->
+                                <select class="form-control kitty_billing_frequency" name="kitty_billing_frequency" id="kitty_billing_frequency">
+
+                                    <option value="">Select</option>
+                                    <option value="weekly">All Members</option>
+                                </select>
+                              </div>
+                           
+
+                              <div class="col-xl-2">
+                                <label for="total_bill_amount" class="form-label"
+                                  >Credit Amount
+                                </label>
+                                <input
+                                  type="text"
+                                  class="form-control total_bill_amount"
+                                  id="total_bill_amount"
+                                  name="total_bill_amount" 
+                                  placeholder="₹15,600/-"
+                                  style="background-color: rgb(239, 235, 235);"
+                                />
+                              </div>
+                            
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end align-items-center">
+                    
+                    <button type="submit" class="btn btn-danger me-2 mb-2 mb-sm-0 add_bill" id="btn_text">
+                      Give Credit +
+                    </button>
+                  </div>
+              </div>
+            </div>
+          </div>
+        
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div
+                  class="card-header justify-content-between"
+                  style="background-color: gainsboro !important"
+                >
+                  <div class="card-title">All Credit History</div>
+                  <div class="d-flex">
+                    <!-- Region Filter -->
+
+                  </div>
+                  
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table text-nowrap">
+                      <thead>
+                        <tr>
+                          <th scope="col">S.No.</th>
+                          <th scope="col">Credit Date</th>
+                          <!-- <th scope="col">Chapter Name</th> -->
+                          <th scope="col">Meeting Day</th>
+                          <th scope="col">Kitty Fees</th>
+                          <th scope="col">Bill Type</th>
+                          <th scope="col">Description</th>
+                          <th scope="col">Total Weeks</th>
+                          <th scope="col">Total Amount</th>
+                          <th scope="col">Due Date</th>
+                          <th scope="col">Active Bill</th>
+                          <!-- <th scope="col" >Actions</th> -->
+                        </tr>
+                      </thead>
+                      <tbody id="chaptersTableBody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0">
+                  <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0 float-end">
+                      <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                      </li>
+                      <li class="page-item active">
+                        <a class="page-link" href="javascript:void(0);">1</a>
+                      </li>
+                      <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);">Next</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+      <!-- End::content  -->
+
+
+  
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../../assets/js/tokenUtils.js"></script>
+<script src="../../assets/js/raiseaBillChapterKitty.js"></script>
+
+      <%- include('../partials/footer') %> 
+      

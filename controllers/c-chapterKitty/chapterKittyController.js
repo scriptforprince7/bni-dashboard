@@ -10,3 +10,7 @@ exports.chapterKittyInvoice = (req, res) => {
     res.render('m-chapterKitty/chapter-kittyInvoice', { title: 'Chapter Kitty Invoice' });
 };
 
+exports.chapterGiveCredit = (req, res) => {
+    res.render('m-chapterKitty/chapter-giveCredit', { title: 'Chapter Kitty Invoice' });
+};
+
