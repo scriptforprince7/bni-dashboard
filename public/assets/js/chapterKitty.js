@@ -267,7 +267,7 @@ function hideLoader() {
 
         if (!chapterKittyPayment) {
             console.error('Kitty payment not found for chapter ID:', chapter_id);
-            document.getElementById('totalKittyAmountRaised').textContent = 'N/A';
+            // document.getElementById('totalKittyAmountRaised').textContent = 'N/A';
             document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
@@ -310,7 +310,7 @@ function hideLoader() {
         console.log('Number of members:', memberCount);
         if (memberCount===0) {
             console.error('Kitty payment not found for chapter ID:', chapter_id);
-            document.getElementById('totalKittyAmountRaised').textContent = 'N/A';  //need to change here
+            // document.getElementById('totalKittyAmountRaised').textContent = 'N/A';  //need to change here
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             document.getElementById('totalKittyExpense').textContent = 'N/A';
@@ -353,7 +353,7 @@ function hideLoader() {
         if (chapterOrders.length === 0) {
             console.error('No orders found for the chapter with universal_link_id 4.');
             console.error('Kitty payment not found for chapter ID:', chapter_id);
-            document.getElementById('totalKittyAmountRaised').textContent = indianCurrencyFormatter.format(totalAmountRaised);  //need to change here
+            // document.getElementById('totalKittyAmountRaised').textContent = indianCurrencyFormatter.format(totalAmountRaised);  //need to change here
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
@@ -555,7 +555,7 @@ function hideLoader() {
 
         // Step 9: Update the UI with fetched values
         document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
-        document.querySelector('.total_bill_amount_raised').textContent = formattedTotalRaised;
+        // document.querySelector('.total_bill_amount_raised').textContent = formattedTotalRaised;
         document.querySelector('.total_kitty_amount_received').textContent = formattedKittyReceived;
         document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
         document.querySelector('.bill_type').textContent = bill_type;
