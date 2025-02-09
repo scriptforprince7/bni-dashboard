@@ -77,6 +77,11 @@ function formatDate(dateStr) {
         const allTimeRaisedKitty = AllTimeRaisedKitty.filter(kitty => kitty.chapter_id === chapter_id); 
         console.log("heree",allTimeRaisedKitty);
 
+        // Fetch all member credits
+        const memberCreditResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit');
+        const memberCredits = await memberCreditResponse.json();
+        const filteredCredits = memberCredits.filter(credit => credit.member_id === userData.member_id);
+
         if(allTimeRaisedKitty.length > 0){
             // Fetch chapter description and bill type using chapter_id
             const kittyPaymentsResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
@@ -352,6 +357,20 @@ function formatDate(dateStr) {
             document.getElementById('success_kitty_amount').innerHTML = `${totalMeetingFeePaid.toFixed(2)} <span style="color: green;">(inc. opening balance ${meeting_opening_balance.toFixed(2)})</span>`;
           }
         }
+        filteredCredits.forEach((credit, index) => {
+          currentBalance += parseFloat(credit.credit_amount);
+          ledgerData.push({
+              sNo: ledgerData.length + 1,
+              date: formatDate(credit.credit_date),
+              description: 'Credit',
+              billAmount: 0,
+              debit: 0,
+              credit: parseFloat(credit.credit_amount),
+              gst: 0,
+              balance: currentBalance,
+              balanceColor: currentBalance >= 0 ? 'green' : 'red',
+          });
+        });
         const ledgerBody = document.getElementById('ledger-body');
     ledgerBody.innerHTML = ''; // Clear existing rows
     ledgerData.forEach(entry => {
@@ -387,6 +406,8 @@ function formatDate(dateStr) {
       
       ledgerBody.appendChild(row);
     });
+
+    
       hideLoader(); // Hide loader
       return;
     }
@@ -1738,6 +1759,9 @@ function formatDate(dateStr) {
         //       });
 
 
+
+        //       currentBalance -= parseFloat(transactions[0].payment_amount);
+        //       totalMeetingFeePaid += parseFloat(transactions[0].payment_amount);
         //       ledgerData.push({
         //         sNo: ledgerData.length + 1,
         //         date: new Date(transactions.payment_time).toLocaleDateString(),
@@ -1813,6 +1837,22 @@ function formatDate(dateStr) {
         // }
       }
 
+      // Add member credits to the ledger
+      filteredCredits.forEach((credit, index) => {
+        currentBalance += parseFloat(credit.credit_amount);
+        ledgerData.push({
+            sNo: ledgerData.length + 1,
+            date: formatDate(credit.credit_date),
+            description: 'Credit',
+            billAmount: 0,
+            debit: 0,
+            credit: parseFloat(credit.credit_amount),
+            gst: 0,
+            balance: currentBalance,
+            balanceColor: currentBalance >= 0 ? 'green' : 'red',
+        });
+      });
+
       const ledgerBody = document.getElementById('ledger-body');
   ledgerBody.innerHTML = ''; // Clear existing rows
   ledgerData.forEach(entry => {
@@ -1863,8 +1903,23 @@ function formatDate(dateStr) {
         balance: meeting_opening_balance, // Display opening balance here
         balanceColor: 'red', // Set balance color to red
       },
+
       
     ];
+    filteredCredits.forEach((credit, index) => {
+      currentBalance += parseFloat(credit.credit_amount);
+      ledgerData.push({
+          sNo: ledgerData.length + 1,
+          date: formatDate(credit.credit_date),
+          description: 'Credit',
+          billAmount: 0,
+          debit: 0,
+          credit: parseFloat(credit.credit_amount),
+          gst: 0,
+          balance: currentBalance,
+          balanceColor: currentBalance >= 0 ? 'green' : 'red',
+      });
+    });
     // document.getElementById('total-kitty-amount').textContent = (meeting_payable_amount + (meeting_payable_amount * 0.18)).toFixed(2);
         if (meeting_opening_balance === 0) {
           document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid.toFixed(2);
@@ -1906,6 +1961,7 @@ function formatDate(dateStr) {
     `;
     
     ledgerBody.appendChild(row);
+    
   });
     hideLoader(); // Hide loader
     return;

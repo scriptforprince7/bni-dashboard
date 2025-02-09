@@ -163,7 +163,7 @@ const insertPaymentsIntoTable = () => {
         });
     }
     const totalBill = document.getElementById('totalKittyRaised');
-    totalBill.innerHTML = `₹ ${total_kitty_raised}`;
+    // totalBill.innerHTML = `₹ ${total_kitty_raised}`;
     console.log("raised kitty value:",total_kitty_raised);
     // tableBody.style.fontWeight = 'bold';
     // row.style.fontWeight = 'bold';
