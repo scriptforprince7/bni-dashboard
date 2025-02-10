@@ -7,5 +7,6 @@ router.get('/manage-chapterKitty', chapterKitty.manageChapterKitty);
 router.get('/chapter-raiseBill', chapterKitty.chapterRaiseBill);
 router.get('/chapter-kittyInvoice', chapterKitty.chapterKittyInvoice);
 router.get('/chapter-giveCredit', chapterKitty.chapterGiveCredit);
+router.get('/chapter-creditManagement', chapterKitty.chapterCreditManagement);
 
 module.exports = router;

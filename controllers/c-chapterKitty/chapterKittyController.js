@@ -14,3 +14,7 @@ exports.chapterGiveCredit = (req, res) => {
     res.render('m-chapterKitty/chapter-giveCredit', { title: 'Chapter Kitty Invoice' });
 };
 
+exports.chapterCreditManagement = (req, res) => {
+    res.render('m-chapterKitty/chapter-creditManagement', { title: 'Chapter Kitty Invoice' });
+};
+
