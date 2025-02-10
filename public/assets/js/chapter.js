@@ -106,9 +106,9 @@ const displayChapters = (chapters) => {
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>
-                <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
-                    <b>${chapter.chapter_name}</b>
-                </a>
+            <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
+                <b>${chapter.chapter_name}</b>
+            </a>
             </td>
             <td>${regionName}</td>
             <td><b>${membersCount}</b></td>
@@ -117,17 +117,17 @@ const displayChapters = (chapters) => {
             <td><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
             <td><b>${chapter.kitty_billing_frequency || 'N/A'}</b></td>
             <td>
-                <span class="badge bg-${chapter.chapter_status === "running" ? "success" : "danger"}">
-                    ${chapter.chapter_status}
-                </span>
+            <span class="badge bg-${chapter.chapter_status.toLowerCase() === "running" ? "success" : "danger"}">
+                ${chapter.chapter_status}
+            </span>
             </td>
             <td>
-                <span class="badge bg-warning text-light" style="cursor:pointer;">
-                    <a href="/c/edit-chapter/?chapter_id=${chapter.chapter_id}" style="color:white">Edit</a>
-                </span>
-                <span class="badge bg-danger text-light delete-btn" 
-                      style="cursor:pointer;" 
-                      data-chapter-id="${chapter.chapter_id}">Delete</span>
+            <span class="badge bg-warning text-light" style="cursor:pointer;">
+                <a href="/c/edit-chapter/?chapter_id=${chapter.chapter_id}" style="color:white">Edit</a>
+            </span>
+            <span class="badge bg-danger text-light delete-btn" 
+                  style="cursor:pointer;" 
+                  data-chapter-id="${chapter.chapter_id}">Delete</span>
             </td>
         `;
         tableBody.appendChild(row);
