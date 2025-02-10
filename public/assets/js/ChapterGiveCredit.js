@@ -8,7 +8,7 @@ function hideLoader() {
 
 const chaptersApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
 const memberApiUrl= 'https://bni-data-backend.onrender.com/api/members';
-
+let creditType;
 document.addEventListener('DOMContentLoaded', async () => {
     const loginType = getUserLoginType();
     console.log('Current login type:', loginType);
@@ -124,18 +124,30 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
         return;
     }
 
+    // Determine credit_type
+    let creditType;
+    const totalEntries = document.querySelectorAll('#chaptersTableBody input[type="checkbox"]').length;
+    if (selectedMembers.length === totalEntries) {
+        creditType = "allselected";
+    } else if (selectedMembers.length === 1) {
+        creditType = "single";
+    } else {
+        creditType = "particular";
+    }
+
     const data = {
         member_id: selectedMembers,
         chapter_id: current_User.chapter_id,
         credit_amount: creditAmount,
-        credit_date: creditDate
+        credit_date: creditDate,
+        credit_type: creditType
     };
 
     console.log('Sending data:', data);
 
     try {
         showLoader();
-        const response = await fetch('http://localhost:5000/api/addMemberCredit', {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/addMemberCredit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
