@@ -11,10 +11,14 @@ exports.chapterKittyInvoice = (req, res) => {
 };
 
 exports.chapterGiveCredit = (req, res) => {
-    res.render('m-chapterKitty/chapter-giveCredit', { title: 'Chapter Kitty Invoice' });
+    res.render('m-chapterKitty/chapter-giveCredit', { title: 'Chapter Give Credit' });
 };
 
 exports.chapterCreditManagement = (req, res) => {
-    res.render('m-chapterKitty/chapter-creditManagement', { title: 'Chapter Kitty Invoice' });
+    res.render('m-chapterKitty/chapter-creditManagement', { title: 'Chapter Credit Management' });
 };
+
+exports.chapterMemberRightOff = (req, res) => {
+    res.render('m-chapterKitty/chapter-memberRightOff', { title: 'Chapter Member Right Off' });
+};6
 
