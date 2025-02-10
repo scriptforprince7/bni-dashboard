@@ -496,7 +496,7 @@
 
 <div class="col-xl-4">
   <label for="chapter_kitty_fees" class="form-label"
-    >Chapter Meeting/Kitty Fees  </label
+    >Chapter Meeting/Kitty Fees <span style="color: red;" > (weekly)</span>  </label
   >
   <input
     type="text"
@@ -965,7 +965,8 @@
     if (selectedRegion) {
       const regionName = selectedRegion.textContent;
       const firstLetterOfRegion = regionName.charAt(0).toLowerCase(); // Get the first letter of the region name
-      eoiLinkInput.value = `https://www.bniindia.li/${chapterName}-del-${firstLetterOfRegion}`;
+      const formattedChapterName = chapterName.replace(/\s+/g, '-'); // Replace spaces with dashes
+      eoiLinkInput.value = `https://www.bniindia.li/${formattedChapterName}-del-${firstLetterOfRegion}`;
     } else {
       eoiLinkInput.value = ''; // Clear the link if no region is selected
     }
@@ -979,7 +980,8 @@
     if (selectedRegion) {
       const regionName = selectedRegion.textContent;
       const firstLetterOfRegion = regionName.charAt(0).toLowerCase(); // Get the first letter of the region name
-      memberAppLinkInput.value = `https://www.bniindia.li/${chapterName}-del-${firstLetterOfRegion}-ma`;
+      const formattedChapterName = chapterName.replace(/\s+/g, '-'); 
+      memberAppLinkInput.value = `https://www.bniindia.li/${formattedChapterName}-del-${firstLetterOfRegion}-ma`;
     } else {
       memberAppLinkInput.value = ''; // Clear the link if no region is selected
     }

@@ -210,6 +210,11 @@ function hideLoader() {
 }
     try {
         showLoader();
+        const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 2,
+        });
         
 
         // Step 1: Get logged-in chapter email from token
@@ -276,6 +281,7 @@ function hideLoader() {
             document.getElementById('totalKittyExpense').textContent = 'N/A'; //ye pending hai
             //  only expense line no pending - n/a
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
+            console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund))
             
 
             const tableBody = document.getElementById('paymentsTableBody');
@@ -301,11 +307,11 @@ function hideLoader() {
         console.log('GST:', gst);
         let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
         // formatter moved here
-        const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 2,
-        });
+        // const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+        //     style: 'currency',
+        //     currency: 'INR',
+        //     maximumFractionDigits: 2,
+        // });
 
         console.log('Number of members:', memberCount);
         if (memberCount===0) {
