@@ -1,5 +1,4 @@
-
-    <!-- header -->
+<!-- header -->
     <%- include('../partials/header') %> 
     <!-- end header -->
 
@@ -183,10 +182,8 @@ th {
                       <div class="card custom-card shadow-none mb-0 border-0">
                         <div class="card-body p-0">
                           <div class="row gy-3">
-                            <div class="col-xl-1">
-                              <label for="region_name" class="form-label"
-                                >Date</label
-                              >
+                            <div class="col-xl-2">
+                              <label for="region_name" class="form-label">Date</label>
                               <input
                                 type="date"
                                 class="form-control"
@@ -195,7 +192,7 @@ th {
                                 placeholder="New region name.."
                               />
                             </div>
-                            <div class="col-xl-3">
+                            <div class="col-xl-2">
                                 <label for="kitty_billing_frequency" class="form-label">Bill Type</label>
                                 <select class="form-control" name="kitty_billing_frequency" id="kitty_billing_frequency" disabled>
                                     <option value="">Select</option>
@@ -206,10 +203,8 @@ th {
                                     <option value="yearly">Yearly</option>
                                 </select>
                               </div>
-                            <div class="col-xl-3">
-                                <label for="contact_person" class="form-label"
-                                  >Description
-                                </label>
+                            <div class="col-xl-2">
+                                <label for="contact_person" class="form-label">Description</label>
                                 <input
                                   type="text"
                                   class="form-control"
@@ -220,10 +215,8 @@ th {
                                   style="background-color: rgb(239, 235, 235);"
                                 />
                               </div>
-                              <div class="col-xl-3">
-                                <label for="total_weeks" class="form-label"
-                                  >Total Weeks
-                                </label>
+                              <div class="col-xl-2">
+                                <label for="total_weeks" class="form-label">Total Weeks</label>
                                 <input
                                   type="text"
                                   class="form-control total_weeks"
@@ -236,9 +229,7 @@ th {
                               </div>
 
                               <div class="col-xl-2">
-                                <label for="total_bill_amount" class="form-label"
-                                  >Total Bill Amount
-                                </label>
+                                <label for="total_bill_amount" class="form-label">Total Bill Amount</label>
                                 <input
                                   type="text"
                                   class="form-control total_bill_amount"
@@ -247,6 +238,17 @@ th {
                                   placeholder="₹15,600/-"
                                   readonly
                                   style="background-color: rgb(239, 235, 235);"
+                                />
+                              </div>
+                              <!-- Add due date input field -->
+                              <div class="col-xl-2">
+                                <label for="due_date" class="form-label">Due Date</label>
+                                <input
+                                  type="date"
+                                  class="form-control due_date"
+                                  id="due_date"
+                                  name="due_date"
+                                  placeholder="Select due date"
                                 />
                               </div>
                             
@@ -266,7 +268,7 @@ th {
             </div>
           </div>
           <div class="row">
-            <div class="col-xl-12">
+            <div class="col-xl-12" style="display: none;">
               <div class="row">
                 <div class="col-xxl-12 col-xl-12">
                   <div class="row" style="display: flex; justify-content: center;">
@@ -294,7 +296,7 @@ th {
                               </div>
                             </div>
                             <div
-                              class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              class="main-card-icon primary border-3 border-primary border-opacity-50 rounded-circle"
                             >
                               <div
                                 class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
@@ -338,7 +340,7 @@ th {
                         </div>
                       </div>
                     </div>
-                    <!-- <div class="col-xxl-3">
+                 
                       <div
                         class="card custom-card overflow-hidden main-content-card"
                       >
@@ -362,7 +364,7 @@ th {
                               </div>
                             </div>
                             <div
-                              class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              class="main-card-icon primary border-3 border-primary border-opacity-50 rounded-circle"
                             >
                               <div
                                 class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
@@ -431,7 +433,7 @@ th {
                               </div>
                             </div>
                             <div
-                              class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                              class="main-card-icon primary border-3  border-primary border-opacity-50 rounded-circle"
                             >
                               <div
                                 class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
@@ -498,7 +500,7 @@ th {
                       <thead>
                         <tr>
                           <th scope="col">S.No.</th>
-                          <th scope="col">Bill Date</th>
+                          <th scope="col">Raised On</th>
                           <th scope="col">Chapter Name</th>
                           <th scope="col">Chapter Meeting Day</th>
                           <th scope="col">Chapter Kitty Fees</th>
@@ -506,7 +508,7 @@ th {
                           <th scope="col">Description</th>
                           <th scope="col">Total Weeks</th>
                           <th scope="col">Total Amount</th>
-                          <th scope="col">Raised On</th>
+                          <th scope="col">Due Date</th>
                           <th scope="col" >Actions</th>
                         </tr>
                       </thead>
@@ -580,7 +582,7 @@ async function fetchKittyPayments() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><b>${index + 1}</b></td>
-                <td><b>${new Date(payment.payment_date).toLocaleDateString()}</b></td>
+                <td><b>${payment.raised_on ? formatDate(payment.raised_on) : 'N/A'}</b></td>
                 <td><b>${chapter.chapter_name || 'N/A'}</b></td>
                 <td><b>${chapter.chapter_meeting_day || 'N/A'}</b></td>
                 <td><b>${chapter.chapter_kitty_fees || 'N/A'}</b></td>
@@ -588,11 +590,7 @@ async function fetchKittyPayments() {
                 <td><b>${payment.description || 'N/A'}</b></td>
                 <td><b>${payment.total_weeks || 'N/A'}</b></td>
                 <td><b>₹${payment.total_bill_amount || 'N/A'}</b></td>
-                <td><b>${
-        payment.raised_on
-            ? formatDate(payment.raised_on)
-            : 'N/A'
-    }</b></td>
+                <td><b>${payment.kitty_due_date ? formatDate(payment.kitty_due_date) : 'N/A'}</b></td>
                 <td>
         <span class="badge bg-danger text-light delete-btn" data-kitty-id="${payment.kitty_bill_id}">
      Delete
@@ -619,7 +617,7 @@ function formatDate(isoDate) {
     const month = date.toLocaleString('en-US', { month: 'short' }); // Get abbreviated month
     const year = date.getFullYear().toString().slice(-2); // Get last 2 digits of the year
     const time = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase(); // Format time
-    return `${day} ${month}, ${year} (${time})`;
+    return `${day} ${month}, ${year}`;
 }
 
 const deleteKittyBill = async (payment_id) => {
@@ -670,4 +668,20 @@ document.getElementById('chaptersTableBody').addEventListener('click', (event) =
       </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-      <%- include('../partials/footer') %> 
+<style>
+  /* Minimal style for due date input */
+  .due_date {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .due_date:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+</style>
+
+      <%- include('../partials/footer') %>

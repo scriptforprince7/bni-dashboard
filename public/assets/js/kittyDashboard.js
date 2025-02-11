@@ -70,47 +70,33 @@ async function fetchPayments() {
 
     console.log('Final chapter payments:', chapterPayments);
 
-    // Calculate expenses as before
-    let totalExpenses = 0;
-    let pendingExpenses = 0;
-
-    expenses.forEach(expense => {
-      const amount = parseFloat(expense.amount);
-      if (expense.payment_status === 'paid') {
-        totalExpenses += amount;
-      } else if (expense.payment_status === 'pending') {
-        pendingExpenses += amount;
-      }
-    });
-
     // Add members data to detailed kittys
-    const detailedKittys = kittyPayments.map(kitty => {
-      const relatedchapter = chapters.find(chap => chap.chapter_id === kitty.chapter_id);
-      if (!relatedchapter) {
-        console.warn(`No chapter found for kitty with chapter_id: ${kitty.chapter_id}`);
-        return { ...kitty };
-      }
-
-      // Calculate total pending for this chapter
-      const chapterMembers = members.filter(member => member.chapter_id === kitty.chapter_id);
-      console.log(`Found ${chapterMembers.length} members for chapter ${kitty.chapter_id}`);
+    const detailedKittys = chapters.map(chapter => {
+      const relatedKitty = kittyPayments.find(kitty => kitty.chapter_id === chapter.chapter_id) || {};
+      const chapterMembers = members.filter(member => member.chapter_id === chapter.chapter_id);
       
       const totalPending = chapterMembers.reduce((sum, member) => {
         const balance = parseFloat(member.meeting_opening_balance) || 0;
-        console.log(`Member ${member.member_name}: Balance = ${balance}`);
         return sum + balance;
       }, 0);
 
-      console.log(`Chapter ${relatedchapter.chapter_name}: Total Pending = ${totalPending}`);
+      // Filter expenses for the current chapter
+      const chapterExpenses = expenses.filter(expense => expense.chapter_id === chapter.chapter_id);
+      const totalPaidExpenses = chapterExpenses
+        .filter(expense => expense.payment_status === 'paid')
+        .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+      const totalPendingExpenses = chapterExpenses
+        .filter(expense => expense.payment_status === 'pending')
+        .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
-      const { delete_status, ...chapterWithoutDeleteStatus } = relatedchapter;
       return { 
-        ...kitty, 
-        ...chapterWithoutDeleteStatus,
-        totalExpenses: totalExpenses,
-        pendingExpenses: pendingExpenses,
-        receivedPayments: chapterPayments[kitty.chapter_id] || 0,
-        totalPending: totalPending
+        ...relatedKitty, 
+        ...chapter,
+        totalExpenses: totalPaidExpenses,
+        pendingExpenses: totalPendingExpenses,
+        receivedPayments: chapterPayments[chapter.chapter_id] || 0,
+        totalPending: totalPending,
+        memberCount: chapterMembers.length // Add member count
       };
     });
 
@@ -235,7 +221,7 @@ function displayPayments(kittys) {
   tableBody.innerHTML = kittys
     .map((kitty, index) => {
       // Calculate Available Fund for each row
-      const availableFund = kitty.receivedPayments - kitty.totalExpenses;
+      const availableFund = kitty.receivedPayments - kitty.totalExpenses + kitty.available_fund;
       
       // Add to grand totals
       grandTotalAvailableFund += availableFund;
@@ -256,11 +242,13 @@ function displayPayments(kittys) {
         <tr>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.chapter_name || ""}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(availableFund || 0)}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.receivedPayments || 0)}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalPending || 0)}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.memberCount || 0}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.available_fund || 0)}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ - </strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ - </strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalExpenses || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.pendingExpenses || 0)}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>-</strong></td>
         </tr>
       `;
     })

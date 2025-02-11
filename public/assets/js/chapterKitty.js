@@ -276,7 +276,7 @@ function hideLoader() {
             document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
 
             document.getElementById('totalKittyExpense').textContent = 'N/A'; //ye pending hai
             //  only expense line no pending - n/a
@@ -325,7 +325,7 @@ function hideLoader() {
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
 // expense
 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
@@ -370,7 +370,7 @@ function hideLoader() {
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
             document.getElementById('totalKittyExpense').textContent =  indianCurrencyFormatter.format(totalAmountRaised);
             // expene 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
