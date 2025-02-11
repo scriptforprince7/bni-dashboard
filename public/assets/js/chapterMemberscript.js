@@ -334,14 +334,16 @@ async function fetchChapters() {
     const response = await fetch(chaptersApiUrl);
     if (!response.ok) throw new Error('Network response was not ok');
     const chapters = await response.json();
+    
+    // Populate chaptersMap with only Prolific chapters
     chapters.forEach(chapter => {
-      chaptersMap[chapter.chapter_id] = chapter.chapter_name;
+      if (chapter.chapter_name.toLowerCase().includes('prolific')) {
+        chaptersMap[chapter.chapter_id] = chapter.chapter_name;
+      }
     });
-     usedEmail = chapters.find(t => t.email_id === userEmail);
-    console.log(`email is new:${usedEmail.email_id}`);
-
-
-    console.log(`email is new:${usedEmail.chapter_id}`);
+    
+    usedEmail = chapters.find(t => t.email_id === userEmail);
+    console.log('Chapters Map:', chaptersMap);
 
   } catch (error) {
     console.error('Error fetching chapters:', error);
@@ -349,51 +351,70 @@ async function fetchChapters() {
 }
 //added by vasusri
 async function fetchMembers() {
-  showLoader();
-  try {
-    await fetchChapters();
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error('Network response was not ok');
-    
-    chapterMembers = await response.json();
-    allMembers= chapterMembers.filter(member => member.chapter_id === usedEmail.chapter_id); 
-    console.log('chapterMembersid:', usedEmail.chapter_id);
-    console.log('All chapterMembers:', allMembers);
-    // allMembers=;
-    // Apply filters from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const filters = {
-      // Get the filter values from URL params
-        regionId : urlParams.get("region_id"),
-        chapterId : urlParams.get("chapter_id"),
-        membershipYear : urlParams.get("membership_year"),
-        categoryId : urlParams.get("category_id"),
-        accoladesId : urlParams.get("accolades_id"),
-        status : urlParams.get("status"),
-    };
-    console.log("Filters from URL params:", filters);
-    // Filter chapters based on the filters
-    filteredMembers = allMembers.filter((member) => {
-      return (
-        (!filters.regionId || member.region_id === parseInt(filters.regionId)) &&
-        (!filters.chapterId || member.chapter_id === parseInt(filters.chapterId)) &&
-        (!filters.membershipYear || member.member_current_membership === filters.membershipYear) &&
-        (!filters.categoryId || member.category_id === parseInt(filters.categoryId)) && 
-        (!filters.accoladesId || (Array.isArray(member.accolades_id) && member.accolades_id.includes(parseInt(filters.accoladesId)))) &&
-        (!filters.status || member.member_status.toUpperCase() === filters.status)
-      );
-    });
-    updateTotalMembersCount();
-    updateActiveInactiveMembersCount();
-    console.log("Filtered chapters:", filteredMembers);
-  
-    displayMembers(filteredMembers.slice(0, entriesPerPage));
-    setupPagination(filteredMembers.length); 
-  } catch (error) {
-    console.error('There was a problem fetching the members data:', error);
-  } finally {
-    hideLoader();
-  }
+    showLoader();
+    try {
+        await fetchChapters();
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const allMembersData = await response.json();
+        
+        // Get user type and email
+        const userType = getUserLoginType();
+        const userEmail = localStorage.getItem('current_member_email') || getUserEmail();
+        
+        console.log('User Type:', userType);
+        console.log('User Email:', userEmail);
+
+        // First, filter for only Prolific chapter members
+        const prolificMembers = allMembersData.filter(member => {
+            const memberChapter = chaptersMap[member.chapter_id];
+            return memberChapter && memberChapter.toLowerCase().includes('prolific');
+        });
+
+        console.log('Prolific Members:', prolificMembers.length);
+
+        // Then handle user type access
+        if (userType === 'ro_admin') {
+            // For ro_admin, show all Prolific members
+            allMembers = prolificMembers;
+            console.log('RO Admin access - showing all Prolific members:', allMembers.length);
+        } else {
+            // For chapter users, filter by their specific chapter
+            const chapterUser = await getChapterForUser(userEmail);
+            if (chapterUser) {
+                allMembers = prolificMembers.filter(member => member.chapter_id === chapterUser.chapter_id);
+                console.log('Chapter user access - showing members for chapter:', chapterUser.chapter_id);
+            } else {
+                console.error('No chapter found for user:', userEmail);
+                allMembers = [];
+            }
+        }
+
+        console.log('Final Filtered Members:', allMembers);
+        
+        // Update the display
+        filteredMembers = [...allMembers];
+        updateDisplay();
+        
+    } catch (error) {
+        console.error('Error fetching members:', error);
+    } finally {
+        hideLoader();
+    }
+}
+
+// Helper function to get chapter for user
+async function getChapterForUser(email) {
+    try {
+        const response = await fetch(chaptersApiUrl);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const chapters = await response.json();
+        return chapters.find(chapter => chapter.email_id === email);
+    } catch (error) {
+        console.error('Error fetching chapter for user:', error);
+        return null;
+    }
 }
 
 // Function to update the total chapters count
@@ -644,6 +665,24 @@ document.getElementById('chaptersTableBody').addEventListener('click', (event) =
     deleteMember(member_id);
   }
 });
+
+// Add this function to handle display updates
+function updateDisplay() {
+    // Calculate current page's data
+    const startIndex = (currentPage - 1) * entriesPerPage;
+    const endIndex = startIndex + entriesPerPage;
+    const currentPageData = filteredMembers.slice(startIndex, endIndex);
+    
+    // Display the current page's data
+    displayMembers(currentPageData);
+    
+    // Update pagination
+    setupPagination(filteredMembers.length);
+    
+    // Update counts
+    updateTotalMembersCount();
+    updateActiveInactiveMembersCount();
+}
 
 
 
