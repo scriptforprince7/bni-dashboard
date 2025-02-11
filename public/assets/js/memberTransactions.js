@@ -441,7 +441,7 @@ function formatDate(dateStr) {
         
       ];
         if(activeKittyPayments.length !== 0 ){
-          document.getElementById('total-kitty-amount').textContent = `${activeKittyPayments[0].total_bill_amount} <small>(excluding GST : ${(activeKittyPayments[0].total_bill_amount * 0.18).toFixed(2)})</small>`;
+          document.getElementById('total-kitty-amount').innerHTML = `${activeKittyPayments[0].total_bill_amount} <small>(excluding GST : ${(activeKittyPayments[0].total_bill_amount * 0.18).toFixed(2)})</small>`;
       document.querySelector('.description').innerHTML = `${activeKittyPayments[0].description}`;
       document.getElementById('billType').textContent = `${activeKittyPayments[0].bill_type}`;
       document.getElementById('tot_weeks').textContent = `${activeKittyPayments[0].total_weeks}`;
@@ -1812,7 +1812,7 @@ function formatDate(dateStr) {
                           // }
 
         // Display amounts in the spans
-        document.getElementById('total-kitty-amount').textContent =`${meeting_payable_amount}<small> (excluding GST : ${(meeting_payable_amount * 0.18).toFixed(2)})</small>`;
+        document.getElementById('total-kitty-amount').innerHTML =`${meeting_payable_amount}<small> (excluding GST : ${(meeting_payable_amount * 0.18).toFixed(2)})</small>`;
         if (meeting_opening_balance === 0) {
           document.getElementById('success_kitty_amount').textContent = totalMeetingFeePaid.toFixed(2);
           document.getElementById('pending_payment_amount').textContent = currentBalance.toFixed(2);
