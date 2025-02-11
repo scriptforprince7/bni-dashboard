@@ -36,12 +36,44 @@ async function fetchAndFilterData() {
     try {
         showLoader();
         await fetchMembersData();
+
+        // Get logged-in chapter info
+        const loginType = getUserLoginType();
+        let chapterEmail, chapter_id;
+
+        if (loginType === 'ro_admin') {
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            chapter_id = localStorage.getItem('current_chapter_id');
+            if (!chapterEmail || !chapter_id) {
+                console.error('Missing required data for RO Admin');
+                hideLoader();
+                return;
+            }
+        } else {
+            chapterEmail = getUserEmail();
+            // Fetch chapter_id from chapters API
+            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters'); 
+            const chapters = await chaptersResponse.json();
+            const chapter = chapters.find(ch => ch.email_id === chapterEmail);
+            if (chapter) {
+                chapter_id = chapter.chapter_id;
+            } else {
+                console.error('Chapter not found');
+                hideLoader();
+                return;
+            }
+        }
+
+        // Fetch credit data
         const response = await fetch("https://bni-data-backend.onrender.com/api/getAllMemberCredit");
         const data = await response.json();
         
-        const allSelectedData = data.filter(item => item.credit_type === "allselected");
-        const particularData = data.filter(item => item.credit_type === "particular");
-        const singleData = data.filter(item => item.credit_type === "single");
+        // Filter data for current chapter
+        const chapterData = data.filter(item => parseInt(item.chapter_id) === parseInt(chapter_id));
+        
+        const allSelectedData = chapterData.filter(item => item.credit_type === "allselected");
+        const particularData = chapterData.filter(item => item.credit_type === "particular");
+        const singleData = chapterData.filter(item => item.credit_type === "single");
         
         console.log("All Selected Data:", allSelectedData);
         console.log("Particular Data:", particularData);

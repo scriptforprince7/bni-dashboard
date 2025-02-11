@@ -198,67 +198,115 @@ document.getElementById('payment-gateway-filter').addEventListener('click', func
 });
 
 document.addEventListener('DOMContentLoaded', async function () {
-
+    console.log('=== Chapter Kitty Loading Process Started ===');
+    
     // Function to show the loader
-function showLoader() {
-    document.getElementById('loader').style.display = 'flex';
-}
+    function showLoader() {
+        console.log('Showing loader...');
+        document.getElementById('loader').style.display = 'flex';
+    }
 
-// Function to hide the loader
-function hideLoader() {
-    document.getElementById('loader').style.display = 'none';
-}
+    // Function to hide the loader
+    function hideLoader() {
+        console.log('Hiding loader...');
+        document.getElementById('loader').style.display = 'none';
+    }
+
     try {
         showLoader();
+        console.log('Initializing currency formatter...');
         const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
             maximumFractionDigits: 2,
         });
+
+        // Step 1: Get logged-in chapter email and type
+        console.log('Step 1: Getting user login type...');
+        const loginType = getUserLoginType();
+        console.log('Detected login type:', loginType);
         
+        let chapterEmail;
+        let chapter_id;
 
-        // Step 1: Get logged-in chapter email from token
-        const chapterEmail = getUserEmail();
-        console.log('Logged-in chapter email:', chapterEmail);
+        if (loginType === 'ro_admin') {
+            console.log('RO Admin detected, fetching from localStorage...');
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            chapter_id = localStorage.getItem('current_chapter_id');
+            
+            console.log('localStorage data found:', {
+                email: chapterEmail,
+                id: chapter_id
+            });
+            
+            if (!chapterEmail || !chapter_id) {
+                console.error('CRITICAL: Missing localStorage data for RO Admin');
+                hideLoader();
+                return;
+            }
+        } else {
+            console.log('Regular chapter login detected, getting email from token...');
+            chapterEmail = getUserEmail();
+            
+            // Get chapter_id from chapters API
+            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chapters = await chaptersResponse.json();
+            const chapter = chapters.find(ch => ch.email_id === chapterEmail);
+            if (chapter) {
+                chapter_id = chapter.chapter_id;
+            }
+        }
 
-        // Step 2: Fetch chapter details using chapter email
+        // Fetch write-off data and calculate total
+        console.log('Fetching write-off data for chapter:', chapter_id);
+        const writeoffResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllMemberWriteOff');
+        const writeoffData = await writeoffResponse.json();
+        
+        // Calculate total write-off amount for this chapter
+        let totalWriteoffAmount = 0;
+        writeoffData.forEach(writeoff => {
+            if (parseInt(writeoff.chapter_id) === parseInt(chapter_id)) {
+                totalWriteoffAmount += parseFloat(writeoff.total_pending_amount);
+            }
+        });
+        
+        console.log('Total write-off amount calculated:', totalWriteoffAmount);
+        
+        // Update the write-off amount display
+        document.querySelector('#total_expse_amount').textContent = 
+            indianCurrencyFormatter.format(totalWriteoffAmount);
+
+        // Step 2: Fetch chapter details
+        console.log('Step 2: Fetching chapter details...');
         const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
-        const chapters = await chapterResponse.json();
-        const loggedInChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+        const chaptersData = await chapterResponse.json();
+        console.log('Chapters data received:', chaptersData.length, 'chapters');
+
+        const loggedInChapter = chaptersData.find(chapter => chapter.email_id === chapterEmail);
+        console.log('Found chapter:', loggedInChapter);
 
         if (!loggedInChapter) {
-            console.error('Chapter not found for the logged-in email:', chapterEmail);
+            console.error('ERROR: No chapter found for email:', chapterEmail);
+            hideLoader();
             return;
         }
 
-        const { chapter_id, available_fund } = loggedInChapter;
-        // let availableAmount = 0;
-        // console.log("available_fund",available_fund);
-        // availableAmount = parseFloat(availableAmount) + parseFloat(available_fund) ;
-        console.log('Logged-in chapter ID:', chapter_id);
+        const { chapter_id: chapterId, available_fund } = loggedInChapter;
+        console.log('Chapter details extracted:', { chapter_id: chapterId, available_fund });
+
+        console.log('Logged-in chapter ID:', chapterId);
         const expenseResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
         const expenses = await expenseResponse.json();
         console.log("expense", expenses);
 
-        // let total_pending_expense = 0;
-        // let total_paid_expense = 0;
-
-        // expenses.forEach(expense => {
-        //     if (expense.payment_status === 'pending') {
-        //     total_pending_expense += parseFloat(expense.amount);
-        //     } else if (expense.payment_status === 'paid') {
-        //     total_paid_expense += parseFloat(expense.amount);
-        //     }
-        // });
         expenses.forEach(expense => {
-            if (expense.chapter_id === chapter_id) {
+            if (expense.chapter_id === chapterId) {
             if (expense.payment_status === 'pending') {
                 total_pending_expense += parseFloat(expense.amount);
             } else if (expense.payment_status === 'paid') {
                 total_paid_expense += parseFloat(expense.amount);
             }
             console.log();
-            // total_paid_expense += parseFloat(expense.amount);
             }
         });
 
@@ -268,18 +316,16 @@ function hideLoader() {
         // Step 3: Fetch kitty payments using chapter_id
         const kittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
         const kittyPayments = await kittyResponse.json();
-        const chapterKittyPayment = kittyPayments.find(payment => payment.chapter_id === chapter_id);
+        const chapterKittyPayment = kittyPayments.find(payment => payment.chapter_id === chapterId);
 
         if (!chapterKittyPayment) {
-            console.error('Kitty payment not found for chapter ID:', chapter_id);
-            // document.getElementById('totalKittyAmountRaised').textContent = 'N/A';
+            console.error('Kitty payment not found for chapter ID:', chapterId);
             document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
             document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
 
-            document.getElementById('totalKittyExpense').textContent = 'N/A'; //ye pending hai
-            //  only expense line no pending - n/a
+            document.getElementById('totalKittyExpense').textContent = 'N/A';
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
             console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund))
@@ -300,24 +346,17 @@ function hideLoader() {
         // Step 4: Fetch members count using chapter_id
         const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
         const members = await membersResponse.json();
-        const chapterMembers = members.filter(member => member.chapter_id === chapter_id);
+        const chapterMembers = members.filter(member => member.chapter_id === chapterId);
         const memberCount = chapterMembers.length;
         console.log("chapter member",chapterMembers);
         // add 18% gst on total_bill_amount
         const gst = total_bill_amount * 0.18;
         console.log('GST:', gst);
         let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
-        // formatter moved here
-        // const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
-        //     style: 'currency',
-        //     currency: 'INR',
-        //     maximumFractionDigits: 2,
-        // });
 
         console.log('Number of members:', memberCount);
         if (memberCount===0) {
-            console.error('Kitty payment not found for chapter ID:', chapter_id);
-            // document.getElementById('totalKittyAmountRaised').textContent = 'N/A';  //need to change here
+            console.error('Kitty payment not found for chapter ID:', chapterId);
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             document.getElementById('totalKittyExpense').textContent = 'N/A';
@@ -326,7 +365,6 @@ function hideLoader() {
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
             document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
-// expense
 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
@@ -352,17 +390,14 @@ function hideLoader() {
 
         // Filter orders for the chapter with universal_link_id === 4
         const chapterOrders = allOrders.filter(order => 
-            order.chapter_id === chapter_id && 
+            order.chapter_id === chapterId && 
             order.universal_link_id === 4 &&
             order.kitty_bill_id === kitty_bill_id 
-            // &&
-            // order.order_status === 'SUCCESS'
         );
 
         if (chapterOrders.length === 0) {
             console.error('No orders found for the chapter with universal_link_id 4.');
-            console.error('Kitty payment not found for chapter ID:', chapter_id);
-            // document.getElementById('totalKittyAmountRaised').textContent = indianCurrencyFormatter.format(totalAmountRaised);  //need to change here
+            console.error('Kitty payment not found for chapter ID:', chapterId);
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
@@ -372,7 +407,6 @@ function hideLoader() {
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
             document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
             document.getElementById('totalKittyExpense').textContent =  indianCurrencyFormatter.format(totalAmountRaised);
-            // expene 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
 
@@ -404,16 +438,6 @@ function hideLoader() {
         });
 
         console.log('Orders with Transactions:', ordersWithTransactions);
-        // chapterMembers
-        // const ordersTransactionsMember = chapterOrders.map(order => {
-        //     const member = chapterMembers.find(tran => tran.chapter_id === order.chapter_id);
-        //     return {
-        //         ...order,
-        //         ...transaction // Add transaction fields to the order object
-        //     };
-        // });
-
-        // console.log('Orders with Transactions:', ordersWithTransactions);
 
         // Update table with order data
         const tableBody = document.querySelector('#paymentsTableBody');
@@ -423,13 +447,6 @@ function hideLoader() {
         let currentChapterMember;
         let ReceivedAmount = 0;
         let MiscellaneousAmount = 0;
-        // ordersWithTransactions.forEach((order) => {
-        //     if (order.payment_status === 'SUCCESS') {
-        //     // ReceivedAmount += order.order_amount;
-        //     ReceivedAmount += parseFloat(order.order_amount);
-        //     }
-        //     // console.log(order);
-        // });
 
         const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
         const pendingBalances = await pendingBalanceResponse.json();
@@ -452,45 +469,34 @@ function hideLoader() {
             console.log("current member id:",currentChapterMember.member_id);
             console.log("current chapter id:",currentChapterMember.chapter_id);
 
-            // let payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
+            // Filter and sort pending balances
+            const filteredPendingBalances = pendingBalances
+              .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
+              .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
             
+              console.log("filtererdPending data:",filteredPendingBalances);
 
-                // Filter and sort pending balances
-                const filteredPendingBalances = pendingBalances
-                  .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
-                  .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
-                
-                  console.log("filtererdPending data:",filteredPendingBalances);
-
-                // // Use the latest pending balance
-                let payamount;
-                if (filteredPendingBalances.length > 1) {
-                  const latestPendingBalance = filteredPendingBalances[0];
-                  payamount = parseFloat(order.order_amount) - parseFloat(latestPendingBalance.member_pending_balance);
-                  console.log("new data");
-                } else{
-                    payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
-                    console.log("old data");
-                }
-            // let payamount = parseFloat(order.order_amount);
+            // Use the latest pending balance
+            let payamount;
+            if (filteredPendingBalances.length > 1) {
+              const latestPendingBalance = filteredPendingBalances[0];
+              payamount = parseFloat(order.order_amount) - parseFloat(latestPendingBalance.member_pending_balance);
+              console.log("new data");
+            } else{
+                payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
+                console.log("old data");
+            }
             
             console.log('payamount:', payamount);
             console.log('order.order_amount:', order.order_amount);
             console.log('chapterMembers.meeting_opening_balance:', currentChapterMember.meeting_opening_balance);
-            // ReceivedAmount += payamount;
-            // console.log(order);
-            // if (order.payment_status === 'SUCCESS') {
-            //     ReceivedAmount -= parseFloat(currentChapterMember.meeting_opening_balance);
-            //     console.log('vasu');
-            // }
-                const pgStatus = transaction.payment_status;
-                if (pgStatus === 'SUCCESS') {
-                // ReceivedAmount += order.order_amount;
-                ReceivedAmount += parseFloat(payamount);
-                }
-                else{
-                    MiscellaneousAmount += parseFloat(payamount);
-                }
+            const pgStatus = transaction.payment_status;
+            if (pgStatus === 'SUCCESS') {
+            ReceivedAmount += parseFloat(payamount);
+            }
+            else{
+                MiscellaneousAmount += parseFloat(payamount);
+            }
             
             
             // Format amount
@@ -500,9 +506,7 @@ function hideLoader() {
                     currency: 'INR',
                     maximumFractionDigits: 2
                 }).format(payamount) : 'N/A';
-            // if(chapterMembers.meeting_opening_balance !==0){
-            //     formattedAmount= formattedAmount - chapterMembers.meeting_opening_balance;
-            // }
+            
             // Get payment details from transaction
             const paymentMethod = transaction.payment_method?.netbanking ? 'netbanking' : 'upi';
             const transactionId = transaction.cf_payment_id;
@@ -526,19 +530,6 @@ function hideLoader() {
             tableBody.insertAdjacentHTML('beforeend', row);
             serialNumber++; // Increment counter only for displayed rows
         });
-        // if (chapterMembers.meeting_opening_balance !==0){
-        //     const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
-        //     console.log('Total Kitty Amount Received with opening balance:', totalKittyAmountReceived);
-        // } else{
-        //     const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => sum + parseFloat(order.order_amount), 0);
-        //     console.log('Total Kitty Amount Received without op:', totalKittyAmountReceived);
-        // }
-        // const totalKittyAmountReceived = chapterOrders.reduce((sum, order) => {
-        //     const member = chapterMembers.find(member => member.member_email_address === order.customer_email);
-        //     const meetingOpeningBalance = member ? parseFloat(member.meeting_opening_balance) : 0;
-        //     return sum + parseFloat(order.order_amount) - meetingOpeningBalance;
-        // }, 0);
-        // console.log('Total Kitty Amount Received:', totalKittyAmountReceived);
         console.log('ReceivedAmount:', ReceivedAmount);
         const totalKittyAmountReceived = ReceivedAmount;
         const totalPendingMiscellaneousAmount = MiscellaneousAmount;
@@ -548,13 +539,6 @@ function hideLoader() {
         console.log('Total Kitty Amount Pending:', totalKittyAmountPending);
 
         // Step 8: Format values in Indian currency format
-        // const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
-        //     style: 'currency',
-        //     currency: 'INR',
-        //     maximumFractionDigits: 2,
-        // });
-        // let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
-        // let totalAmountRaisedWithGst = parseFloat(totalAmountRaised) ;
         const formattedBillAmount = indianCurrencyFormatter.format(amountWithGst);
         const formattedTotalRaised = indianCurrencyFormatter.format(totalAmountRaised);
         const formattedKittyReceived = indianCurrencyFormatter.format(totalKittyAmountReceived);
@@ -566,7 +550,6 @@ function hideLoader() {
 
         // Step 9: Update the UI with fetched values
         document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
-        // document.querySelector('.total_bill_amount_raised').textContent = formattedTotalRaised;
         document.querySelector('.total_kitty_amount_received').textContent = formattedKittyReceived;
         document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
         document.querySelector('.bill_type').textContent = bill_type;
@@ -653,8 +636,14 @@ function hideLoader() {
         });
 
     } catch (error) {
-        console.error('Error fetching chapter kitty data:', error);
+        console.error('ERROR in Chapter Kitty:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            type: error.name
+        });
     } finally {
         hideLoader();
+        console.log('=== Chapter Kitty Loading Process Completed ===');
     }
 });
