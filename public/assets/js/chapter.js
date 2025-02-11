@@ -112,6 +112,7 @@ const displayChapters = (chapters) => {
             </td>
             <td>${regionName}</td>
             <td><b>${membersCount}</b></td>
+            <td><b>₹${chapter.available_fund}</b></td>
             <td>${chapter.chapter_meeting_day || 'N/A'}</td>
             <td><b>₹${chapter.chapter_kitty_fees || '0'}</b></td>
             <td><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
