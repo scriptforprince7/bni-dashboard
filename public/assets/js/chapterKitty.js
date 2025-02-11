@@ -210,35 +210,16 @@ function hideLoader() {
 }
     try {
         showLoader();
+        const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 2,
+        });
         
 
-        // Step 1: Get logged-in chapter email based on login type
-        const loginType = getUserLoginType();
-        console.log('Current login type:', loginType);
-        
-        let chapterEmail;
-        if (loginType === 'ro_admin') {
-            // Get and verify the stored data
-            chapterEmail = localStorage.getItem('current_chapter_email');
-            const chapterId = localStorage.getItem('current_chapter_id');
-            
-            console.log('RO Admin - Checking stored data:', {
-                storedEmail: chapterEmail,
-                storedId: chapterId,
-                allLocalStorage: { ...localStorage }
-            });
-            
-            if (!chapterEmail || !chapterId) {
-                console.error('Missing required data in localStorage:', {
-                    email: chapterEmail,
-                    id: chapterId
-                });
-                return;
-            }
-        } else {
-            chapterEmail = getUserEmail();
-            console.log('Chapter user email from token:', chapterEmail);
-        }
+        // Step 1: Get logged-in chapter email from token
+        const chapterEmail = getUserEmail();
+        console.log('Logged-in chapter email:', chapterEmail);
 
         // Step 2: Fetch chapter details using chapter email
         const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
@@ -291,10 +272,18 @@ function hideLoader() {
 
         if (!chapterKittyPayment) {
             console.error('Kitty payment not found for chapter ID:', chapter_id);
-            document.getElementById('totalKittyAmountRaised').textContent = 'N/A';
+            // document.getElementById('totalKittyAmountRaised').textContent = 'N/A';
             document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
-            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
+
+            document.getElementById('totalKittyExpense').textContent = 'N/A'; //ye pending hai
+            //  only expense line no pending - n/a
+            document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
+            console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund))
+            
+
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -318,16 +307,16 @@ function hideLoader() {
         console.log('GST:', gst);
         let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
         // formatter moved here
-        const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 2,
-        });
+        // const indianCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+        //     style: 'currency',
+        //     currency: 'INR',
+        //     maximumFractionDigits: 2,
+        // });
 
         console.log('Number of members:', memberCount);
         if (memberCount===0) {
             console.error('Kitty payment not found for chapter ID:', chapter_id);
-            document.getElementById('totalKittyAmountRaised').textContent = 'N/A';  //need to change here
+            // document.getElementById('totalKittyAmountRaised').textContent = 'N/A';  //need to change here
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             document.getElementById('totalKittyExpense').textContent = 'N/A';
@@ -335,6 +324,10 @@ function hideLoader() {
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
+// expense
+
+            document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
 
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
@@ -366,14 +359,20 @@ function hideLoader() {
         if (chapterOrders.length === 0) {
             console.error('No orders found for the chapter with universal_link_id 4.');
             console.error('Kitty payment not found for chapter ID:', chapter_id);
-            document.getElementById('totalKittyAmountRaised').textContent = indianCurrencyFormatter.format(totalAmountRaised);  //need to change here
+            // document.getElementById('totalKittyAmountRaised').textContent = indianCurrencyFormatter.format(totalAmountRaised);  //need to change here
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
-            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            
             document.querySelector('.member_count').textContent= memberCount;
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(available_fund);
+            document.getElementById('totalKittyExpense').textContent =  indianCurrencyFormatter.format(totalAmountRaised);
+            // expene 
+            document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
+            
+
 
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
@@ -562,7 +561,7 @@ function hideLoader() {
 
         // Step 9: Update the UI with fetched values
         document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
-        document.querySelector('.total_bill_amount_raised').textContent = formattedTotalRaised;
+        // document.querySelector('.total_bill_amount_raised').textContent = formattedTotalRaised;
         document.querySelector('.total_kitty_amount_received').textContent = formattedKittyReceived;
         document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
         document.querySelector('.bill_type').textContent = bill_type;

@@ -56,7 +56,7 @@ const populateChapterType = (currentType) => {
     option.textContent = type.charAt(0).toUpperCase() + type.slice(1); // Capitalize first letter
 
     // Auto-select the current type
-    if (type === currentType) {
+    if (type.toLowerCase() === currentType.toLowerCase()) {
       option.selected = true;
     }
 
@@ -79,7 +79,7 @@ const populateChapterStatus = (currentStatus) => {
     const option = document.createElement("option");
     option.value = status;
     option.textContent = status.charAt(0).toUpperCase() + status.slice(1); // Capitalize first letter
-    if (status === currentStatus) {
+    if (status.toLowerCase() === currentStatus.toLowerCase()) {
       option.selected = true; // Auto-select the current status
     }
     chapterStatusDropdown.appendChild(option);

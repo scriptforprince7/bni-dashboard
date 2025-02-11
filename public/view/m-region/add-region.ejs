@@ -98,7 +98,7 @@
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
-      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap");
     </style>
 
     <style>
@@ -206,13 +206,12 @@
                         />
                       </div>
                       <div class="col-xl-6">
-                        <label for="days_of_chapter" class="form-label"
-                          >Chapter Days</label
-                        >
-                        <div
-                          id="chapterDaysContainer"
-                          style="display: flex; flex-wrap: wrap; gap: 10px"
-                        >
+                        <label for="days_of_chapter" class="form-label">Chapter Days</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllDays" />
+                          <label class="form-check-label" for="selectAllDays">Select All</label>
+                        </div>
+                        <div id="chapterDaysContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <div class="form-check">
                             <input
                               class="form-check-input"
@@ -301,25 +300,10 @@
                       </div>
                       <div class="col-xl-6">
                         <label for="chapterStatus" class="form-label">Chapter Status</label>
-                        <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
-                          <div class="form-check">
-                            <input class="form-check-input" type="radio" id="statusRunning" name="chapterStatus[]" value="Running" />
-                            <label class="form-check-label" for="statusRunning">Running</label>
-                          </div>
-                          <div class="form-check">
-                            <input class="form-check-input" type="radio" id="statusPreLaunch" name="chapterStatus[]" value="Pre-Launch" />
-                            <label class="form-check-label" for="statusPreLaunch">Pre-Launch</label>
-                          </div>
-                          <div class="form-check">
-                            <input class="form-check-input" type="radio" id="statusReLaunch" name="chapterStatus[]" value="Re-Launch" />
-                            <label class="form-check-label" for="statusReLaunch">Re-Launch</label>
-                          </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllStatus" />
+                          <label class="form-check-label" for="selectAllStatus">Select All</label>
                         </div>
-                      </div>
-                      
-                      <!-- old -->
-                      <!-- <div class="col-xl-6">
-                        <label for="chapterStatus" class="form-label">Chapter Status</label>
                         <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="statusRunning" name="chapterStatus[]" value="Running" />
@@ -334,7 +318,8 @@
                             <label class="form-check-label" for="statusReLaunch">Re-Launch</label>
                           </div>
                         </div>
-                      </div> -->
+                      </div>
+                      
                       
                       <div class="col-xl-6">
                         <label for="accolades" class="form-label">
@@ -348,16 +333,27 @@
                             </button> 
                           </a>
                         </label>
-
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
+                          <label class="form-check-label" for="selectAllAccolades">Select All</label>
+                        </div>
                         <div
                           id="accoladesContainer"
                           style="display: flex; flex-wrap: wrap; gap: 10px"
                         >
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
+                            <label class="form-check-label" for="selectAllAccolades">Select All</label>
+                          </div>
                           <!-- Dynamically populated accolades will go here -->
                         </div>
                       </div>
                       <div class="col-xl-6">
                         <label for="chapterType" class="form-label">Chapter Type</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllTypes" />
+                          <label class="form-check-label" for="selectAllTypes">Select All</label>
+                        </div>
                         <div id="chapterTypeContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="typeOnline" name="chapterType[]" value="Online" />
@@ -989,7 +985,12 @@
         const accoladesContainer = document.getElementById("accoladesContainer");
 
         // Clear existing content (if any)
-        accoladesContainer.innerHTML = "";
+        accoladesContainer.innerHTML = `
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
+            <label class="form-check-label" for="selectAllAccolades">Select All</label>
+          </div>
+        `;
 
         // Loop through accolades and create checkboxes
         data.forEach((accolade) => {
@@ -1015,11 +1016,19 @@
           // Append the div to the accolades container
           accoladesContainer.appendChild(checkboxDiv);
         });
+
+        // Add event listener for "Select All" checkbox
+        document.getElementById('selectAllAccolades').addEventListener('change', function() {
+          const checkboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+          checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+          });
+        });
       })
       .catch((error) => console.error("Error fetching accolades:", error));
 
     // Handle form submission
-    const form = document.getElementById("regionForm");
+    const form = document.getElementById("addRegionForm");
     form.addEventListener("submit", async (event) => {
       event.preventDefault();  // Prevent default form submission
 
@@ -1033,6 +1042,12 @@
       const data = Object.fromEntries(formData);
       data.accolades_config = selectedAccolades;  // Include selected accolades
 
+      // Gather chapter status
+      const selectedChapterStatus = Array.from(form.elements["chapterStatus[]"])
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+      data.chapterStatus = selectedChapterStatus;  // Include selected chapter status
+
       // Send data to the backend
       try {
         const response = await fetch('/api/regions', {
@@ -1042,22 +1057,21 @@
           },
           body: JSON.stringify(data),
         });
-        
+
         if (response.ok) {
           const result = await response.json();
-        
           toastr.success('Region Created successfully!');
           console.log('Region added successfully:', result);
           document.getElementById("formMessage").innerText = "Region added successfully!";
         } else {
-          console.error('Error adding region:', response.statusText);
           const errorResult = await response.json();
-          toastr.error(`${errorResult.message}`);
+          console.error('Error adding region:', response.statusText);
+          toastr.error(`Error: ${errorResult.message}`);
           document.getElementById("formMessage").innerText = `Error: ${errorResult.message}`;
         }
       } catch (error) {
         console.error('Fetch error:', error);
-        toastr.error(`${error.message}`);
+        toastr.error(`Error: ${error.message}`);
         document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
       }
     });
@@ -1172,14 +1186,14 @@
     }
 
     // Validate Chapter Status (exactly one status must be selected)
-    if (formDataObj['chapterStatus'].length !== 1) {
-      toastr.error("Please select exactly one chapter status.");
+    if (formDataObj['chapterStatus'].length === 0) {
+      toastr.error("Please select atleast one chapter status.");
       return;
     }
 
     // Validate Chapter Type (exactly one type must be selected)
-    if (formDataObj['chapterType'].length !== 1) {
-      toastr.error("Please select exactly one chapter type.");
+    if (formDataObj['chapterType'].length === 0) {
+      toastr.error("Please select atleast one chapter type.");
       return;
     }
 
@@ -1316,6 +1330,35 @@
       toastr.error(error.message);
       document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
     }
+  });
+</script>
+<script>
+  document.getElementById('selectAllDays').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chapterDaysContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+
+  document.getElementById('selectAllStatus').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chapterStatusContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+
+  document.getElementById('selectAllAccolades').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+
+  document.getElementById('selectAllTypes').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chapterTypeContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
   });
 </script>
 <%- include('../partials/footer') %>
