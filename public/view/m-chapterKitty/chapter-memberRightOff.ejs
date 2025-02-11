@@ -92,10 +92,10 @@ th {
             <div>
               <h1 class="page-title fw-medium fs-18 mb-0">
                 <span style="font-weight: 700; font-family: Poppins"
-                  >Member Rightoff Amount</span
+                  >Member Write Off Amount</span
                 >
               </h1>
-              <p>Manage all member rightoff amount</p>
+              <p>Manage all member writeoff amount</p>
             </div>
             
             <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -181,7 +181,7 @@ th {
                           <div class="row gy-3">
                             <div class="col-xl-12">
                               <label for="region_name" class="form-label"
-                                >Rightoff Date</label
+                                >Write Off Date</label
                               >
                               <input
                                 type="date"
@@ -226,7 +226,7 @@ th {
                 <div class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end align-items-center">
                     
                     <button type="submit" class="btn btn-danger me-2 mb-2 mb-sm-0 add_bill" id="btn_text">
-                      Rightoff Member
+                      Write Off Member
                     </button>
                   </div>
               </div>
@@ -259,6 +259,7 @@ th {
                           <th scope="col">Phone</th>
                           <th scope="col">Status</th>
                           <th scope="col">No of Late Payment</th>
+                          <th scope="col">Total Pending Amount</th>
                         </tr>
                       </thead>
                       <tbody id="chaptersTableBody">
@@ -291,7 +292,7 @@ th {
   
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../../assets/js/tokenUtils.js"></script>
-<script src="../../assets/js/ChapterGiveCredit.js"></script>
+<script src="../../assets/js/chapterRightOff.js"></script>
 <script>
   document.getElementById('selectAllCheckbox').addEventListener('change', function() {
     const checkboxes = document.querySelectorAll('#chaptersTableBody input[type="checkbox"]');
