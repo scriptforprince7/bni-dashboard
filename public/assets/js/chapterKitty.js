@@ -252,13 +252,13 @@ function hideLoader() {
         // });
         expenses.forEach(expense => {
             if (expense.chapter_id === chapter_id) {
-            // if (expense.payment_status === 'pending') {
-            //     total_pending_expense += parseFloat(expense.amount);
-            // } else if (expense.payment_status === 'paid') {
-            //     total_paid_expense += parseFloat(expense.amount);
-            // }
+            if (expense.payment_status === 'pending') {
+                total_pending_expense += parseFloat(expense.amount);
+            } else if (expense.payment_status === 'paid') {
+                total_paid_expense += parseFloat(expense.amount);
+            }
             console.log();
-            total_paid_expense += parseFloat(expense.amount);
+            // total_paid_expense += parseFloat(expense.amount);
             }
         });
 
@@ -281,6 +281,7 @@ function hideLoader() {
             document.getElementById('totalKittyExpense').textContent = 'N/A'; //ye pending hai
             //  only expense line no pending - n/a
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
+            document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
             console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund))
             
 
@@ -328,6 +329,8 @@ function hideLoader() {
 // expense
 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
+            document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
+
 
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
@@ -371,6 +374,8 @@ function hideLoader() {
             document.getElementById('totalKittyExpense').textContent =  indianCurrencyFormatter.format(totalAmountRaised);
             // expene 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
+            document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
+
             
 
 
@@ -570,6 +575,7 @@ function hideLoader() {
         document.querySelector('.member_count').textContent = memberCount;
         document.querySelector('.total_miscellaneous_amount').textContent = formattedMiscellaneousAmount;
         document.querySelector('#total_expense_amount').textContent = formattedTotalPaidExpense;
+        document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
         document.querySelector('#total_available_amount').textContent = formattedAvailableAmount;
 
         // Populate all filter dropdowns
