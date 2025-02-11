@@ -130,9 +130,15 @@ function hideLoader() {
         const description = document.querySelector('#contact_person').value;
         const total_weeks = parseInt(document.querySelector('.total_weeks').value) || 0;
         const total_bill_amount = parseFloat(document.querySelector('.total_bill_amount').value) || 0;
+        const due_date = document.querySelector('#due_date').value;
 
-        if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0) {
+        if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
             alert("Please fill all fields correctly.");
+            return;
+        }
+
+        if (new Date(due_date) <= new Date(date)) {
+            alert("Due date must be greater than the bill date.");
             return;
         }
 
@@ -151,6 +157,7 @@ function hideLoader() {
                     description,
                     total_weeks,
                     total_bill_amount,
+                    due_date
                 }),
             });
 
