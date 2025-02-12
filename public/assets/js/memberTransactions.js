@@ -29,6 +29,9 @@ function formatDate(dateStr) {
 let ledgerData = [];
 
 (async function generateLedger() {
+  // currentAvailable
+        let currentBalance = 0;
+        let paid_amount_show = 0;
     try {
         showLoader();
         
@@ -73,8 +76,8 @@ let ledgerData = [];
         
         // Continue with your existing logic using userData
         const { meeting_opening_balance, meeting_payable_amount, chapter_id ,} = userData;
-        // currentAvailable
-        let currentBalance = 0;
+        // // currentAvailable
+        // let currentBalance = 0;
 
         
         const AllTimeRaisedKittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments');
@@ -84,6 +87,16 @@ let ledgerData = [];
         // Declare variables for activeKittyEntries and remainingKittyEntries
         let activeKittyEntries = [];
         let remainingKittyEntries = [];
+        const allAvailableOrdersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const allAvailableOrders = await allAvailableOrdersResponse.json();
+        const allAvailableTransactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const allAvailableTransactions = await allAvailableTransactionsResponse.json();
+
+        // Fetch all member credits
+        const memberCreditResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit');
+        const memberCredits = await memberCreditResponse.json();
+        let filteredCredits = memberCredits.filter(credit => credit.member_id === userData.member_id && credit.chapter_id === chapter_id);
+        console.log("filteredCredits",filteredCredits);
 
         if (allTimeRaisedKitty.length > 0) {
           activeKittyEntries = allTimeRaisedKitty.filter(kitty => kitty.delete_status === 0);
@@ -96,17 +109,29 @@ let ledgerData = [];
         else{
           // when there is no kitty found
           // may be show credit here and need return here also
-        }
-        const allAvailableOrdersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
-        const allAvailableOrders = await allAvailableOrdersResponse.json();
-        const allAvailableTransactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
-        const allAvailableTransactions = await allAvailableTransactionsResponse.json();
+          if (filteredCredits.length > 0) {
+            filteredCredits.forEach(credit => {
+              console.log(`Credit Date: ${formatDate(credit.credit_date)}`);
+              currentBalance += parseFloat(credit.credit_amount);
+              ledgerData.push({
+              sNo: ledgerData.length + 1,
+              date: formatDate(credit.credit_date),
+              description: 'Credit Note',
+              billAmount: 0,
+              debit: 0,
+              credit: parseFloat(credit.credit_amount),
+              gst: 0,
+              balance: parseFloat(currentBalance),
+              balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+              });
+            });
 
-        // Fetch all member credits
-        const memberCreditResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit');
-        const memberCredits = await memberCreditResponse.json();
-        let filteredCredits = memberCredits.filter(credit => credit.member_id === userData.member_id && credit.chapter_id === chapter_id);
-        console.log("filteredCredits",filteredCredits);
+
+        } 
+        
+        
+        }
+        
 
 
         // here need op balance entry done
@@ -145,7 +170,7 @@ let ledgerData = [];
               ledgerData.push({
               sNo: ledgerData.length + 1,
               date: formatDate(credit.credit_date),
-              description: 'Credit',
+              description: 'Credit Note',
               billAmount: 0,
               debit: 0,
               credit: parseFloat(credit.credit_amount),
@@ -159,9 +184,9 @@ let ledgerData = [];
             }
               // kitty bill entry here start
               // if (remainingKittyEntries.length > 0) {
-                currentBalance -= parseFloat(kitty.total_bill_amount);
+                currentBalance -= (parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18);
                 const gstAmount = parseFloat(kitty.total_bill_amount) * 0.18;
-                const billAmountWithoutGst = parseFloat(kitty.total_bill_amount) - gstAmount;
+                const billAmountWithoutGst = parseFloat(kitty.total_bill_amount);
 
                 ledgerData.push({
                 sNo: ledgerData.length + 1,
@@ -171,7 +196,7 @@ let ledgerData = [];
                 <em>(bill for: ${kitty.bill_type})</em> - 
                 <em>(${kitty.description})</em>
                 `,
-                billAmount: parseFloat(kitty.total_bill_amount),
+                billAmount: (parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18),
                 debit: billAmountWithoutGst,
                 credit: 0,
                 gst: gstAmount,
@@ -184,7 +209,7 @@ let ledgerData = [];
 
             // here find its all ordr hten its corresponding success transaction then if founded then show
 
-            const filteredOrders = allAvailableOrders.filter(order => order.kitty_bill_id === kitty.kitty_bill_id);
+            const filteredOrders = allAvailableOrders.filter(order => order.kitty_bill_id === kitty.kitty_bill_id  && order.customer_id === userData.member_id);
             console.log('Filtered Orders:', filteredOrders);
 
             filteredOrders.forEach(order => {
@@ -197,11 +222,12 @@ let ledgerData = [];
                 if (creditsBeforeTransaction.length > 0) {
                   creditsBeforeTransaction.forEach(credit => {
                     console.log(`Credit Date before Transaction: ${formatDate(credit.credit_date)}`, credit);
+                    
                     currentBalance += parseFloat(credit.credit_amount);
                     ledgerData.push({
                       sNo: ledgerData.length + 1,
                       date: formatDate(credit.credit_date),
-                      description: 'Credit',
+                      description: 'Credit Note',
                       billAmount: 0,
                       debit: 0,
                       credit: parseFloat(credit.credit_amount),
@@ -216,6 +242,7 @@ let ledgerData = [];
                 } else {
                   console.log('No credits before this transaction.');
                 }
+                paid_amount_show += parseFloat(transaction.payment_amount);
                 currentBalance += parseFloat(transaction.payment_amount);
                 ledgerData.push({
                   sNo: ledgerData.length + 1,
@@ -231,7 +258,7 @@ let ledgerData = [];
               });
             }
             });
-          
+          return;
           
         });
 
@@ -250,7 +277,7 @@ let ledgerData = [];
               ledgerData.push({
                 sNo: ledgerData.length + 1,
                 date: formatDate(credit.credit_date),
-                description: 'Credit',
+                description: 'Credit Note',
                 billAmount: 0,
                 debit: 0,
                 credit: parseFloat(credit.credit_amount),
@@ -267,9 +294,11 @@ let ledgerData = [];
           filteredCredits = filteredCredits.filter(credit => new Date(credit.credit_date) > new Date(kitty.raised_on));
 
           // Active kitty bill entry
-          currentBalance -= parseFloat(kitty.total_bill_amount);
+          // currentBalance -= parseFloat(kitty.total_bill_amount);
+          currentBalance -= (parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18);
           const gstAmount = parseFloat(kitty.total_bill_amount) * 0.18;
-          const billAmountWithoutGst = parseFloat(kitty.total_bill_amount) - gstAmount;
+          const billAmountWithoutGst = parseFloat(kitty.total_bill_amount);
+          
 
           ledgerData.push({
             sNo: ledgerData.length + 1,
@@ -279,7 +308,7 @@ let ledgerData = [];
             <em>(bill for: ${kitty.bill_type})</em> - 
             <em>(${kitty.description})</em>
             `,
-            billAmount: parseFloat(kitty.total_bill_amount),
+            billAmount: (parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18),
             debit: billAmountWithoutGst,
             credit: 0,
             gst: gstAmount,
@@ -288,7 +317,7 @@ let ledgerData = [];
           });
 
           // Process orders and transactions for active kitty entries
-          const filteredOrders = allAvailableOrders.filter(order => order.kitty_bill_id === kitty.kitty_bill_id);
+          const filteredOrders = allAvailableOrders.filter(order => order.kitty_bill_id === kitty.kitty_bill_id && order.customer_id === userData.member_id);
           console.log('Filtered Orders for Active Kitty:', filteredOrders);
 
           filteredOrders.forEach(order => {
@@ -305,7 +334,7 @@ let ledgerData = [];
                     ledgerData.push({
                       sNo: ledgerData.length + 1,
                       date: formatDate(credit.credit_date),
-                      description: 'Credit',
+                      description: 'Credit Note',
                       billAmount: 0,
                       debit: 0,
                       credit: parseFloat(credit.credit_amount),
@@ -321,6 +350,7 @@ let ledgerData = [];
                   console.log('No credits before this transaction.');
                 }
                 currentBalance += parseFloat(transaction.payment_amount);
+                paid_amount_show += parseFloat(transaction.payment_amount);
                 ledgerData.push({
                   sNo: ledgerData.length + 1,
                   date: formatDate(transaction.payment_time),
@@ -336,6 +366,18 @@ let ledgerData = [];
             }
           });
         });
+        if(!activeKittyEntries){
+          document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
+        document.getElementById('billType').textContent = '-';
+        document.getElementById('tot_weeks').textContent = '-';
+        document.querySelector('.description').innerHTML = '-';
+        } else{
+          document.getElementById('total-kitty-amount').textContent = (activeKittyEntries[0].total_bill_amount * 1.18).toFixed(2);
+          console.log("-----------------------------",activeKittyEntries);
+        document.getElementById('billType').textContent = activeKittyEntries[0].bill_type;
+        document.getElementById('tot_weeks').textContent = activeKittyEntries[0].total_weeks;
+        document.querySelector('.description').innerHTML = activeKittyEntries[0].description;
+        }
 
         // If there are any remaining entries in filteredCredits, log them
         if (filteredCredits.length > 0) {
@@ -345,7 +387,7 @@ let ledgerData = [];
             ledgerData.push({
               sNo: ledgerData.length + 1,
               date: formatDate(credit.credit_date),
-              description: 'Credit',
+              description: 'Credit Note',
               billAmount: 0,
               debit: 0,
               credit: parseFloat(credit.credit_amount),
@@ -386,6 +428,13 @@ let ledgerData = [];
     
     ledgerBody.appendChild(row);
   });
+  if (parseFloat(currentBalance) >= 0) {
+    currentBalance=0;
+    document.getElementById('pending_payment_amount').textContent = currentBalance.toFixed(2);
+  } else {
+    document.getElementById('pending_payment_amount').textContent = currentBalance.toFixed(2);
+  }
+  document.getElementById('success_kitty_amount').textContent = paid_amount_show.toFixed(2);
   hideLoader(); // Hide loader
 }
 
