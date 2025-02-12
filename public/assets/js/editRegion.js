@@ -27,6 +27,7 @@ const fetchRegionDetails = async () => {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
+        console.log("data recived-----",data);
         populateFormFields(data);
     } catch (error) {
         console.error("Error fetching region details:", error);
@@ -178,6 +179,7 @@ chapterStatus.forEach(status => {
     const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${status}"]`);
     if (checkbox) checkbox.checked = true;
 });
+
 
 
 
