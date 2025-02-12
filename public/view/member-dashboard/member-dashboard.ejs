@@ -1,16 +1,6 @@
 <!-- Add at the top of the file -->
 <script src="../../assets/js/tokenUtils.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-      const loginType = getUserLoginType();
-      const adminAccess = getAdminMemberAccess();
-      
-      // Allow access only if user is RO admin with member access or is the member themselves
-      if (loginType !== 'member' && !(loginType === 'ro_admin' && adminAccess)) {
-          window.location.href = '/';
-      }
-  });
-</script>
+
 
 <!-- header -->
 <%- include('../partials/header') %>
@@ -110,33 +100,90 @@
                 <div
                   class="d-flex align-items-start justify-content-between mb-2"
                 >
-                  <div>
-                    <span class="d-block text-muted mb-1 popins"
-                      >Payement spent</span
-                    >
-                    <h4 class="fw-medium mb-0 bol">
-                      ₹ <span id="payment-spent-amount"><b>80,000</b></span>
-                      <!-- Set an ID for the span -->
-                    </h4>
-                    <script>
-                      document.addEventListener(
-                        "DOMContentLoaded",
-                        function () {
-                          // Retrieve the total transactions amount from local storage
-                          const totalTransactionsAmount = localStorage.getItem(
-                            "totalTransactionsAmount"
-                          );
-
-                          // Check if the value exists and update the span content
-                          if (totalTransactionsAmount) {
-                            document.getElementById(
-                              "payment-spent-amount"
-                            ).innerHTML = `<b>${totalTransactionsAmount}</b>`;
-                          }
+                <div>
+                  <span class="d-block text-muted mb-1 popins">Payment spent</span>
+                  <h4 class="fw-medium mb-0 bol">
+                    ₹ <span id="payment-spent-amount"><b>Loading...</b></span>
+                  </h4>
+                </div>
+                <script>
+                  document.addEventListener('DOMContentLoaded', async function() {
+                    try {
+                      console.log('=== Starting Payment Spent Calculation Process ===');
+                      
+                      // Get user email based on login type
+                      const loginType = getUserLoginType();
+                      let memberEmail;
+                      
+                      if (loginType === 'ro_admin') {
+                        // For RO Admin, get the current member email from localStorage
+                        memberEmail = localStorage.getItem('current_member_email');
+                        console.log('Using member email for RO Admin:', memberEmail);
+                      } else {
+                        // For regular members, use the token utility
+                        memberEmail = getUserEmail();
+                        console.log('Using member email for regular member:', memberEmail);
+                      }
+                  
+                      if (!memberEmail) {
+                        console.error('No member email found');
+                        return;
+                      }
+                  
+                      // Fetch members data and find member_id
+                      const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+                      const membersData = await membersResponse.json();
+                      const memberInfo = membersData.find(m => m.member_email_address === memberEmail);
+                      
+                      if (!memberInfo) {
+                        throw new Error('Member not found');
+                      }
+                      
+                      const memberId = memberInfo.member_id;
+                      console.log('Member ID found:', memberId);
+                  
+                      // Fetch all orders for this member
+                      const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+                      const ordersData = await ordersResponse.json();
+                      const memberOrders = ordersData.filter(order => order.customer_id === memberId);
+                      console.log('Member Orders found:', memberOrders.length);
+                  
+                      // Fetch all transactions once
+                      const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+                      const transactionsData = await transactionsResponse.json();
+                  
+                      // Calculate total spent amount
+                      let totalSpentAmount = 0;
+                      
+                      for (const order of memberOrders) {
+                        console.log('Processing order:', order.order_id);
+                        
+                        // Find successful payment for this order
+                        const successfulPayment = transactionsData.find(
+                          t => t.order_id === order.order_id && t.payment_status === 'SUCCESS'
+                        );
+                        
+                        if (successfulPayment) {
+                          const paymentAmount = parseFloat(successfulPayment.payment_amount);
+                          console.log(`Found successful payment for order ${order.order_id}: ₹${paymentAmount.toFixed(2)}`);
+                          totalSpentAmount += paymentAmount;
                         }
-                      );
-                    </script>
-                  </div>
+                      }
+                  
+                      console.log('Total amount spent:', totalSpentAmount);
+                  
+                      // Format and display the amount
+                      const formattedAmount = new Intl.NumberFormat('en-IN').format(totalSpentAmount);
+                      document.getElementById('payment-spent-amount').innerHTML = `<b>${formattedAmount}</b>`;
+                      
+                      console.log('=== Payment Spent Calculation Process Completed ===');
+                  
+                    } catch (error) {
+                      console.error('Error calculating spent payments:', error);
+                      document.getElementById('payment-spent-amount').innerHTML = '<b>Error</b>';
+                    }
+                  });
+                  </script>
                   <div class="lh-1">
                     <span class="avatar avatar-md avatar-rounded bg-primary">
                       <i class="ti ti-users fs-5"></i>
@@ -158,32 +205,10 @@
                   class="d-flex align-items-start justify-content-between mb-2"
                 >
                   <div>
-                    <span class="d-block text-muted mb-1 popins"
-                      >Payement Pending</span
-                    >
+                    <span class="d-block text-muted mb-1 popins">Payment Pending</span>
                     <h4 class="fw-medium mb-0 bol">
-                      ₹ <span id="pending-amount"><b>6,000</b></span>
-                      <!-- Set an ID for the span -->
+                      ₹ <span id="pending-amount"><b>Loading...</b></span>
                     </h4>
-
-                    <script>
-                      document.addEventListener(
-                        "DOMContentLoaded",
-                        function () {
-                          // Retrieve the pending payment amount from local storage
-                          const pendingPaymentAmount = localStorage.getItem(
-                            "pendingPaymentAmount"
-                          );
-
-                          // Check if the value exists and update the span content
-                          if (pendingPaymentAmount) {
-                            document.getElementById(
-                              "pending-amount"
-                            ).innerHTML = `<b>${pendingPaymentAmount}</b>`;
-                          }
-                        }
-                      );
-                    </script>
                   </div>
                   <div class="lh-1">
                     <span class="avatar avatar-md avatar-rounded bg-primary1">
@@ -207,50 +232,62 @@
                 >
                   <div>
                     <span class="text-muted d-block mb-1 popins"
-                      >Supplies Issue</span
+                      >Supplies Issue (Accolades)</span
                     >
                     <h4 class="fw-medium mb-0 bol accolades-count">
                       <span><b>10</b></span>
                       <!-- This will be replaced by the script -->
                     </h4>
                     <script>
-                      document.addEventListener(
-                        "DOMContentLoaded",
-                        function () {
-                          const loggedInEmail =
-                            localStorage.getItem("loggedInEmail"); // Get the logged-in email from local storage
-                          const apiUrl =
-                            "https://bni-data-backend.onrender.com/api/members";
-
-                          fetch(apiUrl)
-                            .then((response) => response.json())
-                            .then((data) => {
-                              // Find the member that matches the logged-in email
-                              const member = data.find(
-                                (member) =>
-                                  member.member_email_address === loggedInEmail
-                              );
-
-                              if (member) {
-                                // Update the accolades count in the HTML
-                                const accoladesCount =
-                                  member.accolades_id.length; // Get the length of accolades_id array
-                                document.querySelector(
-                                  ".accolades-count"
-                                ).innerHTML = `<b>${accoladesCount}</b>`; // Update the HTML
-                              } else {
-                                console.error("Member not found");
-                              }
-                            })
-                            .catch((error) =>
-                              console.error(
-                                "Error fetching member data:",
-                                error
-                              )
-                            );
+                      document.addEventListener('DOMContentLoaded', async function () {
+                        try {
+                          console.log('=== Starting Accolades Count Process ===');
+                          
+                          // Get member email based on login type
+                          const loginType = getUserLoginType();
+                          let memberEmail;
+                          
+                          if (loginType === 'ro_admin') {
+                            // For RO Admin, get the current member email from localStorage
+                            memberEmail = localStorage.getItem('current_member_email');
+                            console.log('Using member email for RO Admin:', memberEmail);
+                          } else {
+                            // For regular members, use the token utility
+                            memberEmail = getUserEmail();
+                            console.log('Using member email for regular member:', memberEmail);
+                          }
+                      
+                          if (!memberEmail) {
+                            console.error('No member email found');
+                            return;
+                          }
+                      
+                          // Fetch members data
+                          const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+                          const members = await response.json();
+                          
+                          // Find the current member
+                          const currentMember = members.find(member => 
+                            member.member_email_address === memberEmail
+                          );
+                      
+                          if (currentMember) {
+                            console.log('Member found:', currentMember.member_first_name);
+                            // Get accolades count
+                            const accoladesCount = currentMember.accolades_id ? currentMember.accolades_id.length : 0;
+                            console.log('Accolades count:', accoladesCount);
+                            
+                            // Update the accolades count display
+                            document.querySelector('.accolades-count').innerHTML = `<b>${accoladesCount}</b>`;
+                          } else {
+                            console.error('Member not found for email:', memberEmail);
+                          }
+                        } catch (error) {
+                          console.error('Error in accolades count process:', error);
                         }
-                      );
-                    </script>
+                        console.log('=== Accolades Count Process Completed ===');
+                      });
+                      </script>
                   </div>
                   <div class="lh-1">
                     <span class="avatar avatar-md avatar-rounded bg-primary2">
@@ -290,109 +327,105 @@
             <script>
               document.addEventListener("DOMContentLoaded", async function () {
                 try {
-                    console.log('=== Starting Member Dashboard ===');
-                    
-                    // Step 1: Get member details from localStorage first
-                    let member_id = localStorage.getItem('current_member_id');
-                    let member_email = localStorage.getItem('current_member_email');
-                    
-                    console.log('Initial check from localStorage:', {
-                        member_id: member_id,
-                        member_email: member_email
+                  console.log('=== Starting Member Dashboard ===');
+                  
+                  // Step 1: Get member details based on login type
+                  const loginType = getUserLoginType();
+                  let member_id;
+                  let member_email;
+              
+                  if (loginType === 'ro_admin') {
+                    // For RO Admin, get the current member email and ID from localStorage
+                    member_id = localStorage.getItem('current_member_id');
+                    member_email = localStorage.getItem('current_member_email');
+                    console.log('Using member details for RO Admin:', {
+                      member_id: member_id,
+                      member_email: member_email
                     });
-
-                    // If not in localStorage, try getting from token
-                    if (!member_email) {
-                        member_email = getUserEmail();
-                        console.log('Retrieved from token:', {
-                            member_email: member_email
-                        });
-                    }
-
-                    if (!member_email) {
-                        console.error('No member email found from any source');
-                        return;
-                    }
-
-                    // Step 2: Fetch members data
-                    console.log("Fetching members data...");
-                    const membersResponse = await fetch(
-                        "https://bni-data-backend.onrender.com/api/members"
-                    );
-                    const membersData = await membersResponse.json();
-                    console.log("Members data received:", membersData);
-
-                    // Find member by email
-                    console.log("Searching for member with email:", member_email);
-                    const memberInfo = membersData.find(
-                        member => member.member_email_address === member_email
-                    );
-
-                    if (!memberInfo) {
-                        console.error("Member not found for email:", member_email);
-                        return;
-                    }
-
-                    console.log("Found member info:", memberInfo);
-                    member_id = member_id || memberInfo.member_id;
-                    console.log("Using Member ID:", member_id);
-
-                    // Fetch orders data
-                    const ordersResponse = await fetch(
-                        "https://bni-data-backend.onrender.com/api/allOrders"
-                    );
-                    const ordersData = await ordersResponse.json();
-
-                    // Filter orders for this member
-                    const memberOrders = ordersData.filter(
-                        order => order.customer_id === member_id
-                    );
-                    console.log("Member orders found:", memberOrders.length);
-
-                    // Get recent transactions
-                    const recentOrders = memberOrders.slice(-5);
-                    console.log("Recent orders for display:", recentOrders);
-
-                    // Update transactions history
-                    const transactionsHistoryDiv = document.querySelector(
-                        "#transactions-history tbody"
-                    );
-                    transactionsHistoryDiv.innerHTML = "";
-
-                    recentOrders.forEach((order, index) => {
-                        const transactionRow = document.createElement("tr");
-                        transactionRow.innerHTML = `
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="lh-1">
-                                        <span class="fw-medium top-category-name">
-                                            ${order.payment_note || 'Payment'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="fw-medium">${order.order_amount} ${order.order_currency}</span>
-                            </td>
-                        `;
-                        transactionsHistoryDiv.appendChild(transactionRow);
+                  } else {
+                    // For regular members, get from localStorage or token
+                    member_id = localStorage.getItem('current_member_id');
+                    member_email = getUserEmail();
+                    console.log('Using member details for regular member:', {
+                      member_id: member_id,
+                      member_email: member_email
                     });
-
-                    document.getElementById("more-entries").style.display = "none";
-                    console.log("Dashboard update complete");
-
+                  }
+              
+                  if (!member_email) {
+                    console.error('No member email found from any source');
+                    return;
+                  }
+              
+                  // Step 2: Fetch members data
+                  console.log("Fetching members data...");
+                  const membersResponse = await fetch("https://bni-data-backend.onrender.com/api/members");
+                  const membersData = await membersResponse.json();
+                  console.log("Members data received:", membersData);
+              
+                  // Find member by email
+                  console.log("Searching for member with email:", member_email);
+                  const memberInfo = membersData.find(member => member.member_email_address === member_email);
+              
+                  if (!memberInfo) {
+                    console.error("Member not found for email:", member_email);
+                    return;
+                  }
+              
+                  console.log("Found member info:", memberInfo);
+                  member_id = member_id || memberInfo.member_id;
+                  console.log("Using Member ID:", member_id);
+              
+                  // Fetch orders data
+                  const ordersResponse = await fetch("https://bni-data-backend.onrender.com/api/allOrders");
+                  const ordersData = await ordersResponse.json();
+              
+                  // Filter orders for this member
+                  const memberOrders = ordersData.filter(order => order.customer_id === member_id);
+                  console.log("Member orders found:", memberOrders.length);
+              
+                  // Get recent transactions
+                  const recentOrders = memberOrders.slice(-5);
+                  console.log("Recent orders for display:", recentOrders);
+              
+                  // Update transactions history
+                  const transactionsHistoryDiv = document.querySelector("#transactions-history tbody");
+                  transactionsHistoryDiv.innerHTML = "";
+              
+                  recentOrders.forEach((order, index) => {
+                    const transactionRow = document.createElement("tr");
+                    transactionRow.innerHTML = `
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="lh-1">
+                            <span class="fw-medium top-category-name">
+                              ${order.payment_note || 'Payment'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="fw-medium">${order.order_amount} ${order.order_currency}</span>
+                      </td>
+                    `;
+                    transactionsHistoryDiv.appendChild(transactionRow);
+                  });
+              
+                  document.getElementById("more-entries").style.display = "none";
+                  console.log("Dashboard update complete");
+              
                 } catch (error) {
-                    console.error("Error in dashboard processing:", error);
-                    console.error("Error stack:", error.stack);
+                  console.error("Error in dashboard processing:", error);
+                  console.error("Error stack:", error.stack);
                 }
               });
-            </script>
+              </script>
           </div>
 
           <div class="col-xxl-8 col-xl-6">
             <div class="card custom-card">
               <div class="card-header justify-content-between">
-                <div class="card-title">Sales Overview</div>
+                <div class="card-title">Payment Overview</div>
                 <div class="dropdown">
                   <a
                     href="javascript:void(0);"
@@ -5257,3 +5290,88 @@
         }
     });
 </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async function() {
+    try {
+      console.log('=== Starting Payment Calculation Process ===');
+      
+      // Get user email based on login type
+      const loginType = getUserLoginType();
+      let userEmail;
+      
+      if (loginType === 'ro_admin') {
+        // For RO Admin, get the current member email from localStorage
+        userEmail = localStorage.getItem('current_member_email');
+        console.log('Using member email for RO Admin:', userEmail);
+      } else {
+        // For regular members, use the token utility
+        userEmail = getUserEmail();
+        console.log('Using member email for regular member:', userEmail);
+      }
+  
+      if (!userEmail) {
+        console.error('No member email found');
+        return;
+      }
+  
+      // Fetch members data and find member_id
+      const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+      const membersData = await membersResponse.json();
+      const memberInfo = membersData.find(m => m.member_email_address === userEmail);
+      
+      if (!memberInfo) {
+        throw new Error('Member not found');
+      }
+      
+      const memberId = memberInfo.member_id;
+      console.log('Member ID found:', memberId);
+  
+      // Fetch all orders for this member
+      const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+      const ordersData = await ordersResponse.json();
+      const memberOrders = ordersData.filter(order => order.customer_id === memberId);
+      console.log('Member Orders found:', memberOrders.length);
+  
+      // Calculate total pending amount
+      let totalPendingAmount = 0;
+      
+      for (const order of memberOrders) {
+        console.log('Processing order:', order.order_id);
+        const orderAmount = parseFloat(order.order_amount);
+        
+        // Add to pending amount by default
+        totalPendingAmount += orderAmount;
+        
+        // Check if payment was successful
+        const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const transactionsData = await transactionsResponse.json();
+        
+        const successfulPayment = transactionsData.find(
+          t => t.order_id === order.order_id && t.payment_status === 'SUCCESS'
+        );
+        
+        if (successfulPayment) {
+          console.log('Found successful payment for order:', order.order_id);
+          // Subtract the successful payment amount
+          totalPendingAmount -= parseFloat(successfulPayment.payment_amount);
+        }
+      }
+  
+      console.log('Final pending amount calculated:', totalPendingAmount);
+  
+      // Format and display the amount
+      const formattedAmount = new Intl.NumberFormat('en-IN').format(totalPendingAmount);
+      document.getElementById('pending-amount').innerHTML = `<b>${formattedAmount}</b>`;
+      
+      // Store in localStorage for future reference
+      localStorage.setItem('pendingPaymentAmount', formattedAmount);
+      
+      console.log('=== Payment Calculation Process Completed ===');
+  
+    } catch (error) {
+      console.error('Error calculating pending payments:', error);
+      document.getElementById('pending-amount').innerHTML = '<b>Error</b>';
+    }
+  });
+  </script>

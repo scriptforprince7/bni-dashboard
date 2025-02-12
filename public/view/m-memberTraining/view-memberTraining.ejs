@@ -508,21 +508,6 @@ function hideLoader() {
               });
           }
 
-          // Get user role to handle different access types
-          const userRole = getUserLoginType();
-          console.log('User Role:', userRole);
-
-          // Handle admin member access if applicable
-          const adminAccess = getAdminMemberAccess();
-          if (userRole === 'ro_admin' && adminAccess) {
-              member_id = adminAccess.member_id;
-              member_email = adminAccess.member_email;
-              console.log('Admin access details:', {
-                  member_id: member_id,
-                  member_email: member_email
-              });
-          }
-
           if (!member_email) {
               console.error('No member email found from any source');
               hideLoader();
@@ -542,19 +527,20 @@ function hideLoader() {
               return [];
           }
           console.log('Found member:', member);
+          member_id = member.member_id;
 
           // Step 3: Fetch Orders
           const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
           if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
           const orders = await ordersResponse.json();
           
-          const memberOrders = orders.filter(order => order.customer_id === member.member_id);
+          const memberOrders = orders.filter(order => order.customer_id === member_id);
           console.log('Orders for member:', memberOrders);
-
-          // Step 4: Fetch Trainings
+          
           const trainingIds = memberOrders.map(order => order.training_id).filter(id => id);
           console.log('Training IDs:', trainingIds);
 
+          // Step 4: Fetch Trainings
           const trainingsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
           if (!trainingsResponse.ok) throw new Error('Failed to fetch trainings');
           const trainings = await trainingsResponse.json();
@@ -623,12 +609,7 @@ function hideLoader() {
       });
   };
 
-  // Call both functions when the page loads
-  document.addEventListener('DOMContentLoaded', () => {
-      fetchUserTrainings();
-      fetchAttendedTrainings();
-  });
-
+  // Update fetchAttendedTrainings function
   async function fetchAttendedTrainings() {
     try {
         console.log('=== FETCH ATTENDED TRAININGS START ===');
@@ -646,21 +627,6 @@ function hideLoader() {
         if (!member_email) {
             member_email = getUserEmail();
             console.log('Retrieved from token:', {
-                member_email: member_email
-            });
-        }
-
-        // Get user role to handle different access types
-        const userRole = getUserLoginType();
-        console.log('User Role:', userRole);
-
-        // Handle admin member access if applicable
-        const adminAccess = getAdminMemberAccess();
-        if (userRole === 'ro_admin' && adminAccess) {
-            member_id = adminAccess.member_id;
-            member_email = adminAccess.member_email;
-            console.log('Admin access details:', {
-                member_id: member_id,
                 member_email: member_email
             });
         }
@@ -683,8 +649,8 @@ function hideLoader() {
             return;
         }
         
-        const memberId = memberDetails.member_id;
-        console.log('Found Member ID:', memberId);
+        member_id = memberDetails.member_id;
+        console.log('Found Member ID:', member_id);
         console.log('Member Details:', memberDetails);
 
         // Step 3: Fetch orders for this member
@@ -693,23 +659,20 @@ function hideLoader() {
         const ordersData = await ordersResponse.json();
         
         // Filter orders by member's customer_id
-        const memberOrders = ordersData.filter(order => order.customer_id === memberId);
+        const memberOrders = ordersData.filter(order => order.customer_id === member_id);
         console.log('Total orders found for member:', memberOrders.length);
         console.log('Member Orders:', memberOrders);
-        
-        const orderIds = memberOrders.map(order => order.order_id);
-        console.log('Order IDs extracted:', orderIds);
-
-        // Continue with rest of the existing logic...
-        // ... existing code for transactions, checkins, etc. ...
 
     } catch (error) {
         console.error('Error in fetchAttendedTrainings:', error);
     }
 }
 
-// Call the function when the page loads
-document.addEventListener('DOMContentLoaded', fetchAttendedTrainings);
+// Call both functions when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    fetchUserTrainings();
+    fetchAttendedTrainings();
+});
       </script>
       
 

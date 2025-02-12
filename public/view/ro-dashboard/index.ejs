@@ -81,14 +81,36 @@
                       <div
                         class="d-flex align-items-start justify-content-between mb-2"
                       >
-                        <div>
-                          <span class="text-muted d-block mb-1 popins"
-                            >Total Balance</span
-                          >
-                          <h4 class="fw-medium mb-0">
-                            ₹ <span><b>16,00,000</b></span>
-                          </h4>
-                        </div>
+                      <div>
+                        <span class="text-muted d-block mb-1 popins">Total Regions</span>
+                        <h4 class="fw-medium mb-0">
+                          <span id="total-regions-count"><b>Loading...</b></span>
+                        </h4>
+                       
+                      </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', async function() {
+                          try {
+                            console.log('=== Starting Total Regions Count Process ===');
+                        
+                            // Fetch regions data
+                            const regionsResponse = await fetch('https://bni-data-backend.onrender.com/api/regions');
+                            const regionsData = await regionsResponse.json();
+                        
+                            // Count active regions
+                            const activeRegionsCount = regionsData.filter(region => region.region_status === 'active').length;
+                            console.log('Active Regions Count:', activeRegionsCount);
+                        
+                            // Update the count in the HTML
+                            document.getElementById('total-regions-count').innerHTML = `<b>${activeRegionsCount}</b>`;
+                        
+                            console.log('=== Total Regions Count Process Completed ===');
+                          } catch (error) {
+                            console.error('Error fetching regions data:', error);
+                            document.getElementById('total-regions-count').innerHTML = '<b>Error</b>';
+                          }
+                        });
+                        </script>
                         <div class="lh-1">
                           <span
                             class="avatar avatar-md avatar-rounded bg-primary"
@@ -97,9 +119,11 @@
                           </span>
                         </div>
                       </div>
-                      <a href="./manage-transactions.html"
-                        ><div class="text-muted fs-13">See Statistics ▶</div></a
-                      >
+                      <a
+                      href="https://bni-data-backend.onrender.com/m/manage-members
+                      class="btn btn-light btn-wave btn-sm text-muted"
+                      >View All<i class="ti ti-arrow-narrow-right ms-1"></i
+                    ></a>
                     </div>
                   </div>
                 </div>
@@ -111,14 +135,35 @@
                       <div
                         class="d-flex align-items-start justify-content-between mb-2"
                       >
-                        <div>
-                          <span class="d-block text-muted mb-1 popins"
-                            >Total Expense</span
-                          >
-                          <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>12,00,000</b></span>
-                          </h4>
-                        </div>
+                      <div>
+                        <span class="d-block text-muted mb-1 popins">Total Chapters</span>
+                        <h4 class="fw-medium mb-0 bol">
+                           <span id="total-chapters-count"><b>Loading...</b></span>
+                        </h4>
+                      </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', async function() {
+                          try {
+                            console.log('=== Starting Total Chapters Count Process ===');
+                        
+                            // Fetch chapters data
+                            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+                            const chaptersData = await chaptersResponse.json();
+                        
+                            // Count chapters with status 'running'
+                            const runningChaptersCount = chaptersData.filter(chapter => chapter.chapter_status === 'running').length;
+                            console.log('Running Chapters Count:', runningChaptersCount);
+                        
+                            // Update the count in the HTML
+                            document.getElementById('total-chapters-count').innerHTML = `<b>${runningChaptersCount}</b>`;
+                        
+                            console.log('=== Total Chapters Count Process Completed ===');
+                          } catch (error) {
+                            console.error('Error fetching chapters data:', error);
+                            document.getElementById('total-chapters-count').innerHTML = '<b>Error</b>';
+                          }
+                        });
+                        </script>
                         <div class="lh-1">
                           <span
                             class="avatar avatar-md avatar-rounded bg-primary1"
@@ -127,12 +172,11 @@
                           </span>
                         </div>
                       </div>
-                      <div class="text-muted fs-13">
-                        Increased By
-                        <span class="text-success"
-                          >0.34%<i class="ti ti-arrow-narrow-up fs-16"></i
-                        ></span>
-                      </div>
+                      <a
+                      href="https://bni-data-backend.onrender.com/c/manage-chapter
+                      class="btn btn-light btn-wave btn-sm text-muted"
+                      >View All<i class="ti ti-arrow-narrow-right ms-1"></i
+                    ></a>
                     </div>
                   </div>
                 </div>
@@ -144,14 +188,31 @@
                       <div
                         class="d-flex align-items-start justify-content-between mb-2"
                       >
-                        <div>
-                          <span class="text-muted d-block mb-1 popins"
-                            >Total Received</span
-                          >
-                          <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>28,00,000</b></span>
-                          </h4>
-                        </div>
+                      <div>
+                        <span class="text-muted d-block mb-1 popins">Total Members</span>
+                        <h4 class="fw-medium mb-0 bol">
+                          <span id="total-members-count"><b>Loading...</b></span>
+                        </h4>
+                      </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', async function() {
+                          try {
+                            const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+                            const members = await response.json();
+                            
+                            // Count active members
+                            const activeMembersCount = members.filter(member => member.member_status === 'active').length;
+                        
+                            // Update the HTML with the count of active members
+                            document.getElementById('total-members-count').innerHTML = `<b>${activeMembersCount}</b>`;
+                            
+                            console.log('=== Total Members Count Process Completed ===');
+                          } catch (error) {
+                            console.error('Error fetching members data:', error);
+                            document.getElementById('total-members-count').innerHTML = '<b>Error</b>';
+                          }
+                        });
+                        </script>
                         <div class="lh-1">
                           <span
                             class="avatar avatar-md avatar-rounded bg-primary2"
@@ -160,12 +221,11 @@
                           </span>
                         </div>
                       </div>
-                      <div class="text-muted fs-13">
-                        Increased By
-                        <span class="text-success"
-                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
-                        ></span>
-                      </div>
+                      <a
+                      href="https://bni-data-backend.onrender.com/m/manage-members
+                      class="btn btn-light btn-wave btn-sm text-muted"
+                      >View All<i class="ti ti-arrow-narrow-right ms-1"></i
+                    ></a>
                     </div>
                   </div>
                 </div>
@@ -177,14 +237,39 @@
                       <div
                         class="d-flex align-items-start justify-content-between mb-2"
                       >
-                        <div>
-                          <span class="text-muted d-block mb-1 popins"
-                            >Total Pending</span
-                          >
-                          <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>1,50,000</b></span>
-                          </h4>
-                        </div>
+                      <div>
+                        <span class="text-muted d-block mb-1 popins">Total Expenses</span>
+                        <h4 class="fw-medium mb-0 bol">
+                          ₹ <span id="total-expenses-count"><b>Loading...</b></span>
+                        </h4>
+                      </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', async function() {
+                          try {
+                            console.log('=== Starting Total Expenses Calculation Process ===');
+                        
+                            // Fetch expenses data
+                            const expensesResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
+                            const expensesData = await expensesResponse.json();
+                        
+                            // Calculate total expenses for paid status
+                            const totalExpenses = expensesData
+                              .filter(expense => expense.payment_status === 'paid')
+                              .reduce((total, expense) => total + parseFloat(expense.amount), 0);
+                        
+                            console.log('Total Expenses Count:', totalExpenses);
+                        
+                            // Format and update the count in the HTML
+                            const formattedAmount = new Intl.NumberFormat('en-IN').format(totalExpenses);
+                            document.getElementById('total-expenses-count').innerHTML = `<b>${formattedAmount}</b>`;
+                        
+                            console.log('=== Total Expenses Calculation Process Completed ===');
+                          } catch (error) {
+                            console.error('Error fetching expenses data:', error);
+                            document.getElementById('total-expenses-count').innerHTML = '<b>Error</b>';
+                          }
+                        });
+                        </script>
                         <div class="lh-1">
                           <span
                             class="avatar avatar-md avatar-rounded bg-primary2"
@@ -193,12 +278,11 @@
                           </span>
                         </div>
                       </div>
-                      <div class="text-muted fs-13">
-                        Increased By
-                        <span class="text-success"
-                          >7.66%<i class="ti ti-arrow-narrow-up fs-16"></i
-                        ></span>
-                      </div>
+                      <a
+                      href="https://bni-data-backend.onrender.com/rexp/view-expenses
+                      class="btn btn-light btn-wave btn-sm text-muted"
+                      >View All<i class="ti ti-arrow-narrow-right ms-1"></i
+                    ></a>
                     </div>
                   </div>
                 </div>
@@ -210,14 +294,35 @@
                       <div
                         class="d-flex align-items-start justify-content-between mb-2"
                       >
-                        <div>
-                          <span class="text-muted d-block mb-1 popins"
-                            >Total Visitor's Balance</span
-                          >
-                          <h4 class="fw-medium mb-0 bol">
-                            ₹ <span><b>2,50,000</b></span>
-                          </h4>
-                        </div>
+                      <div>
+                        <span class="text-muted d-block mb-1 popins">Total Trainings</span>
+                        <h4 class="fw-medium mb-0 bol">
+                          <span id="total-trainings-count"><b>Loading...</b></span>
+                        </h4>
+                      </div>
+                      <script>
+                        document.addEventListener('DOMContentLoaded', async function() {
+                          try {
+                            console.log('=== Starting Total Trainings Count Process ===');
+                        
+                            // Fetch trainings data
+                            const trainingsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+                            const trainingsData = await trainingsResponse.json();
+                        
+                            // Count total trainings
+                            const totalTrainingsCount = trainingsData.length;
+                            console.log('Total Trainings Count:', totalTrainingsCount);
+                        
+                            // Update the count in the HTML
+                            document.getElementById('total-trainings-count').innerHTML = `<b>${totalTrainingsCount}</b>`;
+                        
+                            console.log('=== Total Trainings Count Process Completed ===');
+                          } catch (error) {
+                            console.error('Error fetching trainings data:', error);
+                            document.getElementById('total-trainings-count').innerHTML = '<b>Error</b>';
+                          }
+                        });
+                        </script>
                         <div class="lh-1">
                           <span
                             class="avatar avatar-md avatar-rounded bg-primary2"
@@ -227,11 +332,11 @@
                         </div>
                       </div>
                       <div class="text-muted fs-13">
-                        <a href="./manage-visitor-balance.html"
-                          ><div class="text-muted fs-13">
-                            See Statistics ▶
-                          </div></a
-                        >
+                        <a
+                        href="https://bni-data-backend.onrender.com/tr/manage-trainings
+                        class="btn btn-light btn-wave btn-sm text-muted"
+                        >View All<i class="ti ti-arrow-narrow-right ms-1"></i
+                      ></a>
                       </div>
                     </div>
                   </div>
