@@ -11,18 +11,30 @@ document.addEventListener('DOMContentLoaded', function() {
 async function fetchChapterData() {
     console.log('Starting fetchChapterData function...');
     try {
-        // Get user email from token
-        const userEmail = getUserEmail();
-        console.log('Decoded user email from token:', userEmail);
+        // Step 1: Try getting email from token first
+        let userEmail = getUserEmail();
+        let userType = getUserLoginType();
+        console.log('Initial check from token:', {
+            userEmail: userEmail,
+            userType: userType
+        });
+
+        // Step 2: If no data found and user is ro_admin, try localStorage
+        if (!userEmail || userType === 'ro_admin') {
+            userEmail = localStorage.getItem('current_chapter_email');
+            console.log('Retrieved from localStorage for ro_admin:', userEmail);
+        }
 
         if (!userEmail) {
-            console.error('User email not found in token');
+            console.error('No email found from any source');
             toastr.error('User email not found. Please login again.');
             return;
         }
 
-        console.log('Attempting to fetch chapters data from API...');
+        console.log('Using email for fetch:', userEmail);
+
         // Fetch chapters data
+        console.log('Attempting to fetch chapters data from API...');
         const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
         const chapters = await response.json();
         console.log('Received chapters data:', chapters);
@@ -32,7 +44,7 @@ async function fetchChapterData() {
         console.log('Found user chapter:', userChapter);
         
         if (!userChapter) {
-            console.error('No chapter found matching user email:', userEmail);
+            console.error('No chapter found matching email:', userEmail);
             toastr.error('Chapter information not found.');
             return;
         }
