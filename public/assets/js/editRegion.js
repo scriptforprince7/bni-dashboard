@@ -171,12 +171,35 @@ const populateFormFields = (data) => {
         if (checkbox) checkbox.checked = true;
     });
 
-    // Chapter Status
-    const chapterStatus = data.chapter_status || {};
-    Object.keys(chapterStatus).forEach(key => {
-        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(); // Capitalize first letter
-        const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${capitalizedKey}"]`);
-        if (checkbox) checkbox.checked = true;
+    // Chapter Status - Parse the string and check corresponding boxes
+    const chapterStatus = data.chapter_status || "";
+    console.log('Received chapter_status:', chapterStatus);
+    
+    // Remove the curly braces and split by comma
+    const statusArray = chapterStatus
+        .replace(/[{}"\s]/g, '') // Remove curly braces, quotes, and whitespace
+        .split(',')
+        .filter(status => status) // Remove empty strings
+        .map(status => status.toLowerCase()); // Convert to lowercase for comparison
+    
+    console.log('Processed status array:', statusArray);
+    
+    // Map of lowercase values to actual checkbox values
+    const statusMap = {
+        'running': 'Running',
+        'pre-launch': 'Pre-Launch',
+        're-launch': 'Re-Launch'
+    };
+    
+    statusArray.forEach(status => {
+        const checkboxValue = statusMap[status];
+        if (checkboxValue) {
+            const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${checkboxValue}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+                console.log(`Checked status: ${checkboxValue}`);
+            }
+        }
     });
 
     // Chapter Type
