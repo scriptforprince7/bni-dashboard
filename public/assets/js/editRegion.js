@@ -27,6 +27,7 @@ const fetchRegionDetails = async () => {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
+        console.log("data recived-----",data);
         populateFormFields(data);
     } catch (error) {
         console.error("Error fetching region details:", error);
@@ -170,16 +171,13 @@ const populateFormFields = (data) => {
         if (checkbox) checkbox.checked = true;
     });
 
-    console.log(data.chapter_status);
-
-// Chapter Status
-const chapterStatus = Array.isArray(data.chapter_status) ? data.chapter_status : parseArrayString(data.chapter_status);
-chapterStatus.forEach(status => {
-    const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${status}"]`);
-    if (checkbox) checkbox.checked = true;
-});
-
-
+    // Chapter Status
+    const chapterStatus = data.chapter_status || {};
+    Object.keys(chapterStatus).forEach(key => {
+        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(); // Capitalize first letter
+        const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${capitalizedKey}"]`);
+        if (checkbox) checkbox.checked = true;
+    });
 
     // Chapter Type
     const chapterType = data.chapter_type || [];
@@ -188,8 +186,7 @@ chapterStatus.forEach(status => {
         if (checkbox) checkbox.checked = true;
     });
 
-     // Accolades Configuration
-       // Pre-check accolades based on accolades_config
+    // Accolades Configuration
     const accoladesConfig = data.accolades_config || [];
     accoladesConfig.forEach(accoladeId => {
         const checkbox = document.querySelector(`input[name="accolades[]"][value="${accoladeId}"]`);
