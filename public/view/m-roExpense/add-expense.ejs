@@ -265,9 +265,33 @@ document.addEventListener("DOMContentLoaded", async function () {
     const form = document.getElementById("addExpenseForm");
     const formData = new FormData(form);
 
+    // Validate file upload
+    const fileInput = document.getElementById('upload_bill');
+    const file = fileInput.files[0];
+    
+    // File validation
+    if (!file) {
+        Swal.fire('Error!', 'Please select a bill file', 'error');
+        return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+        Swal.fire('Error!', 'Only JPG, PNG and PDF files are allowed', 'error');
+        return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+        Swal.fire('Error!', 'File size should not exceed 5MB', 'error');
+        return;
+    }
+
     // Get selected chapter and convert ID to number
     const selectedChapter = document.getElementById("chapter");
-    const selectedChapterId = parseInt(selectedChapter.value, 10); // Convert to number
+    const selectedChapterId = parseInt(selectedChapter.value, 10);
     
     // Validate chapter selection
     if (!selectedChapterId || isNaN(selectedChapterId)) {
@@ -279,73 +303,61 @@ document.addEventListener("DOMContentLoaded", async function () {
       return;
     }
 
-    // Remove existing chapter_id from formData if it exists
+    // Clear and append form data
     formData.delete('chapter_id');
-    // Add the numeric chapter_id
     formData.append('chapter_id', selectedChapterId);
 
-    // Debug: Log all form data and selected chapter
-    console.log('Chapter Selection:', {
-      originalValue: selectedChapter.value,
-      convertedId: selectedChapterId,
-      chapterName: selectedChapter.options[selectedChapter.selectedIndex].text
+    // Debug: Log form data before sending
+    console.log('📤 Sending Form Data:', {
+        expense_type: parseInt(document.getElementById('expense_type').value, 10),
+        submitted_by: document.getElementById('submitted_by').value,
+        description: document.getElementById('description').value,
+        chapter_id: selectedChapterId,
+        amount: parseFloat(document.getElementById('amount').value),
+        payment_status: document.getElementById('payment_status').value,
+        bill_date: document.getElementById('bill_date').value,
+        bill_no: document.getElementById('bill_no').value,
+        transaction_no: document.getElementById('transaction_no').value,
+        file: {
+            name: file.name,
+            type: file.type,
+            size: file.size
+        }
     });
 
-    // Log all form data for verification
-    const formDataObject = {
-      expense_type: parseInt(document.getElementById('expense_type').value, 10),
-      expense_type_name: document.getElementById('expense_type').options[document.getElementById('expense_type').selectedIndex].text,
-      submitted_by: document.getElementById('submitted_by').value,
-      description: document.getElementById('description').value,
-      chapter_id: selectedChapterId, // Now using the converted number
-      chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
-      amount: parseFloat(document.getElementById('amount').value),
-      payment_status: document.getElementById('payment_status').value,
-      bill_date: document.getElementById('bill_date').value,
-      bill_no: document.getElementById('bill_no').value,
-      transaction_no: document.getElementById('transaction_no').value,
-      upload_bill: document.getElementById('upload_bill').files[0]?.name || 'No file selected'
-    };
-
-    console.log('Complete Form Data:', formDataObject);
-    console.log('FormData entries:');
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
-    }
-
     try {
-      showLoader();
+        showLoader();
 
-      const response = await fetch("https://bni-data-backend.onrender.com/api/addExpense", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('API Response:', data);
-        
-        Swal.fire({
-          title: 'Success!',
-          text: data.message,
-          icon: 'success',
-          confirmButtonText: 'OK'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/rexp/view-expenses';
-          }
+        const response = await fetch("http://localhost:5000/api/addExpense", {
+            method: "POST",
+            body: formData, // Send FormData directly
         });
-        form.reset();
-      } else {
-        const errorResponse = await response.json();
-        console.error('API Error Response:', errorResponse);
-        Swal.fire('Failed!', errorResponse.message, 'error');
-      }
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ API Response:', data);
+            
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/exp/manage-expenses';
+                }
+            });
+            form.reset();
+        } else {
+            const errorResponse = await response.json();
+            console.error('❌ API Error:', errorResponse);
+            Swal.fire('Failed!', errorResponse.message, 'error');
+        }
     } catch (error) {
-      console.error('Error adding expense:', error);
-      Swal.fire('Error!', 'Failed to add expense. Please try again.', 'error');
+        console.error('❌ Error:', error);
+        Swal.fire('Error!', 'Failed to add expense. Please try again.', 'error');
     } finally {
-      hideLoader();
+        hideLoader();
     }
   });
 });
