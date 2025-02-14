@@ -12,21 +12,43 @@ let creditType;
 document.addEventListener('DOMContentLoaded', async () => {
     const loginType = getUserLoginType();
     console.log('Current login type:', loginType);
-    chapterEmail = getUserEmail();
-    console.log('Chapter user email from token:', chapterEmail);
+    
+    let chapterEmail;
+    let chapter_id;
+
+    if (loginType === 'ro_admin') {
+        console.log('RO Admin detected, fetching from localStorage...');
+        chapterEmail = localStorage.getItem('current_chapter_email');
+        chapter_id = localStorage.getItem('current_chapter_id');
+        
+        console.log('localStorage data found:', {
+            email: chapterEmail,
+            id: chapter_id
+        });
+        
+        if (!chapterEmail || !chapter_id) {
+            console.error('CRITICAL: Missing localStorage data for RO Admin');
+            return;
+        }
+    } else {
+        console.log('Regular chapter login detected, getting email from token...');
+        chapterEmail = getUserEmail();
+    }
+    console.log('Chapter user email:', chapterEmail);
+
     const response = await fetch(chaptersApiUrl);
     if (!response.ok) throw new Error('Network response was not ok');
     const chapters = await response.json();
-    current_User = chapters.find(chapter => chapter.email_id === chapterEmail);
     
-    if (current_User) {
-        console.log('Found chapter details:', {
-            id: current_User.chapter_id,
-            name: current_User.chapter_name,
-            frequency: current_User.kitty_billing_frequency
-        });
+    if (loginType === 'ro_admin') {
+        current_User = chapters.find(chapter => chapter.chapter_id === parseInt(chapter_id));
     } else {
-        console.error('Chapter not found for email:', chapterEmail);
+        current_User = chapters.find(chapter => chapter.email_id === chapterEmail);
+    }
+
+    if (!current_User) {
+        console.error('Chapter not found');
+        return;
     }
 
     const MembersResponse = await fetch(memberApiUrl);
