@@ -40,35 +40,34 @@
     <!-- End::page-header -->
 
     <div class="dropdown">
+      <!-- Region Dropdown -->
       <a
         href="javascript:void(0);"
         class="btn btn-sm btn-light text-muted dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="true"
+        id="regionDropdownBtn"
       >
         <i class="ti ti-sort-descending-2 me-1"></i>
-        Choose Region</a
-      >
-      <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
-        <li>
-          <a class="dropdown-item" href="javascript:void(0);">This Week</a>
-        </li>
-      </ul>
+        Choose Region
+      </a>
+      <ul class="dropdown-menu" id="regionDropdown" role="menu"></ul>
+    
+      <!-- Chapter Dropdown -->
       <a
         href="javascript:void(0);"
         class="btn btn-sm btn-light text-muted dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="true"
+        id="chapterDropdownBtn"
       >
         <i class="ti ti-sort-descending-2 me-1"></i>
-        Choose Chapter</a
-      >
-      <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
-        <li>
-          <a class="dropdown-item" href="javascript:void(0);">This Week</a>
-        </li>
-      </ul>
+        Choose Chapter
+      </a>
+      <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
     </div>
+    
+    
 
     <!-- Start::row-1 -->
     <div class="row">
@@ -118,13 +117,9 @@
                       <div class="col-xl-12">
                         <!-- dropdown -->
                         <select
-                          class="form-select form-select-light"
-                          id="company-name"
+                          class="form-select form-select-light company_info"
                         >
                           <option selected>Select Company</option>
-                          <option value="1">Company 1</option>
-                          <option value="2">Company 2</option>
-                          <option value="3">Company 3</option>
                         </select>
                       </div>
                       <div class="col-xl-12">
@@ -157,7 +152,7 @@
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="zip-code"
+                          id="company-gst"
                           placeholder="GST Number"
                           value=""
                         />
@@ -170,49 +165,48 @@
                     <p class="dw-semibold mb-2">Billing To :</p>
                     <div class="row gy-2">
                       <div class="col-xl-12">
-                        <select
-                          class="form-select form-select-light"
-                          id="company-name"
-                        >
+                        <select class="form-select form-select-light" id="company-name">
+
                           <option selected>Select Member</option>
-                          <option value="Raja Shukla">Raja Shukla</option>
-                          <option value="Amit Anand">Amit Anand</option>
-                          <option value="Ravina Duhan">Ravina Duhan</option>
                         </select>
                       </div>
                       <div class="col-xl-12">
                         <textarea
                           class="form-control form-control-light"
-                          id="customer-address"
+                          id="member_address"
                           placeholder="Enter Address"
                           rows="3"
+                          readonly
                         ></textarea>
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="customer-mail"
+                          id="member_company_name"
                           placeholder="Customer Company Name"
                           value=""
+                          readonly
                         />
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="customer-phone"
+                          id="member_phone_number"
                           placeholder="Phone Number"
                           value=""
+                          readonly
                         />
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="zip-code2"
+                          id="member_gst_number"
                           placeholder="GST Number"
                           value=""
+                          readonly
                         />
                       </div>
                     </div>
@@ -248,7 +242,7 @@
                 >
                 <input
                   type="text"
-                  class="form-control form-control-light"
+                  class="form-control form-control-light grand_total"
                   id="invoice-due-amount"
                   placeholder="Enter Amount"
                   value="₹ 35,784.54"
@@ -280,6 +274,8 @@
                             rows="1"
                             class="form-control form-control-light"
                             placeholder="Enter Description"
+                            name="particulars"
+                            id="particulars"
                           ></textarea>
                         </td>
                         <td>
@@ -293,18 +289,20 @@
                         </td>
                         <td>
                           <input
-                            class="form-control form-control-light"
+                            class="form-control form-control-light rate"
                             placeholder=""
                             type="text"
                             value="₹ 84.00"
+                            id="rate"
                           />
                         </td>
                         <td>
                           <input
-                            class="form-control form-control-light"
+                            class="form-control form-control-light price"
                             placeholder=""
                             type="text"
                             value="₹ 251.00"
+                            id="price"
                           />
                         </td>
                       </tr>
@@ -323,9 +321,10 @@
                                 <td>
                                   <input
                                     type="text"
-                                    class="form-control form-control-light invoice-amount-input"
+                                    class="form-control form-control-light invoice-amount-input taxable-total-amount"
                                     placeholder="Enter Amount"
                                     value="₹ 2519.89"
+                                    id="taxable-total-amount"
                                   />
                                 </td>
                               </tr>
@@ -384,9 +383,10 @@
                                 <td>
                                   <input
                                     type="text"
-                                    class="form-control form-control-light invoice-amount-input"
+                                    class="form-control form-control-light invoice-amount-input grand_total"
                                     placeholder="Enter Amount"
                                     value="₹ 2,106.68"
+                                    id="grand_total"
                                   />
                                 </td>
                               </tr>
@@ -509,6 +509,180 @@
     <!--End::row-1 -->
   </div>
 </div>
+<script src="../../assets/js/cashInvoice.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async function () {
+  try {
+    // Fetch regions
+    const regionResponse = await fetch("https://bni-data-backend.onrender.com/api/regions");
+    const regions = await regionResponse.json();
+
+    // Fetch chapters
+    const chapterResponse = await fetch("https://bni-data-backend.onrender.com/api/chapters");
+    const chapters = await chapterResponse.json();
+
+    // Fetch members
+    const memberResponse = await fetch("https://bni-data-backend.onrender.com/api/members");
+    const members = await memberResponse.json();
+
+    const regionDropdown = document.getElementById("regionDropdown");
+    const regionDropdownBtn = document.getElementById("regionDropdownBtn");
+    const chapterDropdown = document.getElementById("chapterDropdown");
+    const chapterDropdownBtn = document.getElementById("chapterDropdownBtn");
+    const memberDropdown = document.getElementById("company-name");
+
+    // Populate region dropdown
+    regions.forEach(region => {
+      const regionItem = document.createElement("li");
+      const regionLink = document.createElement("a");
+      regionLink.className = "dropdown-item";
+      regionLink.href = "javascript:void(0);";
+      regionLink.textContent = region.region_name;
+      regionLink.dataset.regionId = region.region_id;
+
+      // Handle region selection
+      regionLink.addEventListener("click", function () {
+        regionDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${region.region_name}`;
+        updateChapterDropdown(region.region_id, chapters);
+      });
+
+      regionItem.appendChild(regionLink);
+      regionDropdown.appendChild(regionItem);
+    });
+
+    // Add "All Regions" option
+    const allRegionsItem = document.createElement("li");
+    const allRegionsLink = document.createElement("a");
+    allRegionsLink.className = "dropdown-item";
+    allRegionsLink.href = "javascript:void(0);";
+    allRegionsLink.textContent = "All Regions";
+
+    allRegionsLink.addEventListener("click", function () {
+      regionDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> Choose Region`;
+      updateChapterDropdown(null, chapters);
+    });
+
+    allRegionsItem.appendChild(allRegionsLink);
+    regionDropdown.prepend(allRegionsItem);
+
+    // Function to update chapters dropdown
+    function updateChapterDropdown(regionId, allChapters) {
+      chapterDropdown.innerHTML = "";
+      chapterDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> Choose Chapter`;
+
+      const filteredChapters = regionId ? allChapters.filter(chap => chap.region_id == regionId) : allChapters;
+
+      filteredChapters.forEach(chapter => {
+        const chapterItem = document.createElement("li");
+        const chapterLink = document.createElement("a");
+        chapterLink.className = "dropdown-item";
+        chapterLink.href = "javascript:void(0);";
+        chapterLink.textContent = chapter.chapter_name;
+        chapterLink.dataset.chapterId = chapter.chapter_id;
+
+        // Handle chapter selection
+        chapterLink.addEventListener("click", function () {
+          chapterDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${chapter.chapter_name}`;
+          updateMemberDropdown(chapter.chapter_id, members);
+        });
+
+        chapterItem.appendChild(chapterLink);
+        chapterDropdown.appendChild(chapterItem);
+      });
+    }
+
+    // Function to update members dropdown
+function updateMemberDropdown(chapterId, allMembers) {
+    memberDropdown.innerHTML = `<option selected>Select Member</option>`;
+
+    const filteredMembers = allMembers.filter(member => member.chapter_id == chapterId);
+
+    filteredMembers.forEach(member => {
+        const fullName = `${member.member_first_name} ${member.member_last_name}`.trim();
+        const memberOption = document.createElement("option");
+        memberOption.value = member.member_id; // Store member_id as value
+        memberOption.textContent = fullName;
+        memberOption.dataset.address = member.street_address_line_1; // Use correct address field
+        memberOption.dataset.companyName = member.member_company_name;
+        memberOption.dataset.phoneNumber = member.member_phone_number;
+        memberOption.dataset.gstNumber = member.member_gst_number;
+
+        memberDropdown.appendChild(memberOption);
+    });
+
+    // Add event listener for dropdown selection
+    memberDropdown.addEventListener("change", function () {
+        const selectedOption = memberDropdown.options[memberDropdown.selectedIndex];
+
+        if (selectedOption.value !== "Select Member") {
+            document.getElementById("member_address").value = selectedOption.dataset.address || "";
+            document.getElementById("member_company_name").value = selectedOption.dataset.companyName || "";
+            document.getElementById("member_phone_number").value = selectedOption.dataset.phoneNumber || "";
+            document.getElementById("member_gst_number").value = selectedOption.dataset.gstNumber || "";
+        } else {
+            // Clear fields if no member is selected
+            document.getElementById("member_address").value = "";
+            document.getElementById("member_company_name").value = "";
+            document.getElementById("member_phone_number").value = "";
+            document.getElementById("member_gst_number").value = "";
+        }
+    });
+}
+
+
+    // Show all chapters by default
+    updateChapterDropdown(null, chapters);
+
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+});
+
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", async function () {
+    try {
+      // Fetch company data
+      const companyResponse = await fetch("https://bni-data-backend.onrender.com/api/company");
+      const companies = await companyResponse.json();
+
+      const companyDropdown = document.querySelector(".company_info");
+      const companyAddress = document.getElementById("company-address");
+      const companyMail = document.getElementById("company-mail");
+      const companyPhone = document.getElementById("company-phone");
+      const companyGst = document.getElementById("company-gst");
+
+      // Populate company dropdown
+      companies.forEach(company => {
+        const companyOption = document.createElement("option");
+        companyOption.value = company.company_id; // Assuming there's a company_id field
+        companyOption.textContent = company.company_name; // Assuming there's a company_name field
+        companyDropdown.appendChild(companyOption);
+      });
+
+      // Event listener to update fields on company selection
+      companyDropdown.addEventListener("change", function () {
+        const selectedCompany = companies.find(c => c.company_id == this.value);
+        if (selectedCompany) {
+          companyAddress.value = selectedCompany.company_address || "";
+          companyMail.value = selectedCompany.company_email || "";
+          companyPhone.value = selectedCompany.company_phone || "";
+          companyGst.value = selectedCompany.company_gst || "";
+        } else {
+          // Clear fields if no company is selected
+          companyAddress.value = "";
+          companyMail.value = "";
+          companyPhone.value = "";
+          companyGst.value = "";
+        }
+      });
+
+    } catch (error) {
+      console.error("Error fetching company data:", error);
+    }
+  });
+</script>
+
 
 <script>
   // Function to show the loader
@@ -566,353 +740,6 @@
 
   // Call the function when the page loads
   fetchUniversalLinkName();
-
-  // Add these variables at the start of your script
-  let selectedRegionId = null;
-  let selectedChapterId = null;
-  let filteredMembers = [];
-
-  // Function to populate region dropdown
-  async function populateRegionDropdown() {
-    try {
-      console.log('Fetching regions...');
-      showLoader();
-      
-      const response = await fetch('https://bni-data-backend.onrender.com/api/regions');
-      const regions = await response.json();
-      console.log('Regions fetched:', regions);
-
-      const regionDropdown = document.querySelector('.dropdown-menu[role="menu"]');
-      regionDropdown.innerHTML = ''; // Clear existing options
-
-      regions.forEach(region => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <a class="dropdown-item" href="javascript:void(0);" 
-             data-region-id="${region.region_id}">
-             ${region.region_name}
-          </a>
-        `;
-        regionDropdown.appendChild(li);
-      });
-
-      // Add click handlers for region selection
-      regionDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          selectedRegionId = parseInt(this.dataset.regionId);
-          console.log('Region selected:', selectedRegionId);
-          populateBillingFromDropdown();
-        });
-      });
-
-      hideLoader();
-    } catch (error) {
-      console.error('Error populating regions:', error);
-      hideLoader();
-    }
-  }
-
-  // Function to populate chapters dropdown
-  async function populateChaptersDropdown() {
-    try {
-      console.log('Fetching chapters...');
-      showLoader();
-      
-      const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
-      const chapters = await response.json();
-      console.log('Chapters fetched:', chapters);
-
-      const chapterDropdown = document.querySelectorAll('.dropdown-menu[role="menu"]')[1];
-      chapterDropdown.innerHTML = ''; // Clear existing options
-
-      chapters.forEach(chapter => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <a class="dropdown-item" href="javascript:void(0);" 
-             data-chapter-id="${chapter.chapter_id}">
-             ${chapter.chapter_name}
-          </a>
-        `;
-        chapterDropdown.appendChild(li);
-      });
-
-      // Add click handlers for chapter selection
-      chapterDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          selectedChapterId = parseInt(this.dataset.chapterId);
-          console.log('Chapter selected:', selectedChapterId);
-          populateBillingFromDropdown();
-        });
-      });
-
-      hideLoader();
-    } catch (error) {
-      console.error('Error populating chapters:', error);
-      hideLoader();
-    }
-  }
-
-  // Function to populate Billing From and Billing To dropdowns
-  async function populateBillingFromDropdown() {
-    try {
-      console.log('Populating Billing From and Billing To dropdowns...');
-      console.log('Selected Region ID:', selectedRegionId);
-      console.log('Selected Chapter ID:', selectedChapterId);
-
-      if (!selectedRegionId || !selectedChapterId) {
-        console.log('Region or Chapter not selected yet');
-        return;
-      }
-
-      showLoader();
-      
-      const response = await fetch('https://bni-data-backend.onrender.com/api/members');
-      const members = await response.json();
-      console.log('Fetched members:', members);
-
-      // Store filtered members for later use
-      filteredMembers = members.filter(member => 
-        member.region_id === selectedRegionId && 
-        member.chapter_id === selectedChapterId
-      );
-      console.log('Filtered members:', filteredMembers);
-
-      // Get both dropdowns
-      const billingFromDropdown = document.querySelector('#company-name');
-      // Get the second select element for Billing To
-      const billingToDropdown = document.querySelectorAll('select.form-select')[1];
-
-      console.log('Found dropdowns:', {
-        billingFrom: !!billingFromDropdown,
-        billingTo: !!billingToDropdown
-      });
-
-      if (!billingFromDropdown || !billingToDropdown) {
-        console.error('One or both dropdowns not found');
-        hideLoader();
-        return;
-      }
-
-      // Clear and populate Billing From dropdown
-      billingFromDropdown.innerHTML = '<option value="">Select Company</option>';
-      let companiesAdded = 0;
-      filteredMembers.forEach(member => {
-        if (member.member_company_name && member.member_company_name !== "It is not here") {
-          const option = document.createElement('option');
-          option.value = member.member_company_name;
-          option.textContent = member.member_company_name;
-          billingFromDropdown.appendChild(option);
-          companiesAdded++;
-          console.log(`Added company ${companiesAdded}:`, member.member_company_name);
-        }
-      });
-
-      // Clear and populate Billing To dropdown with member names
-      billingToDropdown.innerHTML = '<option value="">Select Member</option>';
-      let membersAdded = 0;
-      filteredMembers.forEach(member => {
-        if (member.member_first_name && member.member_last_name) {
-          const option = document.createElement('option');
-          const fullName = `${member.member_first_name} ${member.member_last_name}`;
-          option.value = member.member_id; // Using member_id as value
-          option.textContent = fullName;
-          billingToDropdown.appendChild(option);
-          membersAdded++;
-          console.log(`Added member ${membersAdded}:`, fullName);
-        }
-      });
-
-      // Add change event listener for Billing From dropdown
-      billingFromDropdown.addEventListener('change', function(e) {
-        const selectedCompany = e.target.value;
-        console.log('Selected company:', selectedCompany);
-        const memberDetails = filteredMembers.find(m => m.member_company_name === selectedCompany);
-        
-        if (memberDetails) {
-          document.getElementById('company-address').value = memberDetails.member_company_address || '';
-          document.getElementById('company-phone').value = memberDetails.member_phone_number || '';
-          document.getElementById('zip-code').value = memberDetails.member_gst_number || '';
-          console.log('Updated Billing From details:', memberDetails);
-        }
-      });
-
-      // Add change event listener for Billing To dropdown
-      billingToDropdown.addEventListener('change', function(e) {
-        const selectedMemberId = e.target.value;
-        console.log('Selected member ID:', selectedMemberId);
-        const memberDetails = filteredMembers.find(m => String(m.member_id) === String(selectedMemberId));
-        
-        if (memberDetails) {
-          document.getElementById('customer-address').value = memberDetails.member_company_address || '';
-          document.getElementById('customer-mail').value = memberDetails.member_company_name || '';
-          document.getElementById('customer-phone').value = memberDetails.member_alternate_mobile_number || '';
-          document.getElementById('zip-code2').value = memberDetails.member_gst_number || '';
-          console.log('Updated Billing To details:', memberDetails);
-        }
-      });
-
-      console.log(`Populated dropdowns with ${companiesAdded} companies and ${membersAdded} members`);
-      hideLoader();
-
-    } catch (error) {
-      console.error('Error in populateBillingFromDropdown:', error);
-      hideLoader();
-    }
-  }
-
-  // Initialize dropdowns when page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, initializing dropdowns...');
-    populateRegionDropdown();
-    populateChaptersDropdown();
-  });
-
-  // Update the click handler for Send Invoice button
-  document.querySelector('button.btn.btn-primary').addEventListener('click', async function(e) {
-    e.preventDefault();
-    console.log('Send Invoice button clicked');
-
-    // Validate all required fields
-    const requiredFields = {
-        // Billing From section
-        companyEmail: document.getElementById('company-mail').value,
-        companyAddress: document.getElementById('company-address').value,
-        companyPhone: document.getElementById('company-phone').value,
-        companyGst: document.getElementById('zip-code').value,
-
-        // Billing To section
-        customerCompany: document.getElementById('customer-mail').value,
-        customerAddress: document.getElementById('customer-address').value,
-        customerPhone: document.getElementById('customer-phone').value,
-        customerGst: document.getElementById('zip-code2').value,
-
-        // Invoice Details
-        invoiceNumber: document.getElementById('invoice-number').value,
-        dateIssued: document.getElementById('invoice-date-issued').value,
-        amountDue: document.getElementById('invoice-due-amount').value,
-
-        // Payment Details
-        paymentStatus: document.querySelector('input[name="payment-status"]:checked')?.value,
-        paymentNote: document.getElementById('payment-note').value,
-        paymentMethod: document.querySelector('input[name="btnradio"]:checked')?.value
-    };
-
-    console.log('Required Fields Collected:', requiredFields);
-
-    // Check for empty required fields
-    const emptyFields = Object.entries(requiredFields)
-        .filter(([key, value]) => !value)
-        .map(([key]) => key);
-
-    if (emptyFields.length > 0) {
-        console.error('Empty required fields:', emptyFields);
-        showToast('Please fill in all required fields: ' + emptyFields.join(', '));
-        return;
-    }
-
-    // Get and log the total amount
-    const totalAmount = parseFloat(document.querySelector('input[value="₹ 2,106.68"]').value.replace('₹', '').replace(',', '').trim());
-    console.log('Total Amount:', totalAmount);
-
-    // Get and log member details
-    const selectedMemberId = parseInt(document.querySelector('select.form-select').value);
-    const selectedMemberName = document.querySelector('select.form-select option:checked').text;
-    console.log('Selected Member:', { id: selectedMemberId, name: selectedMemberName });
-
-    // Get and log region and chapter details
-    console.log('Region and Chapter:', { 
-        regionId: selectedRegionId, 
-        chapterId: selectedChapterId 
-    });
-
-    // Get and log universal link ID from URL
-    const universalLinkId = parseInt(new URLSearchParams(window.location.search).get('id'));
-    console.log('Universal Link ID:', universalLinkId);
-
-    // Get and log tax amount
-    const taxAmount = parseFloat(document.querySelector('input[value="₹ 214.00"]').value.replace('₹', '').trim());
-    console.log('Tax Amount:', taxAmount);
-
-    // Prepare invoice data
-    const invoiceData = {
-        customer_details: {
-            payment_gateway_id: 1,
-            member_id: selectedMemberId,
-            chapter_id: selectedChapterId,
-            region_id: selectedRegionId,
-            universal_link_id: universalLinkId,
-            ulid_id: "bdbe4592-738e-42b1-ad02-beea957a3f9d",
-            one_time_registration_fee: 0,
-            membership_fee: totalAmount,
-            tax: taxAmount,
-            memberName: selectedMemberName,
-            customer_email: requiredFields.companyEmail,
-            customer_phone: requiredFields.customerPhone,
-            gstin: requiredFields.customerGst,
-            company: requiredFields.customerCompany,
-            mobileNumber: requiredFields.customerPhone,
-            renewalYear: "1Year",
-            payment_note: requiredFields.paymentNote,
-            trainingId: null,
-            eventId: null,
-            kitty_bill_id: null
-        },
-        payment_details: {
-            order_amount: totalAmount,
-            order_currency: "INR",
-            order_status: "ACTIVE",
-            payment_session_id: `sess_${Date.now()}`,
-            payment_amount: totalAmount,
-            payment_currency: "INR",
-            payment_status: requiredFields.paymentStatus.toUpperCase(),
-            payment_message: "Payment initiated",
-            payment_time: new Date().toISOString(),
-            payment_completion_time: null,
-            bank_reference: requiredFields.paymentMethod || "cash",
-            payment_method: {
-                type: requiredFields.paymentMethod || "cash"
-            },
-            error_details: {},
-            gateway_order_id: requiredFields.paymentMethod || "cash",
-            gateway_payment_id: requiredFields.paymentMethod || "cash",
-            payment_group: "group1"
-        }
-    };
-
-    // Log the complete invoice data
-    console.log('Complete Invoice Data:', {
-        customerDetails: invoiceData.customer_details,
-        paymentDetails: invoiceData.payment_details
-    });
-
-    // Log individual sections
-    console.log('Customer Details:', invoiceData.customer_details);
-    console.log('Payment Details:', invoiceData.payment_details);
-
-    try {
-        console.log('Attempting to send invoice data to API...');
-        // Dummy API endpoint - replace with your actual endpoint
-        const response = await fetch('https://api.example.com/invoices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(invoiceData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to submit invoice');
-        }
-
-        const result = await response.json();
-        console.log('API Response:', result);
-        showToast('Invoice sent successfully!');
-
-    } catch (error) {
-        console.error('Error sending invoice:', error);
-        showToast('Failed to send invoice. Please try again.');
-    }
-  });
 
   // Toast function
   function showToast(message) {
