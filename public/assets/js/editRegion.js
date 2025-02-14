@@ -122,8 +122,91 @@ const fetchCountries = async () => {
     }
 };
 
+// Add these functions at the beginning after the loader functions
+function setupSelectAllHandlers() {
+    console.log('Setting up Select All handlers');
+    
+    // Chapter Days
+    const selectAllDays = document.getElementById('selectAllDays');
+    const dayCheckboxes = document.querySelectorAll('#chapterDaysContainer .form-check-input');
+    setupSelectAllForGroup(selectAllDays, dayCheckboxes, 'Chapter Days');
 
+    // Chapter Status
+    const selectAllStatus = document.getElementById('selectAllStatus');
+    const statusCheckboxes = document.querySelectorAll('#chapterStatusContainer .form-check-input');
+    setupSelectAllForGroup(selectAllStatus, statusCheckboxes, 'Chapter Status');
 
+    // Chapter Type
+    const selectAllTypes = document.getElementById('selectAllTypes');
+    const typeCheckboxes = document.querySelectorAll('#chapterTypeContainer .form-check-input');
+    setupSelectAllForGroup(selectAllTypes, typeCheckboxes, 'Chapter Type');
+
+    // Accolades
+    const selectAllAccolades = document.getElementById('selectAllAccolades');
+    const accoladeCheckboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+    setupSelectAllForGroup(selectAllAccolades, accoladeCheckboxes, 'Accolades');
+}
+
+function setupSelectAllForGroup(selectAllCheckbox, groupCheckboxes, groupName) {
+    if (!selectAllCheckbox) {
+        console.warn(`Select All checkbox for ${groupName} not found`);
+        return;
+    }
+
+    console.log(`Setting up ${groupName} group with ${groupCheckboxes.length} checkboxes`);
+
+    // Handle "Select All" checkbox change
+    selectAllCheckbox.addEventListener('change', function() {
+        console.log(`${groupName} Select All clicked: ${this.checked}`);
+        groupCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Handle individual checkbox changes
+    groupCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(groupCheckboxes).every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+            console.log(`${groupName} checkbox changed, all checked: ${allChecked}`);
+        });
+    });
+}
+
+// Update the populateFormFields function to handle "Select All" states
+function updateSelectAllStates() {
+    console.log('Updating Select All states');
+
+    // Check Chapter Days
+    const dayCheckboxes = document.querySelectorAll('#chapterDaysContainer .form-check-input');
+    const selectAllDays = document.getElementById('selectAllDays');
+    if (selectAllDays) {
+        selectAllDays.checked = Array.from(dayCheckboxes).every(cb => cb.checked);
+    }
+
+    // Check Chapter Status
+    const statusCheckboxes = document.querySelectorAll('#chapterStatusContainer .form-check-input');
+    const selectAllStatus = document.getElementById('selectAllStatus');
+    if (selectAllStatus) {
+        selectAllStatus.checked = Array.from(statusCheckboxes).every(cb => cb.checked);
+    }
+
+    // Check Chapter Type
+    const typeCheckboxes = document.querySelectorAll('#chapterTypeContainer .form-check-input');
+    const selectAllTypes = document.getElementById('selectAllTypes');
+    if (selectAllTypes) {
+        selectAllTypes.checked = Array.from(typeCheckboxes).every(cb => cb.checked);
+    }
+
+    // Check Accolades
+    const accoladeCheckboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+    const selectAllAccolades = document.getElementById('selectAllAccolades');
+    if (selectAllAccolades) {
+        selectAllAccolades.checked = Array.from(accoladeCheckboxes).every(cb => cb.checked);
+    }
+}
+
+// Modify the existing populateFormFields function
 const populateFormFields = (data) => {
     // Standard fields
     document.querySelector("#region_name").value = data.region_name || "Not Found";
@@ -171,12 +254,35 @@ const populateFormFields = (data) => {
         if (checkbox) checkbox.checked = true;
     });
 
-    // Chapter Status
-    const chapterStatus = data.chapter_status || {};
-    Object.keys(chapterStatus).forEach(key => {
-        const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(); // Capitalize first letter
-        const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${capitalizedKey}"]`);
-        if (checkbox) checkbox.checked = true;
+    // Chapter Status - Parse the string and check corresponding boxes
+    const chapterStatus = data.chapter_status || "";
+    console.log('Received chapter_status:', chapterStatus);
+    
+    // Remove the curly braces and split by comma
+    const statusArray = chapterStatus
+        .replace(/[{}"\s]/g, '') // Remove curly braces, quotes, and whitespace
+        .split(',')
+        .filter(status => status) // Remove empty strings
+        .map(status => status.toLowerCase()); // Convert to lowercase for comparison
+    
+    console.log('Processed status array:', statusArray);
+    
+    // Map of lowercase values to actual checkbox values
+    const statusMap = {
+        'running': 'Running',
+        'pre-launch': 'Pre-Launch',
+        're-launch': 'Re-Launch'
+    };
+    
+    statusArray.forEach(status => {
+        const checkboxValue = statusMap[status];
+        if (checkboxValue) {
+            const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${checkboxValue}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+                console.log(`Checked status: ${checkboxValue}`);
+            }
+        }
     });
 
     // Chapter Type
@@ -194,6 +300,10 @@ const populateFormFields = (data) => {
             checkbox.checked = true;
         }
     });
+
+    // After setting all checkboxes
+    console.log('Populating form fields completed, updating Select All states');
+    updateSelectAllStates();
 };
 
 // Helper Function to Parse Chapter Status (Fixing malformed string formats)
@@ -210,6 +320,8 @@ const parseArrayString = (str) => {
 document.addEventListener("DOMContentLoaded", async () => {
     await fetchCountries(); // Ensure countries are loaded first
     await fetchAccolades(); // Fetch all accolades first
+    console.log('Setting up edit region page');
+    setupSelectAllHandlers();
     await fetchRegionDetails(); // Then fetch and populate region details
 });
 

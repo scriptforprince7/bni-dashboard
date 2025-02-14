@@ -22,9 +22,34 @@ function debugLog(message, data = null) {
 async function fetchMemberData() {
     try {
         showLoader();
-        // Decode the logged-in email from the token
-        const loggedInEmail = getUserEmail(); // Use the function from tokenUtils.js
-        debugLog('Logged in email:', loggedInEmail);
+        
+        // Step 1: Try getting member details from multiple sources
+        let member_id = localStorage.getItem('current_member_id');
+        let member_email = localStorage.getItem('current_member_email');
+        const loginType = getUserLoginType();
+        
+        console.log('=== Starting Member Accolades ===');
+        console.log('Initial check from localStorage:', {
+            member_id: member_id,
+            member_email: member_email,
+            loginType: loginType
+        });
+
+        // Only get email from token if not found in localStorage and not ro_admin
+        if (!member_email && loginType !== 'ro_admin') {
+            member_email = getUserEmail();
+            console.log('Retrieved from token:', {
+                member_email: member_email
+            });
+        }
+
+        if (!member_email) {
+            console.error('No member email found from any source');
+            hideLoader();
+            return;
+        }
+
+        console.log('Using member email:', member_email); // Debug log to confirm which email is being used
 
         // Fetch members data
         const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
@@ -32,7 +57,7 @@ async function fetchMemberData() {
         debugLog('Members data fetched:', membersData);
 
         // Find logged in member
-        const loggedInMember = membersData.find(member => member.member_email_address === loggedInEmail);
+        const loggedInMember = membersData.find(member => member.member_email_address === member_email);
         debugLog('Logged in member:', loggedInMember);
 
         if (!loggedInMember) {

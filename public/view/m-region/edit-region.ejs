@@ -202,101 +202,108 @@
                         />
                       </div>
                       <div class="col-xl-6">
-                        <label for="days_of_chapter" class="form-label"
-                          >Chapter Days</label
-                        >
-                        <div
-                          id="chapterDaysContainer"
-                          style="display: flex; flex-wrap: wrap; gap: 10px"
-                        >
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="dayMonday"
-                              name="chapterDays[]"
-                              value="Monday"
-                            />
-                            <label class="form-check-label" for="dayMonday"
-                              >Monday</label
-                            >
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="dayTuesday"
-                              name="chapterDays[]"
-                              value="Tuesday"
-                            />
-                            <label class="form-check-label" for="dayTuesday"
-                              >Tuesday</label
-                            >
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="dayWednesday"
-                              name="chapterDays[]"
-                              value="Wednesday"
-                            />
-                            <label class="form-check-label" for="dayWednesday"
-                              >Wednesday</label
-                            >
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="dayThursday"
-                              name="chapterDays[]"
-                              value="Thursday"
-                            />
-                            <label class="form-check-label" for="dayThursday"
-                              >Thursday</label
-                            >
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="dayFriday"
-                              name="chapterDays[]"
-                              value="Friday"
-                            />
-                            <label class="form-check-label" for="dayFriday"
-                              >Friday</label
-                            >
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="daySaturday"
-                              name="chapterDays[]"
-                              value="Saturday"
-                            />
-                            <label class="form-check-label" for="daySaturday"
-                              >Saturday</label
-                            >
-                          </div>
-                          <div class="form-check">
-                            <input
-                              class="form-check-input"
-                              type="checkbox"
-                              id="daySunday"
-                              name="chapterDays[]"
-                              value="Sunday"
-                            />
-                            <label class="form-check-label" for="daySunday"
-                              >Sunday</label
-                            >
-                          </div>
+                        <label for="days_of_chapter" class="form-label">Chapter Days</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="selectAllDays">
+                            <label class="form-check-label" for="selectAllDays">
+                                <strong>Select All Days</strong>
+                            </label>
+                        </div>
+                        <div id="chapterDaysContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="dayMonday"
+                                  name="chapterDays[]"
+                                  value="Monday"
+                                />
+                                <label class="form-check-label" for="dayMonday"
+                                  >Monday</label
+                                >
+                            </div>
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="dayTuesday"
+                                  name="chapterDays[]"
+                                  value="Tuesday"
+                                />
+                                <label class="form-check-label" for="dayTuesday"
+                                  >Tuesday</label
+                                >
+                            </div>
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="dayWednesday"
+                                  name="chapterDays[]"
+                                  value="Wednesday"
+                                />
+                                <label class="form-check-label" for="dayWednesday"
+                                  >Wednesday</label
+                                >
+                            </div>
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="dayThursday"
+                                  name="chapterDays[]"
+                                  value="Thursday"
+                                />
+                                <label class="form-check-label" for="dayThursday"
+                                  >Thursday</label
+                                >
+                            </div>
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="dayFriday"
+                                  name="chapterDays[]"
+                                  value="Friday"
+                                />
+                                <label class="form-check-label" for="dayFriday"
+                                  >Friday</label
+                                >
+                            </div>
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="daySaturday"
+                                  name="chapterDays[]"
+                                  value="Saturday"
+                                />
+                                <label class="form-check-label" for="daySaturday"
+                                  >Saturday</label
+                                >
+                            </div>
+                            <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  id="daySunday"
+                                  name="chapterDays[]"
+                                  value="Sunday"
+                                />
+                                <label class="form-check-label" for="daySunday"
+                                  >Sunday</label
+                                >
+                            </div>
                         </div>
                       </div>
                       <div class="col-xl-6">
                         <label for="chapterStatus" class="form-label">Chapter Status</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="selectAllStatus">
+                            <label class="form-check-label" for="selectAllStatus">
+                                <strong>Select All Status</strong>
+                            </label>
+                        </div>
                         <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="statusRunning" name="chapterStatus[]" value="Running" />
@@ -324,16 +331,24 @@
                             </button>
                           </a>
                         </label>
-
-                        <div
-                          id="accoladesContainer"
-                          style="display: flex; flex-wrap: wrap; gap: 10px"
-                        >
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="selectAllAccolades">
+                            <label class="form-check-label" for="selectAllAccolades">
+                                <strong>Select All Accolades</strong>
+                            </label>
+                        </div>
+                        <div id="accoladesContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <!-- Dynamically populated accolades will go here -->
                         </div>
                       </div>
                       <div class="col-xl-6">
                         <label for="chapterType" class="form-label">Chapter Type</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="selectAllTypes">
+                            <label class="form-check-label" for="selectAllTypes">
+                                <strong>Select All Types</strong>
+                            </label>
+                        </div>
                         <div id="chapterTypeContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="typeOnline" name="chapterType[]" value="Online" />

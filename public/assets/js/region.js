@@ -12,7 +12,8 @@ window.BNI.state = {
     allMembers: [],
     filteredRegions: [],
     entriesPerPage: 10,
-    currentPage: 1
+    currentPage: 1,
+    totalPages: 0
 };
 
 // Function to show the loader
@@ -51,9 +52,57 @@ const getCountsForRegion = (regionId) => {
     return { chaptersCount, membersCount };
 };
 
+// Add a function to calculate totals
+function calculateTotals(allRegions) {
+    console.log('=== Calculating Totals ===');
+    
+    // Reset totals
+    total_regions = allRegions.length;
+    active_total = allRegions.filter(region => region.region_status === 'active').length;
+    
+    // Calculate chapter and member totals
+    chapter_total = 0;
+    member_total = 0;
+    
+    allRegions.forEach(region => {
+        const { chaptersCount, membersCount } = getCountsForRegion(region.region_id);
+        chapter_total += chaptersCount;
+        member_total += membersCount;
+    });
+
+    console.log('Totals calculated:', {
+        total_regions,
+        active_total,
+        chapter_total,
+        member_total
+    });
+
+    updateTotalDisplays();
+}
+
+// Function to update the display of totals
+function updateTotalDisplays() {
+    console.log('=== Updating Total Displays ===');
+    
+    document.getElementById("totalRegions").innerHTML = total_regions;
+    document.getElementById("activeTotal").innerHTML = active_total;
+    document.getElementById("inactiveTotal").innerHTML = total_regions - active_total;
+    document.getElementById("chapterTotal").innerHTML = chapter_total;
+    document.getElementById("memberTotal").innerHTML = member_total;
+    
+    console.log('Displays updated with values:', {
+        total_regions,
+        active_total,
+        inactive_total: total_regions - active_total,
+        chapter_total,
+        member_total
+    });
+}
+
 // Fetch regions with the applied filter
 const fetchRegions = async (filter = '') => {
     try {
+        console.log('=== Fetching Regions ===');
         const filterQuery = filter ? `?filter=${filter}` : '';
         const response = await fetch(`${window.BNI.apiUrl}${filterQuery}`);
         if (!response.ok) throw new Error('Network response was not ok');
@@ -61,6 +110,11 @@ const fetchRegions = async (filter = '') => {
         window.BNI.state.allRegions = await response.json();
         window.BNI.state.filteredRegions = [...window.BNI.state.allRegions];
 
+        // Calculate totals once when data is fetched
+        calculateTotals(window.BNI.state.allRegions);
+
+        console.log(`Fetched ${window.BNI.state.allRegions.length} regions`);
+        
         displayRegions(window.BNI.state.filteredRegions.slice(0, window.BNI.state.entriesPerPage));
     } catch (error) {
         console.error('There was a problem fetching the regions data:', error);
@@ -85,12 +139,12 @@ function updateURLWithFilter(filter) {
 
 // Function to display regions in the table
 function displayRegions(regions) {
+    console.log('=== Displaying Regions ===');
+    console.log(`Displaying ${regions.length} regions for current page`);
+    
     const tableBody = document.getElementById('chaptersTableBody');
-
-    // Clear existing rows
     tableBody.innerHTML = '';
 
-    // Loop through the regions and create table rows
     regions.forEach((region, index) => {
         const { chaptersCount, membersCount } = getCountsForRegion(region.region_id);
         const row = document.createElement('tr');
@@ -136,34 +190,27 @@ function displayRegions(regions) {
         tableBody.appendChild(row);
 
     });
-    const tot_region_display = document.getElementById("totalRegions");
-    const tot_active_display = document.getElementById("activeTotal");
-    const tot_inactive_display = document.getElementById("inactiveTotal");
-    const tot_chapter_display = document.getElementById("chapterTotal");
-    const tot_member_display = document.getElementById("memberTotal");
 
-    
-    tot_region_display.innerHTML = total_regions;
-    tot_active_display.innerHTML = active_total;
-    tot_inactive_display.innerHTML = parseFloat(total_regions) - parseFloat(active_total);
-    tot_chapter_display.innerHTML = chapter_total;
-    tot_member_display.innerHTML = member_total;
-
-    // Hide the loader after the regions are displayed
-    hideLoader();
+    // Don't recalculate totals here, just update pagination
+    updatePagination();
 }
 
 // Function to filter regions based on search input
 function filterRegions() {
+    console.log('=== Filtering Regions ===');
     const searchValue = document.getElementById('searchChapterInput').value.toLowerCase();
-
-    // Filter regions based on the search value
+    
     window.BNI.state.filteredRegions = window.BNI.state.allRegions.filter(region => 
         region.region_name.toLowerCase().includes(searchValue)
     );
 
-    // Display the filtered regions
-    displayRegions(window.BNI.state.filteredRegions.slice(0, window.BNI.state.entriesPerPage)); // Display only the first entriesPerPage results
+    // Recalculate totals for filtered regions
+    calculateTotals(window.BNI.state.filteredRegions);
+    
+    console.log(`Found ${window.BNI.state.filteredRegions.length} matching regions`);
+    
+    window.BNI.state.currentPage = 1;
+    changePage(1);
 }
 
 // Add event listener to the search input
@@ -225,3 +272,80 @@ document.getElementById('chaptersTableBody').addEventListener('click', (event) =
         deleteRegion(region_id);
     }
 });
+
+// Add this function to calculate and display pagination
+function updatePagination() {
+    console.log('=== Updating Pagination ===');
+    const totalItems = window.BNI.state.filteredRegions.length;
+    window.BNI.state.totalPages = Math.ceil(totalItems / window.BNI.state.entriesPerPage);
+    
+    console.log('Pagination Details:', {
+        totalItems,
+        entriesPerPage: window.BNI.state.entriesPerPage,
+        totalPages: window.BNI.state.totalPages,
+        currentPage: window.BNI.state.currentPage
+    });
+
+    const paginationContainer = document.querySelector('.pagination');
+    paginationContainer.innerHTML = '';
+
+    // Previous button
+    const prevButton = document.createElement('li');
+    prevButton.className = `page-item ${window.BNI.state.currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.innerHTML = '<a class="page-link" href="javascript:void(0)">Previous</a>';
+    prevButton.onclick = () => {
+        if (window.BNI.state.currentPage > 1) {
+            changePage(window.BNI.state.currentPage - 1);
+        }
+    };
+    paginationContainer.appendChild(prevButton);
+
+    // Page numbers
+    for (let i = 1; i <= window.BNI.state.totalPages; i++) {
+        const pageItem = document.createElement('li');
+        pageItem.className = `page-item ${i === window.BNI.state.currentPage ? 'active' : ''}`;
+        pageItem.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+        pageItem.onclick = () => changePage(i);
+        paginationContainer.appendChild(pageItem);
+    }
+
+    // Next button
+    const nextButton = document.createElement('li');
+    nextButton.className = `page-item ${window.BNI.state.currentPage === window.BNI.state.totalPages ? 'disabled' : ''}`;
+    nextButton.innerHTML = '<a class="page-link" href="javascript:void(0)">Next</a>';
+    nextButton.onclick = () => {
+        if (window.BNI.state.currentPage < window.BNI.state.totalPages) {
+            changePage(window.BNI.state.currentPage + 1);
+        }
+    };
+    paginationContainer.appendChild(nextButton);
+
+    // Update showing entries text
+    const start = (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + 1;
+    const end = Math.min(start + window.BNI.state.entriesPerPage - 1, totalItems);
+    document.querySelector('.mb-2.mb-sm-0').innerHTML = 
+        `Showing <b>${start}</b> to <b>${end}</b> of <b>${totalItems}</b> entries`;
+}
+
+// Function to change page
+function changePage(pageNumber) {
+    console.log('=== Changing Page ===');
+    console.log('Changing to page:', pageNumber);
+    
+    window.BNI.state.currentPage = pageNumber;
+    
+    const startIndex = (pageNumber - 1) * window.BNI.state.entriesPerPage;
+    const endIndex = startIndex + window.BNI.state.entriesPerPage;
+    
+    console.log('Page Change Details:', {
+        startIndex,
+        endIndex,
+        totalItems: window.BNI.state.filteredRegions.length
+    });
+
+    const pageData = window.BNI.state.filteredRegions.slice(startIndex, endIndex);
+    console.log(`Displaying ${pageData.length} items for page ${pageNumber}`);
+
+    displayRegions(pageData);
+    updatePagination();
+}
