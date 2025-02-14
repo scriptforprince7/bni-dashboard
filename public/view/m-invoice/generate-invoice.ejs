@@ -262,9 +262,8 @@
                         <th>S.No.</th>
                         <th>PARTICULARS</th>
                         <th>HSN/SAC</th>
-                        <th>QUANTITY</th>
-                        <th>PRICE PER UNIT</th>
-                        <th>TOTAL</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -284,13 +283,14 @@
                           ></textarea>
                         </td>
                         <td>
-                          <textarea
-                            rows="1"
+                          <input
                             class="form-control form-control-light"
-                            placeholder="Enter Description"
-                          ></textarea>
+                            placeholder=""
+                            type="text"
+                            value="999511"
+                            readonly
+                          />
                         </td>
-                        <td class="invoice-quantity-container">-</td>
                         <td>
                           <input
                             class="form-control form-control-light"
@@ -318,7 +318,7 @@
                             <tbody>
                               <tr>
                                 <th scope="row">
-                                  <div class="fw-medium">Sub Total :</div>
+                                  <div class="fw-medium">Total Taxable Value :</div>
                                 </th>
                                 <td>
                                   <input
@@ -332,8 +332,7 @@
                               <tr>
                                 <th scope="row">
                                   <div class="fw-medium">
-                                    GST
-                                    <span class="text-danger">(18%)</span>
+                                    Add CGST
                                     :
                                   </div>
                                 </th>
@@ -348,20 +347,23 @@
                               </tr>
                               <tr>
                                 <th scope="row">
-                                  <div class="fw-medium">Late Fee :</div>
+                                  <div class="fw-medium">
+                                    Add SGST
+                                    :
+                                  </div>
                                 </th>
                                 <td>
                                   <input
                                     type="text"
                                     class="form-control form-control-light invoice-amount-input"
                                     placeholder="Enter Amount"
-                                    value="₹ 100.00"
+                                    value="₹ 214.00"
                                   />
                                 </td>
                               </tr>
                               <tr>
                                 <th scope="row">
-                                  <div class="fs-14 fw-medium">Total :</div>
+                                  <div class="fs-14 fw-medium">Grand Total :</div>
                                 </th>
                                 <td>
                                   <input
@@ -385,12 +387,12 @@
           <div
             class="card-footer d-flex align-items-center justify-content-between gap-2"
           >
-            <button class="btn btn-primary1-light">
+            <!-- <button class="btn btn-primary1-light">
               <i class="ri-eye-line me-1 align-middle d-inline-block"></i
               >Preview
-            </button>
+            </button> -->
             <button class="btn btn-primary">
-              Send Invoice
+              Make Invoice
               <i
                 class="ri-send-plane-2-line ms-1 align-middle d-inline-block"
               ></i>
@@ -418,7 +420,7 @@
                     id="btnradio2"
                   />
                   <label
-                    class="btn btn-outline-primary mt-sm-0 mt-1"
+                    class="btn btn-primary mt-sm-0 mt-1"
                     for="btnradio2"
                     >Cash</label
                   >
@@ -436,7 +438,7 @@
                         > -->
                 </div>
               </div>
-              <div class="col-xl-12">
+              <!-- <div class="col-xl-12">
                 <div class="form-check">
                   <input
                     class="form-check-input"
@@ -471,7 +473,7 @@
                   />
                   <label class="form-check-label" for="credit"> Credit </label>
                 </div>
-              </div>
+              </div> -->
               <div class="col-xl-12">
                 <div class="form-group">
                   <label for="payment-note">Payment Note</label>
