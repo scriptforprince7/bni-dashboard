@@ -138,7 +138,7 @@ let ledgerData = [];
               ledgerData.push({
               sNo: ledgerData.length + 1,
               date: formatDate(credit.credit_date),
-              description: 'Credit Note 1',
+              description: 'Credit Note',
               billAmount: 0,
               debit: 0,
               credit: parseFloat(credit.credit_amount),
@@ -281,8 +281,8 @@ let ledgerData = [];
                   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
                   });
 
-                  paid_amount_show += parseFloat(transaction.payment_amount);
-                  currentBalance += parseFloat(transaction.payment_amount);
+                  paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
 
                   ledgerData.push({
                     sNo: ledgerData.length + 1,
@@ -290,15 +290,15 @@ let ledgerData = [];
                     description: `Meeting Fee Paid <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
                     billAmount: `${transaction.payment_amount}`,
                     debit: 0,
-                    credit: transaction.payment_amount / 1.18,
-                    gst: transaction.payment_amount - (transaction.payment_amount / 1.18),
+                    credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                    gst: parseFloat(order.tax),
                     balance: parseFloat(currentBalance),
                     balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
                   });
                 }
                 else {
-                  paid_amount_show += parseFloat(transaction.payment_amount);
-                  currentBalance += parseFloat(transaction.payment_amount);
+                  paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
 
                   ledgerData.push({
                   sNo: ledgerData.length + 1,
@@ -306,8 +306,8 @@ let ledgerData = [];
                   description: 'Meeting Fee Paid',
                   billAmount: transaction.payment_amount,
                   debit: 0,
-                  credit: transaction.payment_amount / 1.18,
-                  gst: transaction.payment_amount - (transaction.payment_amount / 1.18),
+                  credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                  gst: parseFloat(order.tax),
                   balance: parseFloat(currentBalance),
                   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
                 });}
@@ -451,8 +451,8 @@ let ledgerData = [];
                     balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
                 });
 
-                  currentBalance += parseFloat(transaction.payment_amount);
-                  paid_amount_show += parseFloat(transaction.payment_amount);
+                  currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   
                   ledgerData.push({
                     sNo: ledgerData.length + 1,
@@ -460,20 +460,22 @@ let ledgerData = [];
                     description: `Meeting Fee Paid <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
                     billAmount: `${transaction.payment_amount}`,
                     debit: 0,
-                    credit: transaction.payment_amount / 1.18,
-                    gst: transaction.payment_amount - (transaction.payment_amount / 1.18),
+                    credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                    gst: parseFloat(order.tax),
                     balance: parseFloat(currentBalance),
                     balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
                   });
                 } else{
+                  currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   ledgerData.push({
                     sNo: ledgerData.length + 1,
                     date: formatDate(transaction.payment_time),
                     description: 'Meeting Fee Paid',
                     billAmount: transaction.payment_amount,
                     debit: 0,
-                    credit: transaction.payment_amount / 1.18,
-                    gst: transaction.payment_amount - (transaction.payment_amount / 1.18),
+                    credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                    gst: parseFloat(order.tax),
                     balance: parseFloat(currentBalance),
                     balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
                   });
@@ -482,7 +484,7 @@ let ledgerData = [];
             }
             else{
               console.log("no transaction found");
-              no_of_late_payment++;
+              // no_of_late_payment++;
             }
           });
           if (active_bool_late_payment === false && Date.now() > new Date(kitty.kitty_due_date).getTime()) {
