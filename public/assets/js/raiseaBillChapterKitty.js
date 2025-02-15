@@ -153,6 +153,7 @@ const insertPaymentsIntoTable = () => {
                 <td><b>${payment.total_weeks || 'N/A'}</b></td>
                 <td><b>${payment.total_bill_amount || 'N/A'}</b></td>
                 <td><b>${formatDate(payment.kitty_due_date) || 'N/A'}</b></td>
+                <td><b>${payment.penalty_fee || 'N/A'}</b></td>
                 <td><b style="color: ${payment.delete_status === 0 ? 'green' : 'red'};">
                 ${payment.delete_status === 0 ? 'Active' : 'Inactive'}</b></td>
             `;
@@ -279,10 +280,22 @@ const autofillFields = async () => {
         const total_weeks = parseInt(document.querySelector('.total_weeks').value) || 0;
         const total_bill_amount = parseFloat(document.querySelector('.total_bill_amount').value) || 0;
         const due_date = document.querySelector('#due_date').value;
+        const penalty_amount = parseFloat(document.querySelector('#penalty_amount').value) || 0; // Get penalty amount
 
-        console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount, due_date });
+        // Validation for penalty amount
+        if (isNaN(penalty_amount) || penalty_amount <= 0) {
+            alert("Please enter a valid penalty amount.");
+            return;
+        }
+        
+
+        console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount, due_date, penalty_amount });
         if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
             alert("Please fill all fields correctly.");
+            return;
+        }
+        if (new Date(due_date) <= new Date(date)) {
+            alert("Due date must be greater than the bill date.");
             return;
         }
 
@@ -302,6 +315,7 @@ const autofillFields = async () => {
                     total_weeks,
                     total_bill_amount,
                     due_date,
+                    penalty_amount, // Include penalty amount in the request
                 }),
             });
 
@@ -314,24 +328,15 @@ const autofillFields = async () => {
                     text: result.message || 'Bill added successfully.',
                     confirmButtonText: 'OK'
                 }).then(() => {
-                    // document.querySelector('form').reset();
-                    // selectedChapter = null;  // Reset selected chapter
-
                     window.location.href = '/ck/chapter-raiseBill';
                 });
             } else {
-                // Swal.fire({
-                //     icon: 'error',
-                //     title: 'Error',
-                //     text: result.message || 'Failed to add bill.',
-                //     confirmButtonText: 'OK'
-                // });
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: result.message || 'Failed to add bill',
                     confirmButtonText: 'ok'
-                })
+                });
             }            
         } catch (error) {
             console.error('Error adding bill:', error);
