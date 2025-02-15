@@ -283,14 +283,19 @@ const autofillFields = async () => {
         const penalty_amount = parseFloat(document.querySelector('#penalty_amount').value) || 0; // Get penalty amount
 
         // Validation for penalty amount
-        if (isNaN(penalty_amount) || penalty_amount < 0) {
+        if (isNaN(penalty_amount) || penalty_amount <= 0) {
             alert("Please enter a valid penalty amount.");
             return;
         }
+        
 
         console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount, due_date, penalty_amount });
         if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
             alert("Please fill all fields correctly.");
+            return;
+        }
+        if (new Date(due_date) <= new Date(date)) {
+            alert("Due date must be greater than the bill date.");
             return;
         }
 

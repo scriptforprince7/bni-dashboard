@@ -131,6 +131,12 @@ function hideLoader() {
         const total_weeks = parseInt(document.querySelector('.total_weeks').value) || 0;
         const total_bill_amount = parseFloat(document.querySelector('.total_bill_amount').value) || 0;
         const due_date = document.querySelector('#due_date').value;
+        const penalty_amount = parseFloat(document.querySelector('#penalty_amount').value) || 0;
+
+        if (isNaN(penalty_amount) || penalty_amount <= 0) {
+            alert("Penalty amount must be greater than 0.");
+            return;
+        }
 
         if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
             alert("Please fill all fields correctly.");
@@ -157,7 +163,8 @@ function hideLoader() {
                     description,
                     total_weeks,
                     total_bill_amount,
-                    due_date
+                    due_date,
+                    penalty_amount
                 }),
             });
 
