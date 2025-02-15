@@ -1561,7 +1561,7 @@ async function saveAccountSettings() {
                 const formData = new FormData();
                 formData.append('logo', logoInput.files[0]);
 
-                const logoResponse = await fetch('http://localhost:5000/api/uploadLogo', {
+                const logoResponse = await fetch('https://bni-data-backend.onrender.com/api/uploadLogo', {
                     method: 'POST',
                     body: formData
                 });

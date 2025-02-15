@@ -217,7 +217,7 @@ const populateFormFields = (data) => {
         const imagePreview = document.getElementById('imagePreview');
         
         // Construct the URL if not provided in response
-        const logoUrl = data.region_logo_url || `http://localhost:5000/api/uploads/regionLogos/${data.region_logo}`;
+        const logoUrl = data.region_logo_url || `https://bni-data-backend.onrender.com/api/uploads/regionLogos/${data.region_logo}`;
         console.log('🔗 Using logo URL:', logoUrl);
         
         if (preview && imagePreview) {
@@ -574,7 +574,7 @@ const updateRegionData = async () => {
         const formData = collectFormData();
         
         console.log('🚀 Sending update request to server');
-        const response = await fetch(`http://localhost:5000/api/updateRegion/${region_id}`, {
+        const response = await fetch(`https://bni-data-backend.onrender.com/api/updateRegion/${region_id}`, {
             method: 'PUT',
             body: formData
         });
@@ -769,7 +769,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log('🚀 Sending update request for region:', region_id);
 
-                const response = await fetch(`http://localhost:5000/api/updateRegion/${region_id}`, {
+                const response = await fetch(`https://bni-data-backend.onrender.com/api/updateRegion/${region_id}`, {
                     method: 'PUT',
                     body: formData
                 });

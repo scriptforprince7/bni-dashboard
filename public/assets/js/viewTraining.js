@@ -760,7 +760,7 @@ updateRegistrationCount();
                                           const orderId = transaction.order_id; // Get the order_id
 
                                           // Send both orderId and cf_payment_id to the backend
-                                          fetch('http://localhost:5000/api/send-qr-code', {
+                                          fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
                                               method: 'POST',
                                               headers: {
                                                   'Content-Type': 'application/json',
@@ -1098,7 +1098,7 @@ document.addEventListener('click', async function(event) {
                       const orderId = transaction.order_id; // Get the order_id
 
                       // Send all details to the backend
-                      fetch('http://localhost:5000/api/send-qr-code', {
+                      fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
                           method: 'POST',
                           headers: {
                               'Content-Type': 'application/json',
