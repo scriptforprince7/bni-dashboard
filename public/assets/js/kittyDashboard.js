@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  populateRegionFilter(); // Populate region filter
   fetchPayments(); // Call fetchPayments when the document is fully loaded
 });
 
@@ -13,6 +14,7 @@ const monthNames = [
 
 let allKittys = []; // Store all kitty payments globally
 let filteredKittys = []; // Store filtered kitty payments globally after region/chapter filtering
+let allCredits = []; // Store all credit notes globally
 
 // Function to show loader
 function showLoader() {
@@ -27,18 +29,34 @@ function hideLoader() {
 async function fetchPayments() {
   try {
     showLoader();
-    const [regions, chapters, kittyPayments, expenses, orders, transactions, members] = await Promise.all([ 
+    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits] = await Promise.all([ 
       fetch('https://bni-data-backend.onrender.com/api/regions').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/chapters').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/allExpenses').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/allOrders').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/allTransactions').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/members').then(res => res.json())
+      fetch('https://bni-data-backend.onrender.com/api/members').then(res => res.json()),
+      fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit').then(res => res.json())
     ]);
 
     console.log('Fetched all data successfully');
-    console.log('Members data:', members);
+
+    // Calculate visitor payments
+    console.log('Calculating visitor payments...');
+    const visitorOrders = orders.filter(order => order.universal_link_id === 4);
+    const totalVisitorAmount = visitorOrders.reduce((sum, order) => {
+      const amount = parseFloat(order.order_amount || 0);
+      console.log(`Visitor Order ${order.order_id}: ₹${formatInIndianStyle(amount)}`);
+      return sum + amount;
+    }, 0);
+    console.log(`Total Visitor Amount: ₹${formatInIndianStyle(totalVisitorAmount)}`);
+
+    // Update visitor payment display
+    const visitorAmountElement = document.querySelector('.total_V_amount');
+    if (visitorAmountElement) {
+      visitorAmountElement.textContent = `₹ ${formatInIndianStyle(totalVisitorAmount)}`;
+    }
 
     // Calculate received payments by chapter
     const chapterPayments = {};
@@ -101,6 +119,7 @@ async function fetchPayments() {
     });
 
     allKittys = detailedKittys;
+    allCredits = credits; // Store credits globally for use in displayPayments
     populateMonthDropdown(allKittys);
     displayPayments(allKittys);
   } catch (error) {
@@ -157,25 +176,70 @@ function filterTableByMonth(monthYear, kittys) {
 // -----------------------------------------------------------------------------------------------------
 
 // Function to handle region selection
-let selectedRegionId = null;
-function handleRegionSelection(event) {
+async function handleRegionSelection(event) {
   if (event.target && event.target.matches("a.dropdown-item")) {
-    selectedRegionId = event.target.dataset.id;
-    // Select the clicked region in dropdown
-    setSelectedRegion(event.target);
-    filterChaptersByRegion(selectedRegionId);
-  }
-}
+    const selectedRegionId = event.target.dataset.id;
+    console.log('Selected Region ID:', selectedRegionId);
+    
+    try {
+      // Fetch chapters from API
+      const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+      const chapters = await response.json();
+      
+      console.log('All chapters:', chapters);
 
-// Function to filter chapters based on region
-function filterChaptersByRegion(regionId) {
-  const chapterFilter = document.getElementById('chapter-filter');
-  const chapters = Array.from(chapterFilter.querySelectorAll('a.dropdown-item'));
-  
-  chapters.forEach(chapter => {
-    const chapterRegionId = chapter.dataset.regionId;
-    chapter.style.display = (chapterRegionId === regionId) ? 'block' : 'none';
-  });
+      // Filter chapters based on selected region_id
+      const filteredChapters = chapters.filter(chapter => 
+        chapter.region_id === parseInt(selectedRegionId)
+      );
+      
+      console.log('Filtered chapters for region_id', selectedRegionId, ':', filteredChapters);
+
+      // Populate chapter dropdown with filtered chapters
+      const chapterFilter = document.getElementById('chapter-filter');
+      if (!chapterFilter) {
+        console.error('Chapter filter element not found');
+        return;
+      }
+
+      // Clear existing options
+      chapterFilter.innerHTML = '';
+
+      // Add filtered chapters to dropdown
+      filteredChapters.forEach(chapter => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.classList.add('dropdown-item');
+        a.href = '#';
+        a.textContent = chapter.chapter_name;
+        a.dataset.id = chapter.chapter_id;
+        a.dataset.regionId = chapter.region_id;
+        
+        // Add click handler for chapter selection
+        a.addEventListener('click', function(e) {
+          e.preventDefault();
+          const selectedChapter = this.textContent;
+          
+          // Update chapter button text
+          const chapterButton = document.querySelector('.chapter-button');
+          if (chapterButton) {
+            chapterButton.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i>${selectedChapter}`;
+          }
+          
+          console.log('Selected chapter:', selectedChapter, 'with ID:', this.dataset.id);
+          handleChapterSelection(e);
+        });
+
+        li.appendChild(a);
+        chapterFilter.appendChild(li);
+      });
+
+      console.log('Chapter filter populated with', filteredChapters.length, 'chapters');
+
+    } catch (error) {
+      console.error('Error fetching or filtering chapters:', error);
+    }
+  }
 }
 
 // Function to handle chapter selection
@@ -208,34 +272,45 @@ function filterTable() {
 
 // Function to display payments in the table
 function displayPayments(kittys) {
-  console.log('Calculating totals for all chapters:');
+  console.log('Starting to calculate totals for all chapters...');
   
   // Initialize total variables
   let grandTotalAvailableFund = 0;
-  let grandTotalReceivedPayments = 0;
   let grandTotalPaidExpenses = 0;
   let grandTotalPendingExpenses = 0;
-  let grandTotalPendingAmount = 0;  // New variable for total pending amount
+  let grandTotalCreditNoteAmount = 0;
+
+  // Get all chapter IDs from the current table
+  const tableChapterIds = kittys.map(kitty => kitty.chapter_id);
+  console.log('Chapter IDs in current table:', tableChapterIds);
+
+  // Calculate total credit amount for matching chapters
+  tableChapterIds.forEach(chapterId => {
+    const chapterCredits = allCredits.filter(credit => credit.chapter_id === chapterId);
+    const chapterCreditTotal = chapterCredits.reduce((sum, credit) => {
+      return sum + parseFloat(credit.credit_amount || 0);
+    }, 0);
+    
+    console.log(`Chapter ${chapterId} total credits: ₹${formatInIndianStyle(chapterCreditTotal)}`);
+    grandTotalCreditNoteAmount += chapterCreditTotal;
+  });
+
+  console.log('Total Credit Note Amount:', grandTotalCreditNoteAmount);
 
   const tableBody = document.getElementById("paymentsTableBody");
   tableBody.innerHTML = kittys
     .map((kitty, index) => {
       // Calculate Available Fund for each row
-      const availableFund = kitty.receivedPayments - kitty.totalExpenses + kitty.available_fund;
+      const availableFund = parseFloat(kitty.available_fund || 0);
       
       // Add to grand totals
       grandTotalAvailableFund += availableFund;
-      grandTotalReceivedPayments += kitty.receivedPayments;
-      grandTotalPaidExpenses += kitty.totalExpenses;
-      grandTotalPendingExpenses += kitty.pendingExpenses;
-      grandTotalPendingAmount += (kitty.totalPending || 0);  // Add to total pending amount
+      grandTotalPaidExpenses += kitty.totalExpenses || 0;
+      grandTotalPendingExpenses += kitty.pendingExpenses || 0;
 
-      console.log(`Chapter: ${kitty.chapter_name}`);
+      console.log(`Chapter ${index + 1}: ${kitty.chapter_name}`);
       console.log(`Available Fund: ₹${formatInIndianStyle(availableFund)}`);
-      console.log(`Received Payments: ₹${formatInIndianStyle(kitty.receivedPayments)}`);
-      console.log(`Paid Expenses: ₹${formatInIndianStyle(kitty.totalExpenses)}`);
-      console.log(`Pending Expenses: ₹${formatInIndianStyle(kitty.pendingExpenses)}`);
-      console.log(`Total Pending: ₹${formatInIndianStyle(kitty.totalPending || 0)}`);
+      console.log(`Running Total Available Fund: ₹${formatInIndianStyle(grandTotalAvailableFund)}`);
       console.log('------------------------');
 
       return `
@@ -243,9 +318,9 @@ function displayPayments(kittys) {
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.chapter_name || ""}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.memberCount || 0}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.available_fund || 0)}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ - </strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ - </strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(availableFund)}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.receivedPayments || 0)}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalPending || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalExpenses || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.pendingExpenses || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>-</strong></td>
@@ -254,36 +329,27 @@ function displayPayments(kittys) {
     })
     .join("");
 
-  // Log grand totals
-  console.log('Grand Totals:');
+  // Log final totals
+  console.log('=== Final Totals ===');
   console.log(`Total Available Fund: ₹${formatInIndianStyle(grandTotalAvailableFund)}`);
-  console.log(`Total Received Payments: ₹${formatInIndianStyle(grandTotalReceivedPayments)}`);
   console.log(`Total Paid Expenses: ₹${formatInIndianStyle(grandTotalPaidExpenses)}`);
   console.log(`Total Pending Expenses: ₹${formatInIndianStyle(grandTotalPendingExpenses)}`);
-  console.log(`Total Pending Amount: ₹${formatInIndianStyle(grandTotalPendingAmount)}`);
+  console.log(`Total Credit Note Amount: ₹${formatInIndianStyle(grandTotalCreditNoteAmount)}`);
 
-  // Update all boxes
-  document.getElementById('totalRaised').textContent = formatInIndianStyle(grandTotalAvailableFund || 0);
-  
-  const receivedPaymentsElement = document.querySelector('[id*="receivedPayments"]');
-  if (receivedPaymentsElement) {
-    receivedPaymentsElement.textContent = formatInIndianStyle(grandTotalReceivedPayments || 0);
+  // Update the Total Available Fund display
+  const totalAvailableFundElement = document.querySelector('.total_Available_amount');
+  if (totalAvailableFundElement) {
+    console.log('Updating Total Available Fund display...');
+    totalAvailableFundElement.textContent = `₹ ${formatInIndianStyle(grandTotalAvailableFund)}`;
+    console.log('Total Available Fund display updated successfully');
+  } else {
+    console.error('Total Available Fund element not found in DOM');
   }
 
-  const paidExpensesElement = document.querySelector('[id*="paidExpenses"]');
-  if (paidExpensesElement) {
-    paidExpensesElement.textContent = formatInIndianStyle(grandTotalPaidExpenses || 0);
-  }
-
-  const pendingExpensesElement = document.querySelector('[id*="pendingExpenses"]');
-  if (pendingExpensesElement) {
-    pendingExpensesElement.textContent = formatInIndianStyle(grandTotalPendingExpenses || 0);
-  }
-
-  const totalPendingAmountElement = document.getElementById('totalPendingAmount');
-  if (totalPendingAmountElement) {
-    totalPendingAmountElement.textContent = formatInIndianStyle(grandTotalPendingAmount || 0);
-  }
+  // Update expense totals displays
+  document.querySelector('.total_Expense_amount').textContent = `₹ ${formatInIndianStyle(grandTotalPaidExpenses)}`;
+  document.querySelector('.total_pExpense_amount').textContent = `₹ ${formatInIndianStyle(grandTotalPendingExpenses)}`;
+  document.querySelector('.total_Exnse_amount').textContent = `₹ ${formatInIndianStyle(grandTotalCreditNoteAmount)}`;
 }
 
 // Function to set selected region in dropdown
@@ -320,5 +386,46 @@ function setSelectedMonth(monthYear) {
                               .find(item => item.textContent === monthYear);
   if (selectedMonth) {
     selectedMonth.classList.add("active");
+  }
+}
+
+// Function to populate region filter dropdown
+function populateRegionFilter() {
+  try {
+    const regionFilter = document.getElementById('region-filter');
+    if (!regionFilter) {
+      console.error('Region filter element not found');
+      return;
+    }
+
+    // Fetch regions from API
+    fetch('https://bni-data-backend.onrender.com/api/regions')
+      .then(res => res.json())
+      .then(regions => {
+        console.log('Fetched regions:', regions);
+
+        // Clear existing options
+        regionFilter.innerHTML = '';
+
+        // Add regions to dropdown
+        regions.forEach(region => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.classList.add('dropdown-item');
+          a.href = '#';
+          a.textContent = region.region_name;
+          a.dataset.id = region.region_id;
+          
+          // Add click handler
+          a.addEventListener('click', handleRegionSelection);
+
+          li.appendChild(a);
+          regionFilter.appendChild(li);
+        });
+
+        console.log('Region filter populated successfully');
+      });
+  } catch (error) {
+    console.error('Error populating region filter:', error);
   }
 }

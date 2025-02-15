@@ -21,3 +21,7 @@ exports.generateInvoice = (req, res) => {
 exports.settledTransactions = (req, res) => {
     res.render('m-transactions/settled-transactions', { title: 'Settled Transactions' });
 };
+
+exports.newMemberPayment = (req, res) => {
+    res.render('m-transactions/new-member-payment', { title: 'New Member Payment' });
+};

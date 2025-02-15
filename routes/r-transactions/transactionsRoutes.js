@@ -8,6 +8,7 @@ router.get('/all-transactions', transactionsController.allTransactions);
 router.get('/new-invoice', transactionsController.addInvoice);
 router.get('/view-invoice', transactionsController.viewInvoice);
 router.get('/generate-invoice', transactionsController.generateInvoice);
+router.get('/new-member-payment', transactionsController.newMemberPayment);
 
 
 module.exports = router;

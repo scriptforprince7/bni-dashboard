@@ -1,0 +1,903 @@
+<!-- header -->
+<%- include('../partials/header') %> 
+
+<style>
+  /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+max-height: 200px; /* Adjust the height as needed */
+overflow-y: auto;  /* Enables vertical scrolling */
+overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+background-color: #888; /* Color of the scrollbar thumb */
+border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+background-color: #555; /* Darker shade on hover */
+}
+
+</style>
+<!-- end header -->
+<div id="loader" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+  <div class="spinner-border text-light" role="status">
+      <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<!-- sidebar -->
+
+<%- include('../partials/sidebar') %>
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);">Manage Transactions </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              View All Transactions
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+         
+        </h1>
+      </div>
+      <div class="btn-list">
+       
+       <a href="https://bni-data-backend.onrender.com/api/export-orders"><button
+        class="btn btn-primary btn-wave me-0"
+        style="background-color: #fb3e4e!important; border: #fb3e4e"
+      >
+        <i class="ri-share-forward-line me-1"></i> Export All
+        Orders
+      </button></a> 
+
+      <a href="https://bni-data-backend.onrender.com/api/export-transactions"><button
+        class="btn btn-primary btn-wave me-0"
+        style="background-color: #fb3e4e!important; border: #fb3e4e"
+      >
+        <i class="ri-share-forward-line me-1"></i> Export All
+        Transactions
+      </button></a>  
+
+    
+      </div>
+    </div>
+    <!-- End::page-header -->
+    <div class="col-xl-12">
+      <div class="row">
+        <div class="col-xxl-12 col-xl-12">
+          <div class="row" style="display: flex; justify-content: center;">
+            <div class="col-xxl-3">
+              <div
+                class="card custom-card overflow-hidden main-content-card"
+              >
+                <div
+                  class="card-body p-4"
+                  style="background-color: gainsboro"
+                >
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h1 class="mb-2 fs-12 cus">
+                        Total No of Transactions
+                      </h1>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span  id="no_of_transaction"
+                              >0</span>
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path
+                              stroke="none"
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect
+                              x="3"
+                              y="8"
+                              width="18"
+                              height="8"
+                              rx="2"
+                            />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xxl-3">
+              <div
+                class="card custom-card overflow-hidden main-content-card"
+              >
+                <div
+                  class="card-body p-4"
+                  style="background-color: gainsboro"
+                >
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h1 class="mb-2 fs-12 cus">
+                        Payment Received
+                      </h1>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span  id="settled_transaction"
+                              >0</span>
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3  border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path
+                              stroke="none"
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect
+                              x="3"
+                              y="8"
+                              width="18"
+                              height="8"
+                              rx="2"
+                            />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xxl-3">
+              <div
+                class="card custom-card overflow-hidden main-content-card"
+              >
+                
+              </div>
+            </div>
+              <div class="col-xxl-3" style="display: none;">
+              <div
+                class="card custom-card overflow-hidden main-content-card"
+              >
+                <div
+                  class="card-body p-4"
+                  style="background-color: gainsboro"
+                >
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h1 class="mb-2 fs-12 cus">
+                        Total Transactions Amount (in ₹)
+                      </h1>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span class="count-up" data-count="385"
+                              ></span
+                            >
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path
+                              stroke="none"
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect
+                              x="3"
+                              y="8"
+                              width="18"
+                              height="8"
+                              rx="2"
+                            />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xxl-3" style="display: none;" >
+              <div
+                class="card custom-card overflow-hidden main-content-card"
+              >
+                <div
+                  class="card-body p-4"
+                  style="background-color: gainsboro"
+                >
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h6 class="mb-2 fs-12 cus">
+                        Success Payments (in ₹)
+                      </h6>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span class="count-up" data-count="385"
+                              ></span
+                            >
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path
+                              stroke="none"
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect
+                              x="3"
+                              y="8"
+                              width="18"
+                              height="8"
+                              rx="2"
+                            />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-xxl-3" style="display: none;">
+              <div
+                class="card custom-card overflow-hidden main-content-card"
+              >
+                <div
+                  class="card-body p-4"
+                  style="background-color: gainsboro"
+                >
+                  <div class="d-flex align-items-start gap-3">
+                    <div class="flex-fill">
+                      <h6 class="mb-2 fs-12 cus">
+                        Pending Payments (in ₹)
+                      </h6>
+                      <div class="pb-0 mt-0">
+                        <div>
+                          <h5 class="fw-medium mb-1">
+                            <span class="count-up" data-count="385"
+                              >
+                              
+
+
+
+
+                              </span
+                            >
+                          </h5>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="main-card-icon primary border-3 border-primary border-opacity-50 rounded-circle"
+                    >
+                      <div
+                        class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                      >
+                        <div class="avatar avatar-sm svg-white">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="44"
+                            height="44"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="#d01f2f"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path
+                              stroke="none"
+                              d="M0 0h24v24H0z"
+                              fill="none"
+                            />
+                            <path
+                              d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                            />
+                            <path
+                              d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                            />
+                            <rect
+                              x="3"
+                              y="8"
+                              width="18"
+                              height="8"
+                              rx="2"
+                            />
+                            <circle cx="16.5" cy="12" r="1.5" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom: 5px;">
+      <div class="col-9"></div>
+      <div class="col-3">
+        <div class="custom-form-group">
+          <input
+            type="text"
+            id="searchChapterInput"
+            class="form-control"
+            placeholder="Search Payment.."
+            aria-label="Event : custom'id"
+            aria-describedby="button-addon2"
+          />
+          <a href="javascript:void(0);" class="text-muted custom-form-btn">
+            <i class="ti ti-search"></i>
+          </a>
+        </div>
+        
+      </div>
+    </div>
+    <!-- Start::row-1 -->
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div
+            class="card-header justify-content-between"
+            style="background-color: gainsboro !important"
+          >
+            <div class="card-title">All Transactions</div>
+            <div class="d-flex">
+              <!-- Region Filter -->
+              <div class="dropdown me-2">
+                <a href="javascript:void(0);"
+                   class="btn btn-sm btn-light text-muted dropdown-toggle"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="true">
+                  <i class="ti ti-sort-descending-2 me-1"></i> Region
+                </a>
+                <ul class="dropdown-menu" id="region-filter" role="menu">
+                  <!-- Items will be dynamically inserted here -->
+                </ul>
+              </div>
+            
+              <!-- Chapter Filter -->
+              <div class="dropdown me-2">
+                <a href="javascript:void(0);"
+                   class="btn btn-sm btn-light text-muted dropdown-toggle"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="true">
+                  <i class="ti ti-sort-descending-2 me-1"></i> Chapter
+                </a>
+                <ul class="dropdown-menu" id="chapter-filter" role="menu">
+                  <!-- Items will be dynamically inserted here -->
+                </ul>
+              </div>
+            
+              <!-- Month Filter -->
+              <div class="dropdown me-2">
+                <a href="javascript:void(0);"
+                   class="btn btn-sm btn-light text-muted dropdown-toggle"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="true">
+                  <i class="ti ti-sort-descending-2 me-1"></i> Month
+                </a>
+                <ul class="dropdown-menu" id="month-filter" role="menu">
+                  <!-- Items will be dynamically inserted here -->
+                </ul>
+              </div>
+            
+              <!-- Payment Type Filter -->
+              
+            
+              <!-- Payment Gateway Filter -->
+              
+            
+              <!-- Payment Status Filter -->
+             
+            
+              <!-- Payment Method Filter -->
+              <div class="dropdown me-2">
+                <a href="javascript:void(0);"
+                   class="btn btn-sm btn-light text-muted dropdown-toggle"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="true">
+                  <i class="ti ti-sort-descending-2 me-1"></i> Method
+                </a>
+                <ul class="dropdown-menu" id="payment-method-filter" role="menu">
+                  <!-- Items will be dynamically inserted here -->
+                </ul>
+              </div>
+            
+              <!-- Apply Filter Button -->
+              <button href=""
+                      id="apply-filters-btn"
+                      class="btn btn-sm btn-primary btn-wave waves-light">
+                Apply Filter
+              </button>
+              <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+                Reset Filter
+              </button></div>
+              
+              
+            </div>
+            
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table text-nowrap">
+                <thead>
+                  <tr>
+                    <th scope="col">S.No.</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Chapter</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Payment Method</th>
+                    
+                    
+                    <th scope="col">Settlement Status</th>
+                    <th scope="col">Transfer UTR</th>
+                    <th scope="col">Transfer Time</th>
+                    <th scope="col">IRN</th>
+                    <th scope="col">QR Code</th>
+                    <th scope="col">E-Invoice Status</th>
+                    <th scope="col">Joining Form</th>
+                    <th scope="col">Induction Status</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsTableBody">
+                  <!-- Placeholder for no transactions -->
+                  <tr id="no-transactions-row" style="display: none;">
+                    <td colspan="17" style="text-align: center; font-weight: bold;">Currently, there are no transactions available.</td>
+                  </tr>
+                  <tr class="invoice-list">
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer border-top-0">
+            <nav aria-label="Page navigation">
+              <ul class="pagination mb-0 float-end">
+                <li class="page-item disabled">
+                  <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item active">
+                  <a class="page-link" href="javascript:void(0);">1</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="javascript:void(0);">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+<!-- End::content  -->
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // Function to get URL parameter
+function getUrlParameter(name) {
+const urlParams = new URLSearchParams(window.location.search);
+return urlParams.get(name);
+}
+
+// Function to fetch all universal links
+async function fetchAllUniversalLinks() {
+try {
+  const response = await fetch('https://bni-data-backend.onrender.com/api/universalLinks');
+  if (!response.ok) {
+      throw new Error('Network response was not ok');
+  }
+  const links = await response.json();
+  console.log('Fetched Links:', links); // Log the fetched links
+  return links;
+} catch (error) {
+  console.error("Error fetching universal links:", error);
+}
+}
+
+// Function to update the page with the universal link name based on ulid
+async function updatePageWithLinkName(ulid) {
+const links = await fetchAllUniversalLinks();
+if (links) {
+  const matchedLink = links.find(link => link.ulid === ulid); // Assuming 'ulid' is the key in the response
+  if (matchedLink) {
+      displayLinkName(matchedLink.universal_link_name);
+  } else {
+      console.error('No link found for the given ulid:', ulid);
+  }
+}
+}
+
+// Function to update the page with the universal link name
+function displayLinkName(universalLinkName) {
+const pageTitleElement = document.querySelector('.page-title');
+pageTitleElement.textContent = `Manage ${universalLinkName}`;
+}
+
+// On page load
+document.addEventListener('DOMContentLoaded', () => {
+const ulid = getUrlParameter('ulid');
+
+if (ulid) {
+  updatePageWithLinkName(ulid);
+
+} else {
+  console.error('No ulid found in the URL');
+}
+});
+
+</script>
+
+<script src="../../assets/js/new-member-payment.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+// Function to fetch and update settlement data for a transaction
+async function fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks) {
+const orderId = transaction.order_id;
+console.log("hello--4444yyy---------------------------");
+
+const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+// if (!row) return; // Add null check for row
+const button = row.querySelector('.track-settlement');
+// if (!button) return; // Add null check for button
+const originalText = button.textContent;
+
+try {
+// Step 1: Send request to save settlement data
+const saveResponse = await fetch(
+  `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+  { method: 'GET' }
+);
+
+if (!saveResponse.ok) {
+  throw new Error('Failed to save settlement data.');
+}
+
+// Step 2: Fetch settlement data using cf_payment_id
+const cfPaymentId = transaction.cf_payment_id;
+const fetchResponse = await fetch(
+  `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+);
+
+if (!fetchResponse.ok) {
+  throw new Error('Failed to fetch settlement data.');
+}
+
+const { settlement } = await fetchResponse.json();
+
+// Step 3: Update the table row based on settlement data
+if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
+  fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+    .then(response => response.json())
+    .then(einvoiceData => {
+      const irnCell = row.querySelector(".irn");
+      const qrcodeCell = row.querySelector(".qrcode");
+      const btnCell = row.querySelector(".generate-invoice-btn");
+      const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
+      const orderId = settlement.order_id;
+      const orderr = orders.find((o) => o.order_id === orderId);
+      const transaction = transactions.find((t) => t.order_id === orderId);
+      const chapterName = chapterMap.get(settlement?.chapter_id) || "N/A";
+      const gatewayName = paymentGatewayMap.get(settlement?.payment_gateway_id) || "Unknown";
+      const universalLinkName = universalLinkMap.get(settlement?.universal_link_id) || "Not Applicable";
+
+      const invoiceData = {
+        orderId: orderr,
+        transactionId: transaction,
+        amount: transaction.payment_amount,
+        chapterName: chapterName,
+        gatewayName: gatewayName,
+        universalLinkName: universalLinkName,
+      };
+
+      // Display the IRN or a message if not available
+      irnCell.innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
+
+      // Check if both IRN and QR code are available
+      if (einvoiceData.irn && einvoiceData.qrcode) {
+        // Update the Generate E-Invoice button to View E-Invoice with link
+        const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+        const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+        btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+      }
+
+      // Check if QR code is already stored in localStorage for this order
+      if (localStorage.getItem(qrCodeKey)) {
+        // If QR code is stored, show the QR code image
+        qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+      } else if (einvoiceData.qrcode) {
+        // If QR code is available but not yet stored, show the button
+        qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+
+        // Add event listener to the button to display loading and then the QR code
+        row.querySelector(".generate-qr-btn").addEventListener("click", () => {
+          // Show "Loading..." message or spinner
+          qrcodeCell.innerHTML = "<em>Loading...</em>";
+
+          // Simulate loading for 3-4 seconds
+          setTimeout(() => {
+            // Generate the QR code using the qrcode.js library
+            const qrCodeData = einvoiceData.qrcode;
+
+            // Generate the QR code and set it as an image
+            QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+              if (err) {
+                console.error('Error generating QR Code:', err);
+                qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
+              } else {
+                // Store the generated QR code URL in localStorage
+                localStorage.setItem(qrCodeKey, url);
+
+                // Display the generated QR code
+                qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
+              }
+            });
+          }, 3000); // Delay for 3 seconds
+        });
+      } else {
+        qrcodeCell.innerHTML = "<em>Not Applicable</em>";
+      }
+    })
+    .catch(() => {
+      row.querySelector(".irn").innerHTML = "<em>Error Loading IRN</em>";
+      row.querySelector(".qrcode").innerHTML = "<em>Error Loading QR Code</em>";
+    });
+  button.textContent = 'Payment Settled ✔';
+  button.classList.remove('btn-success');
+  button.classList.add('btn-success');
+  button.setAttribute('disabled', 'true');
+  toastr.success('Payment successfully settled!');
+
+  let e_invoice = row.querySelector('.generate-invoice-btn');
+  e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>`;
+
+  // Add UTR ID cell dynamically if it doesn't exist
+  let utrCell = row.querySelector('.utr-cell');
+  let settlementTime = row.querySelector('.settlement-time');
+  if (!utrCell) {
+    utrCell = document.createElement('td');
+    utrCell.classList.add('utr-cell');
+    utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+    row.appendChild(utrCell);
+  } else {
+    utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+  }
+  if (!settlementTime) {
+    settlementTime = document.createElement('td');
+    settlementTime.classList.add('utr-cell');
+
+    // Format the transfer time
+    const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+      dateStyle: 'medium', // Example: Jul 25, 2021
+      timeStyle: 'short', // Example: 7:27 AM
+    });
+
+    settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+    row.appendChild(settlementTime);
+  } else {
+    // Format the transfer time
+    const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+      dateStyle: 'medium', // Example: Jul 25, 2021
+      timeStyle: 'short', // Example: 7:27 AM
+    });
+
+    settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+  }
+
+} else {
+  toastr.info('Settlement in process. Please track after some time.');
+  button.textContent = originalText; // Restore button text
+  button.disabled = false; // Re-enable the button
+}
+} catch (error) {
+console.error('Error tracking settlement:', error.message);
+toastr.error('An error occurred while tracking the settlement.');
+button.textContent = originalText; // Restore button text
+button.disabled = false; // Re-enable the button
+}
+}
+
+// Function to automatically trigger track settlement on page load or refresh
+async function autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks) {
+for (const transaction of transactions) {
+const orderId = transaction.order_id;
+console.log("hello-----------------------------");
+const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+// if (!row) continue; // Add null check for row
+const button = row.querySelector('.track-settlement');
+// if (!button) continue; // Add null check for button
+
+// Check if all required fields are present
+const utrCell = row.querySelector('.utr-cell')?.textContent.trim() || 'Not Available';
+const settlementTimeCell = row.querySelector('.settlement-time')?.textContent.trim() || 'Not Available';
+const irnCell = row.querySelector('.irn')?.textContent.trim() || 'Not Applicable';
+const qrcodeCell = row.querySelector('.qrcode')?.textContent.trim() || 'Not Applicable';
+
+if (utrCell !== 'Not Available' && settlementTimeCell !== 'Not Available' && irnCell !== 'Not Applicable' && qrcodeCell !== 'Not Applicable') {
+// if((utrCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (settlementTimeCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (irnCell.textContent.trim()==="NotAvailable" || null ||undefined ) && qrcodeCell.querySelector('img')){
+  // All required fields are present, disable the button
+  button.textContent = 'Payment Settled ✔';
+  button.classList.add('btn-success');
+  button.setAttribute('disabled', 'true');
+} else {
+  // Fetch and update settlement data
+  await fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks);
+}
+}
+}
+
+// On page load
+document.addEventListener('DOMContentLoaded', async () => {
+// ...existing code...
+
+// Fetch data from all necessary endpoints
+const [
+ordersResponse,
+transactionsResponse,
+chaptersResponse,
+paymentGatewayResponse,
+universalLinksResponse,
+regionsResponse,
+paymentTypeResponse,
+] = await Promise.all([
+fetch("https://bni-data-backend.onrender.com/api/allOrders"),
+fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
+fetch("https://bni-data-backend.onrender.com/api/chapters"),
+fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
+fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+fetch("https://bni-data-backend.onrender.com/api/regions"),
+fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+]);
+
+const orders = await ordersResponse.json();
+const transactions = await transactionsResponse.json();
+const chapters = await chaptersResponse.json();
+const paymentGateways = await paymentGatewayResponse.json();
+const universalLinks = await universalLinksResponse.json();
+const regions = await regionsResponse.json();
+const paymentType = await paymentTypeResponse.json();
+
+// ...existing code...
+
+// Automatically trigger track settlement on page load or refresh
+await autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks);
+
+// ...existing code...
+});
+</script>
+
+
+
+<%- include('../partials/footer') %>
+
+
+

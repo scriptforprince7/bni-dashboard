@@ -208,6 +208,33 @@ function updateSelectAllStates() {
 
 // Modify the existing populateFormFields function
 const populateFormFields = (data) => {
+    console.log('🔄 Starting to populate form fields with data:', data);
+
+    // Handle logo preview
+    if (data.region_logo) {
+        console.log('🖼️ Found logo filename:', data.region_logo);
+        const preview = document.getElementById('preview');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        // Construct the URL if not provided in response
+        const logoUrl = data.region_logo_url || `http://localhost:5000/api/uploads/regionLogos/${data.region_logo}`;
+        console.log('🔗 Using logo URL:', logoUrl);
+        
+        if (preview && imagePreview) {
+            preview.src = logoUrl;
+            imagePreview.style.display = 'block';
+            console.log('✅ Logo preview updated successfully');
+        } else {
+            console.warn('⚠️ Preview elements not found in DOM');
+        }
+    } else {
+        console.log('ℹ️ No logo found for this region');
+        const imagePreview = document.getElementById('imagePreview');
+        if (imagePreview) {
+            imagePreview.style.display = 'none';
+        }
+    }
+
     // Standard fields
     document.querySelector("#region_name").value = data.region_name || "Not Found";
     document.querySelector("#contact_person").value = data.contact_person || "Not Found";
@@ -215,11 +242,6 @@ const populateFormFields = (data) => {
     document.querySelector("#email_id").value = data.email_id || "Not Found";
     document.querySelector("#mission").value = data.mission || "Not Found";
     document.querySelector("#vision").value = data.vision || "Not Found";
-
-    const logo = document.querySelector("#region_logo");
-    if (logo) {
-        logo.src = data.region_logo || "";
-    }
 
     document.querySelector("#region_status").value = data.region_status || "null";
     document.querySelector("#one_time_registration_fee").value = data.one_time_registration_fee || "Not Found";
@@ -486,16 +508,28 @@ const validateRegionForm = () => {
     return errors;
 };
 
-// Function to collect form data and prepare it for the update
+// Add this function to handle form data collection
 const collectFormData = () => {
-    const regionData = {
+    console.log('📝 Starting to collect form data');
+    const formData = new FormData();
+
+    // Handle file upload
+    const logoInput = document.querySelector("#region_logo");
+    if (logoInput && logoInput.files.length > 0) {
+        console.log('🖼️ New logo file detected:', logoInput.files[0].name);
+        formData.append('region_logo', logoInput.files[0]);
+    } else {
+        console.log('ℹ️ No new logo file selected');
+    }
+
+    // Add other form fields
+    const fields = {
         region_name: document.querySelector("#region_name").value,
         contact_person: document.querySelector("#contact_person").value,
         contact_number: document.querySelector("#contact_number").value,
         email_id: document.querySelector("#email_id").value,
         mission: document.querySelector("#mission").value,
         vision: document.querySelector("#vision").value,
-        region_logo: document.querySelector("#region_logo").src,  // Assuming the logo URL is in the src
         region_status: document.querySelector("#region_status").value,
         one_time_registration_fee: document.querySelector("#one_time_registration_fee").value,
         one_year_fee: document.querySelector("#one_year_fee").value,
@@ -522,66 +556,259 @@ const collectFormData = () => {
         accolades_config: Array.from(document.querySelectorAll('input[name="accolades[]"]:checked')).map(checkbox => checkbox.value),
     };
 
-    return regionData;
-};
-// Function to send the updated data to the backend after confirmation
-const updateRegionData = async () => {
+    // Append all fields to FormData
+    for (const [key, value] of Object.entries(fields)) {
+        formData.append(key, value);
+    }
 
-    // Validate the form inputs
-    const errors = validateRegionForm();
-    if (errors.length > 0) {
-        Swal.fire("Validation Errors", errors.join("<br>"), "error");
+    console.log('✅ Form data collected successfully');
+    return formData;
+};
+
+// Update the updateRegionData function
+const updateRegionData = async () => {
+    console.log('🔄 Starting region update process');
+    
+    try {
+        showLoader();
+        const formData = collectFormData();
+        
+        console.log('🚀 Sending update request to server');
+        const response = await fetch(`http://localhost:5000/api/updateRegion/${region_id}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Update successful:', result);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Region updated successfully',
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => {
+            window.location.href = '/r/manage-region';
+        });
+
+    } catch (error) {
+        console.error('❌ Error updating region:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to update region. Please try again.'
+        });
+    } finally {
+        hideLoader();
+    }
+};
+
+// Add preview functionality
+function previewImage(event) {
+    console.log('🔄 Starting image preview process');
+    const file = event.target.files[0];
+    const preview = document.getElementById('preview');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (!preview || !imagePreview) {
+        console.error('❌ Preview elements not found');
+        return;
+    }
+    
+    if (file) {
+        console.log('📁 File selected:', file.name, 'Type:', file.type, 'Size:', file.size);
+        
+        // Validate file type
+        if (!file.type.match('image.*')) {
+            console.error('❌ Invalid file type');
+            toastr.error('Please select an image file (JPG, JPEG, or PNG)');
+            event.target.value = '';
+            return;
+        }
+
+        // Validate file size (2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            console.error('❌ File too large');
+            toastr.error('File size should not exceed 2MB');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            console.log('✅ Image loaded successfully');
+            preview.src = e.target.result;
+            imagePreview.style.display = 'block';
+        };
+        reader.onerror = function(e) {
+            console.error('❌ Error reading file:', e);
+            toastr.error('Error loading image preview');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImage() {
+    console.log('🗑️ Removing current logo image');
+    const fileInput = document.getElementById('region_logo');
+    const preview = document.getElementById('preview');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (fileInput) fileInput.value = '';
+    if (preview) preview.src = '';
+    if (imagePreview) imagePreview.style.display = 'none';
+    
+    console.log('✅ Image removed successfully');
+}
+
+// Add this at the beginning of your file
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 DOM Loaded - Setting up Edit Region functionality');
+    
+    const updateButton = document.getElementById('updateRegionBtn');
+    if (!updateButton) {
+        console.error('❌ Update Region button not found!');
         return;
     }
 
+    console.log('✅ Found Update Region button, adding click listener');
     
-    // Ask for confirmation using SweetAlert
-    const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: "You are about to edit the region details!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, update it!',
-        cancelButtonText: 'No, cancel!',
-    });
+    updateButton.addEventListener('click', async function(e) {
+        e.preventDefault();
+        console.log('🔄 Edit Region button clicked');
 
-    if (result.isConfirmed) {
-        const regionData = collectFormData();
-        console.log(regionData); // Verify the data before sending it
+        // Validate the form inputs
+        const errors = validateRegionForm();
+        if (errors.length > 0) {
+            console.log('❌ Validation errors found:', errors);
+            Swal.fire({
+                title: "Validation Errors",
+                html: errors.join("<br>"),
+                icon: "error"
+            });
+            return;
+        }
 
         try {
-            showLoader(); // Show the loader when sending data
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateRegion/${region_id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(regionData),
+            // Show confirmation dialog
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "You want to update this region?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, update it!'
             });
 
-            if (response.ok) {
-                const updatedRegion = await response.json();
-                console.log('Region updated successfully:', updatedRegion);
-                Swal.fire('Updated!', 'The region details have been updated.', 'success');
-                setTimeout(() => {
-                    window.location.href = '/r/manage-region';  // Redirect to the region page
-                }, 1200);
+            if (result.isConfirmed) {
+                console.log('✅ User confirmed update');
+                showLoader();
+
+                // Create FormData object
+                const formData = new FormData();
+                
+                // Add file if it exists
+                const logoInput = document.getElementById('region_logo');
+                if (logoInput && logoInput.files.length > 0) {
+                    console.log('📁 Adding new logo file:', logoInput.files[0].name);
+                    formData.append('region_logo', logoInput.files[0]);
+                }
+
+                // Add all other form fields
+                const fields = {
+                    region_name: document.getElementById('region_name').value,
+                    contact_person: document.getElementById('contact_person').value,
+                    contact_number: document.getElementById('contact_number').value,
+                    email_id: document.getElementById('email_id').value,
+                    mission: document.getElementById('mission').value,
+                    vision: document.getElementById('vision').value,
+                    region_status: document.getElementById('region_status').value,
+                    one_time_registration_fee: document.getElementById('one_time_registration_fee').value,
+                    one_year_fee: document.getElementById('one_year_fee').value,
+                    two_year_fee: document.getElementById('two_year_fee').value,
+                    five_year_fee: document.getElementById('five_year_fee').value,
+                    late_fees: document.getElementById('late_fees').value,
+                    country: document.getElementById('region_country').value,
+                    state: document.getElementById('state').value,
+                    city: document.getElementById('city').value,
+                    street_address_line_1: document.getElementById('street_address_line_1').value,
+                    street_address_line_2: document.getElementById('street_address_line_2').value,
+                    postal_code: document.getElementById('postal_code').value,
+                    social_facebook: document.getElementById('social_facebook').value,
+                    social_instagram: document.getElementById('social_instagram').value,
+                    social_linkedin: document.getElementById('social_linkedin').value,
+                    social_youtube: document.getElementById('social_youtube').value,
+                    website_link: document.getElementById('website_link').value,
+                    date_of_publishing: document.getElementById('date_of_publishing').value,
+                    region_launched_by: document.getElementById('region_launched_by').value,
+                };
+
+                // Append all fields to FormData
+                for (const [key, value] of Object.entries(fields)) {
+                    formData.append(key, value);
+                }
+
+                // Handle arrays (checkboxes)
+                const selectedDays = Array.from(document.querySelectorAll('input[name="chapterDays[]"]:checked')).map(cb => cb.value);
+                formData.append('days_of_chapter', JSON.stringify(selectedDays));
+
+                const selectedStatus = Array.from(document.querySelectorAll('input[name="chapterStatus[]"]:checked')).map(cb => cb.value);
+                formData.append('chapter_status', JSON.stringify(selectedStatus));
+
+                const selectedTypes = Array.from(document.querySelectorAll('input[name="chapterType[]"]:checked')).map(cb => cb.value);
+                formData.append('chapter_type', JSON.stringify(selectedTypes));
+
+                const selectedAccolades = Array.from(document.querySelectorAll('input[name="accolades[]"]:checked')).map(cb => cb.value);
+                formData.append('accolades_config', JSON.stringify(selectedAccolades));
+
+                console.log('🚀 Sending update request for region:', region_id);
+
+                const response = await fetch(`http://localhost:5000/api/updateRegion/${region_id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ Region updated successfully:', data);
+
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Region updated successfully',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '/r/manage-region';
+                });
+
             } else {
-                const errorResponse = await response.json();
-                console.error('Failed to update region:', errorResponse);
-                Swal.fire('Error!', `Failed to update region: ${errorResponse.message}`, 'error');
+                console.log('🚫 Update cancelled by user');
             }
         } catch (error) {
-            console.error('Error updating region:', error);
-            Swal.fire('Error!', 'Failed to update region. Please try again.', 'error');
+            console.error('❌ Error updating region:', error);
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to update region. Please try again.',
+                icon: 'error'
+            });
         } finally {
-            hideLoader(); // Hide the loader once the request is complete
+            hideLoader();
         }
-    } else {
-        console.log('Update canceled');
-    }
-};
-// Event listener to trigger the update
-document.getElementById("updateRegionBtn").addEventListener("click", updateRegionData);
+    });
+
+    // Initialize other functionality
+    setupSelectAllHandlers();
+    fetchRegionDetails();
+});
 
 

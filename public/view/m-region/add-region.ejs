@@ -395,15 +395,27 @@
                         ></textarea>
                       </div>
                       <div class="col-xl-6">
-                        <label for="region_logo" class="form-label"
-                          >Region logo <span style="color: black;">(jpg, png, jpeg)</span></label
-                        >
-                        <input
-                          type="file"
-                          class="form-control"
-                          id="region_logo"
-                          name="region_logo"
-                        />
+                        <label for="region_logo" class="form-label">Region Logo</label>
+                        <div class="image-upload-container">
+                          <input
+                            type="file"
+                            class="form-control"
+                            id="region_logo"
+                            name="region_logo"
+                            accept="image/jpeg,image/png,image/jpg"
+                            onchange="previewImage(this)"
+                          />
+                          <div id="imagePreview" class="mt-2" style="display: none;">
+                            <img id="preview" src="" alt="Logo Preview" style="max-width: 200px; max-height: 200px;" />
+                            <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeImage()">
+                              Remove Image
+                            </button>
+                          </div>
+                        </div>
+                        <label
+                          for="product-cost-add"
+                          class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                        ><span style="color: red">*Upload PNG, JPG, or JPEG files only</span></label>
                       </div>
                       <div class="col-xl-6">
                         <label for="region_status" class="form-label">Region Status</label>
@@ -1106,66 +1118,99 @@
 <script>
   document.getElementById("addRegionForm").addEventListener("submit", async function (event) {
     event.preventDefault();
-    
-    const formData = new FormData(this);
-    const formDataObj = {};
-    
-    // Initialize arrays properly
-    formDataObj['chapterDays'] = [];
-    formDataObj['chapterStatus'] = [];
-    formDataObj['chapterType'] = [];
-    formDataObj['accolades_config'] = [];
-  
-    console.log('Starting form data collection...');
+    console.log('🚀 Starting form submission');
 
-    // Collect form data
-    formData.forEach((value, key) => {
-        console.log(`Processing: ${key} = ${value}`);
-        
-        // Handle arrays
-        if (key === 'chapterDays[]') {
-            formDataObj['chapterDays'].push(value);
-        } else if (key === 'chapterStatus[]') {
-            // Ensure chapter status is added as array element
-            formDataObj['chapterStatus'].push(value.toString());
-            console.log('Added chapter status:', value);
-        } else if (key === 'chapterType[]') {
-            formDataObj['chapterType'].push(value);
-        } else if (key === 'accolades[]') {
-            formDataObj['accolades_config'].push(value);
-        } else {
-            formDataObj[key] = value;
-        }
+    // Simple Social Media Validation
+    const socialFacebook = document.getElementById('social_facebook').value.trim();
+    const socialInstagram = document.getElementById('social_instagram').value.trim();
+    const socialLinkedin = document.getElementById('social_linkedin').value.trim();
+    const socialYoutube = document.getElementById('social_youtube').value.trim();
+
+    if (!socialFacebook || !socialInstagram || !socialLinkedin || !socialYoutube) {
+      toastr.error('Please fill all social media handles');
+      return;
+    }
+
+    // Create FormData object from the form
+    const formData = new FormData();
+
+    // Add file if selected
+    const fileInput = document.getElementById('region_logo');
+    if (fileInput && fileInput.files[0]) {
+      console.log('📁 Adding logo file:', fileInput.files[0].name);
+      formData.append('region_logo', fileInput.files[0]);
+    } else {
+      console.warn('⚠️ No logo file selected');
+      toastr.error('Please select a region logo');
+      return;
+    }
+
+    // Add all form fields
+    const formFields = {
+      region_name: document.getElementById('region_name').value,
+      contact_person: document.getElementById('contact_person').value,
+      contact_number: document.getElementById('contact_number').value,
+      email_id: document.getElementById('email_id').value,
+      mission: document.getElementById('mission').value,
+      vision: document.getElementById('vision').value,
+      region_status: document.getElementById('region_status').value,
+      one_time_registration_fee: document.getElementById('one_time_registration_fee').value,
+      one_year_fee: document.getElementById('one_year_fee').value,
+      two_year_fee: document.getElementById('two_year_fee').value,
+      five_year_fee: document.getElementById('five_year_fee').value,
+      late_fees: document.getElementById('late_fees').value,
+      country: document.getElementById('country').value,
+      state: document.getElementById('state').value,
+      city: document.getElementById('city').value,
+      street_address_line_1: document.getElementById('street_address_line_1').value,
+      street_address_line_2: document.getElementById('street_address_line_2').value,
+      postal_code: document.getElementById('postal_code').value,
+      social_facebook: document.getElementById('social_facebook').value,
+      social_instagram: document.getElementById('social_instagram').value,
+      social_linkedin: document.getElementById('social_linkedin').value,
+      social_youtube: document.getElementById('social_youtube').value,
+      website_link: document.getElementById('website_link').value,
+      date_of_publishing: document.getElementById('date_of_publishing').value,
+      region_launched_by: document.getElementById('region_launched_by').value,
+    };
+
+    // Add all form fields to FormData
+    Object.entries(formFields).forEach(([key, value]) => {
+      formData.append(key, value || '');
     });
 
-    // Log the arrays before sending
-    console.log('Chapter Status Array:', formDataObj['chapterStatus']);
-    console.log('Chapter Type Array:', formDataObj['chapterType']);
-    console.log('Complete form data:', JSON.stringify(formDataObj, null, 2));
+    // Handle arrays (checkboxes)
+    const chapterDays = Array.from(document.querySelectorAll('input[name="chapterDays[]"]:checked')).map(cb => cb.value);
+    const chapterStatus = Array.from(document.querySelectorAll('input[name="chapterStatus[]"]:checked')).map(cb => cb.value);
+    const chapterType = Array.from(document.querySelectorAll('input[name="chapterType[]"]:checked')).map(cb => cb.value);
+    const accolades = Array.from(document.querySelectorAll('input[name="accolades[]"]:checked')).map(cb => cb.value);
+
+    formData.append('chapterDays', JSON.stringify(chapterDays));
+    formData.append('chapterStatus', JSON.stringify(chapterStatus));
+    formData.append('chapterType', JSON.stringify(chapterType));
+    formData.append('accolades_config', JSON.stringify(accolades));
 
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/regions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formDataObj),
-        });
+      console.log('📤 Sending data to server');
+      const response = await fetch('http://localhost:5000/api/regions', {
+        method: 'POST',
+        body: formData
+      });
 
-        const responseData = await response.json();
-        console.log('Server Response:', responseData);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        if (response.ok) {
-            toastr.success('Region added successfully!');
-            setTimeout(() => {
-                window.location.href = '/r/manage-region';
-            }, 1200);
-        } else {
-            toastr.error(responseData.message || 'Error adding region');
-        }
+      const data = await response.json();
+      console.log('✅ Server response:', data);
+
+      toastr.success('Region added successfully!');
+      setTimeout(() => {
+        window.location.href = '/r/manage-region';
+      }, 1200);
     } catch (error) {
-        console.error('Error submitting form:', error);
-        toastr.error('An error occurred while processing your request');
+      console.error('❌ Error submitting form:', error);
+      toastr.error('Failed to add region. Please try again.');
     }
   });
 </script>
@@ -1199,3 +1244,92 @@
   });
 </script>
 <%- include('../partials/footer') %>
+
+<script>
+// Add these functions after your existing script
+function previewImage(input) {
+  console.log('📸 Preview image triggered');
+  const preview = document.getElementById('preview');
+  const previewContainer = document.getElementById('imagePreview');
+  
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    console.log('📁 Selected file:', file.name, 'Type:', file.type, 'Size:', file.size);
+    
+    // Validate file type
+    if (!file.type.match('image/jpeg|image/jpg|image/png')) {
+      console.error('❌ Invalid file type');
+      toastr.error('Please select a valid image file (JPG, JPEG, or PNG)');
+      input.value = '';
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ File too large');
+      toastr.error('File size should be less than 5MB');
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      console.log('🖼️ Image loaded successfully');
+      preview.src = e.target.result;
+      previewContainer.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeImage() {
+  console.log('🗑️ Removing image');
+  const input = document.getElementById('region_logo');
+  const preview = document.getElementById('preview');
+  const previewContainer = document.getElementById('imagePreview');
+  
+  input.value = '';
+  preview.src = '';
+  previewContainer.style.display = 'none';
+}
+
+// Modify your existing form submission code
+document.getElementById("addRegionForm").addEventListener("submit", async function (event) {
+  event.preventDefault();
+  console.log('🚀 Starting form submission');
+  
+  const formData = new FormData(this);
+  
+  // Handle file upload
+  const fileInput = document.getElementById('region_logo');
+  if (fileInput.files[0]) {
+    console.log('📎 Adding file to form data:', fileInput.files[0].name);
+    formData.append('region_logo', fileInput.files[0]);
+  }
+  
+  try {
+    console.log('📤 Sending data to server');
+    const response = await fetch('/api/regions', {
+      method: 'POST',
+      body: formData // Send as FormData instead of JSON
+    });
+
+    const responseData = await response.json();
+    console.log('📥 Server response:', responseData);
+
+    if (response.ok) {
+      console.log('✅ Region added successfully');
+      toastr.success('Region added successfully!');
+      setTimeout(() => {
+        window.location.href = '/r/manage-region';
+      }, 1200);
+    } else {
+      console.error('❌ Server error:', responseData);
+      toastr.error(responseData.message || 'Error adding region');
+    }
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    
+  }
+});
+</script>
