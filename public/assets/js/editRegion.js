@@ -22,7 +22,7 @@ let accoladeMap = {};
 const fetchRegionDetails = async () => {
     showLoader();
     try {
-        const response = await fetch(`https://bni-data-backend.onrender.com/api/getRegions/${region_id}`);
+        const response = await fetch(`http://localhost:5000/api/getRegion/${region_id}`);
         if (!response.ok) {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
