@@ -5,6 +5,7 @@ let selectedPgStatus = null;
 let selectedMethod = null;
 let total_pending_expense = 0;
 let total_paid_expense = 0;
+let pendingAmount = 0;
 
 // Function to populate Gateway filter dropdown
 async function populateGatewayFilter() {
@@ -293,8 +294,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const { chapter_id: chapterId, available_fund } = loggedInChapter;
         console.log('Chapter details extracted:', { chapter_id: chapterId, available_fund });
-
         console.log('Logged-in chapter ID:', chapterId);
+
+        // Add calculation here
+        console.log('📊 Starting member opening balance calculation');
+        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const allMembers = await membersResponse.json();
+        const chapterMembersWithBalance = allMembers.filter(member => member.chapter_id === chapterId);
+        console.log('👥 Found members for chapter:', chapterMembersWithBalance.length);
+
+        chapterMembersWithBalance.forEach(member => {
+            const balance = parseFloat(member.meeting_opening_balance) || 0;
+            console.log(`💰 Member ${member.member_first_name}: Balance = ${balance}`);
+            pendingAmount += balance;
+        });
+
+        console.log('💎 Total Pending Amount:', pendingAmount);
+        document.querySelector('#totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
+
+        // Continue with existing code
         const expenseResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
         const expenses = await expenseResponse.json();
         console.log("expense", expenses);
@@ -344,15 +362,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log('Kitty Payment Details:', { total_bill_amount, bill_type, description, total_weeks, kitty_bill_id });
 
         // Step 4: Fetch members count using chapter_id
-        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
-        const members = await membersResponse.json();
-        const chapterMembers = members.filter(member => member.chapter_id === chapterId);
-        const memberCount = chapterMembers.length;
-        console.log("chapter member",chapterMembers);
+        const memberCount = chapterMembersWithBalance.length;
+        console.log("chapter member",chapterMembersWithBalance);
         // add 18% gst on total_bill_amount
         const gst = total_bill_amount * 0.18;
         console.log('GST:', gst);
-        let amountWithGst = parseFloat(total_bill_amount) + parseFloat(gst);
+        let amountWithGst = parseFloat(total_bill_amount)
 
         console.log('Number of members:', memberCount);
         if (memberCount===0) {
@@ -407,12 +422,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
             document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
-            document.getElementById('totalKittyExpense').textContent =  indianCurrencyFormatter.format(totalAmountRaised);
+            
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
-
-            
-
 
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
@@ -465,7 +477,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Format date
             const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : 'N/A';
             // find current member
-            currentChapterMember = chapterMembers.find(member => member.member_email_address === order.customer_email);
+            currentChapterMember = chapterMembersWithBalance.find(member => member.member_email_address === order.customer_email);
             console.log('Current Member:', currentChapterMember);
             console.log("current member id:",currentChapterMember.member_id);
             console.log("current chapter id:",currentChapterMember.chapter_id);
