@@ -389,16 +389,40 @@
                           rows="3"
                         ></textarea>
                       </div>
-                      <div class="col-xl-6">
-                        <label for="region_logo" class="form-label"
-                          >Region logo <span style="color: red;">(jpg, png, jpeg)</span></label
-                        >
-                        <input
-                          type="file"
-                          class="form-control"
-                          id="region_logo"
-                          name="region_logo"
-                        />
+                      <div class="col-xl-12">
+                        <label for="region_logo" class="form-label">
+                            <span style="font-size: 15px"><b>Region Logo</b></span>
+                        </label>
+                        <div class="row">
+                            <div class="col-xl-6">
+                                <input 
+                                    type="file" 
+                                    class="form-control" 
+                                    id="region_logo" 
+                                    name="region_logo"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    onchange="previewImage(event)"
+                                />
+                                <small class="text-muted">Supported formats: JPG, JPEG, PNG (Max size: 2MB)</small>
+                            </div>
+                            <div class="col-xl-6">
+                                <div id="imagePreview" style="display: none; text-align: center;">
+                                    <img id="preview" 
+                                         src="" 
+                                         alt="Region Logo Preview" 
+                                         style="max-width: 200px; max-height: 200px; margin-bottom: 10px;" 
+                                         class="img-fluid" 
+                                    />
+                                    <br>
+                                    <button type="button" 
+                                            class="btn btn-danger btn-sm" 
+                                            onclick="removeImage()"
+                                    >
+                                        Remove Image
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                       </div>
                       <div class="col-xl-6">
                         <label for="region_status" class="form-label">Region Status</label>

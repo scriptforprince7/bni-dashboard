@@ -246,7 +246,7 @@ th {
                                     <option value="yearly">Yearly</option>
                                 </select>
                               </div>
-                            <div class="col-xl-2">
+                            <div class="col-xl-1">
                                 <label for="contact_person" class="form-label"
                                   >Description
                                 </label>
@@ -260,7 +260,7 @@ th {
                                   style="background-color: rgb(239, 235, 235);"
                                 />
                               </div>
-                              <div class="col-xl-2">
+                              <div class="col-xl-1">
                                 <label for="total_weeks" class="form-label"
                                   >Total Weeks
                                 </label>
@@ -302,6 +302,17 @@ th {
                                   placeholder="..."
                                 />
                               </div>
+                          <div class="col-xl-2">
+                            <label for="penalty_amount" class="form-label">Penalty Amount</label>
+                            <input
+                              type="text"
+                              class="form-control penalty_amount"
+                              id="penalty_amount"
+                              name="penalty_amount" 
+                              placeholder="₹0/-"
+                              style="background-color: rgb(239, 235, 235);"
+                            />
+                          </div>
                             
                           </div>
                         </div>
@@ -347,6 +358,7 @@ th {
                           <th scope="col">Total Weeks</th>
                           <th scope="col">Total Amount</th>
                           <th scope="col">Due Date</th>
+                          <th scope="col">Penalty Amount</th>
                           <th scope="col">Active Bill</th>
                           <!-- <th scope="col" >Actions</th> -->
                         </tr>

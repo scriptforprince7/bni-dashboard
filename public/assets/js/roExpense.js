@@ -6,7 +6,7 @@ let currentPage = 1; // For pagination
 let expenseTypes = []; // Store expense types mapping
 
 // Define base URL at the top of your file
-const BILL_BASE_URL = 'http://localhost:5000';
+const BILL_BASE_URL = 'https://bni-data-backend.onrender.com';
 
 // Function to show the loader
 function showLoader() {

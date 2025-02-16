@@ -203,7 +203,7 @@ th {
                                     <option value="yearly">Yearly</option>
                                 </select>
                               </div>
-                            <div class="col-xl-2">
+                            <div class="col-xl-1">
                                 <label for="contact_person" class="form-label">Description</label>
                                 <input
                                   type="text"
@@ -215,7 +215,7 @@ th {
                                   style="background-color: rgb(239, 235, 235);"
                                 />
                               </div>
-                              <div class="col-xl-2">
+                              <div class="col-xl-1">
                                 <label for="total_weeks" class="form-label">Total Weeks</label>
                                 <input
                                   type="text"
@@ -249,6 +249,17 @@ th {
                                   id="due_date"
                                   name="due_date"
                                   placeholder="Select due date"
+                                />
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="penalty_amount" class="form-label">Penalty Amount</label>
+                                <input
+                                  type="text"
+                                  class="form-control penalty_amount"
+                                  id="penalty_amount"
+                                  name="penalty_amount" 
+                                  placeholder="₹0.00"
+                                  style="background-color: rgb(239, 235, 235);"
                                 />
                               </div>
                             
@@ -509,6 +520,7 @@ th {
                           <th scope="col">Total Weeks</th>
                           <th scope="col">Total Amount</th>
                           <th scope="col">Due Date</th>
+                          <th scope="col">Penalty Amount</th>
                           <th scope="col" >Actions</th>
                         </tr>
                       </thead>
@@ -591,7 +603,8 @@ async function fetchKittyPayments() {
                 <td><b>${payment.total_weeks || 'N/A'}</b></td>
                 <td><b>₹${payment.total_bill_amount || 'N/A'}</b></td>
                 <td><b>${payment.kitty_due_date ? formatDate(payment.kitty_due_date) : 'N/A'}</b></td>
-                <td>
+                <td><b>₹${payment.penalty_fee || 'N/A'}</b></td>
+                <td><b>
         <span class="badge bg-danger text-light delete-btn" data-kitty-id="${payment.kitty_bill_id}">
      Delete
     </span>
