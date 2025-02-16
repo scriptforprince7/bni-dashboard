@@ -170,6 +170,12 @@
                             <div class="col-xl-4 col-md-4">
                               <label class="form-label" for="amount">Amount</label>
                               <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" required />
+                              <div class="form-check mt-2">
+                                  <input class="form-check-input" type="checkbox" id="withGST" name="withGST">
+                                  <label class="form-check-label" for="withGST">
+                                      Include GST
+                                  </label>
+                              </div>
                             </div>
 
                             <div class="col-xl-4 col-md-4">
@@ -201,8 +207,17 @@
                               <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" required />
                             </div>
                           </div>
+                          <div class="col-xl-4">
+                            <label for="payment_mode" class="form-label">Mode of Payment</label>
+                            <select class="form-control" name="payment_mode" id="payment_mode" required>
+                              <option value="">Select Payment Mode</option>
+                              <option value="cash">Cash</option>
+                              <option value="online">Online</option>
+                            </select>
+                          </div>
+                        </div>
                         </br>
-                          <button type="button" id="addExpenseButton" class="btn btn-success me-2 mb-2 mb-sm-0">Add Expense</button>
+                          <button type="button" id="addExpenseButton" class="btn btn-success me-2 mb-2 mb-sm-0" style="width: 150px;">Add Expense</button>
                         </div>
                       </div>
                     </div>
@@ -229,6 +244,28 @@ document.addEventListener("DOMContentLoaded", async function () {
     loginType: loginType,
     email: userEmail
   });
+
+  // Add this new code to prefill submitted_by field
+  try {
+    const response = await fetch("https://bni-data-backend.onrender.com/api/chapters");
+    const chapters = await response.json();
+    
+    // Find matching chapter by email
+    const matchingChapter = chapters.find(chapter => chapter.email_id === userEmail);
+    
+    if (matchingChapter) {
+      console.log('Found matching chapter:', matchingChapter.chapter_name);
+      // Prefill the submitted_by field and make it read-only
+      const submittedByField = document.getElementById('submitted_by');
+      submittedByField.value = matchingChapter.chapter_name;
+      submittedByField.readOnly = true; // Make the field read-only
+      submittedByField.style.backgroundColor = '#e9ecef'; // Optional: Add a background color to indicate it's read-only
+    } else {
+      console.log('No matching chapter found for email:', userEmail);
+    }
+  } catch (error) {
+    console.error('Error prefilling submitted_by field:', error);
+  }
 
   // Fetch data for "Type of Expense"
   try {
@@ -364,7 +401,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       bill_date: document.getElementById('bill_date').value,
       bill_no: document.getElementById('bill_no').value,
       transaction_no: document.getElementById('transaction_no').value,
-      upload_bill: document.getElementById('upload_bill').files[0]?.name || 'No file selected'
+      upload_bill: document.getElementById('upload_bill').files[0]?.name || 'No file selected',
+      payment_mode: document.getElementById('payment_mode').value
     };
 
     console.log('Complete Form Data:', formDataObject);

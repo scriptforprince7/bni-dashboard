@@ -13,7 +13,8 @@ window.BNI.state = {
     filteredRegions: [],
     entriesPerPage: 10,
     currentPage: 1,
-    totalPages: 0
+    totalPages: 0,
+    showingAllEntries: false
 };
 
 // Function to show the loader
@@ -140,7 +141,7 @@ function updateURLWithFilter(filter) {
 // Function to display regions in the table
 function displayRegions(regions) {
     console.log('=== Displaying Regions ===');
-    console.log(`Displaying ${regions.length} regions for current page`);
+    console.log(`Displaying ${regions.length} regions`);
     
     const tableBody = document.getElementById('chaptersTableBody');
     tableBody.innerHTML = '';
@@ -149,16 +150,14 @@ function displayRegions(regions) {
         const { chaptersCount, membersCount } = getCountsForRegion(region.region_id);
         const row = document.createElement('tr');
         row.classList.add('order-list');
-        total_regions= total_regions +1;
-        if(region.region_status === 'active' ){
-            active_total= active_total +1;
-        }
-        chapter_total = parseFloat(chapter_total)+ (chaptersCount);
-        member_total = parseFloat(member_total) + (membersCount) ;
 
-        // Add table cells with region data
+        // Update the index to show actual position whether showing all or paginated
+        const displayIndex = window.BNI.state.showingAllEntries ? 
+            index + 1 : 
+            (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + index + 1;
+
         row.innerHTML = `
-            <td>${(window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + index + 1}</td>
+            <td>${displayIndex}</td>
             <td style="border: 1px solid grey;">
                 <div class="d-flex align-items-center">
                     <a href="/r/view-region/?region_id=${region.region_id}"> <b>${region.region_name}</b></a>
@@ -191,8 +190,10 @@ function displayRegions(regions) {
 
     });
 
-    // Don't recalculate totals here, just update pagination
-    updatePagination();
+    // Don't update pagination if showing all entries
+    if (!window.BNI.state.showingAllEntries) {
+        updatePagination();
+    }
 }
 
 // Function to filter regions based on search input
@@ -249,9 +250,9 @@ const deleteRegion = async (region_id) => {
 
             if (response.ok) {
                 const data = await response.json();
-                Swal.fire('Deleted!', data.message, 'success');
-                // After deletion, remove the region from the table
-                document.querySelector(`[data-region-id="${region_id}"]`).closest('tr').remove();
+                await Swal.fire('Deleted!', data.message, 'success');
+                // Refresh the page after successful deletion
+                window.location.reload();
             } else {
                 const errorResponse = await response.json();
                 Swal.fire('Failed!', errorResponse.message, 'error');
@@ -321,10 +322,7 @@ function updatePagination() {
     paginationContainer.appendChild(nextButton);
 
     // Update showing entries text
-    const start = (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + 1;
-    const end = Math.min(start + window.BNI.state.entriesPerPage - 1, totalItems);
-    document.querySelector('.mb-2.mb-sm-0').innerHTML = 
-        `Showing <b>${start}</b> to <b>${end}</b> of <b>${totalItems}</b> entries`;
+    updateEntriesText();
 }
 
 // Function to change page
@@ -349,3 +347,62 @@ function changePage(pageNumber) {
     displayRegions(pageData);
     updatePagination();
 }
+
+// Update the showing entries text with a clickable "Show All" link
+function updateEntriesText() {
+    const totalItems = window.BNI.state.filteredRegions.length;
+    const start = window.BNI.state.showingAllEntries ? 1 : 
+        (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + 1;
+    const end = window.BNI.state.showingAllEntries ? totalItems : 
+        Math.min(start + window.BNI.state.entriesPerPage - 1, totalItems);
+    
+    const entriesText = document.querySelector('.mb-2.mb-sm-0');
+    entriesText.innerHTML = `
+        Showing <b>${start}</b> to <b>${end}</b> of <b>${totalItems}</b> entries 
+        <a href="javascript:void(0)" class="ms-2 text-primary show-all-link">
+            ${window.BNI.state.showingAllEntries ? 'Show Paginated' : 'Show All'}
+        </a>
+    `;
+
+    // Add click event listener to the "Show All" link
+    const showAllLink = entriesText.querySelector('.show-all-link');
+    showAllLink.onclick = toggleShowAll;
+}
+
+// Function to toggle between showing all entries and paginated view
+function toggleShowAll() {
+    window.BNI.state.showingAllEntries = !window.BNI.state.showingAllEntries;
+    
+    if (window.BNI.state.showingAllEntries) {
+        // Show all entries
+        displayRegions(window.BNI.state.filteredRegions);
+        // Hide pagination
+        document.querySelector('.pagination').style.display = 'none';
+    } else {
+        // Return to paginated view
+        window.BNI.state.currentPage = 1;
+        changePage(1);
+        // Show pagination
+        document.querySelector('.pagination').style.display = 'flex';
+    }
+    
+    updateEntriesText();
+}
+
+// Add some CSS styles to the page
+const style = document.createElement('style');
+style.textContent = `
+    .show-all-link {
+        text-decoration: none;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+    .show-all-link:hover {
+        background-color: #e9ecef;
+        text-decoration: none;
+    }
+`;
+document.head.appendChild(style);

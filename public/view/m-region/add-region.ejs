@@ -306,15 +306,15 @@
                         </div>
                         <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="statusRunning" name="chapterStatus[]" value="running" />
+                            <input class="form-check-input" type="checkbox" id="statusRunning" name="chapterStatus[]" value="Running" />
                             <label class="form-check-label" for="statusRunning">Running</label>
                           </div>
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="statusPreLaunch" name="chapterStatus[]" value="pre-Launch" />
+                            <input class="form-check-input" type="checkbox" id="statusPreLaunch" name="chapterStatus[]" value="Pre-Launch" />
                             <label class="form-check-label" for="statusPreLaunch">Pre-Launch</label>
                           </div>
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="statusReLaunch" name="chapterStatus[]" value="re-Launch" />
+                            <input class="form-check-input" type="checkbox" id="statusReLaunch" name="chapterStatus[]" value="Re-Launch" />
                             <label class="form-check-label" for="statusReLaunch">Re-Launch</label>
                           </div>
                         </div>
@@ -1121,15 +1121,15 @@
     console.log('🚀 Starting form submission');
 
     // Simple Social Media Validation
-    const socialFacebook = document.getElementById('social_facebook').value.trim();
-    const socialInstagram = document.getElementById('social_instagram').value.trim();
-    const socialLinkedin = document.getElementById('social_linkedin').value.trim();
-    const socialYoutube = document.getElementById('social_youtube').value.trim();
+    // const socialFacebook = document.getElementById('social_facebook').value.trim();
+    // const socialInstagram = document.getElementById('social_instagram').value.trim();
+    // const socialLinkedin = document.getElementById('social_linkedin').value.trim();
+    // const socialYoutube = document.getElementById('social_youtube').value.trim();
 
-    if (!socialFacebook || !socialInstagram || !socialLinkedin || !socialYoutube) {
-      toastr.error('Please fill all social media handles');
-      return;
-    }
+    // if (!socialFacebook || !socialInstagram || !socialLinkedin || !socialYoutube) {
+    //   toastr.error('Please fill all social media handles');
+    //   return;
+    // }
 
     // Create FormData object from the form
     const formData = new FormData();

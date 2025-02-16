@@ -46,13 +46,12 @@ const fetchAccolades = async () => {
             throw new Error(`Accolades API error: ${response.status} ${response.statusText}`);
         }
         const accolades = await response.json();
-        // Create a map of accolade IDs to names
         accoladeMap = accolades.reduce((map, accolade) => {
             map[accolade.accolade_id] = accolade.accolade_name;
             return map;
         }, {});
 
-        // Display all accolades in the container
+        // Populate accolades container
         const accoladesContainer = document.getElementById("accoladesContainer");
         accoladesContainer.innerHTML = ""; // Clear container
         accolades.forEach(accolade => {
@@ -178,30 +177,30 @@ function updateSelectAllStates() {
     console.log('Updating Select All states');
 
     // Check Chapter Days
-    const dayCheckboxes = document.querySelectorAll('#chapterDaysContainer .form-check-input');
+    const dayCheckboxes = document.querySelectorAll('#chapterDaysContainer input[name="chapterDays[]"]');
     const selectAllDays = document.getElementById('selectAllDays');
-    if (selectAllDays) {
+    if (selectAllDays && dayCheckboxes.length > 0) {
         selectAllDays.checked = Array.from(dayCheckboxes).every(cb => cb.checked);
     }
 
     // Check Chapter Status
-    const statusCheckboxes = document.querySelectorAll('#chapterStatusContainer .form-check-input');
+    const statusCheckboxes = document.querySelectorAll('#chapterStatusContainer input[name="chapterStatus[]"]');
     const selectAllStatus = document.getElementById('selectAllStatus');
-    if (selectAllStatus) {
+    if (selectAllStatus && statusCheckboxes.length > 0) {
         selectAllStatus.checked = Array.from(statusCheckboxes).every(cb => cb.checked);
     }
 
     // Check Chapter Type
-    const typeCheckboxes = document.querySelectorAll('#chapterTypeContainer .form-check-input');
+    const typeCheckboxes = document.querySelectorAll('#chapterTypeContainer input[name="chapterType[]"]');
     const selectAllTypes = document.getElementById('selectAllTypes');
-    if (selectAllTypes) {
+    if (selectAllTypes && typeCheckboxes.length > 0) {
         selectAllTypes.checked = Array.from(typeCheckboxes).every(cb => cb.checked);
     }
 
     // Check Accolades
-    const accoladeCheckboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+    const accoladeCheckboxes = document.querySelectorAll('#accoladesContainer input[name="accolades[]"]');
     const selectAllAccolades = document.getElementById('selectAllAccolades');
-    if (selectAllAccolades) {
+    if (selectAllAccolades && accoladeCheckboxes.length > 0) {
         selectAllAccolades.checked = Array.from(accoladeCheckboxes).every(cb => cb.checked);
     }
 }
@@ -269,57 +268,71 @@ const populateFormFields = (data) => {
         data.date_of_publishing ? new Date(data.date_of_publishing).toISOString().split("T")[0] : "Not Found";
     document.querySelector("#region_launched_by").value = data.region_launched_by || "Not Found";
 
-    // Chapter Days
+    // Check Chapter Days
     const chapterDays = data.days_of_chapter || [];
     chapterDays.forEach(day => {
         const checkbox = document.querySelector(`input[name="chapterDays[]"][value="${day}"]`);
-        if (checkbox) checkbox.checked = true;
-    });
-
-    // Chapter Status - Parse the string and check corresponding boxes
-    const chapterStatus = data.chapter_status || "";
-    console.log('Received chapter_status:', chapterStatus);
-    
-    // Remove the curly braces and split by comma
-    const statusArray = chapterStatus
-        .replace(/[{}"\s]/g, '') // Remove curly braces, quotes, and whitespace
-        .split(',')
-        .filter(status => status) // Remove empty strings
-        .map(status => status.toLowerCase()); // Convert to lowercase for comparison
-    
-    console.log('Processed status array:', statusArray);
-    
-    // Map of lowercase values to actual checkbox values
-    const statusMap = {
-        'running': 'Running',
-        'pre-launch': 'Pre-Launch',
-        're-launch': 'Re-Launch'
-    };
-    
-    statusArray.forEach(status => {
-        const checkboxValue = statusMap[status];
-        if (checkboxValue) {
-            const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${checkboxValue}"]`);
-            if (checkbox) {
-                checkbox.checked = true;
-                console.log(`Checked status: ${checkboxValue}`);
-            }
+        if (checkbox) {
+            checkbox.checked = true;
+            console.log(`Checked day: ${day}`);
         }
     });
 
-    // Chapter Type
-    const chapterType = data.chapter_type || [];
-    chapterType.forEach(type => {
-        const checkbox = document.querySelector(`input[name="chapterType[]"][value="${type}"]`);
-        if (checkbox) checkbox.checked = true;
+    // Check Chapter Status
+    const chapterStatus = data.chapter_status || [];
+    console.log('Received chapter_status:', chapterStatus);
+    
+    // Create a mapping for exact matches
+    const statusMapping = {
+        '"Running"': 'Running',
+        '"Pre-Launch"': 'Pre-Launch',
+        '"Re-Launch"': 'Re-Launch',
+        'Running': 'Running',
+        'Pre-Launch': 'Pre-Launch',
+        'Re-Launch': 'Re-Launch'
+    };
+
+    chapterStatus.forEach(status => {
+        // Get the mapped value or use the original status
+        const mappedStatus = statusMapping[status] || status;
+        console.log(`Looking for checkbox with value: ${mappedStatus}`);
+        
+        // Find checkbox with exact mapped value
+        const checkbox = document.querySelector(`input[name="chapterStatus[]"][value="${mappedStatus}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+            console.log(`✅ Checked status: ${mappedStatus}`);
+        } else {
+            // Log the actual HTML for debugging
+            const allCheckboxes = document.querySelectorAll('input[name="chapterStatus[]"]');
+            console.log('Available checkboxes:', Array.from(allCheckboxes).map(cb => cb.value));
+            console.log(`❌ Checkbox not found for status: ${mappedStatus}`);
+        }
     });
 
-    // Accolades Configuration
+    // Check Chapter Type
+    const chapterType = data.chapter_type || [];
+    chapterType.forEach(type => {
+        console.log(`Looking for checkbox with value: ${type}`);
+        const checkbox = document.querySelector(`input[name="chapterType[]"][value="${type}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+            console.log(`✅ Checked type: ${type}`);
+        } else {
+            console.log(`❌ Checkbox not found for type: ${type}`);
+        }
+    });
+
+    // Check Accolades Configuration
     const accoladesConfig = data.accolades_config || [];
     accoladesConfig.forEach(accoladeId => {
+        console.log(`Looking for accolade checkbox with value: ${accoladeId}`);
         const checkbox = document.querySelector(`input[name="accolades[]"][value="${accoladeId}"]`);
         if (checkbox) {
             checkbox.checked = true;
+            console.log(`✅ Checked accolade: ${accoladeId}`);
+        } else {
+            console.log(`❌ Checkbox not found for accolade: ${accoladeId}`);
         }
     });
 
@@ -590,6 +603,8 @@ const updateRegionData = async () => {
             icon: 'success',
             title: 'Success!',
             text: 'Region updated successfully',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3085d6',
             showConfirmButton: false,
             timer: 1500
         }).then(() => {
