@@ -75,6 +75,8 @@ const displayChapters = (chapters) => {
 
     tableBody.innerHTML = ""; // Clear the table body
     member_total = 0; // Reset member total before counting
+    active_total = 0; // Reset active chapters count
+    let inactive_total = 0; // Reset inactive chapters count
 
     if (chapters.length === 0) {
         console.log("No chapters to display");
@@ -98,8 +100,7 @@ const displayChapters = (chapters) => {
         .then(members => {
             const tot_member_display = document.getElementById("memberTotal");
             if (tot_member_display) {
-                // Count only active members
-                const activeMembersCount = members.filter(member => member.member_status === 'active').length;
+                const activeMembersCount = members.filter(member => member).length;
                 tot_member_display.innerHTML = activeMembersCount;
             }
         })
@@ -115,49 +116,68 @@ const displayChapters = (chapters) => {
     chapters.forEach((chapter, index) => {
         const membersCount = getMemberCountForChapter(chapter.chapter_id);
         const regionName = getRegionNameById(chapter.region_id);
-        console.log(`Processing chapter: ${chapter.chapter_name}, Region: ${regionName}, Members: ${membersCount}`);
 
         member_total = parseFloat(member_total) + parseFloat(membersCount);
-        if(chapter.chapter_status === "running"){
-            active_total= parseFloat(active_total) + 1;
+        
+        // Clean the chapter status and count running/inactive
+        const cleanStatus = chapter.chapter_status.replace(/['"]+/g, '').trim().toLowerCase();
+        console.log('Original status:', chapter.chapter_status);
+        console.log('Cleaned status:', cleanStatus);
+        if(cleanStatus === 'running') {
+            active_total++;
+        } else {
+            inactive_total++;
         }
+
+        console.log(`Chapter ${chapter.chapter_name} status: ${cleanStatus}`);
+        console.log(`Running count: ${active_total}, Inactive count: ${inactive_total}`);
+
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>
-            <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
-            <b>${chapter.chapter_name}</b>
-            </a>
+            <td style="border: 1px solid grey;">${index + 1}</td>
+            <td style="border: 1px solid grey;">
+                <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
+                    <b>${chapter.chapter_name}</b>
+                </a>
             </td>
-            <td>${regionName}</td>
-            <td><b>${membersCount}</b></td>
-            <td><b>₹${chapter.available_fund}</b></td>
-            <td>${chapter.chapter_meeting_day || 'N/A'}</td>
-            <td><b>₹${chapter.chapter_kitty_fees || '0'}</b></td>
-            <td><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
-            <td><b>${chapter.kitty_billing_frequency || 'N/A'}</b></td>
-            <td>
-            <span class="badge bg-${chapter.chapter_status === "running" ? "success" : "danger"}">
-            ${chapter.chapter_status}
-            </span>
+            <td style="border: 1px solid grey;">${regionName}</td>
+            <td style="border: 1px solid grey;"><b>${membersCount}</b></td>
+            <td style="border: 1px solid grey;"><b>₹${chapter.available_fund}</b></td>
+            <td style="border: 1px solid grey;">${chapter.chapter_meeting_day || 'N/A'}</td>
+            <td style="border: 1px solid grey;"><b>₹${chapter.chapter_kitty_fees || '0'}</b></td>
+            <td style="border: 1px solid grey;"><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
+            <td style="border: 1px solid grey;"><b>${chapter.kitty_billing_frequency || 'N/A'}</b></td>
+            <td style="border: 1px solid grey;">
+                <span class="badge bg-${cleanStatus === 'running' ? 'success' : 'danger'}">
+                    ${cleanStatus.charAt(0).toUpperCase() + cleanStatus.slice(1)}
+                </span>
             </td>
             <td>
-            <span class="badge bg-warning text-light" style="cursor:pointer;">
-            <a href="/c/edit-chapter/?chapter_id=${chapter.chapter_id}" style="color:white">Edit</a>
-            </span>
-            <span class="badge bg-danger text-light delete-btn" 
-              style="cursor:pointer;" 
-              data-chapter-id="${chapter.chapter_id}">Delete</span>
+                <span class="badge bg-warning text-light" style="cursor:pointer;">
+                    <a href="/c/edit-chapter/?chapter_id=${chapter.chapter_id}" style="color:white">Edit</a>
+                </span>
+                <span class="badge bg-danger text-light delete-btn" 
+                    style="cursor:pointer;" 
+                    data-chapter-id="${chapter.chapter_id}">Delete</span>
             </td>
         `;
         tableBody.appendChild(row);
-    const tot_member_display = document.getElementById("memberTotal");
-    const tot_running_display = document.getElementById("RunningChapter");
-    const tot_inactive_display = document.getElementById("InactiveChapter");
-    tot_running_display.innerHTML = active_total;
-    tot_inactive_display.innerHTML = parseFloat(chapters.length) - parseFloat(active_total);
-    tot_member_display.innerHTML = member_total;
 
+        // Update the display counters
+        const tot_member_display = document.getElementById("memberTotal");
+        const tot_running_display = document.getElementById("RunningChapter");
+        const tot_inactive_display = document.getElementById("InactiveChapter");
+        
+        if (tot_running_display) tot_running_display.innerHTML = active_total;
+        if (tot_inactive_display) tot_inactive_display.innerHTML = inactive_total;
+        if (tot_member_display) tot_member_display.innerHTML = member_total;
+    });
+
+    console.log('Final counts:', {
+        total_chapters: chapters.length,
+        running_chapters: active_total,
+        inactive_chapters: inactive_total,
+        total_members: member_total
     });
 
     // Update the running chapters count after displaying chapters
@@ -166,11 +186,22 @@ const displayChapters = (chapters) => {
 
 // Function to populate filter dropdowns
 function populateFilters() {
-    // Populate region filter with specific regions
+    console.log('🔄 Starting to populate filters...');
+
+    // Get unique regions from the chapters data
+    const uniqueRegions = [...new Set(window.BNI.state.allChapters.map(chapter => {
+        const regionName = getRegionNameById(chapter.region_id);
+        console.log(`📍 Found region: ${regionName} for chapter: ${chapter.chapter_name}`);
+        return regionName;
+    }))].sort();
+
+    console.log('📋 Unique regions found:', uniqueRegions);
+
+    // Populate region filter with actual regions from data
     const regionFilter = document.getElementById("region-filter");
-    const regions = ['North', 'South', 'East', 'West']; // Fixed set of regions
     regionFilter.innerHTML = `
-        ${regions.map(region => `
+        <li><a class="dropdown-item" href="javascript:void(0);" data-value="all">All Regions</a></li>
+        ${uniqueRegions.map(region => `
             <li><a class="dropdown-item" href="javascript:void(0);" data-value="${region}">${region}</a></li>
         `).join('')}
     `;
@@ -179,7 +210,7 @@ function populateFilters() {
     const meetingDayFilter = document.getElementById("meeting-day-filter");
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     meetingDayFilter.innerHTML = `
-       
+        <li><a class="dropdown-item" href="javascript:void(0);" data-value="all">All Days</a></li>
         ${days.map(day => `
             <li><a class="dropdown-item" href="javascript:void(0);" data-value="${day}">${day}</a></li>
         `).join('')}
@@ -187,9 +218,9 @@ function populateFilters() {
 
     // Populate chapter status filter
     const statusFilter = document.getElementById("chapter-status-filter");
-    const statuses = ['running', 'pre-launch']; // Base statuses - can be expanded later
+    const statuses = ['running', 'pre-launch'];
     statusFilter.innerHTML = `
-        
+        <li><a class="dropdown-item" href="javascript:void(0);" data-value="all">All Status</a></li>
         ${statuses.map(status => `
             <li><a class="dropdown-item" href="javascript:void(0);" data-value="${status}">
                 ${status.charAt(0).toUpperCase() + status.slice(1)}
@@ -197,32 +228,34 @@ function populateFilters() {
         `).join('')}
     `;
 
-    // Populate chapter type filter
-    const typeFilter = document.getElementById("chapter-type-filter");
-    const chapterTypes = ['Offline', 'Online', 'Hybrid'];
-    typeFilter.innerHTML = `
-        ${chapterTypes.map(type => `
-            <li><a class="dropdown-item" href="javascript:void(0);" data-value="${type.toLowerCase()}">
-                ${type}
-            </a></li>
-        `).join('')}
-    `;
+    console.log('✅ Filters populated successfully');
 }
 
 // Function to apply filters
 function applyFilters() {
-    const { region, meetingDay, chapterStatus, chapterType } = window.BNI.state.filters;
+    const { region, meetingDay, chapterStatus } = window.BNI.state.filters;
+    console.log('🔍 Starting filter application:', { region, meetingDay, chapterStatus });
     
     window.BNI.state.filteredChapters = window.BNI.state.allChapters.filter(chapter => {
-        const regionName = getRegionNameById(chapter.region_id);
-        const matchesRegion = !region || regionName.includes(region);
-        const matchesMeetingDay = meetingDay === 'all' || chapter.chapter_meeting_day === meetingDay;
-        const matchesStatus = chapterStatus === 'all' || chapter.chapter_status === chapterStatus;
-        const matchesType = chapterType === 'all' || 
-                          (chapter.chapter_type && chapter.chapter_type.toLowerCase() === chapterType.toLowerCase());
-        return matchesRegion && matchesMeetingDay && matchesStatus && matchesType;
+        // Get clean values
+        const chapterMeetingDay = (chapter.chapter_meeting_day || '').trim();
+        const cleanStatus = (chapter.chapter_status || '').replace(/['"]+/g, '').trim().toLowerCase();
+        
+        // Set match conditions
+        const matchesMeetingDay = meetingDay === 'all' || chapterMeetingDay === meetingDay;
+        const matchesStatus = chapterStatus === 'all' || cleanStatus === chapterStatus.toLowerCase();
+        const matchesRegion = !region || region === 'all' || getRegionNameById(chapter.region_id) === region;
+
+        console.log(`Checking ${chapter.chapter_name}:`, {
+            meeting: { has: chapterMeetingDay, want: meetingDay, matches: matchesMeetingDay },
+            status: { has: cleanStatus, want: chapterStatus, matches: matchesStatus },
+            region: { has: getRegionNameById(chapter.region_id), want: region, matches: matchesRegion }
+        });
+
+        return matchesMeetingDay && matchesStatus && matchesRegion;
     });
 
+    console.log(`Found ${window.BNI.state.filteredChapters.length} matching chapters`);
     displayChapters(window.BNI.state.filteredChapters);
 }
 
@@ -251,34 +284,68 @@ document.getElementById("chapter-status-filter")?.addEventListener("click", (eve
     }
 });
 
-document.getElementById("chapter-type-filter")?.addEventListener("click", (event) => {
-    if (event.target.classList.contains("dropdown-item")) {
-        window.BNI.state.filters.chapterType = event.target.dataset.value;
-        event.target.closest('.dropdown').querySelector('.dropdown-toggle').textContent = 
-            `Chapter Type: ${event.target.textContent}`;
-    }
-});
-
 document.getElementById("apply-filters-btn")?.addEventListener("click", () => {
     applyFilters();
 });
 
 document.getElementById("reset-filters-btn")?.addEventListener("click", () => {
     // Reset filter state
-    window.BNI.state.filters.region = '';
+    window.BNI.state.filters.region = 'all';
     window.BNI.state.filters.meetingDay = 'all';
     window.BNI.state.filters.chapterStatus = 'all';
-    window.BNI.state.filters.chapterType = 'all';
     
     // Reset dropdown texts
     document.querySelector('#region-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Region';
     document.querySelector('#meeting-day-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Meeting Day';
     document.querySelector('#chapter-status-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Chapter Status';
-    document.querySelector('#chapter-type-filter').closest('.dropdown').querySelector('.dropdown-toggle').textContent = 'Chapter Type';
     
     // Reset filtered chapters to all chapters
     window.BNI.state.filteredChapters = [...window.BNI.state.allChapters];
     displayChapters(window.BNI.state.filteredChapters);
+});
+
+// Add event listener for sort options
+document.getElementById("sort-name-filter")?.addEventListener("click", (event) => {
+    if (event.target.classList.contains("sort-option")) {
+        const sortOrder = event.target.dataset.sort;
+        console.log('🔄 Starting chapter name sorting:', sortOrder);
+
+        // Sort the chapters array
+        window.BNI.state.filteredChapters.sort((a, b) => {
+            // Extract chapter names, convert to lowercase and remove leading/trailing spaces
+            const nameA = (a.chapter_name || '').toLowerCase().trim();
+            const nameB = (b.chapter_name || '').toLowerCase().trim();
+            
+            console.log(`Comparing: ${nameA} with ${nameB}`);
+
+            // Handle null/undefined/empty chapter names
+            if (!nameA && !nameB) return 0;
+            if (!nameA) return 1;
+            if (!nameB) return -1;
+
+            // Simple alphabetical comparison
+            if (sortOrder === 'asc') {
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
+                return 0;
+            } else {
+                if (nameA < nameB) return 1;
+                if (nameA > nameB) return -1;
+                return 0;
+            }
+        });
+
+        console.log('✅ Sorting complete. First few chapters:', 
+            window.BNI.state.filteredChapters.slice(0, 3).map(c => c.chapter_name)
+        );
+
+        // Update dropdown text
+        event.target.closest('.dropdown').querySelector('.dropdown-toggle').textContent = 
+            `Sort By Name: ${sortOrder === 'asc' ? 'A to Z' : 'Z to A'}`;
+
+        // Display sorted chapters
+        displayChapters(window.BNI.state.filteredChapters);
+    }
 });
 
 // Initialize everything when the DOM is loaded
@@ -444,3 +511,118 @@ async function handleChapterAccess(chapterId, chapterEmail) {
         });
     }
 }
+
+// Add sorting icons to table headers
+document.addEventListener('DOMContentLoaded', () => {
+    const headers = document.querySelectorAll('th[scope="col"]');
+    headers.forEach(header => {
+        // Skip Actions column
+        if (header.textContent !== 'Actions') {
+            const originalText = header.textContent;
+            header.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between">
+                    ${originalText}
+                    <span class="sort-icons ms-2" style="cursor: pointer;">
+                        <i class="ti ti-arrows-sort"></i>
+                    </span>
+                </div>
+            `;
+        }
+    });
+});
+
+// Sorting function for different types of data
+function sortChapters(columnIndex, ascending = true) {
+    console.log(`🔄 Starting sort on column ${columnIndex}, ascending: ${ascending}`);
+    
+    const tableBody = document.getElementById('chaptersTableBody');
+    const rows = Array.from(tableBody.getElementsByTagName('tr'));
+
+    rows.sort((a, b) => {
+        let aValue = a.cells[columnIndex].textContent.trim();
+        let bValue = b.cells[columnIndex].textContent.trim();
+        
+        console.log(`Comparing: ${aValue} with ${bValue}`);
+
+        // Handle different column types
+        switch(columnIndex) {
+            case 0: // S.No.
+            case 3: // No's of Members
+                // Numeric sorting
+                aValue = parseInt(aValue) || 0;
+                bValue = parseInt(bValue) || 0;
+                console.log(`Numeric comparison: ${aValue} vs ${bValue}`);
+                return ascending ? aValue - bValue : bValue - aValue;
+
+            case 4: // Available Fund
+            case 6: // Chapter Kitty Fees
+            case 7: // Chapter Visitor Fees
+                // Currency sorting (remove ₹ and convert to number)
+                aValue = parseFloat(aValue.replace('₹', '').replace(/,/g, '')) || 0;
+                bValue = parseFloat(bValue.replace('₹', '').replace(/,/g, '')) || 0;
+                console.log(`Currency comparison: ${aValue} vs ${bValue}`);
+                return ascending ? aValue - bValue : bValue - aValue;
+
+            case 1: // Chapter Name
+            case 2: // Chapter Region
+            case 5: // Chapter Meeting Day
+            case 8: // Kitty Billing Type
+            case 9: // Status
+                // Alphabetical sorting
+                return ascending ? 
+                    aValue.localeCompare(bValue) : 
+                    bValue.localeCompare(aValue);
+
+            default:
+                return 0;
+        }
+    });
+
+    // Reorder the table
+    rows.forEach((row, index) => {
+        // Update S.No.
+        row.cells[0].textContent = index + 1;
+        tableBody.appendChild(row);
+    });
+
+    console.log(`✅ Sorting complete. First few entries:`, 
+        rows.slice(0, 3).map(row => ({
+            sNo: row.cells[0].textContent,
+            chapterName: row.cells[1].textContent,
+            region: row.cells[2].textContent,
+            members: row.cells[3].textContent,
+            fund: row.cells[4].textContent,
+            status: row.cells[9].textContent
+        }))
+    );
+}
+
+// Add click event listeners to sort icons
+document.addEventListener('click', (event) => {
+    const sortIcon = event.target.closest('.sort-icons');
+    if (!sortIcon) return;
+
+    const header = sortIcon.closest('th');
+    const columnIndex = Array.from(header.parentElement.children).indexOf(header);
+    
+    console.log(`🎯 Sort clicked for column: ${header.textContent.trim()}`);
+
+    // Toggle sort direction
+    const currentDirection = sortIcon.getAttribute('data-sort') === 'asc';
+    const newDirection = !currentDirection;
+    
+    // Reset all icons
+    document.querySelectorAll('.sort-icons').forEach(icon => {
+        icon.setAttribute('data-sort', '');
+        icon.querySelector('i').className = 'ti ti-arrows-sort';
+    });
+
+    // Update clicked icon
+    sortIcon.setAttribute('data-sort', newDirection ? 'asc' : 'desc');
+    sortIcon.querySelector('i').className = newDirection ? 
+        'ti ti-sort-ascending' : 
+        'ti ti-sort-descending';
+
+    // Perform sort
+    sortChapters(columnIndex, newDirection);
+});

@@ -151,7 +151,7 @@
                             const chaptersData = await chaptersResponse.json();
                         
                             // Count chapters with status 'running'
-                            const runningChaptersCount = chaptersData.filter(chapter => chapter.chapter_status === 'running').length;
+                            const runningChaptersCount = chaptersData.filter(chapter => chapter).length;
                             console.log('Running Chapters Count:', runningChaptersCount);
                         
                             // Update the count in the HTML
@@ -201,7 +201,7 @@
                             const members = await response.json();
                             
                             // Count active members
-                            const activeMembersCount = members.filter(member => member.member_status === 'active').length;
+                            const activeMembersCount = members.filter(member => member).length;
                         
                             // Update the HTML with the count of active members
                             document.getElementById('total-members-count').innerHTML = `<b>${activeMembersCount}</b>`;

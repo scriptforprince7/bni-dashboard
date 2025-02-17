@@ -884,3 +884,114 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('=== Page Loaded, Initializing Member Counts ===');
     updateMemberCounts();
 });
+
+// Add sorting icons to table headers
+document.addEventListener('DOMContentLoaded', () => {
+    const headers = document.querySelectorAll('th[scope="col"]');
+    headers.forEach((header, index) => {
+        // Skip Phone Number and Actions columns
+        if (header.textContent !== 'Phone Number' && header.textContent !== 'Actions') {
+            const originalText = header.textContent;
+            header.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between">
+                    ${originalText}
+                    <span class="sort-icons ms-2" style="cursor: pointer;">
+                        <i class="ti ti-arrows-sort"></i>
+                    </span>
+                </div>
+            `;
+        }
+    });
+});
+
+// Function to sort members
+function sortMembers(columnIndex, ascending) {
+    const members = [...window.BNI.state.filteredMembers];
+    
+    members.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(columnIndex) {
+            case 0: // S.No
+                return ascending ? a.member_id - b.member_id : b.member_id - a.member_id;
+            
+            case 1: // Member Details
+                aValue = `${a.member_first_name} ${a.member_last_name}`.toLowerCase();
+                bValue = `${b.member_first_name} ${b.member_last_name}`.toLowerCase();
+                break;
+            
+            case 2: // Email
+                aValue = a.member_email_address.toLowerCase();
+                bValue = b.member_email_address.toLowerCase();
+                break;
+            
+            case 4: // Chapter
+                aValue = (window.BNI.state.chaptersMap[a.chapter_id] || '').toLowerCase();
+                bValue = (window.BNI.state.chaptersMap[b.chapter_id] || '').toLowerCase();
+                break;
+            
+            case 5: // Induction Date
+                aValue = a.member_induction_date || '';
+                bValue = b.member_induction_date || '';
+                break;
+            
+            case 6: // Renewal Date
+                aValue = a.member_induction_date || ''; // Using induction date as renewal date
+                bValue = b.member_induction_date || '';
+                break;
+            
+            case 7: // Membership Years
+                aValue = parseInt(a.member_current_membership) || 0;
+                bValue = parseInt(b.member_current_membership) || 0;
+                return ascending ? aValue - bValue : bValue - aValue;
+            
+            case 8: // Status
+                aValue = a.member_status.toLowerCase();
+                bValue = b.member_status.toLowerCase();
+                break;
+            
+            default:
+                return 0;
+        }
+        
+        return ascending ? 
+            aValue.localeCompare(bValue) : 
+            bValue.localeCompare(aValue);
+    });
+
+    window.BNI.state.filteredMembers = members;
+    displayMembers(window.BNI.state.filteredMembers.slice(
+        (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage,
+        window.BNI.state.currentPage * window.BNI.state.entriesPerPage
+    ));
+}
+
+// Add click event listeners to sort icons
+document.addEventListener('click', (event) => {
+    const sortIcon = event.target.closest('.sort-icons');
+    if (!sortIcon) return;
+
+    const header = sortIcon.closest('th');
+    const columnIndex = Array.from(header.parentElement.children).indexOf(header);
+    
+    // Toggle sort direction
+    const currentDirection = sortIcon.getAttribute('data-sort') === 'asc';
+    const newDirection = !currentDirection;
+    
+    // Reset all icons
+    document.querySelectorAll('.sort-icons').forEach(icon => {
+        icon.setAttribute('data-sort', '');
+        icon.querySelector('i').className = 'ti ti-arrows-sort';
+    });
+
+    // Update clicked icon
+    sortIcon.setAttribute('data-sort', newDirection ? 'asc' : 'desc');
+    sortIcon.querySelector('i').className = newDirection ? 
+        'ti ti-sort-ascending' : 
+        'ti ti-sort-descending';
+
+    // Perform sort
+    sortMembers(columnIndex, newDirection);
+});
+
+
