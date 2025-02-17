@@ -462,14 +462,16 @@
                             </div>
 
                             <div class="col-xl-6">
-                              <label for="address_pincode" class="form-label"
+                              <label for="member_company_pincode" class="form-label"
                                 >Postal Code *</label
                               >
                               <input
                                 type="text"
                                 class="form-control"
-                                id="address_pincode"
-                                  name="address_pincode"
+                                id="member_company_pincode"
+                                pattern="\d{6}" 
+                                title="Please enter a 6-digit postal code."
+                                  name="member_company_pincode"
                                   required
                                 placeholder="Enter Postal Code.."
                               />
@@ -1025,6 +1027,7 @@
     // Explicitly set the file names in the formDataObj
     formDataObj['member_photo'] = memberPhotoFile.name;
     formDataObj['member_company_logo'] = companyLogoFile.name;
+    formDataObj['member_company_pincode'] = document.getElementById('member_company_pincode').value;
 
     console.log('Form data being sent:', formDataObj); // Debug log
 
