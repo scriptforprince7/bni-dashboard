@@ -870,27 +870,63 @@
               chapterSelect.innerHTML = '<option value="">No Chapters Available</option>';
             }
       
-            // Process accolades_config field (list of accolade IDs)
+            // Process accolades with Select All feature
             if (selectedRegionAccolades) {
-              const accoladeIds = selectedRegionAccolades.split(','); // Split the accolade IDs by comma
+              const accoladeIds = selectedRegionAccolades.split(',');
               accoladesContainer.innerHTML = ''; // Clear previous accolades
       
+              // Add Select All checkbox first
+              const selectAllDiv = document.createElement('div');
+              selectAllDiv.className = 'form-check';
+              selectAllDiv.innerHTML = `
+                <input type="checkbox" class="form-check-input" id="selectAllAccolades">
+                <label class="form-check-label" for="selectAllAccolades">
+                    <strong>Select All Accolades</strong>
+                </label>
+              `;
+              accoladesContainer.appendChild(selectAllDiv);
+      
+              // Add individual accolade checkboxes
               accoladeIds.forEach(id => {
-                const accolade = allAccolades.find(a => a.accolade_id == id); // Find the accolade by ID
+                const accolade = allAccolades.find(a => a.accolade_id == id);
                 if (accolade) {
                   const checkbox = document.createElement('div');
-                  checkbox.classList.add('form-check');
+                  checkbox.className = 'form-check';
                   checkbox.innerHTML = `
-                    <input type="checkbox" class="form-check-input" id="accolades_${accolade.accolade_id}" value="${accolade.accolade_id}">
-                    <label class="form-check-label" for="accolades_${accolade.accolade_id}">${accolade.accolade_name}</label>
+                    <input type="checkbox" class="form-check-input accolade-checkbox" 
+                           id="accolades_${accolade.accolade_id}" 
+                           value="${accolade.accolade_id}">
+                    <label class="form-check-label" for="accolades_${accolade.accolade_id}">
+                        ${accolade.accolade_name}
+                    </label>
                   `;
                   accoladesContainer.appendChild(checkbox);
                 }
               });
       
-              if (accoladesContainer.innerHTML === '') {
-                accoladesContainer.innerHTML = '<p>No Accolades Available</p>';
-              }
+              // Add Select All functionality
+              const selectAllCheckbox = document.getElementById('selectAllAccolades');
+              const accoladeCheckboxes = document.querySelectorAll('.accolade-checkbox');
+      
+              selectAllCheckbox.addEventListener('change', function() {
+                console.log('Select All clicked:', this.checked);
+                accoladeCheckboxes.forEach(checkbox => {
+                  checkbox.checked = this.checked;
+                });
+              });
+      
+              // Update Select All when individual checkboxes change
+              accoladeCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                  const allChecked = Array.from(accoladeCheckboxes)
+                    .every(cb => cb.checked);
+                  selectAllCheckbox.checked = allChecked;
+                  console.log('Individual checkbox changed, all checked:', allChecked);
+                });
+              });
+      
+            } else {
+              accoladesContainer.innerHTML = '<p>No Accolades Available</p>';
             }
       
             loader.style.display = 'none'; // Hide loader

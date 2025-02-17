@@ -14,7 +14,8 @@ window.BNI.state = window.BNI.state || {
     allMembers: [],
     filteredMembers: [],
     currentPage: 1,
-    entriesPerPage: 30
+    entriesPerPage: 30,
+    showingAllEntries: false
 };
 
 // Cache DOM elements
@@ -600,47 +601,110 @@ document.getElementById('searchInput').addEventListener('input', function() {
 
 // Function to setup pagination
 function setupPagination(totalMembers) {
-  const paginationElement = document.querySelector('.pagination');
-  paginationElement.innerHTML = ''; // Clear existing pagination
-  const totalPages = Math.ceil(totalMembers / window.BNI.state.entriesPerPage);
-  // Previous button
-  const prevPage = document.createElement('li');
-  prevPage.className = `page-item ${window.BNI.state.currentPage === 1 ? 'disabled' : ''}`;
-  prevPage.innerHTML = `<a class="page-link" href="javascript:void(0)">Previous</a>`;
-  prevPage.onclick = () => {
-    if (window.BNI.state.currentPage > 1) {
-      window.BNI.state.currentPage--;
-      displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage));
-      setupPagination(window.BNI.state.filteredMembers.length);
-    }
-  };
-  paginationElement.appendChild(prevPage);
-  
-  // Page numbers
-  for (let i = 1; i <= totalPages; i++) {
-    const pageItem = document.createElement('li');
-    pageItem.className = `page-item ${window.BNI.state.currentPage === i ? 'active' : ''}`;
-    pageItem.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
-    pageItem.onclick = () => {
-      window.BNI.state.currentPage = i;
-      displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage));
-      setupPagination(window.BNI.state.filteredMembers.length);
-    };
-    paginationElement.appendChild(pageItem);
-  }
+    const paginationElement = document.querySelector('.pagination');
+    const totalPages = Math.ceil(totalMembers / window.BNI.state.entriesPerPage);
+    
+    // Update entries text display
+    updateEntriesText(totalMembers);
+    
+    // Clear existing pagination
+    paginationElement.innerHTML = '';
 
-  // Next button
-  const nextPage = document.createElement('li');
-  nextPage.className = `page-item ${window.BNI.state.currentPage === totalPages ? 'disabled' : ''}`;
-  nextPage.innerHTML = `<a class="page-link" href="javascript:void(0)">Next</a>`;
-  nextPage.onclick = () => {
-    if (window.BNI.state.currentPage < totalPages) {
-      window.BNI.state.currentPage++;
-      displayMembers(window.BNI.state.filteredMembers.slice((window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage, window.BNI.state.currentPage * window.BNI.state.entriesPerPage));
-      setupPagination(window.BNI.state.filteredMembers.length);
+    // Don't show pagination if showing all entries
+    if (window.BNI.state.showingAllEntries) {
+        paginationElement.style.display = 'none';
+        return;
     }
-  };
-  paginationElement.appendChild(nextPage);
+
+    paginationElement.style.display = 'flex';
+    
+    // Previous button
+    const prevPage = createPaginationButton('Previous', window.BNI.state.currentPage === 1);
+    prevPage.onclick = () => {
+        if (window.BNI.state.currentPage > 1) {
+            window.BNI.state.currentPage--;
+            displayMembers(window.BNI.state.filteredMembers.slice(
+                (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage,
+                window.BNI.state.currentPage * window.BNI.state.entriesPerPage
+            ));
+            setupPagination(totalMembers);
+        }
+    };
+    paginationElement.appendChild(prevPage);
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageItem = createPaginationButton(i.toString(), false, window.BNI.state.currentPage === i);
+        pageItem.onclick = () => {
+            window.BNI.state.currentPage = i;
+            displayMembers(window.BNI.state.filteredMembers.slice(
+                (i - 1) * window.BNI.state.entriesPerPage,
+                i * window.BNI.state.entriesPerPage
+            ));
+            setupPagination(totalMembers);
+        };
+        paginationElement.appendChild(pageItem);
+    }
+    
+    // Next button
+    const nextPage = createPaginationButton('Next', window.BNI.state.currentPage === totalPages);
+    nextPage.onclick = () => {
+        if (window.BNI.state.currentPage < totalPages) {
+            window.BNI.state.currentPage++;
+            displayMembers(window.BNI.state.filteredMembers.slice(
+                (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage,
+                window.BNI.state.currentPage * window.BNI.state.entriesPerPage
+            ));
+            setupPagination(totalMembers);
+        }
+    };
+    paginationElement.appendChild(nextPage);
+}
+
+// Helper function to create pagination buttons
+function createPaginationButton(text, disabled = false, active = false) {
+    const li = document.createElement('li');
+    li.className = `page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}`;
+    li.innerHTML = `<a class="page-link" href="javascript:void(0)">${text}</a>`;
+    return li;
+}
+
+// Function to update entries text
+function updateEntriesText(totalMembers) {
+    const entriesText = document.querySelector('.mb-2.mb-sm-0');
+    if (!entriesText) return;
+
+    const start = window.BNI.state.showingAllEntries ? 1 : 
+        (window.BNI.state.currentPage - 1) * window.BNI.state.entriesPerPage + 1;
+    const end = window.BNI.state.showingAllEntries ? totalMembers : 
+        Math.min(window.BNI.state.currentPage * window.BNI.state.entriesPerPage, totalMembers);
+
+    entriesText.innerHTML = `
+        Showing <b>${start}</b> to <b>${end}</b> of <b>${totalMembers}</b> entries
+        <a href="javascript:void(0)" class="ms-2 text-primary show-all-link">
+            ${window.BNI.state.showingAllEntries ? 'Show Paginated' : 'Show All'}
+        </a>
+    `;
+
+    // Add click handler for Show All link
+    const showAllLink = entriesText.querySelector('.show-all-link');
+    showAllLink.onclick = toggleShowAll;
+}
+
+// Function to toggle between showing all entries and paginated view
+function toggleShowAll() {
+    window.BNI.state.showingAllEntries = !window.BNI.state.showingAllEntries;
+    
+    if (window.BNI.state.showingAllEntries) {
+        // Show all entries
+        displayMembers(window.BNI.state.filteredMembers);
+    } else {
+        // Return to paginated view
+        window.BNI.state.currentPage = 1;
+        displayMembers(window.BNI.state.filteredMembers.slice(0, window.BNI.state.entriesPerPage));
+    }
+    
+    setupPagination(window.BNI.state.filteredMembers.length);
 }
 
 // Function to fetch and display chapters
@@ -765,4 +829,58 @@ document.getElementById('chaptersTableBody').addEventListener('click', (event) =
     const member_id = event.target.getAttribute('data-member-id');
     deleteMember(member_id);
   }
+});
+
+// Function to fetch and update all member counts
+async function updateMemberCounts() {
+    try {
+        console.log('=== Starting Member Counts Update Process ===');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const members = await response.json();
+        console.log('Total members data fetched:', members.length);
+
+        // Count active members
+        const activeMembersCount = members.filter(member => member.member_status === 'active').length;
+        console.log('Active members count:', activeMembersCount);
+
+        // Count inactive members
+        const inactiveMembersCount = members.filter(member => member.member_status !== 'active').length;
+        console.log('Inactive members count:', inactiveMembersCount);
+
+        // Update displays using proper ID selectors
+        const totalMembersElement = document.getElementById('total-members-count');
+        const activeMembersElement = document.getElementById('active-members-count');
+        const inactiveMembersElement = document.getElementById('inactive-members-count');
+
+        if (totalMembersElement) {
+            totalMembersElement.innerHTML = `<b>${members.length}</b>`;
+            console.log('Updated total members display:', members.length);
+        } else {
+            console.error('Total members element not found');
+        }
+
+        if (activeMembersElement) {
+            activeMembersElement.innerHTML = `<b>${activeMembersCount}</b>`;
+            console.log('Updated active members display:', activeMembersCount);
+        } else {
+            console.error('Active members element not found');
+        }
+
+        if (inactiveMembersElement) {
+            inactiveMembersElement.innerHTML = `<b>${inactiveMembersCount}</b>`;
+            console.log('Updated inactive members display:', inactiveMembersCount);
+        } else {
+            console.error('Inactive members element not found');
+        }
+
+        console.log('=== Member Counts Update Process Completed ===');
+    } catch (error) {
+        console.error('Error updating member counts:', error);
+    }
+}
+
+// Call this function when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('=== Page Loaded, Initializing Member Counts ===');
+    updateMemberCounts();
 });

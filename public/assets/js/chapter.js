@@ -74,6 +74,7 @@ const displayChapters = (chapters) => {
     }
 
     tableBody.innerHTML = ""; // Clear the table body
+    member_total = 0; // Reset member total before counting
 
     if (chapters.length === 0) {
         console.log("No chapters to display");
@@ -91,12 +92,30 @@ const displayChapters = (chapters) => {
         totalChaptersElement.textContent = chapters.length;
     }
 
+    // Fetch total members count from API
+    fetch('https://bni-data-backend.onrender.com/api/members')
+        .then(response => response.json())
+        .then(members => {
+            const tot_member_display = document.getElementById("memberTotal");
+            if (tot_member_display) {
+                // Count only active members
+                const activeMembersCount = members.filter(member => member.member_status === 'active').length;
+                tot_member_display.innerHTML = activeMembersCount;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching members:', error);
+            const tot_member_display = document.getElementById("memberTotal");
+            if (tot_member_display) {
+                tot_member_display.innerHTML = '0';
+            }
+        });
+
     // Populate the table with chapters data
     chapters.forEach((chapter, index) => {
         const membersCount = getMemberCountForChapter(chapter.chapter_id);
         const regionName = getRegionNameById(chapter.region_id);
         console.log(`Processing chapter: ${chapter.chapter_name}, Region: ${regionName}, Members: ${membersCount}`);
-
 
         member_total = parseFloat(member_total) + parseFloat(membersCount);
         if(chapter.chapter_status === "running"){
