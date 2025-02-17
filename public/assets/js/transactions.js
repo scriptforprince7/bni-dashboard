@@ -466,6 +466,47 @@ if (filters.month && transaction.order_id) {
       const row = document.createElement("tr");
       row.classList.add("invoice-list");
 
+      let actionButton;
+      let invoiceButton;
+      let utrValue = '<em>Not Available</em>';
+      let settlementValue = '<em>Not Available</em>';
+      let irnValue = '<em>Not Applicable</em>';
+      let qrcodeValue = '<em>Not Applicable</em>';
+
+      console.log('Checking payment method for transaction:', transaction.order_id);
+      console.log('Payment method structure:', transaction.payment_method);
+
+      if (transaction.payment_method?.payment_method?.cash?.channel === "cash collect") {
+          console.log('✅ Cash payment detected for order:', transaction.order_id);
+          actionButton = `
+              <button class="btn btn-sm btn-success" disabled>
+                  <i class="ti ti-check me-1"></i>
+                  Payment Settled
+              </button>
+          `;
+          invoiceButton = `
+              <a href="#" data-order-id="${transaction.order_id}" 
+                 class="btn btn-sm btn-success btn-wave waves-light generate-invoice">
+                  Generate E-Invoice
+              </a>
+          `;
+          
+          // Set static values for cash payments
+          utrValue = '<em>Cash Payment</em>';
+          settlementValue = '<em>Cash Payment</em>';
+          irnValue = '<em>Cash Payment</em>';
+          qrcodeValue = '<em>Cash Payment</em>';
+      } else {
+          console.log('🔄 Non-cash payment detected for order:', transaction.order_id);
+          actionButton = `
+              <a href="#" data-transaction-id="${transaction.order_id}" 
+                 class="btn btn-sm btn-outline-danger btn-wave waves-light track-settlement">
+                  Track Settlement
+              </a>
+          `;
+          invoiceButton = "Not Applicable";
+      }
+
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
@@ -486,14 +527,12 @@ if (filters.month && transaction.order_id) {
                 }">${transaction.payment_status.toLowerCase()}</span></td>
                 <td><b><em>${gatewayName}</em></b></td>
                 <td><em>${universalLinkName}</em></td>
-                <td>
-                <a href="#" data-transaction-id="${transaction.order_id}" class="btn btn-sm btn-outline-danger btn-wave waves-light track-settlement">Track Settlement</a>
-                </td>
-                <td class="utr-cell"><em>Not Available</em></td>
-                <td class="settlement-time"><em>Not Available</em></td>
-                <td class="irn"><em>Not Applicable</em></td>
-                <td class="qrcode"><em>Not Applicable</em></td>
-                <td class="generate-invoice-btn">Not Applicable</td>
+                <td>${actionButton}</td>
+                <td class="utr-cell">${utrValue}</td>
+                <td class="settlement-time">${settlementValue}</td>
+                <td class="irn">${irnValue}</td>
+                <td class="qrcode">${qrcodeValue}</td>
+                <td class="generate-invoice-btn">${invoiceButton}</td>
             `;
 
       tableBody.appendChild(row);
