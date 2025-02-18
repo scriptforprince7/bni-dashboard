@@ -43,23 +43,61 @@ const fetchExpenses = async (sortDirection = 'asc') => {
   try {
     showLoader();
     
-    // Get user email from token
+    // Get user context
     const userEmail = getUserEmail();
-    console.log('Current user email:', userEmail);
+    const userType = getUserLoginType();
+    const currentChapterId = localStorage.getItem('current_chapter_id');
+    const currentChapterEmail = localStorage.getItem('current_chapter_email');
+    
+    console.log('👤 User Context:', {
+      userEmail,
+      userType,
+      currentChapterId,
+      currentChapterEmail
+    });
 
-    // First fetch chapters to get the user's chapter_id
-    const chaptersResponse = await fetch("https://bni-data-backend.onrender.com/api/chapters");
-    const chapters = await chaptersResponse.json();
-    console.log('All chapters:', chapters);
+    // Fetch all expenses first
+    const response = await fetch("https://bni-data-backend.onrender.com/api/allExpenses");
+    if (!response.ok) throw new Error("Network response was not ok");
+    const allExpensesData = await response.json();
+    console.log('📊 All expenses before filtering:', allExpensesData);
 
-    // Find user's chapter based on email
-    const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
-    console.log('User chapter details:', userChapter);
-
-    if (!userChapter && getUserLoginType() !== 'ro_admin') {
-      console.log('No matching chapter found for user email');
-      hideLoader();
-      return;
+    // Filter expenses based on user type and chapter
+    if (userType === 'ro_admin' && currentChapterId) {
+      console.log('🔍 RO Admin filtering for chapter_id:', currentChapterId);
+      
+      // Convert currentChapterId to string for comparison
+      const targetChapterId = String(currentChapterId);
+      
+      allExpenses = allExpensesData.filter(expense => {
+        const expenseChapterId = String(expense.chapter_id);
+        const matches = expenseChapterId === targetChapterId;
+        console.log(`Checking expense ${expense.expense_id}:`, {
+          expenseChapterId,
+          targetChapterId,
+          matches
+        });
+        return matches;
+      });
+      
+      console.log('✅ Filtered expenses for RO Admin:', allExpenses);
+    } else if (userType !== 'ro_admin') {
+      // For chapter users, fetch their chapter details
+      const chaptersResponse = await fetch("https://bni-data-backend.onrender.com/api/chapters");
+      const chapters = await chaptersResponse.json();
+      const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+      
+      console.log('🏢 Chapter user filtering:', {
+        userEmail,
+        chapterId: userChapter?.chapter_id
+      });
+      
+      allExpenses = allExpensesData.filter(expense => 
+        expense.chapter_id === userChapter?.chapter_id
+      );
+    } else {
+      console.log('⚠️ No specific chapter selected for RO Admin');
+      allExpenses = [];
     }
 
     // Fetch expense types for mapping
@@ -70,47 +108,26 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       throw new Error("Failed to fetch expense types");
     }
     expenseTypes = await expenseTypesResponse.json();
-    console.log('Expense types:', expenseTypes);
-
-    // Fetch all expenses
-    const response = await fetch("https://bni-data-backend.onrender.com/api/allExpenses");
-    if (!response.ok) throw new Error("Network response was not ok");
-
-    const allExpensesData = await response.json();
-    console.log('All expenses:', allExpensesData);
-
-    // Filter expenses based on user type and chapter
-    if (getUserLoginType() === 'ro_admin') {
-      console.log('User is RO Admin - showing all expenses');
-      allExpenses = allExpensesData;
-    } else {
-      console.log('Filtering expenses for chapter_id:', userChapter.chapter_id);
-      allExpenses = allExpensesData.filter(expense => 
-        expense.chapter_id === userChapter.chapter_id
-      );
-      console.log('Filtered expenses for chapter:', allExpenses);
-    }
+    console.log('💰 Expense types loaded:', expenseTypes.length);
 
     filteredExpenses = [...allExpenses];
-    console.log('Initial filtered expenses:', filteredExpenses);
+    console.log('📋 Final filtered expenses:', {
+      total: filteredExpenses.length,
+      expenses: filteredExpenses
+    });
 
-    // Sort expenses
+    // Sort and display expenses
     sortExpenses(sortDirection);
     
-    // Display first page of expenses
     const startIndex = (currentPage - 1) * entriesPerPage;
     const endIndex = startIndex + entriesPerPage;
     const expensesToDisplay = filteredExpenses.slice(startIndex, endIndex);
-    console.log('Displaying expenses:', expensesToDisplay);
     
     displayExpenses(expensesToDisplay);
-
-    // Update the expense totals
     updateExpenseTotals(allExpenses);
-    console.log('Updated expense totals');
 
   } catch (error) {
-    console.error("Error in fetchExpenses:", error);
+    console.error("❌ Error in fetchExpenses:", error);
   } finally {
     hideLoader();
   }
