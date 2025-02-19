@@ -455,10 +455,8 @@
                     <div class="card custom-card my-4">
                         <div class="card-body p-4 p-sm-5">
                             <div class="mb-3 d-flex justify-content-center">
-                                
-                                    <img src="../../assets/images/bni-new-logo.jpg" alt="logo11" class="desktop-logo">
-                                    <img src="../../assets/images/bni-new-logo.jpg" alt="logo" class="desktop-white">
-                                
+                                <img id="dynamic-logo" alt="logo11" class="desktop-logo">
+                                <img id="dynamic-logo-white" alt="logo" class="desktop-white">
                             </div>
                             <p class="h5 mb-2 text-center">Verification Code</p>
                             <p class="mb-4 text-muted op-7 fw-normal text-center fs-12">Enter the 6 digit code sent to the email ID <span class="email"><b></b></span>.</p>
@@ -515,6 +513,28 @@
         <script src="../../assets/js/otpVerification.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+        <script>
+            // Fetch logo on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                fetch("https://bni-data-backend.onrender.com/api/getDisplayLogo")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0 && data[0].display_image_name) {
+                            const displayImageName = data[0].display_image_name;
+                            const imagePath = `https://bni-data-backend.onrender.com/uploads/dynamicLogo/${displayImageName}`;
+                            
+                            // Update both logo images
+                            document.getElementById("dynamic-logo").src = imagePath;
+                            document.getElementById("dynamic-logo-white").src = imagePath;
+                        } else {
+                            console.error("No valid display image found in the API response.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching display logo:", error);
+                    });
+            });
+        </script>
 
     </body>
     
