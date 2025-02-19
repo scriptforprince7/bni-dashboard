@@ -69,21 +69,30 @@ const chapterStatusOptions = ["running", "pre-launch", "re-launch"];
 
 // Populate Chapter Status dropdown
 const populateChapterStatus = (currentStatus) => {
-  const chapterStatusDropdown = document.getElementById("chapter_status");
+    const chapterStatusDropdown = document.getElementById("chapter_status");
+    console.log('🔄 Populating chapter status with:', currentStatus);
 
-  // Clear existing options
-  chapterStatusDropdown.innerHTML = '<option value="">Select</option>';
+    // Clean the status string by removing extra quotes
+    const cleanStatus = currentStatus.replace(/^"|"$/g, '');
+    console.log('🧹 Cleaned status:', cleanStatus);
 
-  // Add each status as an option
-  chapterStatusOptions.forEach((status) => {
-    const option = document.createElement("option");
-    option.value = status;
-    option.textContent = status.charAt(0).toUpperCase() + status.slice(1); // Capitalize first letter
-    if (status.toLowerCase() === currentStatus.toLowerCase()) {
-      option.selected = true; // Auto-select the current status
-    }
-    chapterStatusDropdown.appendChild(option);
-  });
+    // Clear existing options
+    chapterStatusDropdown.innerHTML = '<option value="">Select</option>';
+
+    // Add each status as an option
+    chapterStatusOptions.forEach((status) => {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status.charAt(0).toUpperCase() + status.slice(1); // Capitalize first letter
+        
+        // Compare cleaned status with current option
+        if (status.toLowerCase() === cleanStatus.toLowerCase()) {
+            console.log('✅ Found matching status:', status);
+            option.selected = true; // Auto-select the current status
+        }
+        
+        chapterStatusDropdown.appendChild(option);
+    });
 };
 
 // Function to populate Country dropdown
@@ -122,13 +131,19 @@ const fetchChapterDetails = async () => {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
-    await populateRegions(data.region_id); // Fetch regions and select the current one
+    console.log('📥 Received chapter data:', data);
+    
+    await populateRegions(data.region_id);
     populateChapterFields(data);
     populateChapterMeetingDay(data.chapter_meeting_day);
     populateChapterType(data.chapter_type);
+    
+    // Log the status before populating
+    console.log('📊 Chapter status from API:', data.chapter_status);
     populateChapterStatus(data.chapter_status);
+    
   } catch (error) {
-    console.error("Error fetching chapter details:", error);
+    console.error("❌ Error fetching chapter details:", error);
     alert("Failed to load chapter details. Please try again.");
   } finally {
     hideLoader();
@@ -191,6 +206,24 @@ const populateChapterFields = (data) => {
     data.date_of_publishing ? new Date(data.date_of_publishing).toISOString().split("T")[0] : "Not Found";
   document.getElementById("chapter_launched_by").value = data.chapter_launched_by || "Not Found";
   document.getElementById("billing_frequency").value = data.kitty_billing_frequency || "Not Found";
+
+  // Handle logo preview
+  const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+  const logoPreview = document.getElementById('logoPreview');
+  const logoInput = document.getElementById('chapter_logo');
+
+  console.log('🖼️ Chapter logo data:', data.chapter_logo);
+  
+  if (data.chapter_logo) {
+    console.log('📸 Setting up logo preview');
+    const logoUrl = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${data.chapter_logo}`;
+    logoPreview.src = logoUrl;
+    logoPreviewContainer.style.display = 'block';
+    console.log('🔗 Logo URL set:', logoUrl);
+  } else {
+    console.log('ℹ️ No existing logo found');
+    logoPreviewContainer.style.display = 'none';
+  }
 };
 
 // Initialize the page
@@ -370,59 +403,79 @@ const collectChapterFormData = () => {
 
 // Function to send the updated data to the backend after confirmation
 const updateChapterData = async () => {
+    // Validate the form inputs
+    const errors = validateChapterForm();
+    if (errors.length > 0) {
+        Swal.fire("Validation Errors", errors.join("<br>"), "error");
+        return;
+    }
 
-  // Validate the form inputs
-  const errors = validateChapterForm();
-  if (errors.length > 0) {
-      Swal.fire("Validation Errors", errors.join("<br>"), "error");
-      return;
-  }
-  // Ask for confirmation using SweetAlert
-  const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You are about to edit the chapter details!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, update it!',
-      cancelButtonText: 'No, cancel!',
-  });
+    const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You are about to edit the chapter details!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update it!',
+        cancelButtonText: 'No, cancel!',
+    });
 
-  if (result.isConfirmed) {
-      const chapterData = collectChapterFormData();
-      console.log(chapterData); // Verify the data before sending it
+    if (result.isConfirmed) {
+        console.log('🔄 Starting chapter update process');
+        
+        try {
+            showLoader();
+            
+            // Create FormData object
+            const formData = new FormData();
+            
+            // Add all form fields to FormData
+            const chapterData = collectChapterFormData();
+            Object.keys(chapterData).forEach(key => {
+                if (key !== 'chapter_logo') { // Handle logo separately
+                    formData.append(key, chapterData[key]);
+                }
+            });
+            
+            // Add file if selected
+            const logoInput = document.getElementById('chapter_logo');
+            if (logoInput.files[0]) {
+                console.log('📎 Adding new logo file to form data:', logoInput.files[0].name);
+                formData.append('chapter_logo', logoInput.files[0]);
+            }
+            
+            console.log('📤 Sending update request');
+            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateChapter/${chapter_id}`, {
+                method: 'PUT',
+                body: formData // Send as FormData instead of JSON
+            });
 
-      try {
-          showLoader(); // Show the loader when sending data
-          const response = await fetch(`https://bni-data-backend.onrender.com/api/updateChapter/${chapter_id}`, {
-              method: 'PUT',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(chapterData),
-          });
-
-          if (response.ok) {
-              const updatedChapter = await response.json();
-              console.log('Chapter updated successfully:', updatedChapter);
-              Swal.fire('Updated!', 'The chapter details have been updated.', 'success');
-              // Redirect to the region page after successful update
-              setTimeout(() => {
-                window.location.href = '/c/manage-chapter';  // Redirect to the region page
-            }, 1200);
-          } else {
-              const errorResponse = await response.json();
-              console.error('Failed to update chapter:', errorResponse);
-              Swal.fire('Error!', `Failed to update chapter: ${errorResponse.message}`, 'error');
-          }
-      } catch (error) {
-          console.error('Error updating chapter:', error);
-          Swal.fire('Error!', 'Failed to update chapter. Please try again.', 'error');
-      } finally {
-          hideLoader(); // Hide the loader once the request is complete
-      }
-  } else {
-      console.log('Update canceled');
-  }
+            if (response.ok) {
+                const updatedChapter = await response.json();
+                console.log('✅ Chapter updated successfully:', updatedChapter);
+                
+                if (updatedChapter.chapter_logo_url) {
+                    console.log('🖼️ New logo URL:', updatedChapter.chapter_logo_url);
+                }
+                
+                Swal.fire('Updated!', 'The chapter details have been updated.', 'success');
+                setTimeout(() => {
+                    window.location.href = '/c/manage-chapter';
+                }, 1200);
+            } else {
+                const errorResponse = await response.json();
+                console.error('❌ Failed to update chapter:', errorResponse);
+                Swal.fire('Error!', `Failed to update chapter: ${errorResponse.message}`, 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error updating chapter:', error);
+            console.error('Error details:', error.stack);
+            Swal.fire('Error!', 'Failed to update chapter. Please try again.', 'error');
+        } finally {
+            hideLoader();
+        }
+    } else {
+        console.log('❌ Update canceled by user');
+    }
 };
 
 // Event listener to trigger the update

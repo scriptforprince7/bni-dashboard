@@ -551,16 +551,27 @@
 </div>
 
 <div class="col-xl-6">
-  <label for="chapter_logo" class="form-label"
-    >Chapter Logo <span style="color: red;">(jpg, png, jpeg)</span></label
-  >
+  <label for="chapter_logo" class="form-label">
+    Chapter Logo <span style="color: red;">(jpg, png, jpeg)</span>
+  </label>
   <input
     type="file"
     class="form-control"
     id="chapter_logo"
     name="chapter_logo"
-    
+    accept="image/jpeg,image/png,image/jpg"
+    onchange="previewLogo(this)"
   />
+  
+  <!-- Add preview container -->
+  <div id="logoPreviewContainer" class="mt-2" style="display: none;">
+    <img id="logoPreview" src="" alt="Logo Preview" 
+         style="max-width: 200px; max-height: 200px; object-fit: contain;"/>
+    <button type="button" class="btn btn-danger btn-sm mt-2" 
+            onclick="removeLogo()">
+      <i class="bi bi-trash"></i> Remove Logo
+    </button>
+  </div>
 </div>
                             
                             
@@ -1190,211 +1201,28 @@
   document.getElementById("addChapterForm").addEventListener("submit", async function (event) {
     event.preventDefault();
     
-    const formData = new FormData(this);
-    const formDataObj = {};
-
-    console.log('🚀 Starting form submission process...');
-
-    // Collect arrays first
-    formDataObj['chapterDays'] = [];
-    formDataObj['chapterStatus'] = [];
-    formDataObj['chapterType'] = [];
-    formDataObj['accolades_config'] = [];
-
-    console.log('📝 Collecting form data...');
-    formData.forEach((value, key) => {
-        if (key === 'chapterDays[]') {
-            formDataObj['chapterDays'].push(value);
-            console.log('📅 Chapter Day added:', value);
-        } else if (key === 'chapterStatus[]') {
-            formDataObj['chapterStatus'].push(value);
-            console.log('🔄 Chapter Status added:', value);
-        } else if (key === 'chapterType[]') {
-            formDataObj['chapterType'].push(value);
-            console.log('📋 Chapter Type added:', value);
-        } else if (key === 'accolades[]') {
-            formDataObj['accolades_config'].push(value);
-            console.log('🏆 Accolade added:', value);
-        } else {
-            formDataObj[key] = value;
-            console.log(`🔹 ${key}:`, value);
-        }
-    });
-
-    console.log('📊 Form Data Overview:', {
-        chapterName: formDataObj['chapter_name'],
-        regionId: formDataObj['region_id'],
-        contactNumber: formDataObj['contact_number'],
-        email: formDataObj['email_id'],
-        meetingDay: formDataObj['chapter_meeting_day'],
-        chapterType: formDataObj['chapterType'],
-        chapterStatus: formDataObj['chapterStatus'],
-        billingFrequency: formDataObj['billing_frequency'],
-        kittyFees: formDataObj['chapter_kitty_fees'],
-        visitorFees: formDataObj['chapter_visitor_fees'],
-        availableFund: formDataObj['chapter_available_fund']
-    });
-
-    // Validations with detailed logging
-    console.log('🔍 Starting validations...');
-
-    // Chapter Name validation
-    if (!formDataObj['chapter_name'] || formDataObj['chapter_name'].trim() === '') {
-        console.error('❌ Chapter name validation failed');
-        toastr.error("Chapter name is required.");
-        return;
-    }
-
-    // Region Selection validation
-    if (!formDataObj['region_id'] || formDataObj['region_id'] === '') {
-      toastr.error("Please select a region.");
-      return;
-    }
-
-    // Meeting Day validation
-    if (!formDataObj['chapter_meeting_day'] || formDataObj['chapter_meeting_day'] === '') {
-      toastr.error("Please select a meeting day.");
-      return;
-    }
-
-    // Chapter Type validation
-    if (!formDataObj['chapter_type'] || formDataObj['chapter_type'] === '') {
-      toastr.error("Please select a chapter type.");
-      return;
-    }
-
-    // Contact Number validation
-    const contactNumber = formDataObj['contact_number'];
-    console.log('📱 Validating contact number:', contactNumber);
-    if (!/^\d{10}$/.test(contactNumber)) {
-        console.error('❌ Contact number validation failed');
-        toastr.error("Contact number must be exactly 10 digits.");
-        return;
-    }
-
-    // Email validation
-    const email = formDataObj['email_id'];
-    console.log('📧 Validating email:', email);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        console.error('❌ Email validation failed');
-        toastr.error("Please enter a valid email address.");
-        return;
-    }
-
-    // Kitty Billing Frequency validation
-    if (!formDataObj['billing_frequency'] || formDataObj['billing_frequency'] === '') {
-      toastr.error("Please select kitty billing frequency.");
-      return;
-    }
-
-    // Chapter Meeting/Kitty Fees validation
-    if (!formDataObj['chapter_kitty_fees'] || formDataObj['chapter_kitty_fees'].trim() === '') {
-      toastr.error("Chapter meeting/kitty fees is required.");
-      return;
-    }
-    if (isNaN(parseFloat(formDataObj['chapter_kitty_fees']))) {
-      toastr.error("Kitty fees must be a valid number.");
-      return;
-    }
-
-    // Chapter Visitor Fee validation
-    if (!formDataObj['chapter_visitor_fees'] || formDataObj['chapter_visitor_fees'].trim() === '') {
-      toastr.error("Chapter visitor fee is required.");
-      return;
-    }
-    if (isNaN(parseFloat(formDataObj['chapter_visitor_fees']))) {
-      toastr.error("Visitor fee must be a valid number.");
-      return;
-    }
-
-    // Chapter available fund validation
-    if (!formDataObj['chapter_available_fund'] || formDataObj['chapter_available_fund'].trim() === '') {
-      toastr.error("Chapter available fund is required.");
-      return;
-    }
-    if (isNaN(parseFloat(formDataObj['chapter_available_fund']))) {
-      toastr.error("Available Fund must be a valid number.");
-      return;
-    }
-
-    // Chapter Status validation
-    if (!formDataObj['chapter_status'] || formDataObj['chapter_status'] === '') {
-      toastr.error("Please select chapter status.");
-      return;
-    }
-
-    // Address & Hotel Details Validations
-    
-
-    // State validation
-    // if (!formDataObj['state'] || formDataObj['state'].trim() === '') {
-    //   toastr.error("State/Province is required.");
-    //   return;
-    // }
-
-    // City validation
-    // if (!formDataObj['city'] || formDataObj['city'].trim() === '') {
-    //   toastr.error("City is required.");
-    //   return;
-    // }
-
-    // Street Address validation
-    // if (!formDataObj['street_address_line'] || formDataObj['street_address_line'].trim() === '') {
-    //   toastr.error("Street Address Line 1 is required.");
-    //   return;
-    // }
-
-    // Postal Code validation
-    if (!formDataObj['postal_code'] || formDataObj['postal_code'].trim() === '') {
-      toastr.error("Postal Code is required.");
-      return;
-    }
-    if (!/^\d{6}$/.test(formDataObj['postal_code'])) {
-      toastr.error("Please enter a valid 6-digit postal code.");
-      return;
-    }
-
-    // Hotel Name validation
-    // if (!formDataObj['meeting_hotel_name'] || formDataObj['meeting_hotel_name'].trim() === '') {
-    //   toastr.error("Hotel name is required.");
-    //   return;
-    // }
-
-    // Date of Publishing validation
-    if (!formDataObj['date_of_publishing'] || formDataObj['date_of_publishing'] === '') {
-      toastr.error("Please select the date of publishing.");
-      return;
-    }
-
-    // Chapter Launched By validation
-    if (!formDataObj['chapter_launched_by'] || formDataObj['chapter_launched_by'].trim() === '') {
-      toastr.error("Please enter who launched the chapter.");
-      return;
-    }
-
-    // GST number validation
-    // const gst_number = formDataObj['gst_number']; // Get GST number from form data
-    // if (!gst_number || gst_number.trim() === '') {
-    //   toastr.error("GSTIN Number is required.");
-    //   return;
-    // }
-
-    // Validate GST number format
-    // if (!/^[A-Z0-9]{15}$/.test(gst_number)) {
-    //   toastr.error("GSTIN Number must be exactly 15 characters (letters and numbers).");
-    //   return;
-    // }
-
     console.log('✅ All validations passed');
-    console.log('📤 Sending data to server...');
+    console.log('📤 Preparing form data for server...');
 
     try {
-        const response = await fetch('https://bni-dashboard.onrender.com/api/chapters', {
+        // Create FormData object instead of regular object
+        const formData = new FormData(document.getElementById('addChapterForm'));
+        
+        console.log('📦 Form data contents:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+
+        // Check if file is included
+        const fileInput = document.getElementById('chapter_logo');
+        if (fileInput.files[0]) {
+            console.log('🖼️ Logo file selected:', fileInput.files[0].name);
+        }
+
+        const response = await fetch('https://bni-data-backend.onrender.com/api/chapters', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formDataObj),
+            // Remove Content-Type header - FormData will set it automatically
+            body: formData, // Send FormData directly
         });
 
         console.log('📥 Server response status:', response.status);
@@ -1403,16 +1231,21 @@
 
         if (response.ok) {
             console.log('✅ Chapter added successfully');
+            // Show preview if logo was uploaded
+            if (result.data.chapter_logo_url) {
+                console.log('🖼️ Logo URL:', result.data.chapter_logo_url);
+            }
             toastr.success('Chapter added successfully!');
             setTimeout(() => {
                 window.location.href = '/c/manage-chapter';
             }, 1200);
         } else {
             console.error('❌ Server error:', result.message);
-            toastr.error(result.message);
+            toastr.error(result.message || 'Error adding chapter');
         }
     } catch (error) {
         console.error('❌ Network error:', error);
+        console.error('Error details:', error.stack);
         toastr.error('An error occurred. Please try again.');
     }
   });
