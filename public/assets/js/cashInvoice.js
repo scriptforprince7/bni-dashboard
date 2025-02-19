@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     const chapterDropdown = document.getElementById("chapterDropdown");
     const chapterDropdownBtn = document.getElementById("chapterDropdownBtn");
     const memberDropdown = document.getElementById("company-name");
+    
 
     // Populate region dropdown
     regions.forEach(region => {
@@ -72,8 +73,10 @@ document.addEventListener("DOMContentLoaded", async function() {
       // Handle region selection
       regionLink.addEventListener("click", function() {
         regionDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${region.region_name}`;
+        selectedRegion = region.region_id;  // Store the actual region ID
         updateChapterDropdown(region.region_id, chapters);
       });
+      
 
       regionItem.appendChild(regionLink);
       regionDropdown.appendChild(regionItem);
@@ -114,8 +117,10 @@ document.addEventListener("DOMContentLoaded", async function() {
         // Handle chapter selection
         chapterLink.addEventListener("click", function() {
           chapterDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${chapter.chapter_name}`;
+          selectedChapter = chapter.chapter_id;  // Store the actual chapter ID
           updateMemberDropdown(chapter.chapter_id, members);
         });
+        
 
         chapterItem.appendChild(chapterLink);
         chapterDropdown.appendChild(chapterItem);
@@ -296,10 +301,36 @@ document
   .addEventListener("click", async function() {
     showLoader();
 
+    const universalLinkId = new URLSearchParams(window.location.search).get("id");
+    const regionDropdownBtn = document.getElementById("regionDropdownBtn");
+    const chapterDropdownBtn = document.getElementById("chapterDropdownBtn");
+    const trainingDropdown = document.getElementById("particulars"); // Assuming training is selected from a dropdown
+
+    if (!universalLinkId) {
+      alert("Universal Link ID is missing.");
+      return;
+    }
+
+
+     const selectedRegion = regionDropdownBtn.innerText.trim();
+     const selectedChapter = chapterDropdownBtn.innerText.trim();
+     const selectedTraining = trainingDropdown ? trainingDropdown.value : null;
+
+     console.log(selectedRegion, selectedChapter, selectedTraining);
+
+     if (!selectedRegion || !selectedChapter) {
+      alert("Please select all required fields.");
+      return;
+    }
+
     // Collecting form data
     const invoiceData = {
+      region_id: selectedRegion,
+      chapter_id: selectedChapter,
+      universal_link_id: universalLinkId,
       date_issued: document.getElementById("invoice-date-issued").value,
       particulars: document.getElementById("particulars").value,
+      training_id: selectedTraining || "",
       hsn_sac: "999511", // Fixed Value
       rate: document.getElementById("rate").value,
       amount: document.getElementById("price").value,
