@@ -1120,29 +1120,28 @@
     event.preventDefault();
     console.log('🚀 Starting form submission');
 
-    // Simple Social Media Validation
-    // const socialFacebook = document.getElementById('social_facebook').value.trim();
-    // const socialInstagram = document.getElementById('social_instagram').value.trim();
-    // const socialLinkedin = document.getElementById('social_linkedin').value.trim();
-    // const socialYoutube = document.getElementById('social_youtube').value.trim();
+    // Contact number validation
+    const contactNumber = document.getElementById('contact_number').value.trim();
+    const contactNumberRegex = /^\d{10}$/;
+    
+    if (!contactNumberRegex.test(contactNumber)) {
+        console.error('❌ Invalid contact number format');
+        toastr.error('Contact number must be exactly 10 digits');
+        return;
+    }
 
-    // if (!socialFacebook || !socialInstagram || !socialLinkedin || !socialYoutube) {
-    //   toastr.error('Please fill all social media handles');
-    //   return;
-    // }
-
-    // Create FormData object from the form
+    // Rest of your existing form submission code...
     const formData = new FormData();
-
+    
     // Add file if selected
     const fileInput = document.getElementById('region_logo');
     if (fileInput && fileInput.files[0]) {
-      console.log('📁 Adding logo file:', fileInput.files[0].name);
-      formData.append('region_logo', fileInput.files[0]);
+        console.log('📁 Adding logo file:', fileInput.files[0].name);
+        formData.append('region_logo', fileInput.files[0]);
     } else {
-      console.warn('⚠️ No logo file selected');
-      toastr.error('Please select a region logo');
-      return;
+        console.warn('⚠️ No logo file selected');
+        toastr.error('Please select a region logo');
+        return;
     }
 
     // Add all form fields

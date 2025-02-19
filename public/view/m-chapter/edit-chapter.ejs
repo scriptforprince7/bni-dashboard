@@ -580,18 +580,27 @@
                         
 
                         <div class="col-xl-6">
-                          <label for="chapter_logo" class="form-label"
-                            >Chapter Logo
-                            <span style="color: red"
-                              >(jpg, png, jpeg)</span
-                            ></label
-                          >
+                          <label for="chapter_logo" class="form-label">
+                              Chapter Logo <span style="color: red;">(jpg, png, jpeg)</span>
+                          </label>
                           <input
-                            type="file"
-                            class="form-control"
-                            id="chapter_logo"
-                            name="chapter_logo"
+                              type="file"
+                              class="form-control"
+                              id="chapter_logo"
+                              name="chapter_logo"
+                              accept="image/jpeg,image/png,image/jpg"
+                              onchange="previewNewLogo(this)"
                           />
+                          
+                          <!-- Add preview container -->
+                          <div id="logoPreviewContainer" class="mt-2" style="display: none;">
+                              <img id="logoPreview" src="" alt="Logo Preview" 
+                                   style="max-width: 200px; max-height: 200px; object-fit: contain;"/>
+                              <button type="button" class="btn btn-danger btn-sm mt-2" 
+                                      onclick="removeLogo()">
+                                  <i class="bi bi-trash"></i> Remove Logo
+                              </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -953,3 +962,35 @@
 <script src="../../assets/js/editChapter.js"></script>
 
 <%- include('../partials/footer') %>
+
+<script>
+function previewNewLogo(input) {
+    const previewContainer = document.getElementById('logoPreviewContainer');
+    const preview = document.getElementById('logoPreview');
+    
+    console.log('🖼️ New file input change detected');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            console.log('📸 Loading new preview image');
+            preview.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeLogo() {
+    console.log('🗑️ Removing logo');
+    const input = document.getElementById('chapter_logo');
+    const previewContainer = document.getElementById('logoPreviewContainer');
+    const preview = document.getElementById('logoPreview');
+    
+    input.value = ''; // Clear file input
+    preview.src = ''; // Clear preview
+    previewContainer.style.display = 'none';
+}
+</script>

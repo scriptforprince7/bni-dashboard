@@ -72,37 +72,41 @@
               <div class="card-title">All Regions</div>
               <div class="d-flex gap-3 align-items-center flex-wrap">
                 <div class="btn-group">
-
-                  <div class="dropdown">
-                    <a
-                      href="javascript:void(0);"
-                      class="btn btn-sm btn-light text-muted dropdown-toggle"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="true"
-                    >
-                      <i class="ti ti-sort-descending-2 me-1"></i>
-                      Status
+                  <!-- Status Filter Dropdown -->
+                  <div class="dropdown me-2">
+                    <a href="javascript:void(0);" 
+                       class="btn btn-sm btn-light text-muted dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i>
+                        Status
                     </a>
                     <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
-                      <li>
-                        <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="active">Active</a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="inactive">Inactive</a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="deleted">Deleted</a>
-                      </li>
+                        <li>
+                            <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="active">Active</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="inactive">Inactive</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="deleted">Deleted</a>
+                        </li>
                     </ul>
                   </div>
-                  
-                
-               <a href="/r/add-region"><button
-                class="btn btn-outline-light border"
-                type="button"
-              >
-                + Add New Region
-              </button></a>   
+
+                  <!-- Sort Dropdown -->
+                 
+
+                  <button id="reset-filters-btn" 
+                          class="btn btn-danger btn-wave me-2">
+                      Reset Filter
+                  </button>
+
+                  <a href="/r/add-region">
+                    <button class="btn btn-outline-light border" type="button">
+                        + Add New Region
+                    </button>
+                  </a>
                 </div>
                 <div class="custom-form-group flex-grow-1">
                   <input

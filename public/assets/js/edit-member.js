@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!memberResponse.ok) throw new Error('Error fetching member data');
 
     const member = await memberResponse.json();
+    console.log('📄 Fetched member data:', member);
 
     // If member has a different country, update it, otherwise keep India
     if (member.country && member.country !== 'IN') {
@@ -115,34 +116,77 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     const accolades = await accoladesResponse.json(); // This should return a list of accolades
 
-    // Populate the accolades (checkboxes or options)
+    // Set image previews if they exist
+    if (member.member_photo) {
+      const memberPhotoPreview = document.getElementById('memberPhotoImage');
+      memberPhotoPreview.src = `https://bni-data-backend.onrender.com/api/uploads/memberLogos/${member.member_photo}`;
+      document.getElementById('memberPhotoPreview').style.display = 'block';
+    }
+
+    if (member.member_company_logo) {
+      const companyLogoPreview = document.getElementById('companyLogoImage');
+      companyLogoPreview.src = `https://bni-data-backend.onrender.com/api/uploads/memberCompanyLogos/${member.member_company_logo}`;
+      document.getElementById('companyLogoPreview').style.display = 'block';
+    }
+
+    // Handle accolades properly
     const accoladesContainer = document.getElementById('accoladesContainer');
-    accoladesContainer.innerHTML = ''; // Clear any existing content
+    accoladesContainer.innerHTML = ''; // Clear existing content
 
+    // Add Select All checkbox
+    const selectAllDiv = document.createElement('div');
+    selectAllDiv.className = 'form-check';
+    selectAllDiv.innerHTML = `
+      <input type="checkbox" class="form-check-input" id="selectAllAccolades">
+      <label class="form-check-label" for="selectAllAccolades">
+        <strong>Select All Accolades</strong>
+      </label>
+    `;
+    accoladesContainer.appendChild(selectAllDiv);
+
+    // Convert member.accolades_id to array if it's null or string
+    const memberAccolades = member.accolades_id 
+      ? (Array.isArray(member.accolades_id) 
+        ? member.accolades_id 
+        : member.accolades_id.split(',').map(id => parseInt(id.trim())))
+      : [];
+
+    console.log('🏆 Member accolades:', memberAccolades);
+
+    // Create checkboxes for each accolade
     accolades.forEach(accolade => {
-      const accoladeId = accolade.accolade_id;
-      const accoladeName = accolade.accolade_name;
+      const div = document.createElement('div');
+      div.className = 'form-check';
+      div.innerHTML = `
+        <input type="checkbox" 
+               class="form-check-input accolade-checkbox" 
+               id="accolade_${accolade.accolade_id}" 
+               name="accolades_id" 
+               value="${accolade.accolade_id}"
+               ${memberAccolades.includes(accolade.accolade_id) ? 'checked' : ''}>
+        <label class="form-check-label" for="accolade_${accolade.accolade_id}">
+          ${accolade.accolade_name}
+        </label>
+      `;
+      accoladesContainer.appendChild(div);
+    });
 
-      // Create a checkbox for each accolade
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.id = `accolade_${accoladeId}`;
-      checkbox.name = 'accolades';
-      checkbox.value = accoladeId;
+    // Add Select All functionality
+    const selectAllCheckbox = document.getElementById('selectAllAccolades');
+    const accoladeCheckboxes = document.querySelectorAll('.accolade-checkbox');
 
-      // Check if the member has this accolade
-      if (member.accolades_id.includes(accoladeId)) {
-        checkbox.checked = true;
-      }
+    selectAllCheckbox.addEventListener('change', function() {
+      accoladeCheckboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+    });
 
-      const label = document.createElement('label');
-      label.setAttribute('for', `accolade_${accoladeId}`);
-      label.innerText = accoladeName;
-
-      // Append checkbox and label to the container
-      accoladesContainer.appendChild(checkbox);
-      accoladesContainer.appendChild(label);
-      accoladesContainer.appendChild(document.createElement('br'));
+    // Update Select All when individual checkboxes change
+    accoladeCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        selectAllCheckbox.checked = Array.from(accoladeCheckboxes)
+          .every(cb => cb.checked);
+      });
     });
 
     // Fetch and populate categories
@@ -225,7 +269,8 @@ const collectMemberFormData = () => {
     address_state: document.querySelector("#address_state").value,
     region_id: document.querySelector("#region_id").value,
     chapter_id: document.querySelector("#chapter_id").value,
-    accolades_id: Array.from(document.querySelectorAll('input[name="accolades"]:checked')).map(checkbox => checkbox.value),
+    accolades_id: Array.from(document.querySelectorAll('input[name="accolades_id"]:checked'))
+      .map(checkbox => checkbox.value),
     category_id: document.querySelector("#category").value || null,
     member_current_membership: document.querySelector("#member_current_membership").value,
     member_renewal_date: document.querySelector("#member_renewal_date").value,
@@ -248,57 +293,152 @@ const collectMemberFormData = () => {
     meeting_opening_balance: document.querySelector("#meeting_opening_balance").value || 0
   };
 
-  console.log("Form data being sent:", memberData); // Debug log
+  console.log('📦 Collected member data:', memberData);
   return memberData;
 };
 
+// Add these preview functions at the top of the file
+function previewMemberPhoto(input) {
+    console.log('📸 Member photo selected');
+    const preview = document.getElementById('memberPhotoImage');
+    const previewContainer = document.getElementById('memberPhotoPreview');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        console.log('📄 Member photo details:', {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)} KB`
+        });
 
-// Function to send the updated data to the backend after confirmation
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            console.log('🖼️ Loading member photo preview');
+            preview.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeMemberPhoto() {
+    console.log('🗑️ Removing member photo');
+    const input = document.getElementById('member_photo');
+    const preview = document.getElementById('memberPhotoImage');
+    const previewContainer = document.getElementById('memberPhotoPreview');
+    
+    input.value = '';
+    preview.src = '';
+    previewContainer.style.display = 'none';
+}
+
+function previewCompanyLogo(input) {
+    console.log('🏢 Company logo selected');
+    const preview = document.getElementById('companyLogoImage');
+    const previewContainer = document.getElementById('companyLogoPreview');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        console.log('📄 Company logo details:', {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)} KB`
+        });
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            console.log('🖼️ Loading company logo preview');
+            preview.src = e.target.result;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeCompanyLogo() {
+    console.log('🗑️ Removing company logo');
+    const input = document.getElementById('member_company_logo');
+    const preview = document.getElementById('companyLogoImage');
+    const previewContainer = document.getElementById('companyLogoPreview');
+    
+    input.value = '';
+    preview.src = '';
+    previewContainer.style.display = 'none';
+}
+
+// Update the updateMemberData function to handle file uploads
 const updateMemberData = async () => {
-  // Ask for confirmation using SweetAlert
-  const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You are about to edit the member details!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, update it!',
-      cancelButtonText: 'No, cancel!',
-  });
+    const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You are about to edit the member details!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, update it!',
+        cancelButtonText: 'No, cancel!',
+    });
 
-  if (result.isConfirmed) {
-      const collectFormData = collectMemberFormData();
-      console.log("Collected member data:", collectFormData); // Log the collected form data
+    if (result.isConfirmed) {
+        try {
+            showLoader();
+            
+            // Create FormData object
+            const formData = new FormData();
+            
+            // Add all form fields to FormData
+            const memberData = collectMemberFormData();
+            Object.keys(memberData).forEach(key => {
+                formData.append(key, memberData[key]);
+            });
 
-      try {
-          showLoader(); // Show the loader when sending data
-          const response = await fetch(`https://bni-data-backend.onrender.com/api/updateMember/${memberId}`, {
-              method: 'PUT',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(collectFormData),
-          });
+            // Add files if they exist
+            const memberPhotoInput = document.getElementById('member_photo');
+            const companyLogoInput = document.getElementById('member_company_logo');
 
-          const responseData = await response.json();
-          if (response.ok) {
-              console.log('Member updated successfully:', responseData);
-              Swal.fire('Updated!', 'The Member details have been updated.', 'success');
-              setTimeout(() => {
-                  window.location.href = '/m/manage-members';  // Redirect to the region page
-              }, 1200);
-          } else {
-              console.error('Failed to update member:', responseData);
-              Swal.fire('Error!', `Failed to update member: ${responseData.message}`, 'error');
-          }
-      } catch (error) {
-          console.error('Error updating member:', error);
-          Swal.fire('Error!', 'Failed to update member. Please try again.', 'error');
-      } finally {
-          hideLoader(); // Hide the loader once the request is complete
-      }
-  } else {
-      console.log('Update canceled');
-  }
+            if (memberPhotoInput.files[0]) {
+                console.log('📸 Adding member photo to form data');
+                formData.append('member_photo', memberPhotoInput.files[0]);
+            }
+
+            if (companyLogoInput.files[0]) {
+                console.log('🏢 Adding company logo to form data');
+                formData.append('member_company_logo', companyLogoInput.files[0]);
+            }
+
+            // Log form data for debugging
+            console.log('📦 Form data being sent:');
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`${key}:`, value.name);
+                } else {
+                    console.log(`${key}:`, value);
+                }
+            }
+
+            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateMember/${memberId}`, {
+                method: 'PUT',
+                body: formData // Don't set Content-Type header for FormData
+            });
+
+            const responseData = await response.json();
+            if (response.ok) {
+                console.log('✅ Member updated successfully:', responseData);
+                Swal.fire('Updated!', 'The Member details have been updated.', 'success');
+                setTimeout(() => {
+                    window.location.href = '/m/manage-members';
+                }, 1200);
+            } else {
+                console.error('❌ Failed to update member:', responseData);
+                Swal.fire('Error!', `Failed to update member: ${responseData.message}`, 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error updating member:', error);
+            Swal.fire('Error!', 'Failed to update member. Please try again.', 'error');
+        } finally {
+            hideLoader();
+        }
+    } else {
+        console.log('Update canceled');
+    }
 };
 
 
