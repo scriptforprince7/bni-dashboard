@@ -372,7 +372,7 @@ document
 
     try {
       console.log("🚀 Sending request to backend...");
-      const response = await fetch("http://localhost:5000/api/add-invoice", {
+      const response = await fetch("https://bni-data-backend.onrender.com/api/add-invoice", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
