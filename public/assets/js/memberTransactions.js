@@ -18,9 +18,9 @@ function formatDate(dateStr) {
   }
 
   // Format the date to 'DD/MM/YYYY'
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
-  const year = date.getFullYear();
+  const day = String(date.getUTCDate()).padStart(2, '0'); // Use getUTCDate() for UTC date
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Use getUTCMonth() for UTC month
+  const year = date.getUTCFullYear(); // Use getUTCFullYear() for UTC year
 
   return `${day}/${month}/${year}`;
 }
@@ -207,10 +207,10 @@ let ledgerData = [];
                 <em>(bill for: ${kitty.bill_type})</em> - 
                 <em>(${kitty.description})</em>
                 `,
-                billAmount: (parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18),
+                billAmount: Math.round(parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18),
                 debit: billAmountWithoutGst,
                 credit: 0,
-                gst: gstAmount,
+                gst: Math.round(gstAmount),
                 balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
                 balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
                 });
@@ -223,6 +223,7 @@ let ledgerData = [];
             const filteredOrders = allAvailableOrders.filter(order => order.kitty_bill_id === kitty.kitty_bill_id  && order.customer_id === userData.member_id);
             console.log('Filtered Orders:', filteredOrders);
             let bool_payment_received = false;
+            let one_time = false;
 
             filteredOrders.forEach(order => {
             const successfulTransactions = allAvailableTransactions.filter(transaction => transaction.order_id === order.order_id && transaction.payment_status === 'SUCCESS');
@@ -232,6 +233,28 @@ let ledgerData = [];
               successfulTransactions.forEach(transaction => {
                 const creditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(transaction.payment_time));
                 bool_payment_received = true;
+
+                // here penalty fee check
+                if(transaction.payment_time > kitty.kitty_due_date && one_time === false){
+                  one_time = true;
+                  no_of_late_payment++;
+                  console.log("late payment",transaction.payment_time,kitty.kitty_due_date);
+
+                  
+                  currentBalance -= parseFloat(kitty.penalty_fee);
+                  ledgerData.push({
+                  sNo: ledgerData.length + 1,
+                  date: formatDate(kitty.kitty_due_date),
+                  description: `
+                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`
+                  ,
+                  billAmount: 0,
+                  debit: parseFloat(kitty.penalty_fee),
+                  credit: 0,
+                  gst: 0,
+                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
+                  balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
+                  });}
                 
                 if (creditsBeforeTransaction.length > 0) {
                   creditsBeforeTransaction.forEach(credit => {
@@ -261,7 +284,10 @@ let ledgerData = [];
                 
                 // paid_amount_show += parseFloat(transaction.payment_amount);
                 // currentBalance += parseFloat(transaction.payment_amount);
-                if(transaction.payment_time > kitty.kitty_due_date){
+                // here penalty fee check
+
+                if(transaction.payment_time > kitty.kitty_due_date && one_time === false){
+                  one_time = true;
                   no_of_late_payment++;
                   console.log("late payment",transaction.payment_time,kitty.kitty_due_date);
 
@@ -271,8 +297,8 @@ let ledgerData = [];
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
                   description: `
-                  <b>Late Fee Penalty</b><br>
-                  `,
+                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`
+                  ,
                   billAmount: 0,
                   debit: parseFloat(kitty.penalty_fee),
                   credit: 0,
@@ -281,22 +307,22 @@ let ledgerData = [];
                   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
                   });
 
-                  paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
-                  currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  // paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  // currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
 
-                  ledgerData.push({
-                    sNo: ledgerData.length + 1,
-                    date: formatDate(transaction.payment_time),
-                    description: `Meeting Fee Paid <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                    billAmount: `${transaction.payment_amount}`,
-                    debit: 0,
-                    credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-                    gst: parseFloat(order.tax),
-                    balance: parseFloat(currentBalance),
-                    balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
-                  });
+                  // ledgerData.push({
+                  //   sNo: ledgerData.length + 1,
+                  //   date: formatDate(transaction.payment_time),
+                  //   description: `Meeting Fee Paid <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
+                  //   billAmount: `${transaction.payment_amount}`,
+                  //   debit: 0,
+                  //   credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                  //   gst: parseFloat(order.tax),
+                  //   balance: parseFloat(currentBalance),
+                  //   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+                  // });
                 }
-                else {
+                // else {
                   paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
 
@@ -304,13 +330,36 @@ let ledgerData = [];
                   sNo: ledgerData.length + 1,
                   date: formatDate(transaction.payment_time),
                   description: 'Meeting Fee Paid',
-                  billAmount: transaction.payment_amount,
+                  billAmount: Math.round(transaction.payment_amount),
                   debit: 0,
                   credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-                  gst: parseFloat(order.tax),
+                  gst: Math.round(parseFloat(order.tax)),
                   balance: parseFloat(currentBalance),
                   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
-                });}
+                });
+                // }
+
+                // here penalty fee check
+                if(transaction.payment_time > kitty.kitty_due_date && one_time === false){
+                  one_time = true;
+                  no_of_late_payment++;
+                  console.log("late payment",transaction.payment_time,kitty.kitty_due_date);
+
+                  
+                  currentBalance -= parseFloat(kitty.penalty_fee);
+                  ledgerData.push({
+                  sNo: ledgerData.length + 1,
+                  date: formatDate(kitty.kitty_due_date),
+                  description: `
+                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`
+                  ,
+                  billAmount: 0,
+                  debit: parseFloat(kitty.penalty_fee),
+                  credit: 0,
+                  gst: 0,
+                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
+                  balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
+                  });}
 
               });
             }
@@ -319,7 +368,8 @@ let ledgerData = [];
                 
             }
             });
-            if(bool_payment_received === false){
+            if(bool_payment_received === false && one_time === false){
+              one_time = true;
               no_of_late_payment++;
               currentBalance -= parseFloat(kitty.penalty_fee);
               
@@ -327,8 +377,8 @@ let ledgerData = [];
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
                   description: `
-                  <b>Late Fee Penalty</b><br>
-                  `,
+                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`
+                  ,
                   billAmount: 0,
                   debit: parseFloat(kitty.penalty_fee),
                   credit: 0,
@@ -379,6 +429,7 @@ let ledgerData = [];
           const gstAmount = parseFloat(kitty.total_bill_amount) * 0.18;
           const billAmountWithoutGst = parseFloat(kitty.total_bill_amount);
           let active_bool_late_payment = false;
+          let one_time = false;
           
 
           ledgerData.push({
@@ -389,10 +440,10 @@ let ledgerData = [];
             <em>(bill for: ${kitty.bill_type})</em> - 
             <em>(${kitty.description})</em>
             `,
-            billAmount: (parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18),
+            billAmount: Math.round(parseFloat(kitty.total_bill_amount)+ parseFloat(kitty.total_bill_amount)* 0.18),
             debit: billAmountWithoutGst,
             credit: 0,
-            gst: gstAmount,
+            gst: Math.round(gstAmount),
             balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
             balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
           });
@@ -407,6 +458,30 @@ let ledgerData = [];
               console.log('Successful Transactions for Order ID', order.order_id, ':', successfulTransactions);
               successfulTransactions.forEach(transaction => {
                 const creditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(transaction.payment_time));
+
+                // here penalty fee check
+
+
+                if(transaction.payment_time > kitty.kitty_due_date && one_time === false){
+                  one_time = true;
+                  no_of_late_payment++;
+                  console.log("late payment",transaction.payment_time,kitty.kitty_due_date);
+
+                  
+                  currentBalance -= parseFloat(kitty.penalty_fee);
+                  ledgerData.push({
+                  sNo: ledgerData.length + 1,
+                  date: formatDate(kitty.kitty_due_date),
+                  description: `
+                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`
+                  ,
+                  billAmount: 0,
+                  debit: parseFloat(kitty.penalty_fee),
+                  credit: 0,
+                  gst: 0,
+                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
+                  balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
+                  });}
                 
                 if (creditsBeforeTransaction.length > 0) {
                   creditsBeforeTransaction.forEach(credit => {
@@ -432,16 +507,18 @@ let ledgerData = [];
                   console.log('No credits before this transaction.');
                 }
                 active_bool_late_payment = true;
-                if(transaction.payment_time >kitty.kitty_due_date ){
+                if(transaction.payment_time >kitty.kitty_due_date && one_time === false){
+                // active_bool_late_payment = true;
                   console.log("late payment",transaction.payment_time,kitty.kitty_due_date);  
                   no_of_late_payment++;
+                  one_time = true;
                   currentBalance -= parseFloat(kitty.penalty_fee);
                   
                   ledgerData.push({
                     sNo: ledgerData.length + 1,
                     date: formatDate(kitty.kitty_due_date),
                     description: `
-                    <b>Late Fee Penalty</b><br>
+                    Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>
                     `,
                     billAmount: 0,
                     debit: parseFloat(kitty.penalty_fee),
@@ -451,35 +528,36 @@ let ledgerData = [];
                     balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
                 });
 
-                  currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
-                  paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  // currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  // paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   
-                  ledgerData.push({
-                    sNo: ledgerData.length + 1,
-                    date: formatDate(transaction.payment_time),
-                    description: `Meeting Fee Paid <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                    billAmount: `${transaction.payment_amount}`,
-                    debit: 0,
-                    credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-                    gst: parseFloat(order.tax),
-                    balance: parseFloat(currentBalance),
-                    balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
-                  });
-                } else{
+                  // ledgerData.push({
+                  //   sNo: ledgerData.length + 1,
+                  //   date: formatDate(transaction.payment_time),
+                  //   description: `Meeting Fee Paid <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
+                  //   billAmount: `${transaction.payment_amount}`,
+                  //   debit: 0,
+                  //   credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                  //   gst: parseFloat(order.tax),
+                  //   balance: parseFloat(currentBalance),
+                  //   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+                  // });
+                } 
+                // else{
                   currentBalance += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   ledgerData.push({
                     sNo: ledgerData.length + 1,
                     date: formatDate(transaction.payment_time),
                     description: 'Meeting Fee Paid',
-                    billAmount: transaction.payment_amount,
+                    billAmount: Math.round(transaction.payment_amount),
                     debit: 0,
                     credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-                    gst: parseFloat(order.tax),
+                    gst: Math.round(parseFloat(order.tax)),
                     balance: parseFloat(currentBalance),
                     balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
                   });
-                }
+                // }
               });
             }
             else{
@@ -487,16 +565,15 @@ let ledgerData = [];
               // no_of_late_payment++;
             }
           });
-          if (active_bool_late_payment === false && Date.now() > new Date(kitty.kitty_due_date).getTime()) {
+          if (active_bool_late_payment === false && Date.now() > new Date(kitty.kitty_due_date).getTime() && one_time === false) {
             no_of_late_payment++;
+            one_time = true;
             currentBalance -= parseFloat(kitty.penalty_fee);
             
                 ledgerData.push({
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
-                  description: `
-                  <b>Late Fee Penalty</b><br>
-                  `,
+                  description: `Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
                   billAmount: 0,
                   debit: parseFloat(kitty.penalty_fee),
                   credit: 0,
