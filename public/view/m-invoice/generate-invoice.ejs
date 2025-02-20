@@ -3,6 +3,65 @@
 <!-- end header -->
 
 <!-- sidebar -->
+<style>
+  /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+max-height: 200px; /* Adjust the height as needed */
+overflow-y: auto;  /* Enables vertical scrolling */
+overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+background-color: #888; /* Color of the scrollbar thumb */
+border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+background-color: #555; /* Darker shade on hover */
+}
+
+.btn-group .btn-outline-primary {
+  border-color: #6259ca;
+  color: #6259ca;
+}
+
+.btn-group .btn-check:checked + .btn-outline-primary {
+  background-color: #6259ca;
+  border-color: #6259ca;
+  color: white;
+}
+
+.btn-group .btn-outline-secondary {
+  border-color: #7987a1;
+  color: #7987a1;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary {
+  background-color: #7987a1;
+  border-color: #7987a1;
+  color: white;
+}
+
+.payment-fields {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
 
 <%- include('../partials/sidebar') %>
 
@@ -40,35 +99,33 @@
     <!-- End::page-header -->
 
     <div class="dropdown">
+      <!-- Region Dropdown -->
       <a
         href="javascript:void(0);"
         class="btn btn-sm btn-light text-muted dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="true"
+        id="regionDropdownBtn"
       >
         <i class="ti ti-sort-descending-2 me-1"></i>
-        Choose Region</a
-      >
-      <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
-        <li>
-          <a class="dropdown-item" href="javascript:void(0);">This Week</a>
-        </li>
-      </ul>
+        Choose Region
+      </a>
+      <ul class="dropdown-menu" id="regionDropdown" role="menu"></ul>
+    
+      <!-- Chapter Dropdown -->
       <a
         href="javascript:void(0);"
         class="btn btn-sm btn-light text-muted dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="true"
+        id="chapterDropdownBtn"
       >
         <i class="ti ti-sort-descending-2 me-1"></i>
-        Choose Chapter</a
-      >
-      <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
-        <li>
-          <a class="dropdown-item" href="javascript:void(0);">This Week</a>
-        </li>
-      </ul>
+        Choose Chapter
+      </a>
+      <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
     </div>
+    
 
     <!-- Start::row-1 -->
     <div class="row">
@@ -77,35 +134,7 @@
           <div class="card-header d-md-flex d-block">
             <div class="h5 mb-0 d-sm-flex d-block align-items-center">
               <div>
-                <!-- <img
-                        src=" assets/images/brand-logos/toggle-logo-5.png"
-                        alt=""
-                      /> -->
               </div>
-              <!-- <div class="ms-sm-2 ms-0 mt-sm-0 mt-2">
-                      <input
-                        type="text"
-                        class="form-control form-control-light form-control-sm"
-                        placeholder="Invoice Title"
-                        value="INV TITLE"
-                      />
-                    </div> -->
-              <!-- <div class="mx-2">:</div> -->
-              <!-- <div class="mt-sm-0 mt-2">
-                      <input
-                        type="text"
-                        class="form-control form-control-light form-control-sm"
-                        placeholder="Invoice ID"
-                        value="INV ID"
-                      />
-                    </div> -->
-            </div>
-            <div class="ms-auto mt-md-0 mt-2">
-              <button class="btn btn-sm btn-danger me-2">
-                Save As PDF<i
-                  class="ri-file-pdf-line ms-1 align-middle d-inline-block"
-                ></i>
-              </button>
             </div>
           </div>
           <div class="card-body">
@@ -118,13 +147,9 @@
                       <div class="col-xl-12">
                         <!-- dropdown -->
                         <select
-                          class="form-select form-select-light"
-                          id="company-name"
+                          class="form-select form-select-light company_info"
                         >
                           <option selected>Select Company</option>
-                          <option value="1">Company 1</option>
-                          <option value="2">Company 2</option>
-                          <option value="3">Company 3</option>
                         </select>
                       </div>
                       <div class="col-xl-12">
@@ -133,6 +158,7 @@
                           id="company-address"
                           placeholder="Enter Address"
                           rows="3"
+                          readonly
                         ></textarea>
                       </div>
                       <div class="col-xl-12">
@@ -142,6 +168,7 @@
                           id="company-mail"
                           placeholder="Company Email"
                           value=""
+                          readonly
                         />
                       </div>
                       <div class="col-xl-12">
@@ -151,15 +178,17 @@
                           id="company-phone"
                           placeholder="Phone Number"
                           value=""
+                          readonly
                         />
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="zip-code"
+                          id="company-gst"
                           placeholder="GST Number"
                           value=""
+                          readonly
                         />
                       </div>
                     </div>
@@ -170,141 +199,113 @@
                     <p class="dw-semibold mb-2">Billing To :</p>
                     <div class="row gy-2">
                       <div class="col-xl-12">
-                        <select
-                          class="form-select form-select-light"
-                          id="company-name"
-                        >
+                        <select class="form-select form-select-light" id="company-name">
+
                           <option selected>Select Member</option>
-                          <option value="Raja Shukla">Raja Shukla</option>
-                          <option value="Amit Anand">Amit Anand</option>
-                          <option value="Ravina Duhan">Ravina Duhan</option>
                         </select>
                       </div>
                       <div class="col-xl-12">
                         <textarea
                           class="form-control form-control-light"
-                          id="customer-address"
+                          id="member_address"
                           placeholder="Enter Address"
                           rows="3"
+                          readonly
                         ></textarea>
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="customer-mail"
+                          id="member_company_name"
                           placeholder="Customer Company Name"
                           value=""
+                          readonly
                         />
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="customer-phone"
+                          id="member_phone_number"
                           placeholder="Phone Number"
                           value=""
+                          readonly
                         />
                       </div>
                       <div class="col-xl-12">
                         <input
                           type="text"
                           class="form-control form-control-light"
-                          id="zip-code2"
+                          id="member_gst_number"
                           placeholder="GST Number"
                           value=""
+                          readonly
                         />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="col-xl-4">
-                <label for="invoice-number" class="form-label"
-                  >Invoice ID</label
-                >
-                <input
-                  type="text"
-                  class="form-control form-control-light"
-                  id="invoice-number"
-                  placeholder="Inv No"
-                  value="#SHG148756965"
-                />
-              </div>
-              <div class="col-xl-4">
-                <label for="invoice-date-issued" class="form-label"
-                  >Date Issued</label
-                >
-                <input
-                  type="date"
-                  class="form-control form-control-light"
-                  id="invoice-date-issued"
-                  placeholder="Choose date"
-                />
-              </div>
-              <div class="col-xl-4">
-                <label for="invoice-due-amount" class="form-label"
-                  >Amount to be paid</label
-                >
-                <input
-                  type="text"
-                  class="form-control form-control-light"
-                  id="invoice-due-amount"
-                  placeholder="Enter Amount"
-                  value="₹ 35,784.54"
-                />
-              </div>
+
               <div class="col-xl-12">
                 <div class="table-responsive">
                   <table class="table nowrap text-nowrap border mt-3">
                     <thead>
                       <tr>
-                        <th>S.No.</th>
+                        <th>Date Issued</th>
                         <th>PARTICULARS</th>
                         <th>HSN/SAC</th>
-                        <th>QUANTITY</th>
-                        <th>PRICE PER UNIT</th>
-                        <th>TOTAL</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
                         <td>
                           <input
-                            type="text"
-                            class="form-control form-control-light"
-                            placeholder="Enter Product Name"
-                          />
+                  type="date"
+                  class="form-control form-control-light"
+                  id="invoice-date-issued"
+                  placeholder="Choose date"
+                />
                         </td>
                         <td>
                           <textarea
                             rows="1"
                             class="form-control form-control-light"
                             placeholder="Enter Description"
+                            name="particulars"
+                            id="particulars"
                           ></textarea>
                         </td>
-                        <td>
-                          <textarea
-                            rows="1"
-                            class="form-control form-control-light"
-                            placeholder="Enter Description"
-                          ></textarea>
-                        </td>
-                        <td class="invoice-quantity-container">-</td>
                         <td>
                           <input
                             class="form-control form-control-light"
                             placeholder=""
                             type="text"
-                            value="₹ 84.00"
+                            value="999511"
+                            readonly
                           />
                         </td>
                         <td>
                           <input
-                            class="form-control form-control-light"
+                            class="form-control form-control-light rate"
                             placeholder=""
                             type="text"
-                            value="₹ 251.00"
+                            value="-"
+                            id="rate"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="form-control form-control-light price"
+                            placeholder=""
+                            type="text"
+                            value="-"
+                            id="price"
+                            readonly
                           />
                         </td>
                       </tr>
@@ -318,57 +319,65 @@
                             <tbody>
                               <tr>
                                 <th scope="row">
-                                  <div class="fw-medium">Sub Total :</div>
+                                  <div class="fw-medium">Total Taxable Value :</div>
                                 </th>
                                 <td>
                                   <input
                                     type="text"
-                                    class="form-control form-control-light invoice-amount-input"
+                                    class="form-control form-control-light invoice-amount-input taxable-total-amount"
                                     placeholder="Enter Amount"
-                                    value="₹ 2519.89"
+                                    value="-"
+                                    id="taxable-total-amount"
+                                    readonly
                                   />
                                 </td>
                               </tr>
                               <tr>
                                 <th scope="row">
                                   <div class="fw-medium">
-                                    GST
-                                    <span class="text-danger">(18%)</span>
+                                    Add CGST (9%)
                                     :
                                   </div>
                                 </th>
                                 <td>
                                   <input
                                     type="text"
-                                    class="form-control form-control-light invoice-amount-input"
+                                    class="form-control form-control-light invoice-amount-input cgst_amount"
                                     placeholder="Enter Amount"
-                                    value="₹ 214.00"
+                                    value="-"
+                                    id="cgst_amount"
                                   />
                                 </td>
                               </tr>
                               <tr>
                                 <th scope="row">
-                                  <div class="fw-medium">Late Fee :</div>
+                                  <div class="fw-medium">
+                                    Add SGST (9%)
+                                    :
+                                  </div>
                                 </th>
                                 <td>
                                   <input
                                     type="text"
-                                    class="form-control form-control-light invoice-amount-input"
+                                    class="form-control form-control-light invoice-amount-input sgst_amount"
                                     placeholder="Enter Amount"
-                                    value="₹ 100.00"
+                                    value="-"
+                                    id="sgst_amount"
                                   />
                                 </td>
                               </tr>
                               <tr>
                                 <th scope="row">
-                                  <div class="fs-14 fw-medium">Total :</div>
+                                  <div class="fs-14 fw-medium">Grand Total :</div>
                                 </th>
                                 <td>
                                   <input
                                     type="text"
-                                    class="form-control form-control-light invoice-amount-input"
+                                    class="form-control form-control-light invoice-amount-input grand_total"
                                     placeholder="Enter Amount"
-                                    value="₹ 2,106.68"
+                                    value="-"
+                                    id="grand_total"
+                                    readonly
                                   />
                                 </td>
                               </tr>
@@ -385,14 +394,11 @@
           <div
             class="card-footer d-flex align-items-center justify-content-between gap-2"
           >
-            <button class="btn btn-primary1-light">
-              <i class="ri-eye-line me-1 align-middle d-inline-block"></i
-              >Preview
-            </button>
-            <button class="btn btn-primary">
-              Send Invoice
+            <button class="btn btn-danger">
+              Make Invoice
               <i
-                class="ri-send-plane-2-line ms-1 align-middle d-inline-block"
+                class="ri-send-plane-2-line ms-1 align-middle d-inline-block submit_invoice"
+                id="submit_invoice"
               ></i>
             </button>
           </div>
@@ -406,72 +412,55 @@
           <div class="card-body">
             <div class="row gy-3">
               <div class="col-xl-12">
-                <div
-                  class="btn-group"
-                  role="group"
-                  aria-label="Basic radio toggle button group"
-                >
-                  <input
-                    type="radio"
-                    class="btn-check"
-                    name="btnradio"
-                    id="btnradio2"
-                  />
-                  <label
-                    class="btn btn-outline-primary mt-sm-0 mt-1"
-                    for="btnradio2"
-                    >Cash</label
-                  >
-                  <!-- <input
-                          type="radio"
-                          class="btn-check"
-                          name="btnradio"
-                          id="btnradio3"
-                          checked=""
-                        />
-                        <label
-                          class="btn btn-outline-primary mt-sm-0 mt-1"
-                          for="btnradio3"
-                          >Credit/Debit Card</label
-                        > -->
+                <div class="btn-group w-100" role="group" aria-label="Payment Methods">
+                  <!-- Cash Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="cashOption" checked/>
+                  <label class="btn btn-outline-primary" for="cashOption">Cash</label>
+
+                  <!-- UPI Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="upiOption"/>
+                  <label class="btn btn-outline-primary" for="upiOption">UPI</label>
+
+                  <!-- Bank Transfer Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="bankOption"/>
+                  <label class="btn btn-outline-primary" for="bankOption">Bank Transfer</label>
                 </div>
               </div>
-              <div class="col-xl-12">
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="payment-status"
-                    id="paid"
-                    value="paid"
-                  />
-                  <label class="form-check-label" for="paid"> Paid </label>
-                </div>
 
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="payment-status"
-                    id="not-paid"
-                    value="not-paid"
-                  />
-                  <label class="form-check-label" for="not-paid">
-                    Not Paid
-                  </label>
+              <!-- UPI Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="upiFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label">UPI ID</label>
+                  <input type="text" class="form-control" id="upiId" placeholder="Enter UPI ID"/>
                 </div>
-
-                <div class="form-check">
-                  <input
-                    class="form-check-input"
-                    type="radio"
-                    name="payment-status"
-                    id="credit"
-                    value="credit"
-                  />
-                  <label class="form-check-label" for="credit"> Credit </label>
+                <div class="mb-3">
+                  <label class="form-label">UPI Reference Number</label>
+                  <input type="text" class="form-control" id="upiNumber" placeholder="Enter UPI Reference Number"/>
                 </div>
               </div>
+
+              <!-- Bank Transfer Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="bankFields" style="display: none;">
+                <div class="mb-3">
+                  <div class="btn-group w-100" role="group" aria-label="Bank Transfer Type">
+                    <input type="radio" class="btn-check" name="bankTransferType" id="rtgsOption"/>
+                    <label class="btn btn-outline-secondary" for="rtgsOption">RTGS</label>
+
+                    <input type="radio" class="btn-check" name="bankTransferType" id="neftOption"/>
+                    <label class="btn btn-outline-secondary" for="neftOption">NEFT</label>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Transfer UTR</label>
+                  <input type="text" class="form-control" id="transferUTR" placeholder="Enter Transfer UTR"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Transfer ID</label>
+                  <input type="text" class="form-control" id="transferId" placeholder="Enter Transfer ID"/>
+                </div>
+              </div>
+
+              <!-- Payment Note -->
               <div class="col-xl-12">
                 <div class="form-group">
                   <label for="payment-note">Payment Note</label>
@@ -491,415 +480,29 @@
     <!--End::row-1 -->
   </div>
 </div>
+<script src="../../assets/js/cashInvoice.js"></script>
 
 <script>
-  // Function to show the loader
-  function showLoader() {
-    document.getElementById("loader").style.display = "flex"; // Show loader
-  }
+document.addEventListener('DOMContentLoaded', function() {
+  const paymentMethods = document.getElementsByName('paymentMethod');
+  const upiFields = document.getElementById('upiFields');
+  const bankFields = document.getElementById('bankFields');
 
-  // Function to hide the loader
-  function hideLoader() {
-    document.getElementById("loader").style.display = "none"; // Hide loader
-  }
-  // Function to fetch and display the universal link name based on the ID
-  async function fetchUniversalLinkName() {
-    // Get the `id` parameter from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
-    console.log("ID from URL:", id);
+  paymentMethods.forEach(method => {
+    method.addEventListener('change', function() {
+      // Hide all payment fields first
+      upiFields.style.display = 'none';
+      bankFields.style.display = 'none';
 
-    // If no ID is present, handle the error or show a default message
-    if (!id) {
-      document.getElementById("universal-link-name").textContent =
-        "No ID found in URL";
-      return;
-    }
-
-    try {
-      showLoader();
-      // Fetch all universal links from the API
-      const response = await fetch(
-        "https://bni-data-backend.onrender.com/api/universalLinks"
-      );
-      const data = await response.json();
-      console.log("Fetched data:", data);
-
-      // Ensure both id values are strings for comparison
-      const link = data.find((link) => String(link.id) === String(id)); // Use String() for strict comparison
-      console.log("Link found:", link);
-
-      if (link) {
-        // If a matching link is found, update the page title with its name
-        document.getElementById("universal-link-name").textContent =
-          "Make invoice for " + link.universal_link_name;
-      } else {
-        // If no matching link is found
-        document.getElementById("universal-link-name").textContent =
-          "Universal Link not found";
+      // Show relevant fields based on selection
+      if (this.id === 'upiOption') {
+        upiFields.style.display = 'block';
+      } else if (this.id === 'bankOption') {
+        bankFields.style.display = 'block';
       }
-      hideLoader();
-    } catch (error) {
-      console.error("Error fetching universal links:", error);
-      document.getElementById("universal-link-name").textContent =
-        "Error loading data";
-    }
-  }
-
-  // Call the function when the page loads
-  fetchUniversalLinkName();
-
-  // Add these variables at the start of your script
-  let selectedRegionId = null;
-  let selectedChapterId = null;
-  let filteredMembers = [];
-
-  // Function to populate region dropdown
-  async function populateRegionDropdown() {
-    try {
-      console.log('Fetching regions...');
-      showLoader();
-      
-      const response = await fetch('https://bni-data-backend.onrender.com/api/regions');
-      const regions = await response.json();
-      console.log('Regions fetched:', regions);
-
-      const regionDropdown = document.querySelector('.dropdown-menu[role="menu"]');
-      regionDropdown.innerHTML = ''; // Clear existing options
-
-      regions.forEach(region => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <a class="dropdown-item" href="javascript:void(0);" 
-             data-region-id="${region.region_id}">
-             ${region.region_name}
-          </a>
-        `;
-        regionDropdown.appendChild(li);
-      });
-
-      // Add click handlers for region selection
-      regionDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          selectedRegionId = parseInt(this.dataset.regionId);
-          console.log('Region selected:', selectedRegionId);
-          populateBillingFromDropdown();
-        });
-      });
-
-      hideLoader();
-    } catch (error) {
-      console.error('Error populating regions:', error);
-      hideLoader();
-    }
-  }
-
-  // Function to populate chapters dropdown
-  async function populateChaptersDropdown() {
-    try {
-      console.log('Fetching chapters...');
-      showLoader();
-      
-      const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
-      const chapters = await response.json();
-      console.log('Chapters fetched:', chapters);
-
-      const chapterDropdown = document.querySelectorAll('.dropdown-menu[role="menu"]')[1];
-      chapterDropdown.innerHTML = ''; // Clear existing options
-
-      chapters.forEach(chapter => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <a class="dropdown-item" href="javascript:void(0);" 
-             data-chapter-id="${chapter.chapter_id}">
-             ${chapter.chapter_name}
-          </a>
-        `;
-        chapterDropdown.appendChild(li);
-      });
-
-      // Add click handlers for chapter selection
-      chapterDropdown.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-          selectedChapterId = parseInt(this.dataset.chapterId);
-          console.log('Chapter selected:', selectedChapterId);
-          populateBillingFromDropdown();
-        });
-      });
-
-      hideLoader();
-    } catch (error) {
-      console.error('Error populating chapters:', error);
-      hideLoader();
-    }
-  }
-
-  // Function to populate Billing From and Billing To dropdowns
-  async function populateBillingFromDropdown() {
-    try {
-      console.log('Populating Billing From and Billing To dropdowns...');
-      console.log('Selected Region ID:', selectedRegionId);
-      console.log('Selected Chapter ID:', selectedChapterId);
-
-      if (!selectedRegionId || !selectedChapterId) {
-        console.log('Region or Chapter not selected yet');
-        return;
-      }
-
-      showLoader();
-      
-      const response = await fetch('https://bni-data-backend.onrender.com/api/members');
-      const members = await response.json();
-      console.log('Fetched members:', members);
-
-      // Store filtered members for later use
-      filteredMembers = members.filter(member => 
-        member.region_id === selectedRegionId && 
-        member.chapter_id === selectedChapterId
-      );
-      console.log('Filtered members:', filteredMembers);
-
-      // Get both dropdowns
-      const billingFromDropdown = document.querySelector('#company-name');
-      // Get the second select element for Billing To
-      const billingToDropdown = document.querySelectorAll('select.form-select')[1];
-
-      console.log('Found dropdowns:', {
-        billingFrom: !!billingFromDropdown,
-        billingTo: !!billingToDropdown
-      });
-
-      if (!billingFromDropdown || !billingToDropdown) {
-        console.error('One or both dropdowns not found');
-        hideLoader();
-        return;
-      }
-
-      // Clear and populate Billing From dropdown
-      billingFromDropdown.innerHTML = '<option value="">Select Company</option>';
-      let companiesAdded = 0;
-      filteredMembers.forEach(member => {
-        if (member.member_company_name && member.member_company_name !== "It is not here") {
-          const option = document.createElement('option');
-          option.value = member.member_company_name;
-          option.textContent = member.member_company_name;
-          billingFromDropdown.appendChild(option);
-          companiesAdded++;
-          console.log(`Added company ${companiesAdded}:`, member.member_company_name);
-        }
-      });
-
-      // Clear and populate Billing To dropdown with member names
-      billingToDropdown.innerHTML = '<option value="">Select Member</option>';
-      let membersAdded = 0;
-      filteredMembers.forEach(member => {
-        if (member.member_first_name && member.member_last_name) {
-          const option = document.createElement('option');
-          const fullName = `${member.member_first_name} ${member.member_last_name}`;
-          option.value = member.member_id; // Using member_id as value
-          option.textContent = fullName;
-          billingToDropdown.appendChild(option);
-          membersAdded++;
-          console.log(`Added member ${membersAdded}:`, fullName);
-        }
-      });
-
-      // Add change event listener for Billing From dropdown
-      billingFromDropdown.addEventListener('change', function(e) {
-        const selectedCompany = e.target.value;
-        console.log('Selected company:', selectedCompany);
-        const memberDetails = filteredMembers.find(m => m.member_company_name === selectedCompany);
-        
-        if (memberDetails) {
-          document.getElementById('company-address').value = memberDetails.member_company_address || '';
-          document.getElementById('company-phone').value = memberDetails.member_phone_number || '';
-          document.getElementById('zip-code').value = memberDetails.member_gst_number || '';
-          console.log('Updated Billing From details:', memberDetails);
-        }
-      });
-
-      // Add change event listener for Billing To dropdown
-      billingToDropdown.addEventListener('change', function(e) {
-        const selectedMemberId = e.target.value;
-        console.log('Selected member ID:', selectedMemberId);
-        const memberDetails = filteredMembers.find(m => String(m.member_id) === String(selectedMemberId));
-        
-        if (memberDetails) {
-          document.getElementById('customer-address').value = memberDetails.member_company_address || '';
-          document.getElementById('customer-mail').value = memberDetails.member_company_name || '';
-          document.getElementById('customer-phone').value = memberDetails.member_alternate_mobile_number || '';
-          document.getElementById('zip-code2').value = memberDetails.member_gst_number || '';
-          console.log('Updated Billing To details:', memberDetails);
-        }
-      });
-
-      console.log(`Populated dropdowns with ${companiesAdded} companies and ${membersAdded} members`);
-      hideLoader();
-
-    } catch (error) {
-      console.error('Error in populateBillingFromDropdown:', error);
-      hideLoader();
-    }
-  }
-
-  // Initialize dropdowns when page loads
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, initializing dropdowns...');
-    populateRegionDropdown();
-    populateChaptersDropdown();
-  });
-
-  // Update the click handler for Send Invoice button
-  document.querySelector('button.btn.btn-primary').addEventListener('click', async function(e) {
-    e.preventDefault();
-    console.log('Send Invoice button clicked');
-
-    // Validate all required fields
-    const requiredFields = {
-        // Billing From section
-        companyEmail: document.getElementById('company-mail').value,
-        companyAddress: document.getElementById('company-address').value,
-        companyPhone: document.getElementById('company-phone').value,
-        companyGst: document.getElementById('zip-code').value,
-
-        // Billing To section
-        customerCompany: document.getElementById('customer-mail').value,
-        customerAddress: document.getElementById('customer-address').value,
-        customerPhone: document.getElementById('customer-phone').value,
-        customerGst: document.getElementById('zip-code2').value,
-
-        // Invoice Details
-        invoiceNumber: document.getElementById('invoice-number').value,
-        dateIssued: document.getElementById('invoice-date-issued').value,
-        amountDue: document.getElementById('invoice-due-amount').value,
-
-        // Payment Details
-        paymentStatus: document.querySelector('input[name="payment-status"]:checked')?.value,
-        paymentNote: document.getElementById('payment-note').value,
-        paymentMethod: document.querySelector('input[name="btnradio"]:checked')?.value
-    };
-
-    console.log('Required Fields Collected:', requiredFields);
-
-    // Check for empty required fields
-    const emptyFields = Object.entries(requiredFields)
-        .filter(([key, value]) => !value)
-        .map(([key]) => key);
-
-    if (emptyFields.length > 0) {
-        console.error('Empty required fields:', emptyFields);
-        showToast('Please fill in all required fields: ' + emptyFields.join(', '));
-        return;
-    }
-
-    // Get and log the total amount
-    const totalAmount = parseFloat(document.querySelector('input[value="₹ 2,106.68"]').value.replace('₹', '').replace(',', '').trim());
-    console.log('Total Amount:', totalAmount);
-
-    // Get and log member details
-    const selectedMemberId = parseInt(document.querySelector('select.form-select').value);
-    const selectedMemberName = document.querySelector('select.form-select option:checked').text;
-    console.log('Selected Member:', { id: selectedMemberId, name: selectedMemberName });
-
-    // Get and log region and chapter details
-    console.log('Region and Chapter:', { 
-        regionId: selectedRegionId, 
-        chapterId: selectedChapterId 
     });
-
-    // Get and log universal link ID from URL
-    const universalLinkId = parseInt(new URLSearchParams(window.location.search).get('id'));
-    console.log('Universal Link ID:', universalLinkId);
-
-    // Get and log tax amount
-    const taxAmount = parseFloat(document.querySelector('input[value="₹ 214.00"]').value.replace('₹', '').trim());
-    console.log('Tax Amount:', taxAmount);
-
-    // Prepare invoice data
-    const invoiceData = {
-        customer_details: {
-            payment_gateway_id: 1,
-            member_id: selectedMemberId,
-            chapter_id: selectedChapterId,
-            region_id: selectedRegionId,
-            universal_link_id: universalLinkId,
-            ulid_id: "bdbe4592-738e-42b1-ad02-beea957a3f9d",
-            one_time_registration_fee: 0,
-            membership_fee: totalAmount,
-            tax: taxAmount,
-            memberName: selectedMemberName,
-            customer_email: requiredFields.companyEmail,
-            customer_phone: requiredFields.customerPhone,
-            gstin: requiredFields.customerGst,
-            company: requiredFields.customerCompany,
-            mobileNumber: requiredFields.customerPhone,
-            renewalYear: "1Year",
-            payment_note: requiredFields.paymentNote,
-            trainingId: null,
-            eventId: null,
-            kitty_bill_id: null
-        },
-        payment_details: {
-            order_amount: totalAmount,
-            order_currency: "INR",
-            order_status: "ACTIVE",
-            payment_session_id: `sess_${Date.now()}`,
-            payment_amount: totalAmount,
-            payment_currency: "INR",
-            payment_status: requiredFields.paymentStatus.toUpperCase(),
-            payment_message: "Payment initiated",
-            payment_time: new Date().toISOString(),
-            payment_completion_time: null,
-            bank_reference: requiredFields.paymentMethod || "cash",
-            payment_method: {
-                type: requiredFields.paymentMethod || "cash"
-            },
-            error_details: {},
-            gateway_order_id: requiredFields.paymentMethod || "cash",
-            gateway_payment_id: requiredFields.paymentMethod || "cash",
-            payment_group: "group1"
-        }
-    };
-
-    // Log the complete invoice data
-    console.log('Complete Invoice Data:', {
-        customerDetails: invoiceData.customer_details,
-        paymentDetails: invoiceData.payment_details
-    });
-
-    // Log individual sections
-    console.log('Customer Details:', invoiceData.customer_details);
-    console.log('Payment Details:', invoiceData.payment_details);
-
-    try {
-        console.log('Attempting to send invoice data to API...');
-        // Dummy API endpoint - replace with your actual endpoint
-        const response = await fetch('https://api.example.com/invoices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(invoiceData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to submit invoice');
-        }
-
-        const result = await response.json();
-        console.log('API Response:', result);
-        showToast('Invoice sent successfully!');
-
-    } catch (error) {
-        console.error('Error sending invoice:', error);
-        showToast('Failed to send invoice. Please try again.');
-    }
   });
-
-  // Toast function
-  function showToast(message) {
-    alert(message);
-  }
+});
 </script>
 
 <%- include('../partials/footer') %>
