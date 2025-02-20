@@ -1,0 +1,1334 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/sidebar') %>
+
+<!-- end sidebar -->
+<style>
+  
+  /* Ensuring that the modal body has padding */
+  .modal-body {
+    padding: 20px;
+  }
+  /* Preventing the add button container from affecting layout */
+  .add-button-container {
+    margin-top: 10px; /* Space above the button */
+    display: none; /* Initially hidden */
+  }
+</style>
+<style>
+  .custom-dropdown {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background: white;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .options div {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .options div:hover {
+    background-color: #f0f0f0;
+  }
+
+  .selected {
+    display: flex;
+    align-items: center;
+  }
+</style>
+
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins"
+            >Add New Region</span
+          >
+        </h1>
+        <!-- <p>Manage kitty payments with just one click</p> -->
+      </div>
+      <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="form-group">
+                <div class="input-group">
+                  <div class="input-group-text bg-white border">
+                    <i class="ri-calendar-line"></i>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control breadcrumb-input"
+                    id="daterange"
+                    placeholder="Search By Date Range"
+                  />
+                </div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-white btn-wave">
+                  <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                </button>
+                <button class="btn btn-primary btn-wave me-0">
+                  <i class="ri-share-forward-line me-1"></i> Share
+                </button>
+              </div>
+            </div> -->
+    </div>
+    <!-- End::page-header -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap");
+    </style>
+
+    <style>
+      * {
+        font-family: Montserrat !important;
+        font-weight: 800px;
+      }
+      .text-muted {
+        color: black !important;
+        font-family: Montserrat Alternates;
+      }
+      .popins {
+        font-family: Poppins;
+      }
+    </style>
+
+    <form id="addRegionForm">
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>It's time for a new region!</b></span
+                          ></label
+                        >
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="region_name" class="form-label"
+                          >Enter Region Name</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="region_name"
+                          name="region_name"
+                          placeholder="New region name.."
+                          required
+                        />
+                        <label
+                          for="product-cost-add"
+                          class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                          ><span style="color: red"
+                            >*Mention the acknowledged name of the region</span
+                          ></label
+                        >
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="contact_person" class="form-label"
+                          >Contact Person
+                          <span style="color: red">(Name)</span>
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="contact_person"
+                          name="contact_person" 
+                          placeholder="Name of the contact Person.."
+                          required
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="contact-number" class="form-label"
+                          >Conact Number <span style="color: red;">(Phone Number)</span> </label
+                        >
+                        <div class="input-group">
+                          <span class="input-group-text">
+                            <img
+                              src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg"
+                              alt="India"
+                              width="20"
+                              style="margin-right: 5px"
+                            />
+                            91+
+                          </span>
+                          <input
+                            type="tel"
+                            class="form-control"
+                            id="contact_number" 
+                            name="contact_number" 
+
+                            placeholder="Enter phone number"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="email_id" class="form-label"
+                          >Email ID
+                          <span style="color: red">(If registered)</span>
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="email_id" 
+                          name="email_id" 
+                          placeholder="admin@bni.com"
+                          required
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="days_of_chapter" class="form-label">Chapter Days</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllDays" />
+                          <label class="form-check-label" for="selectAllDays">Select All</label>
+                        </div>
+                        <div id="chapterDaysContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="dayMonday"
+                              name="chapterDays[]"
+                              value="Monday"
+                            />
+                            <label class="form-check-label" for="dayMonday"
+                              >Monday</label
+                            >
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="dayTuesday"
+                              name="chapterDays[]"
+                              value="Tuesday"
+                            />
+                            <label class="form-check-label" for="dayTuesday"
+                              >Tuesday</label
+                            >
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="dayWednesday"
+                              name="chapterDays[]"
+                              value="Wednesday"
+                            />
+                            <label class="form-check-label" for="dayWednesday"
+                              >Wednesday</label
+                            >
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="dayThursday"
+                              name="chapterDays[]"
+                              value="Thursday"
+                            />
+                            <label class="form-check-label" for="dayThursday"
+                              >Thursday</label
+                            >
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="dayFriday"
+                              name="chapterDays[]"
+                              value="Friday"
+                            />
+                            <label class="form-check-label" for="dayFriday"
+                              >Friday</label
+                            >
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="daySaturday"
+                              name="chapterDays[]"
+                              value="Saturday"
+                            />
+                            <label class="form-check-label" for="daySaturday"
+                              >Saturday</label
+                            >
+                          </div>
+                          <div class="form-check">
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              id="daySunday"
+                              name="chapterDays[]"
+                              value="Sunday"
+                            />
+                            <label class="form-check-label" for="daySunday"
+                              >Sunday</label
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="chapterStatus" class="form-label">Chapter Status</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllStatus" />
+                          <label class="form-check-label" for="selectAllStatus">Select All</label>
+                        </div>
+                        <div id="chapterStatusContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="statusRunning" name="chapterStatus[]" value="Running" />
+                            <label class="form-check-label" for="statusRunning">Running</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="statusPreLaunch" name="chapterStatus[]" value="Pre-Launch" />
+                            <label class="form-check-label" for="statusPreLaunch">Pre-Launch</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="statusReLaunch" name="chapterStatus[]" value="Re-Launch" />
+                            <label class="form-check-label" for="statusReLaunch">Re-Launch</label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      
+                      <div class="col-xl-6">
+                        <label for="accolades" class="form-label">
+                          Accolades Configuration
+                           <a href="/acc/add-accolades">
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm"
+                            >
+                              Add Accolade +
+                            </button> 
+                          </a>
+                        </label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
+                          <label class="form-check-label" for="selectAllAccolades">Select All</label>
+                        </div>
+                        <div
+                          id="accoladesContainer"
+                          style="display: flex; flex-wrap: wrap; gap: 10px"
+                        >
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
+                            <label class="form-check-label" for="selectAllAccolades">Select All</label>
+                          </div>
+                          <!-- Dynamically populated accolades will go here -->
+                        </div>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="chapterType" class="form-label">Chapter Type</label>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="checkbox" id="selectAllTypes" />
+                          <label class="form-check-label" for="selectAllTypes">Select All</label>
+                        </div>
+                        <div id="chapterTypeContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="typeOnline" name="chapterType[]" value="Online" />
+                            <label class="form-check-label" for="typeOnline">Online</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="typeOffline" name="chapterType[]" value="Offline" />
+                            <label class="form-check-label" for="typeOffline">Offline</label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="typeHybrid" name="chapterType[]" value="Hybrid" />
+                            <label class="form-check-label" for="typeHybrid">Hybrid</label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="col-xl-6">
+                        <label for="mission" class="form-label"
+                          >Region Mission</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="mission"
+                          name="mission"
+                          placeholder="Enter the region's mission"
+                          rows="3"
+                        ></textarea>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="vision" class="form-label"
+                          >Region Vision</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="vision"
+                          name="vision"
+                          placeholder="Enter the region's vision"
+                          rows="3"
+                        ></textarea>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="region_logo" class="form-label">Region Logo</label>
+                        <div class="image-upload-container">
+                          <input
+                            type="file"
+                            class="form-control"
+                            id="region_logo"
+                            name="region_logo"
+                            accept="image/jpeg,image/png,image/jpg"
+                            onchange="previewImage(this)"
+                          />
+                          <div id="imagePreview" class="mt-2" style="display: none;">
+                            <img id="preview" src="" alt="Logo Preview" style="max-width: 200px; max-height: 200px;" />
+                            <button type="button" class="btn btn-danger btn-sm mt-2" onclick="removeImage()">
+                              Remove Image
+                            </button>
+                          </div>
+                        </div>
+                        <label
+                          for="product-cost-add"
+                          class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                        ><span style="color: red">*Upload PNG, JPG, or JPEG files only</span></label>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="region_status" class="form-label">Region Status</label>
+                        <select class="form-control" name="region_status" id="region_status">
+                          <option value="">Select</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>Membership Fee Information</b></span
+                          ></label
+                        >
+                      </div>
+
+                      <div class="col-xl-6">
+                        <label for="one_time_registration_fee" class="form-label"
+                          >One time registration fee</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="one_time_registration_fee"
+                          name="one_time_registration_fee"
+                          placeholder="5,999/-.."
+                        />
+                      </div>
+                      <div id="membershipFeesContainer" class="container">
+                        <div class="row">
+                          <div class="col-xl-4 col-md-4">
+                            <label>One Year</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="one_year_fee"
+                              name="one_year_fee"
+  
+                              value="35309.00"
+                            />
+                          </div>
+
+                          <div class="col-xl-4 col-md-4">
+                            <label>Two Year</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="two_year_fee"
+                              name="two_year_fee"
+  
+                              value="56499.00"
+                            />
+                          </div>
+
+                          <div class="col-xl-4 col-md-4">
+                            <label>Five Year</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="five_year_fee"
+                              name="five_year_fee"
+  
+                              value="103500.00"
+                            />
+                          </div>
+                        </div>
+                        <div class="col-xl-6">
+                          <label for="product-cost-add" class="form-label"
+                            >Late Fees</label
+                          >
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="late_fees"
+                            name="late_fees"
+
+                            placeholder="1,000/-.."
+                          />
+                        </div>
+
+                        <!-- Modals -->
+                        <!-- One Year Tax Modal -->
+                        <div
+                          class="modal fade"
+                          id="taxModal1"
+                          tabindex="-1"
+                          aria-labelledby="taxModalLabel"
+                          aria-hidden="true"
+                        >
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="taxModalLabel">
+                                  Select Tax Type
+                                </h5>
+                                <button
+                                  type="button"
+                                  class="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"
+                                ></button>
+                              </div>
+                              <div class="modal-body">
+                                <label for="taxType1">Tax Type:</label>
+                                <select
+                                  class="form-control"
+                                  id="taxType1"
+                                  onchange="updateTaxOptions(1)"
+                                >
+                                  <option value="" disabled selected>
+                                    Select Tax Type
+                                  </option>
+                                  <option value="gst">GST</option>
+                                  <option value="vat">VAT</option>
+                                </select>
+
+                                <label for="taxOptions1" class="mt-2"
+                                  >Tax Percentage:</label
+                                >
+                                <select
+                                  class="form-control"
+                                  id="taxOptions1"
+                                  disabled
+                                >
+                                  <option value="" selected>
+                                    Select Percentage
+                                  </option>
+                                </select>
+
+                                <div
+                                  class="add-button-container"
+                                  id="addButtonContainer1"
+                                >
+                                  <button
+                                    class="btn btn-success"
+                                    id="addButton1"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Two Year Tax Modal -->
+                        <div
+                          class="modal fade"
+                          id="taxModal2"
+                          tabindex="-1"
+                          aria-labelledby="taxModalLabel"
+                          aria-hidden="true"
+                        >
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="taxModalLabel">
+                                  Select Tax Type for Two Year Membership
+                                </h5>
+                                <button
+                                  type="button"
+                                  class="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"
+                                ></button>
+                              </div>
+                              <div class="modal-body">
+                                <label for="taxType2">Tax Type:</label>
+                                <select
+                                  class="form-control"
+                                  id="taxType2"
+                                  onchange="updateTaxOptions(2)"
+                                >
+                                  <option value="" disabled selected>
+                                    Select Tax Type
+                                  </option>
+                                  <option value="gst">GST</option>
+                                  <option value="vat">VAT</option>
+                                </select>
+
+                                <label for="taxOptions2" class="mt-2"
+                                  >Tax Percentage:</label
+                                >
+                                <select
+                                  class="form-control"
+                                  id="taxOptions2"
+                                  disabled
+                                >
+                                  <option value="" selected>
+                                    Select Percentage
+                                  </option>
+                                </select>
+
+                                <div
+                                  class="add-button-container"
+                                  id="addButtonContainer2"
+                                >
+                                  <button
+                                    class="btn btn-success"
+                                    id="addButton2"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Five Year Tax Modal -->
+                        <div
+                          class="modal fade"
+                          id="taxModal3"
+                          tabindex="-1"
+                          aria-labelledby="taxModalLabel"
+                          aria-hidden="true"
+                        >
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="taxModalLabel">
+                                  Select Tax Type for Five Year Membership
+                                </h5>
+                                <button
+                                  type="button"
+                                  class="btn-close"
+                                  data-bs-dismiss="modal"
+                                  aria-label="Close"
+                                ></button>
+                              </div>
+                              <div class="modal-body">
+                                <label for="taxType3">Tax Type:</label>
+                                <select
+                                  class="form-control"
+                                  id="taxType3"
+                                  onchange="updateTaxOptions(3)"
+                                >
+                                  <option value="" disabled selected>
+                                    Select Tax Type
+                                  </option>
+                                  <option value="gst">GST</option>
+                                  <option value="vat">VAT</option>
+                                </select>
+
+                                <label for="taxOptions3" class="mt-2"
+                                  >Tax Percentage:</label
+                                >
+                                <select
+                                  class="form-control"
+                                  id="taxOptions3"
+                                  disabled
+                                >
+                                  <option value="" selected>
+                                    Select Percentage
+                                  </option>
+                                </select>
+
+                                <div
+                                  class="add-button-container"
+                                  id="addButtonContainer3"
+                                >
+                                  <button
+                                    class="btn btn-success"
+                                    id="addButton3"
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- New Year Fee Inputs -->
+                        <div
+                          id="newFeeContainer"
+                          class="row mt-3"
+                          style="display: none"
+                        >
+                          <div class="col-xl-4 col-md-4">
+                            <label>Year</label>
+                            <input
+                              type="number"
+                              class="form-control"
+                              id="newYear"
+                              placeholder="Enter Year"
+                            />
+                          </div>
+
+                          <div class="col-xl-4 col-md-4">
+                            <label>Fee</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="newFee"
+                              placeholder="Enter Fee"
+                            />
+                          </div>
+
+                          <div class="col-xl-4 col-md-4">
+                            <button
+                              id="confirmAddFee"
+                              class="btn btn-outline-success btn-sm mt-4"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>Address & Venue Details</b></span
+                          ></label
+                        >
+                      </div>
+
+                      <div class="col-xl-6">
+                        <label for="product-brand-add" class="form-label"
+                          >Country</label
+                        >
+                        <select
+                          class="form-control"
+                          name="product-brand-add"
+                          id="country"
+                          name="country"
+                        >
+                          <option value="">Select Country</option>
+                        </select>
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="state" class="form-label"
+                          >State/Province</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="state"
+                          name="state"
+                          placeholder="Enter state or province"
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="city" class="form-label">City</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="city"
+                          name="city"
+                          placeholder="Enter city"
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="street_address_line_1" class="form-label"
+                          >Street Address Line 1</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="street_address_line_1"
+                          name="street_address_line_1"
+                          placeholder="Enter street address"
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="street_address_line_2" class="form-label"
+                          >Street Address Line 2</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="street_address_line_2"
+                          name="street_address_line_2"
+                          placeholder="Enter street address"
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="postal-code" class="form-label"
+                          >Postal Code</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="postal_code"
+                          name="postal_code"
+                          placeholder="Enter postal code"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>Social Media & Handles</b></span
+                          ></label
+                        >
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="social_facebook" class="form-label">
+                          <i class="bi bi-facebook"></i> Facebook
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="social_facebook"
+                          name="social_facebook"
+                          placeholder="www.facebook.com"
+                        />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="social_instagram" class="form-label">
+                          <i class="bi bi-instagram"></i>
+                          Instagram
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="social_instagram"
+                          name="social_instagram"
+                          placeholder="www.instagram.com"
+                        />
+                      </div>
+
+                      <div class="col-xl-4">
+                        <label for="social_linkedin" class="form-label">
+                          <i class="bi bi-linkedin"></i>
+                          Linkedin
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="social_linkedin"
+                          name="social_linkedin"
+                          placeholder="www.linkedin.com"
+                        />
+                      </div>
+
+                      <div class="col-xl-4">
+                        <label for="social_youtube" class="form-label">
+                          <i class="bi bi-youtube"></i>
+                          Youtube
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="social_youtube"
+                          name="social_youtube"
+                          placeholder="www.youtube.com"
+                        />
+                      </div>
+
+                      <div class="col-xl-4">
+                        <label for="website_link" class="form-label">
+                          <i class="bi bi-https"></i>
+                          Region Website (If any)
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="website_link"
+                          name="website_link"
+                          placeholder="www.youtube.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer border-top border-block-start-dashed d-sm-flex justify-content-end align-items-center">
+            <div class="me-3">
+              <label for="date_of_publishing" class="form-label mb-0 me-2"><b>Date of Publishing</b>:</label>
+              <input type="date" id="date_of_publishing" name="date_of_publishing" class="form-control d-inline-block w-auto" />
+            </div>
+            <div class="me-3">
+              <label for="region_launched_by" class="form-label mb-0 me-2"><b>Region Launched by</b>:</label>
+              <input type="text" class="form-control d-inline-block w-auto" id="region_launched_by" name="region_launched_by" 
+                     placeholder="Sunil Kuzhuvelil" />
+            </div>
+            
+            <button type="submit" class="btn btn-success me-2 mb-2 mb-sm-0">
+              Add Region
+            </button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </form>
+  <!-- <div id="formMessage"></div> -->
+</div>
+</div>
+<!-- End::content  -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Fetch accolades from the live API
+    fetch("https://bni-data-backend.onrender.com/api/accolades")
+      .then((response) => response.json())
+      .then((data) => {
+        const accoladesContainer = document.getElementById("accoladesContainer");
+
+        // Clear existing content (if any)
+        accoladesContainer.innerHTML = `
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
+            <label class="form-check-label" for="selectAllAccolades">Select All</label>
+          </div>
+        `;
+
+        // Loop through accolades and create checkboxes
+        data.forEach((accolade) => {
+          const checkboxDiv = document.createElement("div");
+          checkboxDiv.className = "form-check";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "form-check-input";
+          checkbox.id = `accolade${accolade.accolade_id}`;
+          checkbox.name = "accolades[]";  // Use array syntax for multiple selections
+          checkbox.value = accolade.accolade_id;  // Use ID to store in accolades_config
+
+          const label = document.createElement("label");
+          label.className = "form-check-label";
+          label.setAttribute("for", `accolade${accolade.accolade_id}`);
+          label.textContent = accolade.accolade_name;
+
+          // Append checkbox and label to the div
+          checkboxDiv.appendChild(checkbox);
+          checkboxDiv.appendChild(label);
+
+          // Append the div to the accolades container
+          accoladesContainer.appendChild(checkboxDiv);
+        });
+
+        // Add event listener for "Select All" checkbox
+        document.getElementById('selectAllAccolades').addEventListener('change', function() {
+          const checkboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+          checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+          });
+        });
+      })
+      .catch((error) => console.error("Error fetching accolades:", error));
+
+    // Handle form submission
+    const form = document.getElementById("addRegionForm");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();  // Prevent default form submission
+
+      // Gather accolades
+      const selectedAccolades = Array.from(form.elements["accolades[]"]) // Use the correct name here
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+
+      // Prepare data for submission
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+      data.accolades_config = selectedAccolades;  // Include selected accolades
+
+      // Gather chapter status
+      const selectedChapterStatus = Array.from(form.elements["chapterStatus[]"])
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+      data.chapterStatus = selectedChapterStatus;  // Include selected chapter status
+
+      // Send data to the backend
+      try {
+        const response = await fetch('/api/regions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          toastr.success('Region Created successfully!');
+          console.log('Region added successfully:', result);
+          // document.getElementById("formMessage").innerText = "Region added successfully!";
+        } else {
+          const errorResult = await response.json();
+          console.error('Error adding region:', response.statusText);
+          toastr.error(`Error: ${errorResult.message}`);
+          // document.getElementById("formMessage").innerText = `Error: ${errorResult.message}`;
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        toastr.error(`Error: ${error.message}`);
+        // document.getElementById("formMessage").innerText = "An error occurred. Please try again.";
+      }
+    });
+  });
+</script>
+<script>
+  document.getElementById("addFee").addEventListener("click", function () {
+    const newFeeRow = document.createElement("div");
+    newFeeRow.className = "feeRow";
+    newFeeRow.innerHTML = `
+        <label>Year:</label>
+        <input type="number" name="year" placeholder />
+        <input type="text" name="fee" placeholde />
+      `;
+    document.getElementById("membershipFeesContainer").appendChild(newFeeRow);
+  });
+</script>
+<script>
+  function updateTaxOptions(modalId) {
+    const taxTypeSelect = document.getElementById(`taxType${modalId}`);
+    const taxOptionsSelect = document.getElementById(`taxOptions${modalId}`);
+    const addButtonContainer = document.getElementById(
+      `addButtonContainer${modalId}`
+    );
+    const addButton = document.getElementById(`addButton${modalId}`);
+
+    // Clear previous options
+    taxOptionsSelect.innerHTML =
+      '<option value="" selected>Select Percentage</option>';
+
+    if (taxTypeSelect.value === "gst") {
+      taxOptionsSelect.innerHTML +=
+        '<option value="5">5%</option><option value="12">12%</option><option value="18">18%</option>';
+    } else if (taxTypeSelect.value === "vat") {
+      taxOptionsSelect.innerHTML +=
+        '<option value="5">5%</option><option value="15">15%</option>';
+    }
+
+    // Enable the tax options dropdown
+    taxOptionsSelect.disabled = false;
+
+    // Show the Add button only if both dropdowns have a selected value
+    addButtonContainer.style.display =
+      taxTypeSelect.value && taxOptionsSelect.value ? "block" : "none";
+
+    // Event listener for taxOptions dropdown to show/hide Add button
+    taxOptionsSelect.addEventListener("change", function () {
+      addButtonContainer.style.display =
+        taxTypeSelect.value && taxOptionsSelect.value ? "block" : "none";
+    });
+  }
+
+  // Bootstrap JS
+</script>
+<script src="../../assets/js/country.js"></script>
+<script>
+  document.getElementById("addRegionForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    console.log('🚀 Starting form submission');
+
+    // Contact number validation
+    const contactNumber = document.getElementById('contact_number').value.trim();
+    const contactNumberRegex = /^\d{10}$/;
+    
+    if (!contactNumberRegex.test(contactNumber)) {
+        console.error('❌ Invalid contact number format');
+        toastr.error('Contact number must be exactly 10 digits');
+        return;
+    }
+
+    // Rest of your existing form submission code...
+    const formData = new FormData();
+    
+    // Add file if selected
+    const fileInput = document.getElementById('region_logo');
+    if (fileInput && fileInput.files[0]) {
+        console.log('📁 Adding logo file:', fileInput.files[0].name);
+        formData.append('region_logo', fileInput.files[0]);
+    } else {
+        console.warn('⚠️ No logo file selected');
+        toastr.error('Please select a region logo');
+        return;
+    }
+
+    // Add all form fields
+    const formFields = {
+      region_name: document.getElementById('region_name').value,
+      contact_person: document.getElementById('contact_person').value,
+      contact_number: document.getElementById('contact_number').value,
+      email_id: document.getElementById('email_id').value,
+      mission: document.getElementById('mission').value,
+      vision: document.getElementById('vision').value,
+      region_status: document.getElementById('region_status').value,
+      one_time_registration_fee: document.getElementById('one_time_registration_fee').value,
+      one_year_fee: document.getElementById('one_year_fee').value,
+      two_year_fee: document.getElementById('two_year_fee').value,
+      five_year_fee: document.getElementById('five_year_fee').value,
+      late_fees: document.getElementById('late_fees').value,
+      country: document.getElementById('country').value,
+      state: document.getElementById('state').value,
+      city: document.getElementById('city').value,
+      street_address_line_1: document.getElementById('street_address_line_1').value,
+      street_address_line_2: document.getElementById('street_address_line_2').value,
+      postal_code: document.getElementById('postal_code').value,
+      social_facebook: document.getElementById('social_facebook').value,
+      social_instagram: document.getElementById('social_instagram').value,
+      social_linkedin: document.getElementById('social_linkedin').value,
+      social_youtube: document.getElementById('social_youtube').value,
+      website_link: document.getElementById('website_link').value,
+      date_of_publishing: document.getElementById('date_of_publishing').value,
+      region_launched_by: document.getElementById('region_launched_by').value,
+    };
+
+    // Add all form fields to FormData
+    Object.entries(formFields).forEach(([key, value]) => {
+      formData.append(key, value || '');
+    });
+
+    // Handle arrays (checkboxes)
+    const chapterDays = Array.from(document.querySelectorAll('input[name="chapterDays[]"]:checked')).map(cb => cb.value);
+    const chapterStatus = Array.from(document.querySelectorAll('input[name="chapterStatus[]"]:checked')).map(cb => cb.value);
+    const chapterType = Array.from(document.querySelectorAll('input[name="chapterType[]"]:checked')).map(cb => cb.value);
+    const accolades = Array.from(document.querySelectorAll('input[name="accolades[]"]:checked')).map(cb => cb.value);
+
+    formData.append('chapterDays', JSON.stringify(chapterDays));
+    formData.append('chapterStatus', JSON.stringify(chapterStatus));
+    formData.append('chapterType', JSON.stringify(chapterType));
+    formData.append('accolades_config', JSON.stringify(accolades));
+
+    try {
+      console.log('📤 Sending data to server');
+      const response = await fetch('https://bni-data-backend.onrender.com/api/regions', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Server response:', data);
+
+      toastr.success('Region added successfully!');
+      setTimeout(() => {
+        window.location.href = '/r/manage-region';
+      }, 1200);
+    } catch (error) {
+      console.error('❌ Error submitting form:', error);
+      toastr.error('Failed to add region. Please try again.');
+    }
+  });
+</script>
+<script>
+  document.getElementById('selectAllDays').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chapterDaysContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+
+  document.getElementById('selectAllStatus').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chapterStatusContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+
+  document.getElementById('selectAllAccolades').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+
+  document.getElementById('selectAllTypes').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chapterTypeContainer .form-check-input');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+</script>
+<%- include('../partials/footer') %>
+
+<script>
+// Add these functions after your existing script
+function previewImage(input) {
+  console.log('📸 Preview image triggered');
+  const preview = document.getElementById('preview');
+  const previewContainer = document.getElementById('imagePreview');
+  
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    console.log('📁 Selected file:', file.name, 'Type:', file.type, 'Size:', file.size);
+    
+    // Validate file type
+    if (!file.type.match('image/jpeg|image/jpg|image/png')) {
+      console.error('❌ Invalid file type');
+      toastr.error('Please select a valid image file (JPG, JPEG, or PNG)');
+      input.value = '';
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      console.error('❌ File too large');
+      toastr.error('File size should be less than 5MB');
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      console.log('🖼️ Image loaded successfully');
+      preview.src = e.target.result;
+      previewContainer.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeImage() {
+  console.log('🗑️ Removing image');
+  const input = document.getElementById('region_logo');
+  const preview = document.getElementById('preview');
+  const previewContainer = document.getElementById('imagePreview');
+  
+  input.value = '';
+  preview.src = '';
+  previewContainer.style.display = 'none';
+}
+
+// Modify your existing form submission code
+document.getElementById("addRegionForm").addEventListener("submit", async function (event) {
+  event.preventDefault();
+  console.log('🚀 Starting form submission');
+  
+  const formData = new FormData(this);
+  
+  // Handle file upload
+  const fileInput = document.getElementById('region_logo');
+  if (fileInput.files[0]) {
+    console.log('📎 Adding file to form data:', fileInput.files[0].name);
+    formData.append('region_logo', fileInput.files[0]);
+  }
+  
+  try {
+    console.log('📤 Sending data to server');
+    const response = await fetch('/api/regions', {
+      method: 'POST',
+      body: formData // Send as FormData instead of JSON
+    });
+
+    const responseData = await response.json();
+    console.log('📥 Server response:', responseData);
+
+    if (response.ok) {
+      console.log('✅ Region added successfully');
+      toastr.success('Region added successfully!');
+      setTimeout(() => {
+        window.location.href = '/r/manage-region';
+      }, 1200);
+    } else {
+      console.error('❌ Server error:', responseData);
+      toastr.error(responseData.message || 'Error adding region');
+    }
+  } catch (error) {
+    console.error('❌ Network error:', error);
+    
+  }
+});
+</script>

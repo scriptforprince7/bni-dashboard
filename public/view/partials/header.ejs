@@ -1009,9 +1009,27 @@
             </li>
             <!-- End::header-element -->
 
-            
+            <!-- Back Arrow with Tooltip -->
+            <li class="header-element">
+              <a href="/d/ro-dashboard" class="header-link me-3" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Back to Admin Dashboard">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6 header-link-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                  />
+                </svg>
+              </a>
+            </li>
 
-            <!-- Start::header-element -->
+            <!-- Existing Notification Icon -->
             <li
               class="header-element notifications-dropdown d-xl-block d-none dropdown"
             >
@@ -1385,6 +1403,7 @@
           const adminEntries = [
             { name: 'Dashboard', link: '/d/ro-dashboard' },
             { name: 'Manage Universal Links', link: '/u/manage-universal-links' },
+            { name: 'Manage Zones', link: '/z/manage-zones' },
             { name: 'View All Regions', link: '/r/manage-region' },
             { name: 'Add New Region', link: '/r/add-region' },
             { name: 'View All Chapters', link: '/c/manage-chapter' },
@@ -1493,6 +1512,14 @@
 
       // Call the function when page loads
       document.addEventListener('DOMContentLoaded', updateHeaderLogo);
+
+      // Initialize tooltips
+      document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+      });
     </script>
     <style>
       .search-results {

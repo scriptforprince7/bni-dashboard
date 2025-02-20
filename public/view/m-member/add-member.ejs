@@ -160,18 +160,19 @@
                               </div>
                               
                               <div class="col-xl-6">
-                                <label for="member_date_of_birth" class="form-label"
-                                  >Date of Birth *</label
-                                >
+                                <label for="member_date_of_birth" class="form-label">Date of Birth *</label>
                                 <input
                                   type="date"
                                   class="form-control"
                                   id="member_date_of_birth"
                                   name="member_date_of_birth"
                                   required
-                                  placeholder="New chapter name.."
+                                  onchange="validateDOB(this.value)"
+                                  max="<%= new Date().toISOString().split('T')[0] %>"
                                 />
-                               
+                                <label for="memberFirstName" class="form-label mt-1 fs-12 fw-normal text-muted mb-0">
+                                  <span style="color: #666">Must be born after 1980</span>
+                                </label>
                               </div>
                               <div class="col-xl-6">
                                 <label for="member_phone_number" class="form-label"
@@ -643,6 +644,49 @@
               <div class="card custom-card">
                 <div class="card-body add-products">
                   <div class="row gx-4">
+                    <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div class="card custom-card">
+                        <div class="card-header">
+                          <div class="card-title">
+                            Social Media Handles (Optional)
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <div class="row gy-3">
+                            <div class="col-xl-6">
+                              <label for="member_facebook" class="form-label">Facebook</label>
+                              <input type="url" class="form-control" id="member_facebook" name="member_facebook" 
+                                placeholder="Enter Facebook Profile URL">
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="member_instagram" class="form-label">Instagram</label>
+                              <input type="url" class="form-control" id="member_instagram" name="member_instagram" 
+                                placeholder="Enter Instagram Profile URL">
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="member_linkedin" class="form-label">LinkedIn</label>
+                              <input type="url" class="form-control" id="member_linkedin" name="member_linkedin" 
+                                placeholder="Enter LinkedIn Profile URL">
+                            </div>
+                            <div class="col-xl-6">
+                              <label for="member_twitter" class="form-label">Twitter</label>
+                              <input type="url" class="form-control" id="member_twitter" name="member_twitter" 
+                                placeholder="Enter Twitter Profile URL">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div class="card-body add-products">
+                  <div class="row gx-4">
                     <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
                       <div class="card custom-card shadow-none mb-0 border-0">
                         <div class="card-body p-0">
@@ -1068,3 +1112,114 @@ document.getElementById('category').addEventListener('change', function() {
   <script src="../../assets/js/country.js"></script>
 
 <%- include('../partials/footer') %> 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Only target the specific DOB input
+const dobInput = document.getElementById('member_date_of_birth');
+
+function validateDOB(dob) {
+  // Only proceed if the event is from the DOB input
+  if (event.target.id !== 'member_date_of_birth') return true;
+
+  const birthDate = new Date(dob);
+  const birthYear = birthDate.getFullYear();
+  const today = new Date();
+  const age = today.getFullYear() - birthYear;
+  
+  console.log("🎂 Validating Date of Birth:", {
+    selectedDate: dob,
+    birthYear: birthYear,
+    age: age
+  });
+
+  if (birthYear < 1980) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Age Restriction',
+      text: 'Members must be born after 1980 to be eligible.',
+      confirmButtonColor: '#d01f2f',
+      confirmButtonText: 'Choose Different Date',
+      showClass: {
+        popup: 'animate__animated animate__fadeInDown'
+      },
+      hideClass: {
+        popup: 'animate__animated animate__fadeOutUp'
+      }
+    }).then((result) => {
+      dobInput.value = '';
+      console.log("❌ DOB Reset:", {
+        reason: "Birth year before 1980",
+        selectedYear: birthYear
+      });
+    });
+    return false;
+  }
+
+  if (age < 18) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Age Verification',
+      text: 'Member must be at least 18 years old.',
+      confirmButtonColor: '#d01f2f',
+      confirmButtonText: 'Choose Different Date',
+      showClass: {
+        popup: 'animate__animated animate__fadeInDown'
+      },
+      hideClass: {
+        popup: 'animate__animated animate__fadeOutUp'
+      }
+    }).then((result) => {
+      dobInput.value = '';
+      console.log("❌ DOB Reset:", {
+        reason: "Under 18 years",
+        age: age
+      });
+    });
+    return false;
+  }
+
+  console.log("✅ DOB Validation Passed:", {
+    birthYear: birthYear,
+    age: age
+  });
+  return true;
+}
+
+// Only set max date for DOB input
+dobInput.max = new Date().toISOString().split('T')[0];
+</script>
+
+<style>
+  /* Target only the DOB input specifically */
+  #member_date_of_birth {
+    cursor: pointer;
+  }
+  
+  #member_date_of_birth:invalid {
+    border-color: #dc3545;
+  }
+  
+  /* Animation classes remain the same */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -20px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  
+  @keyframes fadeOutUp {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(0, -20px, 0);
+    }
+  }
+</style> 
