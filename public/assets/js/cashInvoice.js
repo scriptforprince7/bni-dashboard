@@ -73,8 +73,12 @@ document.addEventListener("DOMContentLoaded", async function() {
       // Handle region selection
       regionLink.addEventListener("click", function() {
         regionDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${region.region_name}`;
-        selectedRegion = region.region_id;  // Store the actual region ID
-        updateChapterDropdown(region.region_id, chapters);
+        selectedRegionId = region.region_id;  // Store the region ID
+        console.log("🌍 Selected Region:", {
+          name: region.region_name,
+          id: selectedRegionId
+        });
+        updateChapterDropdown(selectedRegionId, chapters);
       });
       
 
@@ -117,8 +121,12 @@ document.addEventListener("DOMContentLoaded", async function() {
         // Handle chapter selection
         chapterLink.addEventListener("click", function() {
           chapterDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${chapter.chapter_name}`;
-          selectedChapter = chapter.chapter_id;  // Store the actual chapter ID
-          updateMemberDropdown(chapter.chapter_id, members);
+          selectedChapterId = chapter.chapter_id;  // Store the chapter ID
+          console.log("🏢 Selected Chapter:", {
+            name: chapter.chapter_name,
+            id: selectedChapterId
+          });
+          updateMemberDropdown(selectedChapterId, members);
         });
         
 
@@ -228,6 +236,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         "https://bni-data-backend.onrender.com/api/allTrainings"
       );
       const trainings = await trainingResponse.json();
+      console.log("📋 Available Trainings:", trainings);
 
       const particularsField = document.getElementById("particulars");
 
@@ -246,7 +255,11 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         trainings.forEach(training => {
           const option = document.createElement("option");
-          option.value = training.training_price; // Store price in value
+          // Store both training_id and price as JSON in value
+          option.value = JSON.stringify({
+            id: training.training_id,
+            price: training.training_price
+          });
           option.textContent = training.training_name;
           selectElement.appendChild(option);
         });
@@ -257,33 +270,39 @@ document.addEventListener("DOMContentLoaded", async function() {
         );
 
         selectElement.addEventListener("change", function() {
-          const selectedTrainingPrice = parseFloat(this.value) || 0;
+          const selectedData = JSON.parse(this.value);
+          const selectedTraining = trainings.find(t => t.training_id === selectedData.id);
+          const selectedTrainingPrice = parseFloat(selectedData.price) || 0;
 
-          document.getElementById(
-            "rate"
-          ).value = `₹ ${selectedTrainingPrice.toFixed(2)}`;
-          document.getElementById(
-            "price"
-          ).value = `₹ ${selectedTrainingPrice.toFixed(2)}`;
-          document.getElementById(
-            "taxable-total-amount"
-          ).value = `₹ ${selectedTrainingPrice.toFixed(2)}`;
+          console.log("📚 Selected Training Details:", {
+            trainingId: selectedData.id,
+            name: selectedTraining.training_name,
+            price: selectedTrainingPrice,
+            fullDetails: selectedTraining
+          });
+
+          document.getElementById("rate").value = `₹ ${selectedTrainingPrice.toFixed(2)}`;
+          document.getElementById("price").value = `₹ ${selectedTrainingPrice.toFixed(2)}`;
+          document.getElementById("taxable-total-amount").value = `₹ ${selectedTrainingPrice.toFixed(2)}`;
 
           const totalTax = selectedTrainingPrice * 0.18; // 18% GST
           const cgstAmount = totalTax / 2;
           const sgstAmount = totalTax / 2;
 
-          document.getElementById(
-            "cgst_amount"
-          ).value = `₹ ${cgstAmount.toFixed(2)}`;
-          document.getElementById(
-            "sgst_amount"
-          ).value = `₹ ${sgstAmount.toFixed(2)}`;
+          document.getElementById("cgst_amount").value = `₹ ${cgstAmount.toFixed(2)}`;
+          document.getElementById("sgst_amount").value = `₹ ${sgstAmount.toFixed(2)}`;
 
           const grandTotal = selectedTrainingPrice + totalTax;
-          document.getElementById(
-            "grand_total"
-          ).value = `₹ ${grandTotal.toFixed(2)}`;
+          document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
+
+          console.log("💰 Training Price Calculations:", {
+            trainingId: selectedData.id,
+            basePrice: selectedTrainingPrice,
+            totalTax: totalTax,
+            cgst: cgstAmount,
+            sgst: sgstAmount,
+            grandTotal: grandTotal
+          });
         });
       }
     }
@@ -296,46 +315,44 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 // -------- send data to the backend --------
 
+let selectedRegionId = null;  // Global variables to store IDs
+let selectedChapterId = null;
+
 document
   .getElementById("submit_invoice")
   .addEventListener("click", async function() {
     showLoader();
 
     const universalLinkId = new URLSearchParams(window.location.search).get("id");
-    const regionDropdownBtn = document.getElementById("regionDropdownBtn");
-    const chapterDropdownBtn = document.getElementById("chapterDropdownBtn");
-    const trainingDropdown = document.getElementById("particulars"); // Assuming training is selected from a dropdown
+    const trainingDropdown = document.getElementById("particulars");
 
-    if (!universalLinkId) {
-      alert("Universal Link ID is missing.");
-      return;
-    }
+    console.log("🔍 Pre-submission Check:", {
+      selectedRegionId,
+      selectedChapterId,
+      universalLinkId
+    });
 
-
-     const selectedRegion = regionDropdownBtn.innerText.trim();
-     const selectedChapter = chapterDropdownBtn.innerText.trim();
-     const selectedTraining = trainingDropdown ? trainingDropdown.value : null;
-
-     console.log(selectedRegion, selectedChapter, selectedTraining);
-
-     if (!selectedRegion || !selectedChapter) {
+    if (!selectedRegionId || !selectedChapterId) {
+      console.warn("⚠️ Missing required selections:", {
+        regionId: selectedRegionId,
+        chapterId: selectedChapterId
+      });
       alert("Please select all required fields.");
+      hideLoader();
       return;
     }
 
     // Collecting form data
     const invoiceData = {
-      region_id: selectedRegion,
-      chapter_id: selectedChapter,
+      region_id: selectedRegionId,
+      chapter_id: selectedChapterId,
       universal_link_id: universalLinkId,
       date_issued: document.getElementById("invoice-date-issued").value,
-      particulars: document.getElementById("particulars").value,
-      training_id: selectedTraining || "",
-      hsn_sac: "999511", // Fixed Value
+      training_id: JSON.parse(document.getElementById("particulars").value).id,
+      hsn_sac: "999511",
       rate: document.getElementById("rate").value,
       amount: document.getElementById("price").value,
-      taxable_total_amount: document.getElementById("taxable-total-amount")
-        .value,
+      taxable_total_amount: document.getElementById("taxable-total-amount").value,
       cgst_amount: document.getElementById("cgst_amount").value,
       sgst_amount: document.getElementById("sgst_amount").value,
       grand_total: document.getElementById("grand_total").value,
@@ -343,35 +360,40 @@ document
       member_address: document.getElementById("member_address").value,
       member_company_name: document.getElementById("member_company_name").value,
       member_phone_number: document.getElementById("member_phone_number").value,
-      member_gst_number: document.getElementById("member_gst_number").value
+      member_gst_number: document.getElementById("member_gst_number").value,
+      particulars: document.getElementById("particulars").options[document.getElementById("particulars").selectedIndex].textContent
     };
 
-    console.log("Invoice Data: ", invoiceData);
+    console.log("📝 Final Invoice Data:", {
+      ...invoiceData,
+      regionIdType: typeof selectedRegionId,
+      chapterIdType: typeof selectedChapterId
+    });
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/add-invoice",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(invoiceData)
-        }
-      );
+      console.log("🚀 Sending request to backend...");
+      const response = await fetch("http://localhost:5000/api/add-invoice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(invoiceData)
+      });
 
       const result = await response.json();
-      hideLoader();
+      console.log("✅ Backend Response:", result);
 
       if (response.ok) {
         alert("Invoice submitted successfully!");
-        window.location.reload(); // Refresh the page after success
+        window.location.reload();
       } else {
+        console.error("❌ Backend Error:", result);
         alert("Error submitting invoice: " + result.message);
       }
     } catch (error) {
-      hideLoader();
-      console.error("Error submitting invoice:", error);
+      console.error("❌ Fetch Error:", error);
       alert("Failed to submit invoice. Please try again.");
+    } finally {
+      hideLoader();
     }
   });

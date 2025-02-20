@@ -25,6 +25,42 @@ border-radius: 4px; /* Rounded edges for the thumb */
 background-color: #555; /* Darker shade on hover */
 }
 
+.btn-group .btn-outline-primary {
+  border-color: #6259ca;
+  color: #6259ca;
+}
+
+.btn-group .btn-check:checked + .btn-outline-primary {
+  background-color: #6259ca;
+  border-color: #6259ca;
+  color: white;
+}
+
+.btn-group .btn-outline-secondary {
+  border-color: #7987a1;
+  color: #7987a1;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary {
+  background-color: #7987a1;
+  border-color: #7987a1;
+  color: white;
+}
+
+.payment-fields {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>
 
 <%- include('../partials/sidebar') %>
@@ -376,25 +412,55 @@ background-color: #555; /* Darker shade on hover */
           <div class="card-body">
             <div class="row gy-3">
               <div class="col-xl-12">
-                <div
-                  class="btn-group"
-                  role="group"
-                  aria-label="Basic radio toggle button group"
-                >
-                  <input
-                    type="radio"
-                    class="btn-check"
-                    name="btnradio"
-                    id="btnradio2"
-                  />
-                  <label
-                    class="btn btn-primary mt-sm-0 mt-1"
-                    for="btnradio2"
-                    >Cash</label
-                  >
+                <div class="btn-group w-100" role="group" aria-label="Payment Methods">
+                  <!-- Cash Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="cashOption" checked/>
+                  <label class="btn btn-outline-primary" for="cashOption">Cash</label>
 
+                  <!-- UPI Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="upiOption"/>
+                  <label class="btn btn-outline-primary" for="upiOption">UPI</label>
+
+                  <!-- Bank Transfer Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="bankOption"/>
+                  <label class="btn btn-outline-primary" for="bankOption">Bank Transfer</label>
                 </div>
               </div>
+
+              <!-- UPI Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="upiFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label">UPI ID</label>
+                  <input type="text" class="form-control" id="upiId" placeholder="Enter UPI ID"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">UPI Reference Number</label>
+                  <input type="text" class="form-control" id="upiNumber" placeholder="Enter UPI Reference Number"/>
+                </div>
+              </div>
+
+              <!-- Bank Transfer Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="bankFields" style="display: none;">
+                <div class="mb-3">
+                  <div class="btn-group w-100" role="group" aria-label="Bank Transfer Type">
+                    <input type="radio" class="btn-check" name="bankTransferType" id="rtgsOption"/>
+                    <label class="btn btn-outline-secondary" for="rtgsOption">RTGS</label>
+
+                    <input type="radio" class="btn-check" name="bankTransferType" id="neftOption"/>
+                    <label class="btn btn-outline-secondary" for="neftOption">NEFT</label>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Transfer UTR</label>
+                  <input type="text" class="form-control" id="transferUTR" placeholder="Enter Transfer UTR"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Transfer ID</label>
+                  <input type="text" class="form-control" id="transferId" placeholder="Enter Transfer ID"/>
+                </div>
+              </div>
+
+              <!-- Payment Note -->
               <div class="col-xl-12">
                 <div class="form-group">
                   <label for="payment-note">Payment Note</label>
@@ -416,5 +482,27 @@ background-color: #555; /* Darker shade on hover */
 </div>
 <script src="../../assets/js/cashInvoice.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const paymentMethods = document.getElementsByName('paymentMethod');
+  const upiFields = document.getElementById('upiFields');
+  const bankFields = document.getElementById('bankFields');
+
+  paymentMethods.forEach(method => {
+    method.addEventListener('change', function() {
+      // Hide all payment fields first
+      upiFields.style.display = 'none';
+      bankFields.style.display = 'none';
+
+      // Show relevant fields based on selection
+      if (this.id === 'upiOption') {
+        upiFields.style.display = 'block';
+      } else if (this.id === 'bankOption') {
+        bankFields.style.display = 'block';
+      }
+    });
+  });
+});
+</script>
 
 <%- include('../partials/footer') %>
