@@ -331,6 +331,28 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log("Total Pending Expense:", total_pending_expense);
         console.log("Total Paid Expense:", total_paid_expense);
 
+        const creditResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit');
+        const memberCredits = await creditResponse.json();
+        console.log('Member Credits Data:', memberCredits);
+        const filteredMemberCredits = memberCredits.filter(credit => credit.chapter_id === chapterId);
+        console.log('Filtered Member Credits for Chapter ID:', chapterId, filteredMemberCredits);
+        let totalCreditAmount = 0;
+        filteredMemberCredits.forEach(credit => {
+            totalCreditAmount += parseFloat(credit.credit_amount);
+        });
+        console.log('Total Credit Amount:', totalCreditAmount);
+
+        const bankOrderResponse = await fetch('https://bni-data-backend.onrender.com/api/getbankOrder');
+        const bankOrders = await bankOrderResponse.json();
+        console.log('Bank Orders Data:', bankOrders);
+        const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapterId);
+        console.log('Filtered Bank Orders for Chapter ID:', chapterId, filteredBankOrders);
+        let totalLatePayment = 0;
+        filteredBankOrders.forEach(order => {
+            totalLatePayment += parseFloat(order.no_of_late_payment);
+        });
+        console.log('Total Late Payment:', totalLatePayment);
+
         // Step 3: Fetch kitty payments using chapter_id
         const kittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
         const kittyPayments = await kittyResponse.json();
@@ -346,8 +368,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.getElementById('totalKittyExpense').textContent = 'N/A';
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
-            console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund))
-            
+            console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund));
+
+            document.querySelector('#total_credit_amount').textContent = indianCurrencyFormatter.format(totalCreditAmount);
+            document.querySelector('#no_of_late_payment').textContent = totalLatePayment;
+
 
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
@@ -384,6 +409,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
+            document.querySelector('#total_credit_amount').textContent = indianCurrencyFormatter.format(totalCreditAmount);
+            document.querySelector('#no_of_late_payment').textContent = totalLatePayment;
+
 
 
             const tableBody = document.getElementById('paymentsTableBody');
@@ -425,6 +453,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
+            document.querySelector('#total_credit_amount').textContent = indianCurrencyFormatter.format(totalCreditAmount);
+            document.querySelector('#no_of_late_payment').textContent = totalLatePayment;
+
 
             const tableBody = document.getElementById('paymentsTableBody');
             const row = document.createElement('tr');
@@ -573,6 +604,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.querySelector('#total_expense_amount').textContent = formattedTotalPaidExpense;
         document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
         document.querySelector('#total_available_amount').textContent = formattedAvailableAmount;
+        document.querySelector('#total_credit_amount').textContent = indianCurrencyFormatter.format(totalCreditAmount);
+        document.querySelector('#no_of_late_payment').textContent = totalLatePayment;
+
 
         // Populate all filter dropdowns
         await populateGatewayFilter();
