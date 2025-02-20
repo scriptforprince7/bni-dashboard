@@ -1203,7 +1203,6 @@
       // Update user info from token
       const userEmail = getUserEmail();
       const userLoginType = getUserLoginType();
-      // console.log("Getting user info from token:", { userEmail, userLoginType });
 
       if (userEmail) {
         document.getElementById("user-email").textContent = userEmail;
@@ -1296,8 +1295,8 @@
             return;
           }
 
-          // Set new expiration time (4 hours from now)
-          const newExpirationTime = Date.now() + (4 * 60 * 60 * 1000); // 4 hours in milliseconds
+          // Set new expiration time (24 hours from now)
+          const newExpirationTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
           
           // Start countdown timer
           const countdownInterval = setInterval(() => {
@@ -1474,6 +1473,26 @@
           searchResults.innerHTML = '';
         }
       });
+
+      // Add this function to update header logo
+      async function updateHeaderLogo() {
+        try {
+          const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+          const chapters = await response.json();
+          const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+
+          if (userChapter && userChapter.chapter_logo) {
+            const headerLogo = document.getElementById('headerLogo');
+            headerLogo.src = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${userChapter.chapter_logo}`;
+            console.log('🔄 Updated header logo:', headerLogo.src);
+          }
+        } catch (error) {
+          console.error('Error updating header logo:', error);
+        }
+      }
+
+      // Call the function when page loads
+      document.addEventListener('DOMContentLoaded', updateHeaderLogo);
     </script>
     <style>
       .search-results {

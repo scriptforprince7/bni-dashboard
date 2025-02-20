@@ -210,18 +210,18 @@ const populateChapterFields = (data) => {
   // Handle logo preview
   const logoPreviewContainer = document.getElementById('logoPreviewContainer');
   const logoPreview = document.getElementById('logoPreview');
-  const logoInput = document.getElementById('chapter_logo');
-
-  console.log('🖼️ Chapter logo data:', data.chapter_logo);
+  
+  console.log('🖼️ Processing chapter logo:', data.chapter_logo);
   
   if (data.chapter_logo) {
-    console.log('📸 Setting up logo preview');
+    // Use consistent URL pattern for chapter logos
     const logoUrl = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${data.chapter_logo}`;
+    console.log('🔗 Setting logo URL:', logoUrl);
+    
     logoPreview.src = logoUrl;
     logoPreviewContainer.style.display = 'block';
-    console.log('🔗 Logo URL set:', logoUrl);
   } else {
-    console.log('ℹ️ No existing logo found');
+    console.log('ℹ️ No logo found for chapter');
     logoPreviewContainer.style.display = 'none';
   }
 };
@@ -420,12 +420,8 @@ const updateChapterData = async () => {
     });
 
     if (result.isConfirmed) {
-        console.log('🔄 Starting chapter update process');
-        
         try {
             showLoader();
-            
-            // Create FormData object
             const formData = new FormData();
             
             // Add all form fields to FormData
@@ -436,39 +432,45 @@ const updateChapterData = async () => {
                 }
             });
             
-            // Add file if selected
+            // Handle logo file
             const logoInput = document.getElementById('chapter_logo');
             if (logoInput.files[0]) {
-                console.log('📎 Adding new logo file to form data:', logoInput.files[0].name);
+                console.log('📸 New logo selected:', {
+                    name: logoInput.files[0].name,
+                    type: logoInput.files[0].type,
+                    size: `${(logoInput.files[0].size / 1024).toFixed(2)}KB`
+                });
                 formData.append('chapter_logo', logoInput.files[0]);
             }
             
-            console.log('📤 Sending update request');
+            console.log('📤 Sending update request with logo...');
             const response = await fetch(`https://bni-data-backend.onrender.com/api/updateChapter/${chapter_id}`, {
                 method: 'PUT',
-                body: formData // Send as FormData instead of JSON
+                body: formData
             });
 
             if (response.ok) {
                 const updatedChapter = await response.json();
                 console.log('✅ Chapter updated successfully:', updatedChapter);
                 
-                if (updatedChapter.chapter_logo_url) {
-                    console.log('🖼️ New logo URL:', updatedChapter.chapter_logo_url);
+                // Update logo preview if new logo was uploaded
+                if (updatedChapter.chapter_logo) {
+                    const logoUrl = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${updatedChapter.chapter_logo}`;
+                    console.log('🔄 Updating logo preview with:', logoUrl);
+                    document.getElementById('logoPreview').src = logoUrl;
                 }
                 
-                Swal.fire('Updated!', 'The chapter details have been updated.', 'success');
+                Swal.fire('Updated!', 'Chapter details have been updated.', 'success');
                 setTimeout(() => {
                     window.location.href = '/c/manage-chapter';
                 }, 1200);
             } else {
                 const errorResponse = await response.json();
-                console.error('❌ Failed to update chapter:', errorResponse);
+                console.error('❌ Update failed:', errorResponse);
                 Swal.fire('Error!', `Failed to update chapter: ${errorResponse.message}`, 'error');
             }
         } catch (error) {
             console.error('❌ Error updating chapter:', error);
-            console.error('Error details:', error.stack);
             Swal.fire('Error!', 'Failed to update chapter. Please try again.', 'error');
         } finally {
             hideLoader();
@@ -480,4 +482,26 @@ const updateChapterData = async () => {
 
 // Event listener to trigger the update
 document.getElementById("updateChapterBtn").addEventListener("click", updateChapterData);
+
+// Add logo preview functionality
+document.getElementById('chapter_logo').addEventListener('change', function(e) {
+    console.log('📸 Logo input changed');
+    const file = e.target.files[0];
+    if (file) {
+        console.log('📄 Selected file:', {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)}KB`
+        });
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('logoPreview');
+            console.log('🖼️ Setting preview image');
+            preview.src = e.target.result;
+            document.getElementById('logoPreviewContainer').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
 

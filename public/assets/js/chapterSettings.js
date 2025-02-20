@@ -137,26 +137,29 @@ function populateSocialLinks(chapter) {
 }
 
 function populateChapterLogo(chapter) {
-    console.log('Starting populateChapterLogo with data:', chapter);
+    console.log('🎨 Starting populateChapterLogo with data:', chapter);
 
     try {
         const logoPreview = document.getElementById('member-photo-preview');
         const noPhotoMessage = document.getElementById('no-photo-message');
 
         if (chapter.chapter_logo && chapter.chapter_logo !== 'Not Found') {
-            console.log('Setting chapter logo with path');
-            const photoPath = `https://bni-data-backend.onrender.com/uploads/chapterPhotos/${chapter.chapter_logo}`;
-            console.log('Full photo path:', photoPath);
+            console.log('🖼️ Found chapter logo:', chapter.chapter_logo);
+            // Use the consistent URL pattern for chapter logos
+            const photoPath = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${chapter.chapter_logo}`;
+            console.log('🔗 Full photo path:', photoPath);
+            
             logoPreview.src = photoPath;
             logoPreview.style.display = 'block';
             noPhotoMessage.style.display = 'none';
+            console.log('✅ Logo preview updated successfully');
         } else {
-            console.log('No chapter logo found, showing default message');
+            console.log('⚠️ No chapter logo found, showing default message');
             logoPreview.style.display = 'none';
             noPhotoMessage.style.display = 'block';
         }
     } catch (error) {
-        console.error('Error in populateChapterLogo:', error);
+        console.error('❌ Error in populateChapterLogo:', error);
         toastr.error('Error loading chapter logo');
     }
 }
@@ -180,10 +183,9 @@ function setupSocialMediaInputs() {
 
 // Add this function to handle save changes
 async function saveChanges() {
-    console.log('Starting saveChanges function...');
+    console.log('🚀 Starting saveChanges function...');
     
     try {
-        // Create FormData object
         const formData = new FormData();
         
         // Get email from the email input field
@@ -234,16 +236,16 @@ async function saveChanges() {
         // Handle logo upload
         const logoInput = document.getElementById('member-photo-input');
         if (logoInput.files.length > 0) {
-            console.log('New logo file selected:', logoInput.files[0].name);
-            formData.append('chapter_logo', logoInput.files[0]);
+            const file = logoInput.files[0];
+            console.log('📸 New logo file selected:', {
+                name: file.name,
+                type: file.type,
+                size: `${(file.size / 1024).toFixed(2)}KB`
+            });
+            formData.append('chapter_logo', file);
         }
 
-        // Log the final FormData contents
-        for (let pair of formData.entries()) {
-            console.log('FormData entry:', pair[0] + ': ' + pair[1]);
-        }
-
-        // Send the update request
+        console.log('📦 Preparing to send update request...');
         const response = await fetch('https://bni-data-backend.onrender.com/api/updateChapterSettings', {
             method: 'PUT',
             body: formData
@@ -251,41 +253,48 @@ async function saveChanges() {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Server error response:', errorText);
+            console.error('❌ Server error response:', errorText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log('Server response:', result);
+        console.log('✅ Server response:', result);
 
         if (result.success) {
-            console.log('Update successful');
+            console.log('🎉 Update successful');
             toastr.success('Chapter settings updated successfully');
             $('#confirmationModal').modal('hide');
             
-            // Refresh the data
+            // Refresh the data to show updated logo
+            console.log('🔄 Refreshing chapter data...');
             await fetchChapterData();
         } else {
-            console.error('Update failed:', result.message);
+            console.error('❌ Update failed:', result.message);
             toastr.error(result.message || 'Failed to update settings');
         }
 
     } catch (error) {
-        console.error('Error in saveChanges:', error);
+        console.error('❌ Error in saveChanges:', error);
         toastr.error('An error occurred while saving changes');
     }
 }
 
 // Add event listener for file input change
 document.getElementById('member-photo-input').addEventListener('change', function(e) {
-    console.log('File input changed');
+    console.log('📸 File input changed');
     const file = e.target.files[0];
     if (file) {
-        console.log('Selected file:', file.name);
+        console.log('📄 Selected file:', {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)}KB`
+        });
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             const preview = document.getElementById('member-photo-preview');
             const noPhotoMessage = document.getElementById('no-photo-message');
+            console.log('🖼️ Setting preview image');
             preview.src = e.target.result;
             preview.style.display = 'block';
             noPhotoMessage.style.display = 'none';

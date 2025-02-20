@@ -98,7 +98,7 @@
                             const regionsData = await regionsResponse.json();
                         
                             // Count active regions
-                            const activeRegionsCount = regionsData.filter(region => region.region_status === 'active').length;
+                            const activeRegionsCount = regionsData.filter(region => region).length;
                             console.log('Active Regions Count:', activeRegionsCount);
                         
                             // Update the count in the HTML

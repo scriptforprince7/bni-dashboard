@@ -515,7 +515,8 @@ let ledgerData = [];
         
         } else {
           console.log("-----------------------------",activeKittyEntries);
-          document.getElementById('total-kitty-amount').textContent = (activeKittyEntries[0].total_bill_amount * 1.18).toFixed(2);
+          // document.getElementById('total-kitty-amount').textContent = (activeKittyEntries[0].total_bill_amount * 1.18).toFixed(2);
+          document.getElementById('total-kitty-amount').textContent = activeKittyEntries[0].total_bill_amount;
           document.getElementById('billType').textContent = activeKittyEntries[0].bill_type;
           document.getElementById('tot_weeks').textContent = activeKittyEntries[0].total_weeks;
           document.querySelector('.description').innerHTML = activeKittyEntries[0].description;
