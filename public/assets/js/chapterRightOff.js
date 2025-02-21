@@ -152,7 +152,7 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
 
     try {
         showLoader();
-        const response = await fetch('http://localhost:5000/api/addMemberWriteOff', {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/addMemberWriteOff', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
