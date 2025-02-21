@@ -58,7 +58,7 @@
           </button>
               
              <a href="https://bni-data-backend.onrender.com/api/exportRegions"><button class="btn btn-danger btn-wave me-0">
-              <i class="ri-share-forward-line me-1"></i> Export Regions
+              <i class="ri-share-forward-line me-1"></i> Export Zones
             </button></a> 
             </div>
           </div>
@@ -67,7 +67,7 @@
           <!-- Start::row-1 -->
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
-              <div class="card-title">All Regions</div>
+              <div class="card-title">All Zones</div>
               <div class="d-flex gap-3 align-items-center flex-wrap">
                 <div class="btn-group">
                   <!-- Status Filter Dropdown -->
@@ -102,7 +102,7 @@
 
                   <a href="/z/add-zone">
                     <button class="btn btn-outline-light border" type="button">
-                        + Add New Region
+                        + Add New Zone
                     </button>
                   </a>
                 </div>
@@ -111,7 +111,7 @@
                     type="text"
                     id="searchChapterInput"
                     class="form-control"
-                    placeholder="Search Region.."
+                    placeholder="Search Zone.."
                     aria-label="Event : custom'id"
                     aria-describedby="button-addon2"
                   />
@@ -191,16 +191,19 @@
             <div class="card-footer border-top-0">
               <div class="d-flex align-items-center flex-wrap overflow-auto">
                 <div class="mb-2 mb-sm-0">
-                  Showing <b>1</b> to <b>10</b> entries
-                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                  Showing <b id="showingStart">0</b> to <b id="showingEnd">0</b> of <b id="totalEntries">0</b> entries
+                  <button id="showAllBtn" class="btn btn-sm btn-primary ms-2">Show All</button>
                 </div>
                 <div class="ms-auto">
-                  <ul class="pagination mb-0 overflow-auto">
-                    <li class="page-item disabled">
-                      <a class="page-link">Previous</a>
+                  <ul class="pagination mb-0 overflow-auto" id="paginationContainer">
+                    <li class="page-item" id="prevPage">
+                      <a class="page-link" href="javascript:void(0)">Previous</a>
                     </li>
-                    <li class="page-item 989178547 " aria-current="page">
-                      <a class="page-link" href="javascript:void(0)">1</a>
+                    <div id="pageNumbers" class="d-flex">
+                      <!-- Page numbers will be inserted here -->
+                    </div>
+                    <li class="page-item" id="nextPage">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
                     </li>
                   </ul>
                 </div>

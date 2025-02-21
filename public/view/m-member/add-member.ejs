@@ -171,7 +171,7 @@
                                   max="<%= new Date().toISOString().split('T')[0] %>"
                                 />
                                 <label for="memberFirstName" class="form-label mt-1 fs-12 fw-normal text-muted mb-0">
-                                  <span style="color: #666">Must be born after 1980</span>
+                                  <span style="color: #666"></span>
                                 </label>
                               </div>
                               <div class="col-xl-6">
@@ -639,42 +639,69 @@
               </div>
             </div>
           </div>
+         
           <div class="row">
             <div class="col-xl-12">
               <div class="card custom-card">
-                <div class="card-body add-products">
-                  <div class="row gx-4">
-                    <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-12 col-sm-12">
-                      <div class="card custom-card">
-                        <div class="card-header">
-                          <div class="card-title">
-                            Social Media Handles (Optional)
-                          </div>
-                        </div>
-                        <div class="card-body">
-                          <div class="row gy-3">
-                            <div class="col-xl-6">
-                              <label for="member_facebook" class="form-label">Facebook</label>
-                              <input type="url" class="form-control" id="member_facebook" name="member_facebook" 
-                                placeholder="Enter Facebook Profile URL">
-                            </div>
-                            <div class="col-xl-6">
-                              <label for="member_instagram" class="form-label">Instagram</label>
-                              <input type="url" class="form-control" id="member_instagram" name="member_instagram" 
-                                placeholder="Enter Instagram Profile URL">
-                            </div>
-                            <div class="col-xl-6">
-                              <label for="member_linkedin" class="form-label">LinkedIn</label>
-                              <input type="url" class="form-control" id="member_linkedin" name="member_linkedin" 
-                                placeholder="Enter LinkedIn Profile URL">
-                            </div>
-                            <div class="col-xl-6">
-                              <label for="member_twitter" class="form-label">Twitter</label>
-                              <input type="url" class="form-control" id="member_twitter" name="member_twitter" 
-                                placeholder="Enter Twitter Profile URL">
-                            </div>
-                          </div>
-                        </div>
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="form-check form-switch">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        role="switch" 
+                        id="showEmergencyContact" 
+                        style="width: 3em; height: 1.5em; margin-right: 10px;"
+                      >
+                      <label class="form-check-label" for="showEmergencyContact">
+                        <span style="font-size: 15px; color: #d01f2f;">
+                          <i class="bi bi-shield-fill-plus me-1"></i>
+                          <b>Add Emergency Contact Details</b>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Emergency Contact Details Section (initially hidden) -->
+                  <div id="emergencyContactSection" style="display: none;">
+                    <div class="row gy-3">
+                      <div class="col-xl-4">
+                        <label for="emergency_contact_name" class="form-label">
+                          <i class="bi bi-person-fill me-1"></i> Emergency Contact Name
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="emergency_contact_name"
+                          name="emergency_contact_name"
+                          placeholder="Enter contact name"
+                        />
+                      </div>
+
+                      <div class="col-xl-4">
+                        <label for="emergency_contact_number" class="form-label">
+                          <i class="bi bi-telephone-fill me-1"></i> Emergency Contact Number
+                        </label>
+                        <input
+                          type="tel"
+                          class="form-control"
+                          id="emergency_contact_number"
+                          name="emergency_contact_number"
+                          placeholder="Enter contact number"
+                        />
+                      </div>
+
+                      <div class="col-xl-4">
+                        <label for="emergency_contact_relation" class="form-label">
+                          <i class="bi bi-people-fill me-1"></i> Relationship
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="emergency_contact_relation"
+                          name="emergency_contact_relation"
+                          placeholder="Enter relationship"
+                        />
                       </div>
                     </div>
                   </div>
@@ -682,6 +709,7 @@
               </div>
             </div>
           </div>
+         
           <div class="row">
             <div class="col-xl-12">
               <div class="card custom-card">
@@ -692,11 +720,11 @@
                         <div class="card-body p-0">
                           <div class="row gy-3">
                             <div class="col-xl-12">
-                              <label for="product-cost-add" class="form-label"
-                                ><span style="font-size: 15px; color: #d01f2f;"
-                                  ><b>Social Media & Handles</b></span
-                                ></label
-                              >
+                              <label for="product-cost-add" class="form-label">
+                                <span style="font-size: 15px; color: #d01f2f;">
+                                  <b>Social Media & Handles</b> (Optional)
+                                </span>
+                              </label>
                             </div>
                             <div class="col-xl-6">
                               <label for="member_facebook" class="form-label">
@@ -706,8 +734,7 @@
                                 type="text"
                                 class="form-control"
                                 id="member_facebook"
-                                  name="member_facebook"
-                                  required
+                                name="member_facebook"
                                 placeholder="www.facebook.com"
                               />
                             </div>
@@ -721,8 +748,7 @@
                                 type="text"
                                 class="form-control"
                                 id="member_instagram"
-                                  name="member_instagram"
-                                  required
+                                name="member_instagram"
                                 placeholder="www.instagram.com"
                               />
                             </div>
@@ -736,8 +762,7 @@
                                 type="text"
                                 class="form-control"
                                 id="member_linkedin"
-                                  name="member_linkedin"
-                                  required
+                                name="member_linkedin"
                                 placeholder="www.linkedin.com"
                               />
                             </div>
@@ -751,8 +776,7 @@
                                 type="text"
                                 class="form-control"
                                 id="member_youtube"
-                                  name="member_youtube"
-                                  required
+                                name="member_youtube"
                                 placeholder="www.youtube.com"
                               />
                             </div>
@@ -766,8 +790,7 @@
                                 type="text"
                                 class="form-control"
                                 id="member_website"
-                                  name="member_website"
-                                  required
+                                name="member_website"
                                 placeholder="www.website.com"
                               />
                             </div>
@@ -1118,76 +1141,113 @@ document.getElementById('category').addEventListener('change', function() {
 // Only target the specific DOB input
 const dobInput = document.getElementById('member_date_of_birth');
 
-function validateDOB(dob) {
-  // Only proceed if the event is from the DOB input
-  if (event.target.id !== 'member_date_of_birth') return true;
+function calculateExactAge(birthDate) {
+    const today = new Date();
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
 
-  const birthDate = new Date(dob);
-  const birthYear = birthDate.getFullYear();
-  const today = new Date();
-  const age = today.getFullYear() - birthYear;
-  
-  console.log("🎂 Validating Date of Birth:", {
-    selectedDate: dob,
-    birthYear: birthYear,
-    age: age
-  });
+    // Adjust months and years if days are negative
+    if (days < 0) {
+        months--;
+        // Get last day of previous month
+        const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        days += lastMonth.getDate();
+    }
 
-  if (birthYear < 1980) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Age Restriction',
-      text: 'Members must be born after 1980 to be eligible.',
-      confirmButtonColor: '#d01f2f',
-      confirmButtonText: 'Choose Different Date',
-      showClass: {
-        popup: 'animate__animated animate__fadeInDown'
-      },
-      hideClass: {
-        popup: 'animate__animated animate__fadeOutUp'
-      }
-    }).then((result) => {
-      dobInput.value = '';
-      console.log("❌ DOB Reset:", {
-        reason: "Birth year before 1980",
-        selectedYear: birthYear
-      });
-    });
-    return false;
-  }
+    // Adjust years if months are negative
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
 
-  if (age < 18) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Age Verification',
-      text: 'Member must be at least 18 years old.',
-      confirmButtonColor: '#d01f2f',
-      confirmButtonText: 'Choose Different Date',
-      showClass: {
-        popup: 'animate__animated animate__fadeInDown'
-      },
-      hideClass: {
-        popup: 'animate__animated animate__fadeOutUp'
-      }
-    }).then((result) => {
-      dobInput.value = '';
-      console.log("❌ DOB Reset:", {
-        reason: "Under 18 years",
-        age: age
-      });
-    });
-    return false;
-  }
-
-  console.log("✅ DOB Validation Passed:", {
-    birthYear: birthYear,
-    age: age
-  });
-  return true;
+    return { years, months, days };
 }
 
-// Only set max date for DOB input
-dobInput.max = new Date().toISOString().split('T')[0];
+function validateDOB(dob) {
+    // Only proceed if the event is from the DOB input
+    if (event.target.id !== 'member_date_of_birth') return true;
+
+    const birthDate = new Date(dob);
+    const today = new Date();
+    
+    // Calculate exact age
+    const exactAge = calculateExactAge(birthDate);
+    
+    console.log("🎂 Age Calculation:", {
+        years: exactAge.years,
+        months: exactAge.months,
+        days: exactAge.days,
+        fullAge: `${exactAge.years} years, ${exactAge.months} months, ${exactAge.days} days`
+    });
+
+    // Check if birth year is before 1980
+    if (birthDate.getFullYear() < 1980) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Age Restriction',
+            text: 'Members must be born after 1980 to be eligible.',
+            confirmButtonColor: '#d01f2f',
+            confirmButtonText: 'Choose Different Date',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            }
+        }).then((result) => {
+            dobInput.value = '';
+            console.log("❌ DOB Reset:", {
+                reason: "Birth year before 1980",
+                selectedYear: birthDate.getFullYear()
+            });
+        });
+        return false;
+    }
+
+    // Check if person is exactly 18 years old
+    const eighteenYearsAgo = new Date();
+    eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+    
+    if (birthDate > eighteenYearsAgo) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Age Verification',
+            text: 'Member must be at least 18 years old.',
+            confirmButtonColor: '#d01f2f',
+            confirmButtonText: 'Choose Different Date',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            }
+        }).then((result) => {
+            dobInput.value = '';
+            console.log("❌ DOB Reset:", {
+                reason: "Under 18 years",
+                exactAge: `${exactAge.years} years, ${exactAge.months} months, ${exactAge.days} days`
+            });
+        });
+        return false;
+    }
+
+    console.log("✅ DOB Validation Passed:", {
+        birthDate: birthDate.toISOString().split('T')[0],
+        exactAge: `${exactAge.years} years, ${exactAge.months} months, ${exactAge.days} days`
+    });
+    return true;
+}
+
+// Set max date to 18 years ago from today
+const maxDate = new Date();
+maxDate.setFullYear(maxDate.getFullYear() - 18);
+dobInput.max = maxDate.toISOString().split('T')[0];
+
+// Add event listener for date input
+dobInput.addEventListener('change', function() {
+    validateDOB(this.value);
+});
 </script>
 
 <style>
@@ -1223,3 +1283,24 @@ dobInput.max = new Date().toISOString().split('T')[0];
     }
   }
 </style> 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('showEmergencyContact');
+    const emergencySection = document.getElementById('emergencyContactSection');
+
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            emergencySection.style.display = 'block';
+            setTimeout(() => {
+                emergencySection.style.opacity = '1';
+            }, 50);
+        } else {
+            emergencySection.style.opacity = '0';
+            setTimeout(() => {
+                emergencySection.style.display = 'none';
+            }, 300);
+        }
+    });
+});
+</script> 

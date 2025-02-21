@@ -22,6 +22,12 @@ window.BNI.state = window.BNI.state || {
     }
 };
 
+// Add these variables at the top of your file
+let currentPage = 1;
+const entriesPerPage = 10;
+let totalPages = 0;
+let showingAll = false;
+
 // Function to show the loader
 function showLoader() {
     const loader = document.getElementById("loader");
@@ -68,30 +74,44 @@ function updateRunningChaptersCount() {
 const displayChapters = (chapters) => {
     console.log("Displaying chapters:", chapters);
     const tableBody = document.getElementById("chaptersTableBody");
+    const totalEntries = chapters.length;
+    
+    // Update total entries display
+    document.getElementById("totalEntries").textContent = totalEntries;
+    
     if (!tableBody) {
         console.error("Chapters table body not found");
         return;
     }
 
-    tableBody.innerHTML = ""; // Clear the table body
+    if (chapters.length === 0) {
+        handleNoData(tableBody);
+        return;
+    }
+
+    // Calculate pagination
+    totalPages = Math.ceil(chapters.length / entriesPerPage);
+    const start = showingAll ? 0 : (currentPage - 1) * entriesPerPage;
+    const end = showingAll ? chapters.length : Math.min(start + entriesPerPage, chapters.length);
+    
+    // Update showing entries text
+    document.getElementById("showingStart").textContent = chapters.length > 0 ? start + 1 : 0;
+    document.getElementById("showingEnd").textContent = end;
+
+    // Clear existing table content
+    tableBody.innerHTML = "";
+
+    // Display chapters
+    const chaptersToShow = showingAll ? chapters : chapters.slice(start, end);
+    
     member_total = 0; // Reset member total before counting
     active_total = 0; // Reset active chapters count
     let inactive_total = 0; // Reset inactive chapters count
 
-    if (chapters.length === 0) {
-        console.log("No chapters to display");
-        const noDataRow = document.createElement("tr");
-        noDataRow.innerHTML = `
-            <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
-        `;
-        tableBody.appendChild(noDataRow);
-        return;
-    }
-
     // Update total chapters count
     const totalChaptersElement = document.getElementById("total-chapters-count");
     if (totalChaptersElement) {
-        totalChaptersElement.textContent = chapters.length;
+        totalChaptersElement.textContent = totalEntries;
     }
 
     // Fetch total members count from API
@@ -113,7 +133,7 @@ const displayChapters = (chapters) => {
         });
 
     // Populate the table with chapters data
-    chapters.forEach((chapter, index) => {
+    chaptersToShow.forEach((chapter, index) => {
         const membersCount = getMemberCountForChapter(chapter.chapter_id);
         const regionName = getRegionNameById(chapter.region_id);
 
@@ -134,7 +154,7 @@ const displayChapters = (chapters) => {
 
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td style="border: 1px solid grey;">${index + 1}</td>
+            <td style="border: 1px solid grey;">${showingAll ? index + 1 : start + index + 1}</td>
             <td style="border: 1px solid grey;">
                 <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
                     <b>${chapter.chapter_name}</b>
@@ -174,7 +194,7 @@ const displayChapters = (chapters) => {
     });
 
     console.log('Final counts:', {
-        total_chapters: chapters.length,
+        total_chapters: totalEntries,
         running_chapters: active_total,
         inactive_chapters: inactive_total,
         total_members: member_total
@@ -182,6 +202,13 @@ const displayChapters = (chapters) => {
 
     // Update the running chapters count after displaying chapters
     updateRunningChaptersCount();
+
+    // Update pagination UI
+    const paginationContainer = document.getElementById("paginationContainer");
+    paginationContainer.style.display = showingAll ? 'none' : 'flex';
+    if (!showingAll) {
+        updatePagination(totalPages);
+    }
 };
 
 // Function to populate filter dropdowns
@@ -625,4 +652,56 @@ document.addEventListener('click', (event) => {
 
     // Perform sort
     sortChapters(columnIndex, newDirection);
+});
+
+// Update pagination function
+function updatePagination(totalPages) {
+    const container = document.getElementById("pageNumbers");
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+    
+    container.innerHTML = "";
+    
+    // Create page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageItem = document.createElement("li");
+        pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageItem.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+        pageItem.onclick = () => {
+            currentPage = i;
+            displayChapters(window.BNI.state.filteredChapters);
+        };
+        container.appendChild(pageItem);
+    }
+    
+    // Update prev/next buttons
+    prevBtn.classList.toggle('disabled', currentPage === 1);
+    nextBtn.classList.toggle('disabled', currentPage === totalPages);
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Show All button handler
+    document.getElementById("showAllBtn").addEventListener('click', function() {
+        showingAll = !showingAll;
+        this.textContent = showingAll ? "Show Less" : "Show All";
+        currentPage = 1;
+        displayChapters(window.BNI.state.filteredChapters);
+    });
+
+    // Previous page handler
+    document.getElementById("prevPage").addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayChapters(window.BNI.state.filteredChapters);
+        }
+    });
+
+    // Next page handler
+    document.getElementById("nextPage").addEventListener('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayChapters(window.BNI.state.filteredChapters);
+        }
+    });
 });

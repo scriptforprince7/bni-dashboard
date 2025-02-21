@@ -1520,6 +1520,17 @@
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
       });
+
+      // Add back button visibility and click handling logic
+      const backButton = document.querySelector('.header-element a[href="/d/ro-dashboard"]');
+      if (backButton) {
+          if (userLoginType === 'ro_admin') {
+              backButton.parentElement.style.display = 'none';
+          } else if (userLoginType === 'chapter') {
+              backButton.href = '/c/manage-chapter';
+              backButton.setAttribute('title', 'Back to Chapter Management');
+          }
+      }
     </script>
     <style>
       .search-results {
