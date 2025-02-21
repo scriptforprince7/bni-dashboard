@@ -9,3 +9,7 @@ exports.addZone = (req, res) => {
 exports.editZone = (req, res) => {
     res.render('m-manageZones/edit-zone', { title: 'Edit Zone' });
 };
+exports.viewZone = (req, res) => {
+    res.render('m-manageZones/view-zone', { title: 'View Zone' });
+};
+

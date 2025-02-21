@@ -1,6 +1,7 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.apiUrl = 'https://bni-data-backend.onrender.com/api/regions';
+const API_BASE_URL = 'https://bni-data-backend.onrender.com/api';
 let total_regions =0;
 let active_total =0;
 let chapter_total = 0;
@@ -30,19 +31,39 @@ function hideLoader() {
 // Fetch chapters and members
 const fetchChaptersAndMembers = async () => {
     try {
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        
+        const fetchOptions = {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+
         // Fetch chapters
-        const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
-        if (!chaptersResponse.ok) throw new Error('Error fetching chapters data');
+        const chaptersResponse = await fetch(`${API_BASE_URL}/chapters`, fetchOptions);
+        if (!chaptersResponse.ok) {
+            throw new Error(`Chapters fetch failed: ${chaptersResponse.status}`);
+        }
         window.BNI.state.allChapters = await chaptersResponse.json();
 
         // Fetch members
-        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
-        if (!membersResponse.ok) throw new Error('Error fetching members data');
+        const membersResponse = await fetch(`${API_BASE_URL}/members`, fetchOptions);
+        if (!membersResponse.ok) {
+            throw new Error(`Members fetch failed: ${membersResponse.status}`);
+        }
         window.BNI.state.allMembers = await membersResponse.json();
 
-        console.log('Chapters and Members data fetched successfully');
+        console.log('✅ Chapters and Members data fetched successfully');
     } catch (error) {
-        console.log("Error fetching chapters and members;",error)
+        console.error("Error fetching chapters and members:", error);
+        // Show error to user
+        if (error.message.includes('Failed to fetch')) {
+            console.error("API server might be down or network issue");
+        }
+        hideLoader(); // Hide loader on error
     }
 };
 
@@ -163,7 +184,7 @@ function displayRegions(regions) {
             <td>${displayIndex}</td>
             <td style="border: 1px solid grey;">
                 <div class="d-flex align-items-center">
-                    <a href="/r/view-region/?region_id=${region.region_id}"> <b>${region.region_name}</b></a>
+                    <b>${region.region_name}</b>
                 </div>
             </td>
             <td style="border: 1px solid grey;"><b>${chaptersCount}</b></td>
@@ -179,7 +200,10 @@ function displayRegions(regions) {
                 </span>
             </td>
             <td style="border: 1px solid grey">
-                <span class="badge bg-primary text-light" style="cursor:pointer; color:white;">
+                <span class="badge bg-info text-light" style="cursor:pointer; color:white; margin-right: 4px;">
+                    <a href="/r/view-region/?region_id=${region.region_id}" style="color:white">View</a>
+                </span>
+                <span class="badge bg-primary text-light" style="cursor:pointer; color:white; margin-right: 4px;">
                     <a href="/r/edit-region/?region_id=${region.region_id}" style="color:white">Edit</a>
                 </span>
                 <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-region-id="${region.region_id}">

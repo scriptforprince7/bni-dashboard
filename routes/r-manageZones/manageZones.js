@@ -6,5 +6,6 @@ const manageZonesController = require('../../controllers/c-manageZones/manageZon
 router.get('/view-zones', manageZonesController.viewZones);
 router.get('/add-zone', manageZonesController.addZone);
 router.get('/edit-zone/:id', manageZonesController.editZone);
+router.get('/view-zone/:id',manageZonesController.viewZone);
 
 module.exports = router;

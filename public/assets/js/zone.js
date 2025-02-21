@@ -13,6 +13,10 @@ let total_zones = 0;
 let total_regions = 0;
 let chapter_total = 0;
 let member_total = 0;
+let currentPage = 1;
+const entriesPerPage = 10;
+let totalPages = 0;
+let showingAll = false;
 
 // Function to show loader
 function showLoader() {
@@ -201,21 +205,30 @@ const displayZones = async (zones) => {
         // Update table headers with sort indicators
         updateTableHeaders();
 
-        zones.forEach((zone, index) => {
+        // Calculate pagination
+        const totalEntries = zones.length;
+        document.getElementById("totalEntries").textContent = totalEntries;
+        
+        totalPages = Math.ceil(zones.length / entriesPerPage);
+        const start = showingAll ? 0 : (currentPage - 1) * entriesPerPage;
+        const end = showingAll ? zones.length : Math.min(start + entriesPerPage, zones.length);
+        
+        // Update showing entries text
+        document.getElementById("showingStart").textContent = zones.length > 0 ? start + 1 : 0;
+        document.getElementById("showingEnd").textContent = end;
+
+        // Get zones for current page
+        const zonesToShow = showingAll ? zones : zones.slice(start, end);
+
+        zonesToShow.forEach((zone, index) => {
             // Count data for this zone
             const regionsCount = allData.regions.filter(region => region.zone_id === zone.zone_id).length;
             const chaptersCount = allData.chapters.filter(chapter => chapter.zone_id === zone.zone_id).length;
             const membersCount = allData.members.filter(member => member.zone_id === zone.zone_id).length;
 
-            console.log(`Zone ${zone.zone_name}:`, {
-                regions: regionsCount,
-                chapters: chaptersCount,
-                members: membersCount
-            });
-
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${index + 1}</td>
+                <td>${showingAll ? index + 1 : start + index + 1}</td>
                 <td style="border: 1px solid grey;">
                     <div class="d-flex align-items-center">
                         <b>${zone.zone_name}</b>
@@ -231,7 +244,7 @@ const displayZones = async (zones) => {
                 </td>
                 <td style="border: 1px solid grey">
                     <span class="badge bg-info text-light" style="cursor:pointer; color:white; margin-right: 4px;">
-                        <a href="/z/view-zone/?zone_id=${zone.zone_id}" style="color:white">View</a>
+                        <a href="/z/view-zone/${zone.zone_id}" style="color:white">View</a>
                     </span>
                     <span class="badge bg-primary text-light" style="cursor:pointer; color:white; margin-right: 4px;">
                         <a href="/z/edit-zone/${zone.zone_id}" style="color:white">Edit</a>
@@ -246,7 +259,13 @@ const displayZones = async (zones) => {
 
         // Calculate and update totals
         calculateTotals(zones, allData);
-        console.log('✅ Zones display completed');
+        
+        // Update pagination UI
+        const paginationContainer = document.getElementById("paginationContainer");
+        paginationContainer.style.display = showingAll ? 'none' : 'flex';
+        if (!showingAll) {
+            updatePagination(totalPages);
+        }
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -424,5 +443,59 @@ document.addEventListener('DOMContentLoaded', () => {
             // Perform sort
             sortZones(columnIndex, newDirection);
         });
+    });
+});
+
+// Add pagination functions
+function updatePagination(totalPages) {
+    const container = document.getElementById("pageNumbers");
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+    
+    container.innerHTML = "";
+    
+    // Create page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        const pageItem = document.createElement("li");
+        pageItem.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageItem.innerHTML = `<a class="page-link" href="javascript:void(0)">${i}</a>`;
+        pageItem.onclick = () => {
+            currentPage = i;
+            displayZones(window.BNI.state.filteredZones);
+        };
+        container.appendChild(pageItem);
+    }
+    
+    // Update prev/next buttons
+    prevBtn.classList.toggle('disabled', currentPage === 1);
+    nextBtn.classList.toggle('disabled', currentPage === totalPages);
+}
+
+// Add event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    fetchZones();
+
+    // Show All button handler
+    document.getElementById("showAllBtn").addEventListener('click', function() {
+        showingAll = !showingAll;
+        this.textContent = showingAll ? "Show Less" : "Show All";
+        currentPage = 1;
+        displayZones(window.BNI.state.filteredZones);
+    });
+
+    // Previous page handler
+    document.getElementById("prevPage").addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayZones(window.BNI.state.filteredZones);
+        }
+    });
+
+    // Next page handler
+    document.getElementById("nextPage").addEventListener('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayZones(window.BNI.state.filteredZones);
+        }
     });
 });

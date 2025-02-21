@@ -1,6 +1,6 @@
- <!-- header -->
- <%- include('../partials/header') %> 
- <!-- end header -->
+<!-- header -->
+<%- include('../partials/header') %> 
+<!-- end header -->
   <!-- Loader -->
   <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
     <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
@@ -450,13 +450,13 @@
                                         <div class="card-body border-bottom border-block-end-dashed">
                                             <div class="text-center">
                                                 <span class="avatar avatar-xxl avatar-rounded online mb-3">
-                                                    <img id="profileImage" src="https://path/to/placeholder/image.jpg" alt="Profile Image">
+                                                    <img id="profileImage" src="/assets/images/placeholder.png" alt="Zone Logo">
                                                 </span>
                                                 <h5 id="regionName" class="fw-semibold mb-1">Loading...</h5>
                                                 <span id="regionType" class="d-block fw-medium text-muted mb-2">Loading...</span>
                                                 <p class="fs-12 mb-0 text-muted"> 
-                                                    <span ><i class="ri-building-line me-1 align-middle"></i></span> <span id="regionCity">City</span> <span> </span>
-                                                    <span ><i class="ri-map-pin-line me-1 align-middle"></i></span> <span id="regionCountry">Country</span> 
+                                                    <span><i class="ri-building-line me-1 align-middle"></i></span> <span id="regionCity">Loading...</span>
+                                                    <span><i class="ri-map-pin-line me-1 align-middle"></i></span> <span id="regionCountry">Loading...</span> 
                                                 </p>
                                             </div>
                                         </div>
@@ -468,9 +468,9 @@
                                             <ul class="list-group list-group-flush">
                                                 <li class="list-group-item pt-2 border-0">
                                                     <div><span class="fw-medium me-2">Launched By:</span><span id="regionLaunchedBy" class="text-muted">Loading...</span></div>
-                                                </li>
+                                                </li>   
                                                 <li class="list-group-item pt-2 border-0">
-                                                    <div><span class="fw-medium me-2">Region Status:</span><span id="regionStatus" class="text-muted">Loading...</span></div>
+                                                    <div><span class="fw-medium me-2">Zone Status:</span><span id="regionStatus" class="text-muted">Loading...</span></div>
                                                 </li>
                                                 <li class="list-group-item pt-2 border-0">
                                                     <div><span class="fw-medium me-2">Contact Person:</span><span id="contactPerson" class="text-muted">Loading...</span></div>
@@ -481,9 +481,8 @@
                                                 <li class="list-group-item pt-2 border-0">
                                                     <div><span class="fw-medium me-2">Phone:</span><span id="contactPhone" class="text-muted">Loading...</span></div>
                                                 </li>
-                                                
                                                 <li class="list-group-item pt-2 border-0">
-                                                    <!-- <div><span class="fw-medium me-2">Age:</span><span id="basicAge" class="text-muted">Loading...</span></div> -->
+                                                    <div><span class="fw-medium me-2">Published Date:</span><span id="publishDate" class="text-muted">Loading...</span></div>
                                                 </li>
                                             </ul>
                                         </div>
@@ -1409,260 +1408,82 @@
 <!-- END SCRIPTS -->
  <!-- sidebar -->
 
- <script>
-// Function to get region_id from URL
-function showLoader() {
-  
-  document.getElementById('loader').style.display = 'flex'; // Show loader
 
-}
-
-// Function to hide the loader
-function hideLoader() {
-  document.getElementById('loader').style.display = 'none'; // Hide loader
-}
-
-function getRegionIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const region_id=urlParams.get('region_id')
-    return region_id; // Adjust key if needed
-}
-
-// Function to fetch member data
-async function fetchRegionData(regionId) {
-    showLoader();
-    try {
-        const response = await fetch(`https://bni-data-backend.onrender.com/api/getRegion/${regionId}`);
-        if (!response.ok) {
-            toastr.error("Something went wrong try again")
-            throw new Error(`Error: ${response.statusText}`);
-        }
-        const regionData = await response.json();
-        console.log(regionData)
-        displayRegionData(regionData); // Function to handle the data
-    } catch (error) {
-        console.error("Failed to fetch member data:", error);
-    }finally{
-        hideLoader()
-    }
-}
-
-// Function to display member data on the page
-async function displayRegionData(data) {
-    console.log("Received region data:", data);
-    const selectedRegion = data;
-
-    try {
-        // Profile Image handling with proper logging
-        if (data.region_logo) {
-            console.log('🖼️ Found logo filename:', data.region_logo);
-            const logoUrl = `https://bni-data-backend.onrender.com/api/uploads/regionLogos/${data.region_logo}`;
-            console.log('🔗 Using logo URL:', logoUrl);
-            
-            const profileImage = document.getElementById("profileImage");
-            if (profileImage) {
-                profileImage.src = logoUrl;
-                profileImage.onerror = function() {
-                    console.warn('⚠️ Error loading logo, falling back to default image');
-                    this.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXnDsD4WCge-cUF9IJysBS57H8nHw2y1gNDw&s";
-                };
-                console.log('✅ Logo preview updated successfully');
-            } else {
-                console.warn('⚠️ Profile image element not found in DOM');
-            }
-        } else {
-            console.log('ℹ️ No logo found for this region, using default image');
-            const profileImage = document.getElementById("profileImage");
-            if (profileImage) {
-                profileImage.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXnDsD4WCge-cUF9IJysBS57H8nHw2y1gNDw&s";
-            }
-        }
-
-        // Main Profile Info
-        document.getElementById("regionName").textContent = selectedRegion.region_name;
-        document.getElementById("regionType").textContent = selectedRegion.chapter_type.join(", ");
-        document.getElementById("regionCity").textContent = selectedRegion.city;
-        document.getElementById("regionCountry").textContent = selectedRegion.country;
-
-        // Basic Info Section with status badge
-        document.getElementById("regionLaunchedBy").textContent = selectedRegion.region_launched_by;
-        
-        // Status with conditional badge color
-        const statusElement = document.getElementById("regionStatus");
-        const isActive = selectedRegion.region_status.toLowerCase() === 'active';
-        statusElement.innerHTML = `
-            <span class="badge bg-${isActive ? 'success' : 'danger'} text-white">
-                ${selectedRegion.region_status}
-            </span>
-        `;
-
-        document.getElementById("contactPerson").textContent = selectedRegion.contact_person;
-        document.getElementById("contactEmail").textContent = selectedRegion.email_id;
-        document.getElementById("contactPhone").textContent = selectedRegion.contact_number;
-
-        // About Region Section with improved formatting
-        document.getElementById("bio1").innerHTML = `
-            <div class="mb-3">
-                <strong class="d-block mb-2">Vision:</strong>
-                <p class="ms-2">${selectedRegion.vision}</p>
-            </div>
-
-            <div class="mb-3">
-                <strong class="d-block mb-2">Mission:</strong>
-                <p class="ms-2">${selectedRegion.mission}</p>
-            </div>
-
-            <div class="mb-3">
-                <strong class="d-block mb-2">Chapter Days:</strong>
-                <p class="ms-2">${selectedRegion.days_of_chapter.join(", ")}</p>
-            </div>
-
-            <div class="mb-3">
-                <strong class="d-block mb-2">Chapter Types:</strong>
-                <p class="ms-2">${selectedRegion.chapter_type.join(", ")}</p>
-            </div>
-        `;
-
-        document.getElementById("bio2").innerHTML = `
-            <div class="mb-3">
-                <strong class="d-block mb-2">Chapter Status:</strong>
-                <p class="ms-2">${selectedRegion.chapter_status}</p>
-            </div>
-
-            <div class="mb-3">
-                <strong class="d-block mb-2">Launch Date:</strong>
-                <p class="ms-2">${new Date(selectedRegion.date_of_publishing).toLocaleDateString()}</p>
-            </div>
-        `;
-
-        // Region Business Contact Info
-        document.getElementById("companyEmail").textContent = selectedRegion.email_id;
-        document.getElementById("companyWebsite").textContent = selectedRegion.website_link;
-        document.getElementById("companyLocation").innerHTML = `
-            ${selectedRegion.street_address_line_1}<br>
-            ${selectedRegion.street_address_line_2 !== "Not Found" ? selectedRegion.street_address_line_2 + "<br>" : ""}
-            ${selectedRegion.city}, ${selectedRegion.state} ${selectedRegion.postal_code}<br>
-            ${selectedRegion.country}
-        `;
-        document.getElementById("companyPhone").textContent = selectedRegion.contact_number;
-
-        // Membership Fees Section with Late Fees included
-        const feesHtml = `
-            <li class="list-group-item p-3">
-                <span class="fw-medium fs-15 d-block mb-3">Membership Fees:</span>
-                <div class="text-muted">
-                    <div class="mb-2">
-                        <strong>One Time Registration:</strong> 
-                        <span class="ms-2">₹${selectedRegion.one_time_registration_fee}</span>
-                    </div>
-                    <div class="mb-2">
-                        <strong>One Year:</strong> 
-                        <span class="ms-2">₹${selectedRegion.one_year_fee}</span>
-                    </div>
-                    <div class="mb-2">
-                        <strong>Two Years:</strong> 
-                        <span class="ms-2">₹${selectedRegion.two_year_fee}</span>
-                    </div>
-                    <div class="mb-2">
-                        <strong>Five Years:</strong> 
-                        <span class="ms-2">₹${selectedRegion.five_year_fee}</span>
-                    </div>
-                    <div class="mb-0">
-                        <strong>Late Fees:</strong> 
-                        <span class="ms-2 text-danger">₹${selectedRegion.late_fees}</span>
-                    </div>
-                </div>
-            </li>`;
-
-        // Insert fees section after the contact info
-        const contactInfoElement = document.querySelector('.list-group-item:nth-child(2)');
-        if (contactInfoElement) {
-            contactInfoElement.insertAdjacentHTML('afterend', feesHtml);
-        }
-
-        // Social Media Links
-        document.getElementById("youtubeLink").textContent = selectedRegion.social_youtube;
-        document.getElementById("twitterLink").textContent = selectedRegion.social_facebook;
-        document.getElementById("linkedinLink").textContent = selectedRegion.social_linkedin;
-        document.getElementById("portfolioLink").textContent = selectedRegion.social_instagram;
-
-        // Fetch and display accolades
-        try {
-            console.log("Fetching accolades data...");
-            const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
-            if (!accoladesResponse.ok) {
-                throw new Error('Failed to fetch accolades');
-            }
-            const accoladesData = await accoladesResponse.json();
-            console.log("Accolades data received:", accoladesData);
-
-            // Create a map of accolade_id to accolade_name
-            const accoladeMap = accoladesData.reduce((map, accolade) => {
-                map[accolade.accolade_id] = accolade.accolade_name;
-                return map;
-            }, {});
-
-            // Get accolade names for the region's accolade_config
-            const accoladeNames = selectedRegion.accolades_config
-                .map(id => accoladeMap[id])
-                .filter(name => name); // Remove any undefined values
-
-            console.log("Mapped accolade names:", accoladeNames);
-
-            // Create the accolades section HTML
-            const accoladesHtml = `
-                <li class="list-group-item p-3">
-                    <span class="fw-medium fs-15 d-block mb-3">Region Accolades:</span>
-                    <div class="text-muted">
-                        ${accoladeNames.map(name => `
-                            <div class="mb-2">
-                                <span class="badge bg-primary-transparent">
-                                    ${name}
-                                </span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </li>`;
-
-            // Insert accolades section after the fees section
-            const feesSection = document.querySelector('.list-group-item:nth-child(3)');
-            if (feesSection) {
-                feesSection.insertAdjacentHTML('afterend', accoladesHtml);
-            }
-
-        } catch (error) {
-            console.error("Error fetching or displaying accolades:", error);
-            toastr.error("Error loading accolades information");
-        }
-
-        console.log("Region data display completed successfully");
-
-    } catch (error) {
-        console.error("Error displaying region data:", error);
-        console.error("Detailed error:", error.message);
-        toastr.error("Error displaying region information");
-    }
-}
-
-// Load member data when the page loads
-window.addEventListener('DOMContentLoaded',async () => {
-    showLoader(); // Show loader immediately on page load
-
-const regionId = getRegionIdFromUrl();
-if (regionId) {
-    try {
-        await fetchRegionData(regionId); // Wait for data to be fetched
-    } catch (error) {
-        console.error("Failed to fetch member data:", error);
-    } finally {
-        hideLoader(); // Hide loader after data is fetched, whether successful or not
-    }
-} else {
-    console.error("Member ID not found in URL.");
-    hideLoader(); // Hide loader if member ID is missing
-}
-});
-
-
- </script>
  <%- include('../partials/sidebar') %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, starting data fetch');
+    
+    // Get zone ID from URL path (assuming it's the last segment)
+    const pathParts = window.location.pathname.split('/');
+    const zoneId = pathParts[pathParts.length - 1];
+    console.log('Zone ID from path:', zoneId);
+
+    if (!zoneId) {
+        console.error('No zone ID found in path');
+        document.getElementById('regionName').textContent = 'Error: No Zone ID';
+        return;
+    }
+
+    // Fetch zone data from correct API endpoint
+    fetch(`https://bni-data-backend.onrender.com/api/getZone/${zoneId}`)
+        .then(response => {
+            console.log('Response received:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Zone data received:', data);
+
+            if (data.success && data.data) {
+                const zoneData = data.data; // Access the data object from the response
+
+                // Update profile image with proper error handling
+                const profileImage = document.getElementById('profileImage');
+                if (zoneData.zone_logo) {
+                    profileImage.onerror = function() {
+                        console.log('Zone logo failed to load, using placeholder');
+                        this.src = '/assets/images/placeholder.png';
+                    };
+                    profileImage.src = zoneData.zone_logo;
+                }
+
+                // Update basic information
+                document.getElementById('regionName').textContent = zoneData.zone_name || 'N/A';
+                document.getElementById('regionType').textContent = zoneData.zone_type || 'Zone';
+                document.getElementById('regionCity').textContent = zoneData.city || 'N/A';
+                document.getElementById('regionCountry').textContent = zoneData.country || 'N/A';
+                
+                // Update contact information
+                document.getElementById('regionLaunchedBy').textContent = zoneData.zone_launched_by || 'N/A';
+                document.getElementById('regionStatus').textContent = zoneData.zone_status || 'N/A';
+                document.getElementById('contactPerson').textContent = zoneData.contact_person || 'N/A';
+                document.getElementById('contactEmail').textContent = zoneData.zone_email_id || 'N/A';
+                document.getElementById('contactPhone').textContent = zoneData.zone_contact_number || 'N/A';
+                
+                // Format and display publish date
+                const publishDate = zoneData.date_of_publishing ? 
+                    new Date(zoneData.date_of_publishing).toLocaleDateString() : 'N/A';
+                document.getElementById('publishDate').textContent = publishDate;
+
+                console.log('All zone data updated successfully');
+            } else {
+                throw new Error('Invalid data format received');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching zone data:', error);
+            // Show error message in UI
+            document.getElementById('regionName').textContent = 'Error loading data';
+            // Update other fields to show error state
+            const fields = ['regionType', 'regionCity', 'regionCountry', 'regionLaunchedBy', 
+                          'regionStatus', 'contactPerson', 'contactEmail', 'contactPhone', 'publishDate'];
+            fields.forEach(field => {
+                document.getElementById(field).textContent = 'Error loading data';
+            });
+        });
+});
+</script>
