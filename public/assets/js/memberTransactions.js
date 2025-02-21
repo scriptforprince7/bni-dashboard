@@ -160,6 +160,7 @@ let ledgerData = [];
         
 
 
+        const memberInductionDate = new Date(userData.member_induction_date);
         
 
         // Sort remainingKittyEntries based on raised_on date in ascending order
@@ -168,6 +169,12 @@ let ledgerData = [];
 
         remainingKittyEntries.forEach((kitty) => {
           console.log(`Kitty Raised on: ${formatDate(kitty.raised_on)}`);
+          
+          const kittyRaisedOnDate = new Date(kitty.raised_on);
+
+          // Compare the dates
+          if (memberInductionDate <= kittyRaisedOnDate) {
+
           
           // Filter credits based on kitty.raised_on date
           const creditsBeforeKitty = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(kitty.raised_on));
@@ -388,12 +395,17 @@ let ledgerData = [];
                 });
             }
           
-          
+        }
         });
 
         // Process activeKittyEntries similar to remainingKittyEntries
         activeKittyEntries.forEach((kitty) => {
           console.log(`Active Kitty Raised on: ${formatDate(kitty.raised_on)}`);
+          const kittyRaisedOnDate = new Date(kitty.raised_on);
+
+          // Compare the dates
+          if (memberInductionDate <= kittyRaisedOnDate) {
+          
           
           // Filter credits based on kitty.raised_on date
           const creditsBeforeKitty = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(kitty.raised_on));
@@ -582,22 +594,34 @@ let ledgerData = [];
                   balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red', // Set balance color to red
                 });
           }
+        }
         });
-        if(activeKittyEntries.length === 0){
-          document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
-        document.getElementById('billType').textContent = '-';
-        document.getElementById('tot_weeks').textContent = '-';
-        document.querySelector('.description').innerHTML = '-';
-        document.getElementById('due_date').textContent = '-';
-        
-        } else {
-          console.log("-----------------------------",activeKittyEntries);
-          // document.getElementById('total-kitty-amount').textContent = (activeKittyEntries[0].total_bill_amount * 1.18).toFixed(2);
+        const kittyRaisedOnDate = new Date(activeKittyEntries[0].raised_on);
+        if(activeKittyEntries.length !== 0 && memberInductionDate <= kittyRaisedOnDate){
+        //   document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
+        // document.getElementById('billType').textContent = '-';
+        // document.getElementById('tot_weeks').textContent = '-';
+        // document.querySelector('.description').innerHTML = '-';
+        // document.getElementById('due_date').textContent = '-';
           document.getElementById('total-kitty-amount').textContent = activeKittyEntries[0].total_bill_amount;
           document.getElementById('billType').textContent = activeKittyEntries[0].bill_type;
           document.getElementById('tot_weeks').textContent = activeKittyEntries[0].total_weeks;
           document.querySelector('.description').innerHTML = activeKittyEntries[0].description;
           document.getElementById('due_date').textContent = formatDate(activeKittyEntries[0].kitty_due_date);
+        
+        } else {
+          console.log("-----------------------------",activeKittyEntries);
+          // document.getElementById('total-kitty-amount').textContent = (activeKittyEntries[0].total_bill_amount * 1.18).toFixed(2);
+          // document.getElementById('total-kitty-amount').textContent = activeKittyEntries[0].total_bill_amount;
+          // document.getElementById('billType').textContent = activeKittyEntries[0].bill_type;
+          // document.getElementById('tot_weeks').textContent = activeKittyEntries[0].total_weeks;
+          // document.querySelector('.description').innerHTML = activeKittyEntries[0].description;
+          // document.getElementById('due_date').textContent = formatDate(activeKittyEntries[0].kitty_due_date);
+          document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
+          document.getElementById('billType').textContent = '-';
+          document.getElementById('tot_weeks').textContent = '-';
+          document.querySelector('.description').innerHTML = '-';
+          document.getElementById('due_date').textContent = '-';
         }
 
         // If there are any remaining entries in filteredCredits, log them
