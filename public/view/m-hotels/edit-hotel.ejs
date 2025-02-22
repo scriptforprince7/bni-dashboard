@@ -1,0 +1,119 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+<%- include('../partials/sidebar') %>
+<!-- end sidebar -->
+
+<!-- Add SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css">
+
+<!-- Add SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  .modal-body {
+    padding: 20px;
+  }
+  .add-button-container {
+    margin-top: 10px;
+    display: none;
+  }
+</style>
+
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">Edit Zone</h1>
+      </div>
+    </div>
+    <!-- End::page-header -->
+
+    <form id="editZoneForm" enctype="multipart/form-data">
+      <div class="row">
+        <div class="col-xl-12">
+          <div class="card custom-card">
+            <div class="card-body add-products">
+              <div class="row gy-3">
+                <!-- Zone Details Section -->
+                <div class="col-xl-12">
+                  <label class="form-label mb-3">Zone Details</label>
+                </div>
+
+                <!-- Zone Name -->
+                <div class="col-xl-6">
+                  <label for="zone_name" class="form-label">Zone Name</label>
+                  <input type="text" class="form-control" id="zone_name" name="zone_name" 
+                         placeholder="Enter zone name" required />
+                </div>
+
+                <!-- Zone Status -->
+                <div class="col-xl-6">
+                  <label for="zone_status" class="form-label">Zone Status</label>
+                  <select class="form-control" id="zone_status" name="zone_status" required>
+                    <option value="">Select Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+
+                <!-- Launched By -->
+                <div class="col-xl-6">
+                  <label for="zone_launched_by" class="form-label">Launched By</label>
+                  <input type="text" class="form-control" id="zone_launched_by" 
+                         name="zone_launched_by" placeholder="Enter launcher name" />
+                </div>
+
+                <!-- Contact Number -->
+                <div class="col-xl-6">
+                  <label for="zone_contact_number" class="form-label">Contact Number</label>
+                  <input type="tel" class="form-control" id="zone_contact_number" 
+                         name="zone_contact_number" placeholder="Enter contact number" required />
+                </div>
+
+                <!-- Email ID -->
+                <div class="col-xl-6">
+                  <label for="zone_email_id" class="form-label">Email ID</label>
+                  <input type="email" class="form-control" id="zone_email_id" 
+                         name="zone_email_id" placeholder="Enter email address" required />
+                </div>
+
+                <!-- Publishing Date -->
+                <div class="col-xl-6">
+                  <label for="date_of_publishing" class="form-label">Publishing Date</label>
+                  <input type="date" class="form-control" id="date_of_publishing" 
+                         name="date_of_publishing" />
+                </div>
+
+                <!-- Zone Logo with Preview -->
+                <div class="col-xl-6">
+                  <label for="zone_logo" class="form-label">Zone Logo</label>
+                  <input type="file" class="form-control" id="zone_logo" name="zone_logo" 
+                         accept="image/jpeg,image/png,image/jpg" />
+                  <div id="imagePreview" class="mt-2" style="display: none;">
+                    <img id="preview" src="" alt="Logo Preview" 
+                         style="max-width: 200px; max-height: 200px;" />
+                  </div>
+                </div>
+
+                <!-- Update Button -->
+                <div class="col-xl-12 mt-4">
+                  <button type="submit" class="btn btn-success">Update Zone</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add editZone.js -->
+<script src="../../assets/js/editHotel.js"></script>
+
+<%- include('../partials/footer') %>
