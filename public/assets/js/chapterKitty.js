@@ -353,6 +353,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
         console.log('Total Late Payment:', totalLatePayment);
 
+
         // Step 3: Fetch kitty payments using chapter_id
         const kittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getKittyPayments');
         const kittyPayments = await kittyResponse.json();
@@ -392,7 +393,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         // add 18% gst on total_bill_amount
         const gst = total_bill_amount * 0.18;
         console.log('GST:', gst);
-        let amountWithGst = parseFloat(total_bill_amount)
+        let amountWithGst = parseFloat(total_bill_amount);
+        console.log("========================================================",total_bill_amount);
 
         console.log('Number of members:', memberCount);
         if (memberCount===0) {
@@ -507,6 +509,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             // Format date
             const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN') : 'N/A';
+            const transactionDate = new Date(transaction.payment_time).toLocaleDateString('en-IN', { timeZone: 'UTC' });
+            console.log("=====================================r===", transactionDate);
             // find current member
             currentChapterMember = chapterMembersWithBalance.find(member => member.member_email_address === order.customer_email);
             console.log('Current Member:', currentChapterMember);
@@ -524,10 +528,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             let payamount;
             if (filteredPendingBalances.length > 1) {
               const latestPendingBalance = filteredPendingBalances[0];
-              payamount = parseFloat(order.order_amount) - parseFloat(latestPendingBalance.member_pending_balance);
+              payamount = parseFloat(transaction.payment_amount);
               console.log("new data");
             } else{
-                payamount = parseFloat(order.order_amount) - parseFloat(currentChapterMember.meeting_opening_balance);
+                payamount = parseFloat(transaction.payment_amount);
                 console.log("old data");
             }
             
@@ -544,7 +548,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             
             
             // Format amount
-            let formattedAmount = order.order_amount ? 
+            let formattedAmount = transaction.payment_amount ? 
                 new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
@@ -559,9 +563,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             const row = `
                 <tr>
                     <td>${serialNumber}</td>
-                    <td style="font-weight: 600">${orderDate}</td>
+                    <td style="font-weight: 600">${transactionDate}</td>
                     <td style="font-weight: 600">${order.member_name || 'N/A'}</td>
-                    <td><b>${formattedAmount}</b><br><a href="/ck/chapter-kittyInvoice?order_id=${transaction.order_id}" class="fw-medium text-success">View</a></td>
+                    <td><b>${transaction.payment_amount}</b><br><a href="/ck/chapter-kittyInvoice?order_id=${transaction.order_id}" class="fw-medium text-success">View</a></td>
                     <td style="font-weight: 600">${paymentMethod}</td>
                     <td style="font-weight: 500; font-style: italic">${order.order_id || 'N/A'}</td>
                     <td><b>${transactionId}</b></td>

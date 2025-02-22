@@ -327,7 +327,7 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${index + 1}</td>
-            <td>${new Date(transaction.payment_time).toLocaleDateString()}</td>
+            <td>${new Date(transaction.payment_time).toLocaleDateString('en-IN', { timeZone: 'UTC' })}</td>
             <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br><a href="/minv/view-memberInvoice?order_id=${
               transaction.order_id
             }" class="fw-medium text-success">View</a></td>

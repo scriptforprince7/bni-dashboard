@@ -8,6 +8,9 @@ function hideLoader() {
 
 const chaptersApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
 const memberApiUrl= 'https://bni-data-backend.onrender.com/api/members';
+const lateNOApiUrl = 'https://bni-data-backend.onrender.com/api/getbankOrder';
+
+
 let creditType;
 document.addEventListener('DOMContentLoaded', async () => {
     const loginType = getUserLoginType();
@@ -51,6 +54,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    let memberLateData;
+
+    try {
+        const lateNOResponse = await fetch(lateNOApiUrl);
+        if (!lateNOResponse.ok) throw new Error('Network response was not ok');
+        memberLateData = await lateNOResponse.json();
+        console.log('Member credit data fetched successfully:', memberLateData);
+    } catch (error) {
+        console.error('Error fetching member credit data:', error);
+    }
+
     const MembersResponse = await fetch(memberApiUrl);
     if (!MembersResponse.ok) throw new Error('Network response was not ok');
     const Members = await MembersResponse.json();
@@ -64,6 +78,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Create table rows for each filtered member
         filteredMembers.forEach((member, index) => {
             const row = document.createElement('tr');
+
+            const latePaymentData = memberLateData.filter(lateData => lateData.member_id === member.member_id);
+            // latePaymentCell.textContent = latePaymentData.length > 0 ? latePaymentData[0].late_payment_count : '0';
+            console.log("=========================",latePaymentData[0].no_of_late_payment);
 
             // Checkbox cell
             const checkboxCell = document.createElement('td');
@@ -109,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Late Payment cell
             const latePaymentCell = document.createElement('td');
-            latePaymentCell.textContent = '-';
+            latePaymentCell.textContent = `${latePaymentData[0].no_of_late_payment}`;
             latePaymentCell.style.fontWeight = 'bold';
             row.appendChild(latePaymentCell);
 
