@@ -1525,10 +1525,48 @@
       const backButton = document.querySelector('.header-element a[href="/d/ro-dashboard"]');
       if (backButton) {
           if (userLoginType === 'ro_admin') {
+              // Check for chapter context
+              const currentChapterEmail = localStorage.getItem('current_chapter_email');
+              const currentChapterId = localStorage.getItem('current_chapter_id');
+              
+              // Check for member context
+              const currentMemberEmail = localStorage.getItem('current_member_email');
+              const currentMemberId = localStorage.getItem('current_member_id');
+
+              if (currentChapterEmail && currentChapterId) {
+                  console.log('Showing back button for RO admin with chapter context');
+                  backButton.parentElement.style.display = 'block';
+                  backButton.href = '/c/manage-chapter';
+                  backButton.setAttribute('title', 'Back to Chapter Management');
+                  
+                  // Add click handler for chapter context
+                  backButton.onclick = function(e) {
+                      e.preventDefault();
+                      localStorage.removeItem('current_chapter_email');
+                      localStorage.removeItem('current_chapter_id');
+                      window.location.href = '/c/manage-chapter';
+                  };
+              } else if (currentMemberEmail && currentMemberId) {
+                  console.log('Showing back button for RO admin with member context');
+                  backButton.parentElement.style.display = 'block';
+                  backButton.href = '/m/manage-members';
+                  backButton.setAttribute('title', 'Back to Members Management');
+                  
+                  // Add click handler for member context
+                  backButton.onclick = function(e) {
+                      e.preventDefault();
+                      localStorage.removeItem('current_member_email');
+                      localStorage.removeItem('current_member_id');
+                      window.location.href = '/m/manage-members';
+                  };
+              } else {
+                  console.log('Hiding back button - no context');
+                  backButton.parentElement.style.display = 'none';
+              }
+          } else {
+              // Hide for all other user types
+              console.log('Hiding back button - not RO admin');
               backButton.parentElement.style.display = 'none';
-          } else if (userLoginType === 'chapter') {
-              backButton.href = '/c/manage-chapter';
-              backButton.setAttribute('title', 'Back to Chapter Management');
           }
       }
     </script>
