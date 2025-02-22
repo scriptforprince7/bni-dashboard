@@ -1525,10 +1525,23 @@
       const backButton = document.querySelector('.header-element a[href="/d/ro-dashboard"]');
       if (backButton) {
           if (userLoginType === 'ro_admin') {
+              // Check for both current_chapter_email and current_chapter_id in localStorage
+              const currentChapterEmail = localStorage.getItem('current_chapter_email');
+              const currentChapterId = localStorage.getItem('current_chapter_id');
+              
+              if (currentChapterEmail && currentChapterId) {
+                  console.log('Showing back button for RO admin with chapter context');
+                  backButton.parentElement.style.display = 'block';
+                  backButton.href = '/c/manage-chapter';
+                  backButton.setAttribute('title', 'Back to Chapter Management');
+              } else {
+                  console.log('Hiding back button - no chapter context');
+                  backButton.parentElement.style.display = 'none';
+              }
+          } else {
+              // Hide for all other user types
+              console.log('Hiding back button - not RO admin');
               backButton.parentElement.style.display = 'none';
-          } else if (userLoginType === 'chapter') {
-              backButton.href = '/c/manage-chapter';
-              backButton.setAttribute('title', 'Back to Chapter Management');
           }
       }
     </script>

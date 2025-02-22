@@ -7,48 +7,39 @@
   const userType = getUserLoginType();
   console.log('Current User Type:', userType);
   
-  // Prepare button HTML
-  const backToAdminButton = `
-      <div class="btn-list" style="margin-left: 98em;">
-          <a href="/d/ro-dashboard" id="backToAdminBtn">
-              <button class="btn btn-danger btn-wave me-0">
-                  <i class="ri-admin-line me-1"></i> Back to Admin
-              </button>
-          </a>
-      </div>
-  `;
+
   
   // Add button if user is ro_admin
-  if (userType === 'ro_admin') {
-      console.log('User is ro_admin, injecting Back to Admin button...');
+  // if (userType === 'ro_admin') {
+  //     console.log('User is ro_admin, injecting Back to Admin button...');
       
-      // Add button to DOM when it's ready
-      document.addEventListener('DOMContentLoaded', () => {
-          const headerContainer = document.querySelector('.page-title');
-          if (headerContainer) {
-              console.log('Found header container, adding Back to Admin button');
-              headerContainer.insertAdjacentHTML('afterend', backToAdminButton);
+  //     // Add button to DOM when it's ready
+  //     document.addEventListener('DOMContentLoaded', () => {
+  //         const headerContainer = document.querySelector('.page-title');
+  //         if (headerContainer) {
+  //             console.log('Found header container, adding Back to Admin button');
+  //             headerContainer.insertAdjacentHTML('afterend', backToAdminButton);
               
-              // Add click handler
-              const backToAdminBtn = document.getElementById('backToAdminBtn');
-              if (backToAdminBtn) {
-                  backToAdminBtn.addEventListener('click', () => {
-                      console.log('Back to Admin button clicked');
-                      // Clear chapter-specific data
-                      localStorage.removeItem('current_chapter_email');
-                      localStorage.removeItem('current_chapter_id');
-                      console.log('Cleared chapter-specific localStorage data');
-                      console.log('Redirecting to ro-dashboard...');
-                  });
-                  console.log('Back to Admin button setup completed');
-              }
-          } else {
-              console.error('Header container not found in DOM');
-          }
-      });
-  } else {
-      console.log('User is not ro_admin, skipping Back to Admin button');
-  }
+  //             // Add click handler
+  //             const backToAdminBtn = document.getElementById('backToAdminBtn');
+  //             if (backToAdminBtn) {
+  //                 backToAdminBtn.addEventListener('click', () => {
+  //                     console.log('Back to Admin button clicked');
+  //                     // Clear chapter-specific data
+  //                     localStorage.removeItem('current_chapter_email');
+  //                     localStorage.removeItem('current_chapter_id');
+  //                     console.log('Cleared chapter-specific localStorage data');
+  //                     console.log('Redirecting to ro-dashboard...');
+  //                 });
+  //                 console.log('Back to Admin button setup completed');
+  //             }
+  //         } else {
+  //             console.error('Header container not found in DOM');
+  //         }
+  //     });
+  // } else {
+  //     console.log('User is not ro_admin, skipping Back to Admin button');
+  // }
   
   console.log('=== Back to Admin Button Rendering Process Completed ===');
 </script>

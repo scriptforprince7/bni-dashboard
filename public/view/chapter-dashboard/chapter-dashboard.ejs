@@ -9,16 +9,7 @@
   console.log('Current User Type:', userType);
   
   // Prepare button HTML
-  const backToAdminButton = `
-      <div class="btn-list d-flex justify-content-start" style="margin: 0.5rem;">
-          <a href="/d/ro-dashboard" id="backToAdminBtn">
-              <button class="btn btn-danger btn-wave me-0">
-                  <i class="ri-admin-line me-1"></i> Back to Admin
-              </button>
-          </a>
-      </div>
-  `;
-  
+
   // Add button if user is ro_admin
   if (userType === 'ro_admin') {
       console.log('User is ro_admin, injecting Back to Admin button...');
@@ -80,7 +71,7 @@
                 >🔽
               </h1>
               <p >Manage everything with just one click</p>
-              <div id="backToAdminContainer"></div>
+             
              
             </div>
             <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
