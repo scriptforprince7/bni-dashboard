@@ -801,16 +801,20 @@
                     </div>
                   </div>
                 </div>
-                <div class="row">
-                <div class="col-12"><div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="notification_consent"
-                  name="notification_consent"
-                  required>
-                  <label for="notification_consent" class="form-check-label">
-                    I consent to receive notifications.
-                  </label>
+                <div class="row justify-content-center">
+                  <div class="col-12 text-center">
+                    <div class="form-check">
+                      <div class="form-check">
+                        <input class="form-check-input ml-120px" type="checkbox" id="notification_consent"
+                        name="notification_consent"
+                        required>
+                      </div>
+                      <label for="notification_consent" class="form-check-label">
+                        I consent to receive notifications.
+                      </label>
+                    </div>
+                  </div>
                 </div>
-              </div>
               </div>
                 
                 
@@ -1007,33 +1011,45 @@
 <script>
   function calculateRenewalDate() {
     const inductionDateValue = document.getElementById("member_induction_date").value;
-    if (!inductionDateValue) return;
+    const membershipDuration = document.getElementById("member_current_membership").value; // Get membership duration
+    if (!inductionDateValue || !membershipDuration) return;
 
     // Parse the date value in the correct format (YYYY-MM-DD)
+    console.log("-=-=-=-=-= induction date", inductionDateValue);
     const [year, month, day] = inductionDateValue.split('-');
     const inductionDate = new Date(year, month - 1, day); // Create date object
-    console.log("Selected Induction Date:", inductionDate.toISOString().split('T')[0]);
+    console.log("-=-=-=-=-= induction date -1 ", inductionDate);
 
     const dayOfMonth = inductionDate.getDate();
     let renewalMonth = inductionDate.getMonth();  // Start with induction month
     let renewalYear = inductionDate.getFullYear();  // Current year
 
-    if (dayOfMonth >= 15) {
-      // If on or after the 15th, set renewal month to next month
-      renewalMonth += 1;
+    // If the day of the month is greater than 15, set renewal month to the next month
+    if (dayOfMonth > 15) {
+      renewalMonth += 1; // Increment month
     }
 
-    // Increment the year for the renewal date
-    renewalYear += 1;
+    // Increment the year based on membership duration and add an additional month
+    const durationInYears = parseInt(membershipDuration);
+    renewalYear += durationInYears; // Add the membership duration in years
+    // renewalMonth += 1; // Add an additional month
 
     // Set the renewal date to the 1st of the calculated renewal month
-    const renewalDate = new Date(renewalYear, renewalMonth, 1);
-    console.log("Calculated Renewal Date:", renewalDate.toISOString().split('T')[0]);
+    const renewalDate = new Date(renewalYear, renewalMonth, 1); // Day is always set to 1st
 
+    console.log("========================== renewal date :", renewalDate);
+    const renewalDateFormatted = `${renewalYear}-${String(renewalMonth + 1).padStart(2, '0')}-${String(1).padStart(2, '0')}`; // Format as YYYY-MM-DD
+    console.log("Renewal Date:", renewalDateFormatted); // Log the formatted renewal date
     // Format the renewal date to YYYY-MM-DD for input display
-    const formattedRenewalDate = renewalDate.toISOString().split('T')[0];
-    document.getElementById("member_renewal_date").value = formattedRenewalDate;
+    // const formattedRenewalDate = new Date(renewalDate.getTime() + (renewalDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    // console.log("--------------- format date", formattedRenewalDate);
+    // document.getElementById("member_renewal_date").value = formattedRenewalDate;
+    document.getElementById("member_renewal_date").value = renewalDateFormatted;
+
   }
+
+  // Add event listener for membership selection
+  document.getElementById("member_current_membership").addEventListener("change", calculateRenewalDate);
 </script>
 
 <script>

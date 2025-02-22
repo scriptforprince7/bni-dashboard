@@ -301,16 +301,43 @@ document.addEventListener('DOMContentLoaded', async function () {
         const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
         const allMembers = await membersResponse.json();
         const chapterMembersWithBalance = allMembers.filter(member => member.chapter_id === chapterId);
-        console.log('👥 Found members for chapter:', chapterMembersWithBalance.length);
+        // console.log('👥 Found members for chapter:', chapterMembersWithBalance.length);
 
-        chapterMembersWithBalance.forEach(member => {
-            const balance = parseFloat(member.meeting_opening_balance) || 0;
-            console.log(`💰 Member ${member.member_first_name}: Balance = ${balance}`);
-            pendingAmount += balance;
+        // chapterMembersWithBalance.forEach(member => {
+        //     const balance = parseFloat(member.meeting_opening_balance) || 0;
+        //     console.log(`💰 Member ${member.member_first_name}: Balance = ${balance}`);
+        //     // pendingAmount += balance;
+        // });
+        const bankOrderResponse = await fetch('https://bni-data-backend.onrender.com/api/getbankOrder');
+        const bankOrders = await bankOrderResponse.json();
+        console.log('Bank Orders Data:', bankOrders);
+        const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapterId);
+        console.log('Filtered Bank Orders for Chapter ID:', chapterId, filteredBankOrders);
+        let totalLatePayment = 0;
+        filteredBankOrders.forEach(order => {
+            totalLatePayment += parseFloat(order.no_of_late_payment);
+            if(order.amount_to_pay >= 0){
+            pendingAmount += parseFloat(order.amount_to_pay);
+            }
+            else{
+            pendingAmount += 0;
+
+            }
         });
+        console.log('Total Late Payment:', totalLatePayment);
+        console.log("--------------------------------",pendingAmount);
+        document.getElementById('totalKittypendingamount').textContent = pendingAmount;
+
+        // Process each entry in the filtered bank orders
+        filteredBankOrders.forEach(order => {
+            // Example processing: log each order's details
+            console.log(`Order ID: ${order.order_id}, Amount: ${order.amount}, Status: ${order.status}`);
+            // You can add more processing logic here as needed
+        });
+        
 
         console.log('💎 Total Pending Amount:', pendingAmount);
-        document.querySelector('#totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
+        // document.querySelector('#totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
 
         // Continue with existing code
         const expenseResponse = await fetch('https://bni-data-backend.onrender.com/api/allExpenses');
@@ -342,16 +369,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
         console.log('Total Credit Amount:', totalCreditAmount);
 
-        const bankOrderResponse = await fetch('https://bni-data-backend.onrender.com/api/getbankOrder');
-        const bankOrders = await bankOrderResponse.json();
-        console.log('Bank Orders Data:', bankOrders);
-        const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapterId);
-        console.log('Filtered Bank Orders for Chapter ID:', chapterId, filteredBankOrders);
-        let totalLatePayment = 0;
-        filteredBankOrders.forEach(order => {
-            totalLatePayment += parseFloat(order.no_of_late_payment);
-        });
-        console.log('Total Late Payment:', totalLatePayment);
+        // const bankOrderResponse = await fetch('https://bni-data-backend.onrender.com/api/getbankOrder');
+        // const bankOrders = await bankOrderResponse.json();
+        // console.log('Bank Orders Data:', bankOrders);
+        // const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapterId);
+        // console.log('Filtered Bank Orders for Chapter ID:', chapterId, filteredBankOrders);
+        // let totalLatePayment = 0;
+        // filteredBankOrders.forEach(order => {
+        //     totalLatePayment += parseFloat(order.no_of_late_payment);
+        // });
+        // console.log('Total Late Payment:', totalLatePayment);
 
 
         // Step 3: Fetch kitty payments using chapter_id
@@ -359,14 +386,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         const kittyPayments = await kittyResponse.json();
         const chapterKittyPayment = kittyPayments.find(payment => payment.chapter_id === chapterId);
 
+        // document.getElementById('totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
         if (!chapterKittyPayment) {
             console.error('Kitty payment not found for chapter ID:', chapterId);
             document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense)- parseFloat(pendingAmount));
 
-            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            // document.getElementById('totalKittyExpense').textContent = 'N/A';
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
             console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund));
@@ -389,7 +417,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         // Step 4: Fetch members count using chapter_id
         const memberCount = chapterMembersWithBalance.length;
-        console.log("chapter member",chapterMembersWithBalance);
+        // console.log("chapter member",chapterMembersWithBalance);
         // add 18% gst on total_bill_amount
         const gst = total_bill_amount * 0.18;
         console.log('GST:', gst);
@@ -401,12 +429,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error('Kitty payment not found for chapter ID:', chapterId);
             document.getElementById('totalKittyDetails').textContent = indianCurrencyFormatter.format(amountWithGst);
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
-            document.getElementById('totalKittyExpense').textContent = 'N/A';
+            // document.getElementById('totalKittyExpense').textContent = 'N/A';
             document.querySelector('.member_count').textContent= memberCount;
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense)- parseFloat(pendingAmount));
 // expense
 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
@@ -438,7 +466,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         const chapterOrders = allOrders.filter(order => 
             order.chapter_id === chapterId && 
             order.universal_link_id === 4 &&
-            order.kitty_bill_id === kitty_bill_id 
+            order.kitty_bill_id === kitty_bill_id &&
+            order.payment_note === "meeting-payments"
         );
 
         if (chapterOrders.length === 0) {
@@ -451,7 +480,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense)- parseFloat(pendingAmount));
             
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
@@ -494,8 +523,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         let ReceivedAmount = 0;
         let MiscellaneousAmount = 0;
 
-        const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
-        const pendingBalances = await pendingBalanceResponse.json();
+        // const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
+        // const pendingBalances = await pendingBalanceResponse.json();
 
 
         chapterOrders.forEach(async (order) => {
@@ -518,20 +547,20 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.log("current chapter id:",currentChapterMember.chapter_id);
 
             // Filter and sort pending balances
-            const filteredPendingBalances = pendingBalances
-              .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
-              .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
+            // const filteredPendingBalances = pendingBalances
+            //   .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
+            //   .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
             
-              console.log("filtererdPending data:",filteredPendingBalances);
+            //   console.log("filtererdPending data:",filteredPendingBalances);
 
             // Use the latest pending balance
             let payamount;
-            if (filteredPendingBalances.length > 1) {
-              const latestPendingBalance = filteredPendingBalances[0];
-              payamount = parseFloat(transaction.payment_amount);
+            if (transaction.length > 0) {
+            //   const latestPendingBalance = filteredPendingBalances[0];
+              payamount = Math.ceil(parseFloat(transaction.payment_amount) - (parseFloat(transaction.payment_amount) * 18) / 118); // Remove 18% GST and round up
               console.log("new data");
             } else{
-                payamount = parseFloat(transaction.payment_amount);
+                payamount =  Math.ceil(parseFloat(transaction.payment_amount) -  (parseFloat(transaction.payment_amount)*18)/118);
                 console.log("old data");
             }
             
@@ -583,23 +612,23 @@ document.addEventListener('DOMContentLoaded', async function () {
         const totalPendingMiscellaneousAmount = MiscellaneousAmount;
 
         // Step 7: Calculate total kitty amount pending
-        const totalKittyAmountPending = totalAmountRaised - totalKittyAmountReceived;
-        console.log('Total Kitty Amount Pending:', totalKittyAmountPending);
+        // const totalKittyAmountPending = totalAmountRaised - totalKittyAmountReceived;
+        // console.log('Total Kitty Amount Pending:', totalKittyAmountPending);
 
         // Step 8: Format values in Indian currency format
         const formattedBillAmount = indianCurrencyFormatter.format(amountWithGst);
         const formattedTotalRaised = indianCurrencyFormatter.format(totalAmountRaised);
         const formattedKittyReceived = indianCurrencyFormatter.format(totalKittyAmountReceived);
-        const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
+        // const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
         const formattedMiscellaneousAmount = indianCurrencyFormatter.format(totalPendingMiscellaneousAmount);
         const formattedTotalPaidExpense = indianCurrencyFormatter.format(total_paid_expense);
-        let availableAmount = parseFloat(totalKittyAmountReceived)-parseFloat(total_paid_expense) + parseFloat(available_fund);
+        let availableAmount = parseFloat(payamount)-parseFloat(total_paid_expense) + parseFloat(available_fund)- parseFloat(pendingAmount);
         const formattedAvailableAmount = indianCurrencyFormatter.format(availableAmount);
 
         // Step 9: Update the UI with fetched values
         document.querySelector('.total_bill_amount').textContent = formattedBillAmount ;
         document.querySelector('.total_kitty_amount_received').textContent = formattedKittyReceived;
-        document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
+        // document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
         document.querySelector('.bill_type').textContent = bill_type;
         document.querySelector('.description').textContent = description;
         document.querySelector('.total_weeks').textContent = total_weeks;
