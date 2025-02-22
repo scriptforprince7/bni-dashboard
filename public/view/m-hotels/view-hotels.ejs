@@ -25,40 +25,27 @@
                 <ol class="breadcrumb mb-1">
                   <li class="breadcrumb-item">
                     <a href="javascript:void(0);" style="color: #d01f2f"
-                      >Zone Management</a
+                      >Hotel Management</a
                     >
                   </li>
                   <li class="breadcrumb-item 989178547 " aria-current="page">
-                    View AllZones
+                    View All Hotels
                   </li>
                 </ol>
               </nav>
               <h1 class="page-title fw-medium fs-18 mb-0">
-                Manage All Zones
+                Manage All Hotels
               </h1>
             </div>
             <div class="btn-list">
               <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Zones <br />
-                <span> <b id="totalZones">0</b></span> 
-              </button>
-              
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Regions <br />
-                <span> <b id="totalRegions">0</b></span> 
+                Total Hotels <br />
+                <span> <b id="totalHotel">0</b></span> 
               </button>
             
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-              </i> Total Chapters <br />
-             <span> <b id="chapterTotal">0</b></span> 
-            </button>
-            <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-            </i> Total Members <br />
-           <span> <b id="memberTotal">0</b></span> 
-          </button>
               
              <a href="https://bni-data-backend.onrender.com/api/exportRegions"><button class="btn btn-danger btn-wave me-0">
-              <i class="ri-share-forward-line me-1"></i> Export Zones
+            <i class="ri-share-forward-line me-1"></i> Export Hotels
             </button></a> 
             </div>
           </div>
@@ -67,7 +54,7 @@
           <!-- Start::row-1 -->
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
-              <div class="card-title">All Zones</div>
+              <div class="card-title">All Hotels</div>
               <div class="d-flex gap-3 align-items-center flex-wrap">
                 <div class="btn-group">
                   <!-- Status Filter Dropdown -->
@@ -86,23 +73,12 @@
                         <li>
                             <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="inactive">Inactive</a>
                         </li>
-                        <li>
-                            <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="deleted">Deleted</a>
-                        </li>
                     </ul>
                   </div>
 
-                  <!-- Sort Dropdown -->
-                 
-
-                  <button id="reset-filters-btn" 
-                          class="btn btn-danger btn-wave me-2">
-                      Reset Filter
-                  </button>
-
-                  <a href="/z/add-zone">
+                  <a href="/h/add-hotel">
                     <button class="btn btn-outline-light border" type="button">
-                        + Add New Zone
+                        + Add New Hotel
                     </button>
                   </a>
                 </div>
@@ -111,7 +87,7 @@
                     type="text"
                     id="searchChapterInput"
                     class="form-control"
-                    placeholder="Search Zone.."
+                    placeholder="Search Hotel.."
                     aria-label="Event : custom'id"
                     aria-describedby="button-addon2"
                   />
@@ -142,7 +118,7 @@
                       </th>
                       <th scope="col" style="border: 1px solid grey;">
                         <div class="d-flex align-items-center justify-content-between">
-                          Zone Name
+                          Hotel Name
                           <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
                             <i class="ti ti-arrows-sort"></i>
                           </span>
@@ -150,7 +126,7 @@
                       </th>
                       <th scope="col" style="border: 1px solid grey;">
                         <div class="d-flex align-items-center justify-content-between">
-                          No. of regions
+                          Hotel Address
                           <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
                             <i class="ti ti-arrows-sort"></i>
                           </span>
@@ -158,7 +134,7 @@
                       </th>
                       <th scope="col" style="border: 1px solid grey;">
                         <div class="d-flex align-items-center justify-content-between">
-                          No. of Chapters
+                          Hotel Bill Amount
                           <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
                             <i class="ti ti-arrows-sort"></i>
                           </span>
@@ -166,7 +142,23 @@
                       </th>
                       <th scope="col" style="border: 1px solid grey;">
                         <div class="d-flex align-items-center justify-content-between">
-                          No. of Members
+                          Hotel Pincode
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Email
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Phone
                           <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
                             <i class="ti ti-arrows-sort"></i>
                           </span>
@@ -181,7 +173,10 @@
                         </div>
                       </th>
                       <th scope="col" style="border: 1px solid grey;">Actions</th>
+                      <th scope="col" style="border: 1px solid grey;">View Ledger</th>
                     </tr>
+                    
+
                   </thead>
                   <tbody id="chaptersTableBody">
                   </tbody>
@@ -193,7 +188,8 @@
                 <div class="mb-2 mb-sm-0">
                   Showing <b id="showingStart">0</b> to <b id="showingEnd">0</b> of <b id="totalEntries">0</b> entries
                   <button id="showAllBtn" class="btn btn-sm btn-primary ms-2">Show All</button>
-                </div>
+              </div>
+              
                 <div class="ms-auto">
                   <ul class="pagination mb-0 overflow-auto" id="paginationContainer">
                     <li class="page-item" id="prevPage">
