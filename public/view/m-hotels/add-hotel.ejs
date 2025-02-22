@@ -71,7 +71,7 @@
       <div>
         <h1 class="page-title fw-medium fs-18 mb-0">
           <span style="font-weight: 700; font-family: Poppins"
-            >Add New Zone</span
+            >Add New Hotel</span
           >
         </h1>
         <!-- <p>Manage kitty payments with just one click</p> -->
@@ -121,7 +121,7 @@
       }
     </style>
 
-    <form id="addZoneForm" enctype="multipart/form-data">
+    <form id="addHotelForm">
     <div class="row">
       <div class="col-xl-12">
         <div class="card custom-card">
@@ -134,47 +134,53 @@
                       <div class="col-xl-12">
                         <label for="product-cost-add" class="form-label"
                           ><span style="font-size: 15px"
-                            ><b>Zone Details</b></span
+                            ><b>Hotel Details</b></span
                           ></label
                         >
                       </div>
                       <div class="col-xl-6">
-                        <label for="zone_name" class="form-label">Zone Name</label>
-                        <input type="text" class="form-control" id="zone_name" name="zone_name" placeholder="Enter zone name" required />
+                        <label for="hotel_name" class="form-label">Hotel Name</label>
+                        <input type="text" class="form-control" id="hotel_name" name="hotel_name" placeholder="Enter zone name" required />
                       </div>
                       <div class="col-xl-6">
-                        <label for="zone_status" class="form-label">Zone Status</label>
-                        <select class="form-control" id="zone_status" name="zone_status" required>
-                          <option value="">Select Status</option>
-                          <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
-                        </select>
+                        <label for="hotel_address" class="form-label">Hotel Address</label>
+                        <input type="text" class="form-control" id="hotel_address" name="hotel_address" placeholder="Enter launcher name" />
                       </div>
                       <div class="col-xl-6">
-                        <label for="zone_launched_by" class="form-label">Launched By</label>
-                        <input type="text" class="form-control" id="zone_launched_by" name="zone_launched_by" placeholder="Enter launcher name" />
+                        <label for="hotel_pincode" class="form-label">Hotel Pincode</label>
+                        <input type="text" class="form-control" id="hotel_pincode" name="hotel_pincode" placeholder="Enter launcher name" />
                       </div>
                       <div class="col-xl-6">
-                        <label for="zone_contact_number" class="form-label">Contact Number</label>
-                        <input type="tel" class="form-control" id="zone_contact_number" name="zone_contact_number" placeholder="Enter contact number" required />
+                        <label for="hotel_bill_amount" class="form-label">Hotel Bill Amount</label>
+                        <input type="text" class="form-control" id="hotel_bill_amount" name="hotel_bill_amount" placeholder="Enter launcher name" />
+                      </div>
+                      
+                      <div class="col-xl-6">
+                        <label for="hotel_published_by" class="form-label">Hotel Published By</label>
+                        <input type="text" class="form-control" id="hotel_published_by" name="hotel_published_by" placeholder="Enter launcher name" />
                       </div>
                       <div class="col-xl-6">
-                        <label for="zone_email_id" class="form-label">Email ID</label>
-                        <input type="email" class="form-control" id="zone_email_id" name="zone_email_id" placeholder="Enter email address" required />
+                        <label for="hotel_phone" class="form-label">Hotel Number</label>
+                        <input type="tel" class="form-control" id="hotel_phone" name="hotel_phone" placeholder="Enter contact number" required />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_email" class="form-label">Hotel Email ID</label>
+                        <input type="email" class="form-control" id="hotel_email" name="hotel_email" placeholder="Enter email address" required />
                       </div>
                       <div class="col-xl-6">
                         <label for="date_of_publishing" class="form-label">Publishing Date</label>
                         <input type="date" class="form-control" id="date_of_publishing" name="date_of_publishing" />
                       </div>
-                      <div class="col-xl-6">
-                        <label for="zone_logo" class="form-label">Zone Logo</label>
-                        <input type="file" class="form-control" id="zone_logo" name="zone_logo" accept="image/jpeg,image/png,image/jpg" />
-                        <div id="imagePreview" class="mt-2" style="display: none;">
-                          <img id="preview" src="" alt="Logo Preview" style="max-width: 200px; max-height: 200px;" />
-                        </div>
+                      <div class="col-xl-12">
+                        <label for="hotel_status" class="form-label">Hotel Status</label>
+                        <select class="form-control" id="hotel_status" name="hotel_status" required>
+                          <option value="">Select Status</option>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
                       </div>
                       <div class="col-xl-12 mt-4">
-                        <button type="submit" class="btn btn-primary">Add Zone</button>
+                        <button type="submit" id="add_hotel" class="btn btn-primary">Add Hotel</button>
                       </div>
                     </div>
                   </div>
@@ -190,4 +196,5 @@
 </div>
 <!-- End::content  -->
 <script src="../../assets/js/addhotel.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <%- include('../partials/footer') %>
