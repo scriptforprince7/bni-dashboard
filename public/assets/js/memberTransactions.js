@@ -603,10 +603,13 @@ let ledgerData = [];
         // document.getElementById('tot_weeks').textContent = '-';
         // document.querySelector('.description').innerHTML = '-';
         // document.getElementById('due_date').textContent = '-';
+          
+          const fullYear = kittyRaisedOnDate.getFullYear();
+          console.log('Full Year from raised_on:', fullYear);
           document.getElementById('total-kitty-amount').textContent = activeKittyEntries[0].total_bill_amount;
           document.getElementById('billType').textContent = activeKittyEntries[0].bill_type;
           document.getElementById('tot_weeks').textContent = activeKittyEntries[0].total_weeks;
-          document.querySelector('.description').innerHTML = activeKittyEntries[0].description;
+          document.querySelector('.description').innerHTML = activeKittyEntries[0].description + ' ' + fullYear;
           document.getElementById('due_date').textContent = formatDate(activeKittyEntries[0].kitty_due_date);
         
         } else {
@@ -675,11 +678,11 @@ let ledgerData = [];
     ledgerBody.appendChild(row);
   });
   if (parseFloat(currentBalance) >= 0) {
-    currentBalance=0;
-    document.getElementById('pending_payment_amount').textContent = currentBalance.toFixed(2);
+    // currentBalance=0;
+    document.getElementById('pending_payment_amount').innerHTML = `<span style="color: green;">${currentBalance.toFixed(2)}</span>`;
   } else {
-    currentBalance = Math.abs(currentBalance);
-    document.getElementById('pending_payment_amount').textContent = currentBalance.toFixed(2);
+    // currentBalance = Math.abs(currentBalance);
+    document.getElementById('pending_payment_amount').innerHTML = `<span style="color: red;">${currentBalance.toFixed(2)}</span>`;
   }
   document.getElementById('success_kitty_amount').textContent = paid_amount_show.toFixed(2);
   document.getElementById('total_credit_note_amount').textContent = total_credit_note_amount.toFixed(2);
