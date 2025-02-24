@@ -124,7 +124,7 @@
 
                <!-- Start::slide -->
                <li class="slide has-sub">
-                <a href="javascript:void(0);" class="side-menu__item region-menu">
+                <a href="javascript:void(0);" class="side-menu__item zone-menu">
                     <svg 
                         xmlns="http://www.w3.org/2000/svg" 
                         class="w-6 h-6 side-menu__icon" 
@@ -261,6 +261,44 @@
                                 <li class="slide">
                                   <a href="/m/add-member" class="side-menu__item"
                                     >Add New Member</a
+                                  >
+                                </li>
+                              </ul>
+                            </li>
+                            <!-- End::slide -->
+
+                            <!-- Start::slide -->
+                            <li class="slide has-sub">
+                              <a href="javascript:void(0);" class="side-menu__item hotel-menu">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="w-6 h-6 side-menu__icon"
+                                  fill="none"
+                                  viewbox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+                                  ></path>
+                                </svg>
+                                <span class="side-menu__label"
+                                  >Hotels <br />
+                                  Management</span
+                                >
+                                <i class="ri-arrow-down-s-line side-menu__angle"></i>
+                              </a>
+                              <ul class="slide-menu child1">
+                                <li class="slide">
+                                  <a href="/h/manage-hotels" class="side-menu__item"
+                                    >View All Hotels</a
+                                  >
+                                </li>
+                                <li class="slide">
+                                  <a href="/h/add-hotel" class="side-menu__item"
+                                    >Add New Hotel</a
                                   >
                                 </li>
                               </ul>
@@ -905,6 +943,10 @@
     "/ref/all-refunds": ".refund-menu",
     "/rexp/view-expenses": ".ro-expense-menu",
     "/rexp/add-expense": ".ro-expense-menu",
+    "/h/manage-hotels": ".hotel-menu",
+    "/h/add-hotel": ".hotel-menu",
+    "/z/view-zones": ".zone-menu",
+    "/z/add-zone": ".zone-menu",
   };
 
   // Mark the active menu and open its dropdown

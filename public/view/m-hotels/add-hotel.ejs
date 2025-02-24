@@ -1,0 +1,200 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/sidebar') %>
+
+<!-- end sidebar -->
+
+<!-- Add SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css">
+
+<!-- Add SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  /* Ensuring that the modal body has padding */
+  .modal-body {
+    padding: 20px;
+  }
+  /* Preventing the add button container from affecting layout */
+  .add-button-container {
+    margin-top: 10px; /* Space above the button */
+    display: none; /* Initially hidden */
+  }
+</style>
+<style>
+  .custom-dropdown {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background: white;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .options div {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .options div:hover {
+    background-color: #f0f0f0;
+  }
+
+  .selected {
+    display: flex;
+    align-items: center;
+  }
+</style>
+
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins"
+            >Add New Hotel</span
+          >
+        </h1>
+        <!-- <p>Manage kitty payments with just one click</p> -->
+      </div>
+      <!-- <div class="d-flex align-items-center gap-2 flex-wrap">
+              <div class="form-group">
+                <div class="input-group">
+                  <div class="input-group-text bg-white border">
+                    <i class="ri-calendar-line"></i>
+                  </div>
+                  <input
+                    type="text"
+                    class="form-control breadcrumb-input"
+                    id="daterange"
+                    placeholder="Search By Date Range"
+                  />
+                </div>
+              </div>
+              <div class="btn-list">
+                <button class="btn btn-white btn-wave">
+                  <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+                </button>
+                <button class="btn btn-primary btn-wave me-0">
+                  <i class="ri-share-forward-line me-1"></i> Share
+                </button>
+              </div>
+            </div> -->
+    </div>
+    <!-- End::page-header -->
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap");
+    </style>
+
+    <style>
+      * {
+        font-family: Montserrat !important;
+        font-weight: 800px;
+      }
+      .text-muted {
+        color: black !important;
+        font-family: Montserrat Alternates;
+      }
+      .popins {
+        font-family: Poppins;
+      }
+    </style>
+
+    <form id="addHotelForm">
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
+          <div class="card-body add-products">
+            <div class="row gx-4">
+              <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                <div class="card custom-card shadow-none mb-0 border-0">
+                  <div class="card-body p-0">
+                    <div class="row gy-3">
+                      <div class="col-xl-12">
+                        <label for="product-cost-add" class="form-label"
+                          ><span style="font-size: 15px"
+                            ><b>Hotel Details</b></span
+                          ></label
+                        >
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_name" class="form-label">Hotel Name</label>
+                        <input type="text" class="form-control" id="hotel_name" name="hotel_name" placeholder="Enter zone name" required />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_address" class="form-label">Hotel Address</label>
+                        <input type="text" class="form-control" id="hotel_address" name="hotel_address" placeholder="Enter launcher name" />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_pincode" class="form-label">Hotel Pincode</label>
+                        <input type="text" class="form-control" id="hotel_pincode" name="hotel_pincode" placeholder="Enter launcher name" />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_bill_amount" class="form-label">Hotel Bill Amount</label>
+                        <input type="text" class="form-control" id="hotel_bill_amount" name="hotel_bill_amount" placeholder="Enter launcher name" />
+                      </div>
+                      
+                      <div class="col-xl-6">
+                        <label for="hotel_published_by" class="form-label">Hotel Published By</label>
+                        <input type="text" class="form-control" id="hotel_published_by" name="hotel_published_by" placeholder="Enter launcher name" />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_phone" class="form-label">Hotel Number</label>
+                        <input type="tel" class="form-control" id="hotel_phone" name="hotel_phone" placeholder="Enter contact number" required />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="hotel_email" class="form-label">Hotel Email ID</label>
+                        <input type="email" class="form-control" id="hotel_email" name="hotel_email" placeholder="Enter email address" required />
+                      </div>
+                      <div class="col-xl-6">
+                        <label for="date_of_publishing" class="form-label">Publishing Date</label>
+                        <input type="date" class="form-control" id="date_of_publishing" name="date_of_publishing" />
+                      </div>
+                      <div class="col-xl-12">
+                        <label for="hotel_status" class="form-label">Hotel Status</label>
+                        <select class="form-control" id="hotel_status" name="hotel_status" required>
+                          <option value="">Select Status</option>
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+                      <div class="col-xl-12 mt-4">
+                        <button type="submit" id="add_hotel" class="btn btn-primary">Add Hotel</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>
+<!-- End::content  -->
+<script src="../../assets/js/addhotel.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<%- include('../partials/footer') %>

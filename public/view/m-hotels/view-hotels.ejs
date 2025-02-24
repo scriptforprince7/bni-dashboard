@@ -1,0 +1,217 @@
+      <!-- header -->
+      <%- include('../partials/header') %> 
+      <!-- end header -->
+  <!-- Loader -->
+  <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+    <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+      <!-- sidebar -->
+
+      <%- include('../partials/sidebar') %>
+
+      <!-- end sidebar -->
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >Hotel Management</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item 989178547 " aria-current="page">
+                    View All Hotels
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                Manage All Hotels
+              </h1>
+            </div>
+            <div class="btn-list">
+              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+                Total Hotels <br />
+                <span> <b id="totalHotel">0</b></span> 
+              </button>
+            
+              
+             <a href="https://bni-data-backend.onrender.com/api/exportRegions"><button class="btn btn-danger btn-wave me-0">
+            <i class="ri-share-forward-line me-1"></i> Export Hotels
+            </button></a> 
+            </div>
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">All Hotels</div>
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <div class="btn-group">
+                  <!-- Status Filter Dropdown -->
+                  <div class="dropdown me-2">
+                    <a href="javascript:void(0);" 
+                       class="btn btn-sm btn-light text-muted dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i>
+                        Status
+                    </a>
+                    <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
+                        <li>
+                            <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="active">Active</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item filter-option" href="javascript:void(0);" data-filter="inactive">Inactive</a>
+                        </li>
+                    </ul>
+                  </div>
+
+                  <a href="/h/add-hotel">
+                    <button class="btn btn-outline-light border" type="button">
+                        + Add New Hotel
+                    </button>
+                  </a>
+                </div>
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    id="searchChapterInput"
+                    class="form-control"
+                    placeholder="Search Hotel.."
+                    aria-label="Event : custom'id"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>
+                
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap"
+                  style="border: 1px solid grey"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          S.No.
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Name
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Address
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Bill Amount
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Pincode
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Email
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Hotel Phone
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">
+                        <div class="d-flex align-items-center justify-content-between">
+                          Zone Status
+                          <span class="sort-icons ms-2" style="cursor: pointer;" data-sort="">
+                            <i class="ti ti-arrows-sort"></i>
+                          </span>
+                        </div>
+                      </th>
+                      <th scope="col" style="border: 1px solid grey;">Actions</th>
+                      <th scope="col" style="border: 1px solid grey;">View Ledger</th>
+                    </tr>
+                    
+
+                  </thead>
+                  <tbody id="chaptersTableBody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b id="showingStart">0</b> to <b id="showingEnd">0</b> of <b id="totalEntries">0</b> entries
+                  <button id="showAllBtn" class="btn btn-sm btn-primary ms-2">Show All</button>
+              </div>
+              
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto" id="paginationContainer">
+                    <li class="page-item" id="prevPage">
+                      <a class="page-link" href="javascript:void(0)">Previous</a>
+                    </li>
+                    <div id="pageNumbers" class="d-flex">
+                      <!-- Page numbers will be inserted here -->
+                    </div>
+                    <li class="page-item" id="nextPage">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+
+      <script src="../../assets/js/hotel.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+      <%- include('../partials/footer') %> 

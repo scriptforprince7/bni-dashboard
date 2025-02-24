@@ -29,6 +29,7 @@ const chapterKitty = require('./r-chapterKitty/chapterKitty')
 const sendNotificationRoutes = require('./r-sendNotification/sendNotificationRoutes');
 const roExpenseRoutes = require('./r-roExpense/roExpense');
 const manageZonesRoutes = require('./r-manageZones/manageZones');
+const hotelRoutes = require('./r-hotel/hotelRoutes');
 
 // Use all the imported routes
 router.use('/', indexRoutes);
@@ -57,6 +58,7 @@ router.use('/ck', chapterKitty);
 router.use('/sn', sendNotificationRoutes);
 router.use('/rexp', roExpenseRoutes);
 router.use('/z', manageZonesRoutes);
+router.use('/h', hotelRoutes);
 
 
 
