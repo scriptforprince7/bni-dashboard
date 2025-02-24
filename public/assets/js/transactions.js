@@ -472,6 +472,7 @@ if (filters.month && transaction.order_id) {
       let settlementValue = '<em>Not Available</em>';
       let irnValue = '<em>Not Applicable</em>';
       let qrcodeValue = '<em>Not Applicable</em>';
+      let cancelIrnValue = '<em>Not Applicable</em>';
 
       console.log('Checking payment method for transaction:', transaction.order_id);
       console.log('Payment method structure:', transaction.payment_method);
@@ -533,6 +534,7 @@ if (filters.month && transaction.order_id) {
                 <td class="irn">${irnValue}</td>
                 <td class="qrcode">${qrcodeValue}</td>
                 <td class="generate-invoice-btn">${invoiceButton}</td>
+                <td class="cancel-invoice-btn">${cancelIrnValue}</td>
             `;
 
       tableBody.appendChild(row);
@@ -584,6 +586,7 @@ if (filters.month && transaction.order_id) {
                   const irnCell = row.querySelector(".irn");
                   const qrcodeCell = row.querySelector(".qrcode");
                   const btnCell = row.querySelector(".generate-invoice-btn");
+                  const cancelIrnBtn = row.querySelector(".cancel-invoice-btn");
                   const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
                   const orderId = settlement.order_id;
                   const orderr = orders.find((o) => o.order_id === orderId);
@@ -662,6 +665,9 @@ if (filters.month && transaction.order_id) {
               let e_invoice = row.querySelector('.generate-invoice-btn');
               e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>
               `;
+
+              let cancel_irn = row.querySelector('.cancel-invoice-btn');
+              cancel_irn.innerHTML = `<button class="btn btn-sm btn-link">Cancel IRN</button>`;
     
               // Add UTR ID cell dynamically if it doesn't exist
               let utrCell = row.querySelector('.utr-cell');
@@ -830,6 +836,7 @@ if (filters.month && transaction.order_id) {
                       const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
                       transactionRow.querySelector(".qrcode").innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
                       transactionRow.querySelector(".generate-invoice-btn").innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+                      transactionRow.querySelector(".cancel-invoice-btn").innerHTML = `<button class="btn btn-sm btn-link" value="${einvoiceData.irn}">Cancel IRN</button>`;
                   
                       // Add event listener to the button to display loading and then the QR code
                       transactionRow.querySelector(".generate-qr-btn").addEventListener("click", () => {
