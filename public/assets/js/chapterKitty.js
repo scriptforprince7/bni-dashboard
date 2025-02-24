@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
         
 
-        console.log('💎 Total Pending Amount:', pendingAmount);
+        // console.log('💎 Total Pending Amount:', pendingAmount);
         // document.querySelector('#totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
 
         // Continue with existing code
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense)- parseFloat(pendingAmount));
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
 // expense
 
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.querySelector('.description').textContent= description;
             document.querySelector('.bill_type').textContent = bill_type;
             document.querySelector('.total_weeks').textContent= `${total_weeks}`;
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense)- parseFloat(pendingAmount));
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
             
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
             document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         // const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
         const formattedMiscellaneousAmount = indianCurrencyFormatter.format(totalPendingMiscellaneousAmount);
         const formattedTotalPaidExpense = indianCurrencyFormatter.format(total_paid_expense);
-        let availableAmount = parseFloat(payamount)-parseFloat(total_paid_expense) + parseFloat(available_fund)- parseFloat(pendingAmount);
+        let availableAmount = parseFloat(available_fund) - parseFloat(total_paid_expense) +  parseFloat(ReceivedAmount);
         const formattedAvailableAmount = indianCurrencyFormatter.format(availableAmount);
 
         // Step 9: Update the UI with fetched values
