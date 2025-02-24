@@ -642,19 +642,19 @@
                               />
                             </div>
       
-                            <div class="col-xl-6">
-                              <label for="meeting_hotel_name" class="form-label"
-                                >Hotel Name</label
-                              >
+                            <div class="col-xl-6 position-relative">
+                              <label for="meeting_hotel_name" class="form-label">Hotel Name</label>
                               <input
-                                type="text"
-                                class="form-control"
-                                id="meeting_hotel_name"
-                                name="meeting_hotel_name"
-                                
-                                placeholder="Vivanta by Taj.."
+                                  type="text"
+                                  class="form-control"
+                                  id="meeting_hotel_name"
+                                  name="meeting_hotel_name"
+                                  placeholder="Vivanta by Taj.."
+                                  autocomplete="off"
                               />
-                            </div>
+                              <div id="hotel_suggestions" class="dropdown-menu show" style="display: none; width: 100%; position: absolute; z-index: 1000;"></div>
+                          </div>
+                            <!-- <a href="/h/manage-hotels" class="btn btn-primary mt-2">Add New Hotel</a> -->
       
                             <div class="col-xl-6">
                               <label for="street_address_line" class="form-label"
@@ -1250,6 +1250,66 @@
     }
   });
 </script>
+
+<script>
+  // Global hotels list
+  let hotelsList = [];
+  
+  // Fetch hotels data
+  function fetchHotels() {
+      fetch("/api/hotels") // Replace with actual API URL
+          .then(response => response.json())
+          .then(data => {
+              console.log("Fetched hotels:", data);
+              hotelsList = Array.isArray(data) ? data : Object.values(data);
+          })
+          .catch(error => console.error("Error fetching hotels:", error));
+  }
+  
+  // Filter hotels based on input
+  function filterHotels(searchText) {
+      if (!Array.isArray(hotelsList) || hotelsList.length === 0) {
+          return [];
+      }
+      return hotelsList.filter(hotel =>
+          hotel.name.toLowerCase().includes(searchText.toLowerCase())
+      );
+  }
+  
+  // Update UI with suggestions
+  function updateHotelListUI(hotels) {
+      let suggestions = document.getElementById("hotel_suggestions");
+      suggestions.innerHTML = "";
+  
+      if (hotels.length === 0) {
+          suggestions.style.display = "none";
+          return;
+      }
+  
+      hotels.forEach(hotel => {
+          let hotelItem = document.createElement("div");
+          hotelItem.className = "dropdown-item";
+          hotelItem.textContent = hotel.name;
+          hotelItem.onclick = function () {
+              document.getElementById("meeting_hotel_name").value = hotel.name;
+              suggestions.style.display = "none";
+          };
+          suggestions.appendChild(hotelItem);
+      });
+  
+      suggestions.style.display = "block";
+  }
+  
+  // Event listener for input field
+  document.getElementById("meeting_hotel_name").addEventListener("input", function () {
+      let searchText = this.value.trim();
+      let results = filterHotels(searchText);
+      updateHotelListUI(results);
+  });
+  
+  // Fetch hotels on page load
+  fetchHotels();
+  </script>
   <script src="../../assets/js/country.js"></script>
 
 <%- include('../partials/footer') %> 
