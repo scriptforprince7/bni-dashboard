@@ -190,10 +190,10 @@ async function saveChanges() {
         
         // Get email from the email input field
         const email_id = document.getElementById('email-address-input').value;
-        console.log('Email ID from input:', email_id);
+        console.log('📧 Email ID from input:', email_id);
 
         if (!email_id) {
-            console.error('Email ID is required');
+            console.error('❌ Email ID is required');
             toastr.error('Email address is required');
             return;
         }
@@ -215,21 +215,22 @@ async function saveChanges() {
         const addressInput = document.getElementById('chapter-address-input').value;
         if (addressInput) {
             const addressParts = addressInput.split(',').map(part => part.trim());
-            console.log('Address parts:', addressParts);
+            console.log('📍 Address parts:', addressParts);
 
-            inputs.meeting_hotel_name = addressParts[0] || null;
+            // Set meeting_hotel_id to 1 (default) or get from your form if needed
+            inputs.meeting_hotel_id = 1;
             inputs.street_address_line = addressParts[1] || null;
             inputs.postal_code = addressParts[2] || null;
         }
 
-        // Log the collected data before sending
-        console.log('Collected form data:', inputs);
+        // Log the collected data
+        console.log('📝 Collected form data:', inputs);
 
         // Append all non-null values to FormData
         Object.entries(inputs).forEach(([key, value]) => {
             if (value !== null && value !== '') {
                 formData.append(key, value);
-                console.log(`Appending ${key}:`, value);
+                console.log(`📎 Appending ${key}:`, value);
             }
         });
 
@@ -237,7 +238,7 @@ async function saveChanges() {
         const logoInput = document.getElementById('member-photo-input');
         if (logoInput.files.length > 0) {
             const file = logoInput.files[0];
-            console.log('📸 New logo file selected:', {
+            console.log('🖼️ New logo file:', {
                 name: file.name,
                 type: file.type,
                 size: `${(file.size / 1024).toFixed(2)}KB`
@@ -245,7 +246,7 @@ async function saveChanges() {
             formData.append('chapter_logo', file);
         }
 
-        console.log('📦 Preparing to send update request...');
+        console.log('📤 Sending update request...');
         const response = await fetch('https://bni-data-backend.onrender.com/api/updateChapterSettings', {
             method: 'PUT',
             body: formData
@@ -253,7 +254,7 @@ async function saveChanges() {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Server error response:', errorText);
+            console.error('❌ Server error:', errorText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -265,7 +266,7 @@ async function saveChanges() {
             toastr.success('Chapter settings updated successfully');
             $('#confirmationModal').modal('hide');
             
-            // Refresh the data to show updated logo
+            // Refresh the data
             console.log('🔄 Refreshing chapter data...');
             await fetchChapterData();
         } else {

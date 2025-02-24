@@ -25,3 +25,7 @@ exports.settledTransactions = (req, res) => {
 exports.newMemberPayment = (req, res) => {
     res.render('m-transactions/new-member-payment', { title: 'New Member Payment' });
 };
+
+exports.cancelledIRNs = (req, res) => {
+    res.render('m-transactions/cancelled-irns', { title: 'Cancelled IRNs' });
+};
