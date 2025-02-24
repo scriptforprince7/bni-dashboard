@@ -91,8 +91,8 @@ function renderTable(hotels) {
             ${hotel.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>'}
           </td>
           <td style="border: 1px solid grey;">
-            <button class="btn btn-sm btn-primary">Edit</button>
-            <button class="btn btn-sm btn-danger">Delete</button>
+          <a href="/h/edit-hotel?id=${hotel.hotel_id}" class="btn btn-sm btn-primary">Edit</a>
+          <a class="btn btn-sm btn-danger delete-hotel" data-id="${hotel.hotel_id}">Delete</a>
           </td>
           <td style="border: 1px solid grey;">
             <button class="btn btn-sm btn-info" onclick="viewLedger(${hotel.hotel_id})">View Ledger</button>
@@ -107,3 +107,56 @@ function renderTable(hotels) {
     document.getElementById("showingEnd").textContent = hotels.length;
     document.getElementById("totalEntries").textContent = allHotels.length; // Keep original count
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetchHotels();
+
+    // Event listener for delete buttons
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("delete-hotel")) {
+            const hotelId = event.target.getAttribute("data-id");
+            confirmDeleteHotel(hotelId);
+        }
+    });
+});
+
+// Function to show SweetAlert confirmation and send delete request
+function confirmDeleteHotel(hotelId) {
+    Swal.fire({
+        title: "Are you sure?",
+        text: "This hotel will be marked as deleted.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            deleteHotel(hotelId);
+        }
+    });
+}
+
+// Function to send delete request to backend
+async function deleteHotel(hotelId) {
+    try {
+        const response = await fetch(`https://bni-data-backend.onrender.com/api/deleteHotel/${hotelId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            Swal.fire("Deleted!", result.message, "success");
+            fetchHotels(); // Refresh the hotel list
+        } else {
+            Swal.fire("Error!", result.message, "error");
+        }
+    } catch (error) {
+        console.error("Error deleting hotel:", error);
+        Swal.fire("Error!", "An error occurred while deleting the hotel.", "error");
+    }
+}
+
