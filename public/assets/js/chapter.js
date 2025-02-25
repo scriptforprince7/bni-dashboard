@@ -174,9 +174,11 @@ const displayChapters = (chapters) => {
               showingAll ? index + 1 : start + index + 1
             }</td>
             <td style="border: 1px solid grey;">
-                
+                <a href="javascript:void(0);" onclick="handleChapterAccess('${
+                  chapter.chapter_id
+                }', '${chapter.email_id}');" class="chapter-link">
                     <b>${chapter.chapter_name}</b>
-                
+                </a>
             </td>
             <td style="border: 1px solid grey;">${regionName}</td>
             <td style="border: 1px solid grey;"><b>${membersCount}</b></td>
@@ -205,13 +207,12 @@ const displayChapters = (chapters) => {
                 </span>
             </td>
             <td>
-            <span class="badge bg-success text-light" style="cursor:pointer;"><a href="javascript:void(0);" onclick="handleChapterAccess('${
-              chapter.chapter_id
-            }', '${
-      chapter.email_id
-    }');" class="chapter-link" style="color:white">
-                    view
-                </a></span>
+            <span class="badge bg-success text-light" style="cursor:pointer;">
+           <a href="/c/view-chapters/?chapter_id=${
+             chapter.chapter_id
+           }" style="color:white">View</a>
+            </span>
+
                 <span class="badge bg-warning text-light" style="cursor:pointer;">
                     <a href="/c/edit-chapter/?chapter_id=${
                       chapter.chapter_id

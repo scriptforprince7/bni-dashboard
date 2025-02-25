@@ -1,16 +1,19 @@
 exports.manageChapter = (req, res) => {
-    res.render('m-chapter/manage-chapter', { title: 'Chapter' });
+  res.render("m-chapter/manage-chapter", { title: "Chapter" });
 };
 
 exports.addChapter = (req, res) => {
-    res.render('m-chapter/add-chapter', { title: 'addChapter' });
+  res.render("m-chapter/add-chapter", { title: "addChapter" });
 };
 
 exports.editChapter = (req, res) => {
-    res.render('m-chapter/edit-chapter', { title: 'editChapter' });
+  res.render("m-chapter/edit-chapter", { title: "editChapter" });
 };
 
 exports.viewChapter = (req, res) => {
-    res.render('m-chapter/view-chapter', { title: 'ViewChapter' });
+  res.render("m-chapter/view-chapter", { title: "ViewChapter" });
 };
 
+exports.viewChapters = (req, res) => {
+  res.render("m-chapter/view-chapters", { title: "ViewChapters" });
+};
