@@ -610,9 +610,33 @@ if (filters.month && transaction.order_id) {
 
                   cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
                     const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
-                    console.log("IRN:", irn);
-                });
-                  
+                
+                    // First SweetAlert for confirmation
+                    Swal.fire({
+                        title: `Are you sure to cancel IRN for ${irn}?`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Yes",
+                        cancelButtonText: "No",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Second SweetAlert to get the cancel reason
+                            Swal.fire({
+                                title: "Enter cancel reason",
+                                input: "textarea",
+                                inputPlaceholder: "Type the reason here...",
+                                showCancelButton: true,
+                                confirmButtonText: "Cancel IRN",
+                            }).then((reasonResult) => {
+                                if (reasonResult.isConfirmed) {
+                                    const cancelReason = reasonResult.value;
+                                    console.log("IRN:", irn);
+                                    console.log("Cancel Reason:", cancelReason);
+                                }
+                            });
+                        }
+                    });
+                });                  
         
                   // Check if both IRN and QR code are available
                   if (einvoiceData.irn && einvoiceData.qrcode) {
