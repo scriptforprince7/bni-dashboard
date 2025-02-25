@@ -19,6 +19,7 @@ let allCredits = []; // Store all credit notes globally
 let allTotal = 0;
 let allreceived = 0;
 let allpending = 0;
+let totalLatePayment = 0;
 
 // Function to show loader
 function showLoader() {
@@ -33,7 +34,7 @@ function hideLoader() {
 async function fetchPayments() {
   try {
     showLoader();
-    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders] = await Promise.all([ 
+    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill] = await Promise.all([ 
       fetch('https://bni-data-backend.onrender.com/api/regions').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/chapters').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments').then(res => res.json()),
@@ -42,20 +43,27 @@ async function fetchPayments() {
       fetch('https://bni-data-backend.onrender.com/api/allTransactions').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/members').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getbankOrder').then(res => res.json())
+      fetch('https://bni-data-backend.onrender.com/api/getbankOrder').then(res => res.json()),
+      fetch('https://bni-data-backend.onrender.com/api/getKittyPayments').then(res => res.json())
+
     ]);
 
     console.log('Fetched all data successfully');
-
+    console.log('------===------==-=----=-=-=-=-= active bill ',activeBill);
+    const totalActiveBillAmount = activeBill.reduce((sum, bill) => {
+      return sum + parseFloat(parseFloat(bill.total_bill_amount) - parseFloat((bill.total_bill_amount *18)/118));
+    }, 0);
+    console.log('Total Active Bill Amount:', formatInIndianStyle(totalActiveBillAmount));
+    document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(Math.ceil(totalActiveBillAmount))}`;
     // Calculate visitor payments
-    console.log('Calculating visitor payments...');
+    // console.log('Calculating visitor payments...');
     const visitorOrders = orders.filter(order => order.universal_link_id === 4);
     const totalVisitorAmount = visitorOrders.reduce((sum, order) => {
       const amount = parseFloat(order.order_amount || 0);
-      console.log(`Visitor Order ${order.order_id}: ₹${formatInIndianStyle(amount)}`);
+      // console.log(`Visitor Order ${order.order_id}: ₹${formatInIndianStyle(amount)}`);
       return sum + amount;
     }, 0);
-    console.log(`Total Visitor Amount: ₹${formatInIndianStyle(totalVisitorAmount)}`);
+    // console.log(`Total Visitor Amount: ₹${formatInIndianStyle(totalVisitorAmount)}`);
 
     // Update visitor payment display
     const visitorAmountElement = document.querySelector('.total_V_amount');
@@ -73,7 +81,7 @@ async function fetchPayments() {
 
     // Process orders and transactions
     orders.forEach(order => {
-      console.log(`Processing order for chapter ${order.chapter_id}:`, order);
+      // console.log(`Processing order for chapter ${order.chapter_id}:`, order);
       
       // Find all successful transactions for this order
       const orderTransactions = transactions.filter(trans => 
@@ -82,18 +90,18 @@ async function fetchPayments() {
         order.payment_note === "meeting-payments"
       );
 
-      console.log(`------------------Found ${orderTransactions.length} successful transactions for order ${order.order_id}`);
+      // console.log(`------------------Found ${orderTransactions.length} successful transactions for order ${order.order_id}`);
 
       // Sum up successful payments for this order
       orderTransactions.forEach(trans => {
         const amount = Math.ceil(parseFloat(trans.payment_amount) - ( (parseFloat(trans.payment_amount)*18) / 118));
         allreceived += amount;
         chapterPayments[order.chapter_id] += amount;
-        console.log(`=======Added payment ${amount} to chapter ${order.chapter_id}. New total: ${chapterPayments[order.chapter_id]}`);
+        // console.log(`=======Added payment ${amount} to chapter ${order.chapter_id}. New total: ${chapterPayments[order.chapter_id]}`);
       });
     });
 
-    console.log('Final chapter payments:', chapterPayments);
+    // console.log('Final chapter payments:', chapterPayments);
 
     // Add members data to detailed kittys
     const detailedKittys = chapters.map(chapter => {
@@ -101,15 +109,19 @@ async function fetchPayments() {
       const chapterMembers = members.filter(member => member.chapter_id === chapter.chapter_id);
       const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapter.chapter_id);
       let totalBankOrderAmount = 0;
+      let noOfLatePayemnt=0;
 
       filteredBankOrders.forEach(order => {
         if (order.amount_to_pay > 0) {
           totalBankOrderAmount += parseFloat(order.amount_to_pay);
+          
         }
+        noOfLatePayemnt += parseInt(order.no_of_late_payment);
       });
 
-      console.log(`Total Bank Order Amount for chapter ${chapter.chapter_id}: ₹${formatInIndianStyle(totalBankOrderAmount)}`);
-      
+      // console.log(`Total Bank Order Amount for chapter ${chapter.chapter_id}: ₹${formatInIndianStyle(totalBankOrderAmount)}`);
+      allpending += parseFloat(totalBankOrderAmount);
+      totalLatePayment += parseInt(noOfLatePayemnt);
       // const totalPending = chapterMembers.reduce((sum, member) => {
       //   const balance = parseFloat(member.meeting_opening_balance) || 0;
       //   return sum + balance;
@@ -131,7 +143,8 @@ async function fetchPayments() {
         pendingExpenses: totalPendingExpenses,
         receivedPayments: chapterPayments[chapter.chapter_id] || 0,
         totalPending: totalBankOrderAmount,
-        memberCount: chapterMembers.length // Add member count
+        memberCount: chapterMembers.length, // Add member count
+        latePayment: noOfLatePayemnt
       };
     });
 
@@ -335,12 +348,12 @@ function displayPayments(kittys) {
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.chapter_name || ""}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.memberCount || 0}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(availableFund)}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(parseFloat(parseFloat(availableFund)+parseFloat(kitty.receivedPayments)- parseFloat(kitty.totalExpenses)))}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.receivedPayments || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalPending || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalExpenses || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.pendingExpenses || 0)}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>-</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.latePayment}</strong></td>
         </tr>
       `;
     })
@@ -348,10 +361,11 @@ function displayPayments(kittys) {
 
   // Log final totals
   console.log('=== Final Totals ===');
-  console.log(`Total Available Fund: ₹${formatInIndianStyle(grandTotalAvailableFund)}`);
-  console.log(`Total Paid Expenses: ₹${formatInIndianStyle(grandTotalPaidExpenses)}`);
-  console.log(`Total Pending Expenses: ₹${formatInIndianStyle(grandTotalPendingExpenses)}`);
-  console.log(`Total Credit Note Amount: ₹${formatInIndianStyle(grandTotalCreditNoteAmount)}`);
+  // console.log(`Total Available Fund: ₹${formatInIndianStyle(grandTotalAvailableFund)}`);
+  // console.log(`Total Paid Expenses: ₹${formatInIndianStyle(grandTotalPaidExpenses)}`);
+  // console.log(`Total Pending Expenses: ₹${formatInIndianStyle(grandTotalPendingExpenses)}`);
+  // console.log(`Total Credit Note Amount: ₹${formatInIndianStyle(grandTotalCreditNoteAmount)}`);
+    console.log('all pending --------: ',allpending);
   allTotal += parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses);
 
 
@@ -369,6 +383,10 @@ function displayPayments(kittys) {
   document.querySelector('.total_Expense_amount').textContent = `₹ ${formatInIndianStyle(grandTotalPaidExpenses)}`;
   document.querySelector('.total_pExpense_amount').textContent = `₹ ${formatInIndianStyle(grandTotalPendingExpenses)}`;
   document.querySelector('.total_Exnse_amount').textContent = `₹ ${formatInIndianStyle(grandTotalCreditNoteAmount)}`;
+  document.querySelector('#totalKittyAmountReceived').textContent = `₹ ${formatInIndianStyle(allreceived)}`;
+  document.querySelector('#totalKittyExpense').textContent =  `₹ ${formatInIndianStyle(allpending)}`;
+  document.querySelector('#total_late_amount').textContent = totalLatePayment;
+  
 }
 
 // Function to set selected region in dropdown
