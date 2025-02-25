@@ -16,6 +16,10 @@ let allKittys = []; // Store all kitty payments globally
 let filteredKittys = []; // Store filtered kitty payments globally after region/chapter filtering
 let allCredits = []; // Store all credit notes globally
 
+let allTotal = 0;
+let allreceived = 0;
+let allpending = 0;
+
 // Function to show loader
 function showLoader() {
   document.getElementById('loader').style.display = 'flex';
@@ -29,7 +33,7 @@ function hideLoader() {
 async function fetchPayments() {
   try {
     showLoader();
-    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits] = await Promise.all([ 
+    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders] = await Promise.all([ 
       fetch('https://bni-data-backend.onrender.com/api/regions').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/chapters').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments').then(res => res.json()),
@@ -37,7 +41,8 @@ async function fetchPayments() {
       fetch('https://bni-data-backend.onrender.com/api/allOrders').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/allTransactions').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/members').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit').then(res => res.json())
+      fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit').then(res => res.json()),
+      fetch('https://bni-data-backend.onrender.com/api/getbankOrder').then(res => res.json())
     ]);
 
     console.log('Fetched all data successfully');
@@ -73,16 +78,18 @@ async function fetchPayments() {
       // Find all successful transactions for this order
       const orderTransactions = transactions.filter(trans => 
         trans.order_id === order.order_id && 
-        trans.payment_status === 'SUCCESS'
+        trans.payment_status === 'SUCCESS' &&
+        order.payment_note === "meeting-payments"
       );
 
-      console.log(`Found ${orderTransactions.length} successful transactions for order ${order.order_id}`);
+      console.log(`------------------Found ${orderTransactions.length} successful transactions for order ${order.order_id}`);
 
       // Sum up successful payments for this order
       orderTransactions.forEach(trans => {
-        const amount = parseFloat(trans.payment_amount);
+        const amount = Math.ceil(parseFloat(trans.payment_amount) - ( (parseFloat(trans.payment_amount)*18) / 118));
+        allreceived += amount;
         chapterPayments[order.chapter_id] += amount;
-        console.log(`Added payment ${amount} to chapter ${order.chapter_id}. New total: ${chapterPayments[order.chapter_id]}`);
+        console.log(`=======Added payment ${amount} to chapter ${order.chapter_id}. New total: ${chapterPayments[order.chapter_id]}`);
       });
     });
 
@@ -92,11 +99,21 @@ async function fetchPayments() {
     const detailedKittys = chapters.map(chapter => {
       const relatedKitty = kittyPayments.find(kitty => kitty.chapter_id === chapter.chapter_id) || {};
       const chapterMembers = members.filter(member => member.chapter_id === chapter.chapter_id);
+      const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapter.chapter_id);
+      let totalBankOrderAmount = 0;
+
+      filteredBankOrders.forEach(order => {
+        if (order.amount_to_pay > 0) {
+          totalBankOrderAmount += parseFloat(order.amount_to_pay);
+        }
+      });
+
+      console.log(`Total Bank Order Amount for chapter ${chapter.chapter_id}: ₹${formatInIndianStyle(totalBankOrderAmount)}`);
       
-      const totalPending = chapterMembers.reduce((sum, member) => {
-        const balance = parseFloat(member.meeting_opening_balance) || 0;
-        return sum + balance;
-      }, 0);
+      // const totalPending = chapterMembers.reduce((sum, member) => {
+      //   const balance = parseFloat(member.meeting_opening_balance) || 0;
+      //   return sum + balance;
+      // }, 0);
 
       // Filter expenses for the current chapter
       const chapterExpenses = expenses.filter(expense => expense.chapter_id === chapter.chapter_id);
@@ -113,7 +130,7 @@ async function fetchPayments() {
         totalExpenses: totalPaidExpenses,
         pendingExpenses: totalPendingExpenses,
         receivedPayments: chapterPayments[chapter.chapter_id] || 0,
-        totalPending: totalPending,
+        totalPending: totalBankOrderAmount,
         memberCount: chapterMembers.length // Add member count
       };
     });
@@ -311,7 +328,7 @@ function displayPayments(kittys) {
       console.log(`Chapter ${index + 1}: ${kitty.chapter_name}`);
       console.log(`Available Fund: ₹${formatInIndianStyle(availableFund)}`);
       console.log(`Running Total Available Fund: ₹${formatInIndianStyle(grandTotalAvailableFund)}`);
-      console.log('------------------------');
+      console.log('------------------------',kitty);
 
       return `
         <tr>
@@ -335,12 +352,14 @@ function displayPayments(kittys) {
   console.log(`Total Paid Expenses: ₹${formatInIndianStyle(grandTotalPaidExpenses)}`);
   console.log(`Total Pending Expenses: ₹${formatInIndianStyle(grandTotalPendingExpenses)}`);
   console.log(`Total Credit Note Amount: ₹${formatInIndianStyle(grandTotalCreditNoteAmount)}`);
+  allTotal += parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses);
+
 
   // Update the Total Available Fund display
   const totalAvailableFundElement = document.querySelector('.total_Available_amount');
   if (totalAvailableFundElement) {
     console.log('Updating Total Available Fund display...');
-    totalAvailableFundElement.textContent = `₹ ${formatInIndianStyle(grandTotalAvailableFund)}`;
+    totalAvailableFundElement.textContent = `₹ ${formatInIndianStyle(allTotal)}`;
     console.log('Total Available Fund display updated successfully');
   } else {
     console.error('Total Available Fund element not found in DOM');
