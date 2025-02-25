@@ -4,7 +4,7 @@
 
     <!-- sidebar -->
 
-    <%- include('../partials/sidebar') %>
+    <%- include('../partials/chapter-sidebar') %>
     <div id="loader">
       <img src="../../assets/images/media/loader.svg" alt="" />
     </div>
@@ -21,27 +21,24 @@
                 <ol class="breadcrumb mb-1">
                   <li class="breadcrumb-item">
                     <a href="javascript:void(0);" style="color: #d01f2f"
-                      >Trainings Information</a
+                      >Accolades Information</a
                     >
                   </li>
                   <li class="breadcrumb-item Approved" aria-current="page">
-                    View All Trainings
+                    View All Accolades
                   </li>
                 </ol>
               </nav>
               <h1 class="page-title fw-medium fs-18 mb-0">
-                Manage Trainings
+                Manage Accolades
               </h1>
             </div>
             <div class="btn-list">
               <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Listed Tranings <br />
-                <span> <b></b></span>
+                Total In Stock Accolades <br />
+                <span id="total-accolades-count"><b>0</b></span>
               </button>
               
-              <button class="btn btn-danger btn-wave me-0">
-                <i class="ri-share-forward-line me-1"></i> Export List
-              </button>
             </div>
           </div>
           <!-- Page Header Close -->
@@ -49,64 +46,16 @@
           <!-- Start::row-1 -->
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
-              <div class="card-title">All Trainings List</div>
+              <div class="card-title">All Accolades List</div>
               <div class="d-flex gap-3 align-items-center flex-wrap">
-                <div class="btn-group"> 
-                  <div class="dropdown me-2">
-                    <a href="javascript:void(0);"
-                       class="btn btn-sm btn-light text-muted dropdown-toggle"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="true">
-                      <i class="ti ti-sort-descending-2 me-1"></i> Training Status
-                    </a>
-                    <ul class="dropdown-menu" id="trainings-status-filter" role="menu">
-                      <!-- Items will be dynamically inserted here -->
-                    </ul>
-                  </div>
-                  <div class="dropdown me-2">
-                    <a href="javascript:void(0);"
-                       class="btn btn-sm btn-light text-muted dropdown-toggle"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="true">
-                      <i class="ti ti-sort-descending-2 me-1"></i> Month
-                    </a>
-                    <ul class="dropdown-menu" id="month-filter" role="menu">
-                      <!-- Items will be dynamically inserted here -->
-                    </ul>
-                  </div>
-                  <div class="dropdown me-2">
-                    <a href="javascript:void(0);"
-                       class="btn btn-sm btn-light text-muted dropdown-toggle"
-                       data-bs-toggle="dropdown"
-                       aria-expanded="true">
-                      <i class="ti ti-sort-descending-2 me-1"></i> Year
-                    </a>
-                    <ul class="dropdown-menu" id="year-filter" role="menu">
-                      <!-- Items will be dynamically inserted here -->
-                    </ul>
-                  </div>
-                  <button href=""
-                  id="apply-filters-btn"
-                  class="btn btn-sm btn-primary btn-wave waves-light">
-            Apply Filter
-          </button>
-          <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
-            Reset Filter
-          </button></div>
-                  <a href="/tr/add-training"><button
-                    class="btn btn-outline-light border"
-                    type="button"
-                  >
-                    + Add New Training
-                  </button></a> 
-                </div>
+               
                 <div class="custom-form-group flex-grow-1">
                   <input
                     type="text"
                     id="searchAccolades"
                     class="form-control"
-                    placeholder="Search Training.."
-                    aria-label="Search Training"
+                    placeholder="Search Accolades.."
+                    aria-label="Search Accolades"
                     aria-describedby="button-addon2"
                   />
                   <a
@@ -127,17 +76,21 @@
                   <thead>
                     <tr>
                       <th scope="col">S.No.</th>
-                      <th scope="col">Training Name</th>
-                      <th scope="col">Training Venue</th>
-                      <th scope="col">Training Date</th>
-                      <th scope="col">No. of Registrations</th>
-                      <th scope="col">Venue Fee</th>
-                      <th scope="col">Training Status</th>
-                      <th scope="col">Actions</th>
+                      <th scope="col">Accolades Name</th>
+                      <th scope="col">Published by</th>
+                    
+                      <th scope="col">Stock Available</th>
+                      <th scope="col">Stock In Date</th>
+                      <th scope="col">Item Type</th>
+                      <th scope="col">Accolade Type</th>
+                      <th scope="col">Availability</th>
+                      <th scope="col">Status</th>
+                      
                     </tr>
                   </thead>
                   
                   <tbody id="chaptersTableBody">
+                    <!-- No accolades message will be shown here -->
                   </tbody>
                 </table>
               </div>
@@ -169,7 +122,7 @@
       </div>
       <!-- End::content  -->
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script src="../../assets/js/trainings.js"></script>
+      <script src="../../assets/js/chapterAccolades.js"></script>
       
 
       <%- include('../partials/footer') %> 

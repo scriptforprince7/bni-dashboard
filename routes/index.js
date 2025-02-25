@@ -30,7 +30,7 @@ const sendNotificationRoutes = require('./r-sendNotification/sendNotificationRou
 const roExpenseRoutes = require('./r-roExpense/roExpense');
 const manageZonesRoutes = require('./r-manageZones/manageZones');
 const hotelRoutes = require('./r-hotel/hotelRoutes');
-
+const accoladesChapterRoutes = require('./r-accoladesChapter/accoladesChapterRoutes');
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -43,6 +43,7 @@ router.use('/a', apiRoutes);
 router.use('/v', eInvoiceRoutes);
 router.use('/auth', authRoutes);
 router.use('/acc', accoladesRoutes);
+router.use('/accchap', accoladesChapterRoutes);
 router.use('/macc', memberAccoladesRoutes);
 router.use('/s', settingRoutes);
 router.use('/cl', classificationRoutes);

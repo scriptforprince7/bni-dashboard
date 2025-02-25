@@ -46,10 +46,84 @@
             opacity: 1;
         }
 
+        /* Print-specific styles */
+        @media print {
+            /* Reset page margins and ensure content fits */
+            @page {
+                margin: 0;
+                size: auto;
+            }
+
+            /* Hide non-essential elements during print */
+            header, 
+            .sidebar,
+            .card-footer,
+            .d-print-none {
+                display: none !important;
+            }
+
+            /* Ensure the invoice content is centered and properly sized */
+            #invoice-POS {
+                margin: 0 auto !important;
+                padding: 10mm !important;
+                width: 100% !important;
+                max-width: 210mm !important; /* A4 width */
+                position: relative !important;
+                left: 0 !important;
+            }
+
+            /* Ensure table stays within bounds */
+            .table-responsive {
+                overflow: visible !important;
+            }
+
+            table {
+                width: 100% !important;
+                page-break-inside: avoid;
+            }
+
+            /* Ensure text and images are clear */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                /* color-adjust: exact !important; */
+                print-color-adjust: exact !important;
+            }
+
+            /* Ensure images print properly */
+            img {
+                max-width: 100% !important;
+                page-break-inside: avoid;
+            }
+
+            /* Ensure proper spacing */
+            .card-body {
+                padding: 15px !important;
+            }
+
+            /* Force background colors and borders to print */
+            .border,
+            .table td,
+            .table th {
+                border-color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Ensure text contrast */
+            .text-muted {
+                color: #666 !important;
+            }
+
+            /* Prevent content from being cut off */
+            .row {
+                page-break-inside: avoid;
+            }
+        }
+
       </style>
 
       <!-- Start::app-content -->
-      <div id="invoice-POS">
+      <div id="invoice-POS" class="print-section">
       <div class="main-content app-content">
         <div class="container-fluid">
 
@@ -206,7 +280,7 @@
                     </div>
                 </div>
                 <div class="card-footer d-flex" style="padding-left: 6%; margin-bottom: 10px; gap: 10px;">
-                    <button id="downloadInvoice" class="btn btn-sm btn-danger" style="width: 270px;">
+                    <button id="downloadInvoice" class="btn btn-sm btn-danger" style="width: 270px;" onclick="window.print()">
                         Download <i class="ri-download-2-line ms-1 align-middle"></i>
                     </button>
                     <a href="http://localhost:3000/t/all-transactions" class="btn btn-sm btn-danger" style="width: 270px;">

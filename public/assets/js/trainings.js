@@ -6,9 +6,11 @@ const resetFilterBtn = document.getElementById('reset-filters-btn');
 const loader = document.getElementById('loader');
 const trainingsApiUrl = 'https://bni-data-backend.onrender.com/api/allTrainings';
 const searchInput = document.getElementById('searchAccolades');
+const yearsDropdown = document.getElementById('year-filter');
 
 let trainings = []; // Store all trainings
 let selectedTrainingStatus = null;
+let selectedYear = null;
 
 // Loader functions
 function showLoader() {
@@ -89,16 +91,61 @@ document.getElementById('trainings-status-filter').addEventListener('click', fun
     }
 });
 
+// Function to populate years dropdown
+function populateYearsDropdown() {
+    // Extract unique years from trainings data
+    const uniqueYears = [...new Set(trainings.map(training => {
+        const trainingDate = new Date(training.training_date);
+        return trainingDate.getFullYear();
+    }))].sort((a, b) => b - a); // Sort years in descending order
+
+    console.log("📅 Available years in data:", uniqueYears);
+
+    yearsDropdown.innerHTML = `
+        <li><a class="dropdown-item" href="javascript:void(0);" data-value="">Select Year</a></li>
+        ${uniqueYears.map(year => `
+            <li><a class="dropdown-item" href="javascript:void(0);" data-value="${year}">${year}</a></li>
+        `).join('')}
+    `;
+
+    // Add click listeners to dropdown items
+    yearsDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const dropdownToggle = yearsDropdown.closest('.dropdown').querySelector('.dropdown-toggle');
+            dropdownToggle.textContent = item.textContent;
+            
+            // Remove active class from all items and add to selected
+            yearsDropdown.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            selectedYear = item.getAttribute('data-value');
+            console.log("🎯 Selected year:", selectedYear);
+        });
+    });
+}
+
 // Update the apply filter button click handler
 applyFilterBtn.addEventListener('click', () => {
-    console.log('Applying filters...'); // Debug log
-    console.log('Status:', selectedTrainingStatus); // Debug log
+    console.log('🔍 Applying filters...'); 
+    console.log('📊 Status:', selectedTrainingStatus);
+    console.log('📅 Year:', selectedYear);
     
     const selectedMonth = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
-    let filteredTrainings = [...trainings]; // Create a copy of trainings array
+    let filteredTrainings = [...trainings];
+
+    // Filter by year if selected
+    if (selectedYear) {
+        console.log("🗓️ Filtering by year:", selectedYear);
+        filteredTrainings = filteredTrainings.filter(training => {
+            const trainingDate = new Date(training.training_date);
+            const trainingYear = trainingDate.getFullYear();
+            return trainingYear === parseInt(selectedYear);
+        });
+    }
 
     // Filter by month if selected
     if (selectedMonth) {
+        console.log("📅 Filtering by month:", selectedMonth);
         filteredTrainings = filteredTrainings.filter(training => {
             const trainingDate = new Date(training.training_date);
             const trainingMonth = trainingDate.getMonth() + 1;
@@ -108,26 +155,34 @@ applyFilterBtn.addEventListener('click', () => {
 
     // Filter by status if selected
     if (selectedTrainingStatus) {
+        console.log("🏷️ Filtering by status:", selectedTrainingStatus);
         filteredTrainings = filteredTrainings.filter(training => {
             return training.training_status === selectedTrainingStatus;
         });
     }
 
+    console.log("✨ Filtered trainings:", filteredTrainings.length);
     renderTrainings(filteredTrainings);
 });
 
 // Update reset filter button handler
 resetFilterBtn.addEventListener('click', () => {
+    // Reset year filter
+    selectedYear = null;
+    const yearDropdown = document.querySelector('#year-filter').closest('.dropdown').querySelector('.dropdown-toggle');
+    yearDropdown.innerHTML = '<i class="ti ti-sort-descending-2 me-1"></i> Year';
+    
     // Reset training status filter
     selectedTrainingStatus = null;
     const statusDropdown = document.querySelector('[data-bs-toggle="dropdown"]');
     statusDropdown.innerHTML = '<i class="ti ti-sort-descending-2 me-1"></i> Training Status';
     
     // Reset month filter
-    const dropdownToggle = monthsDropdown.closest('.dropdown').querySelector('.dropdown-toggle');
-    dropdownToggle.textContent = 'Month';
+    const monthDropdown = monthsDropdown.closest('.dropdown').querySelector('.dropdown-toggle');
+    monthDropdown.textContent = 'Month';
     monthsDropdown.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
     
+    console.log("🔄 Resetting all filters");
     // Show all trainings
     renderTrainings(trainings);
 });
@@ -274,6 +329,7 @@ async function fetchAndDisplayTrainings() {
         renderTrainings(trainings);
         populateMonthsDropdown();
         populateTrainingStatusFilter();
+        populateYearsDropdown();
     } catch (error) {
         console.error('Error:', error);
         trainingsTableBody.innerHTML = `
@@ -290,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndDisplayTrainings();
     populateMonthsDropdown();
     populateTrainingStatusFilter();
+    populateYearsDropdown();
 });
 
 

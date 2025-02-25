@@ -517,123 +517,149 @@ updateRegistrationCount();
     
       if (target.classList.contains("mark_attendence")) {
         try {
-            // Get the transaction ID from the row
-            const row = target.closest("tr");
-            const transactionId = row.querySelector(".custom_id b em").innerText;
-            const orderId = row.querySelector(".o_id").innerText;
-            const customerId = row.querySelector(".customer_id").innerText;
-            const chapterName = row.querySelector(".dynamic_chapter").innerText;
-            const memberName = row.querySelector(".dynamic_member").innerText;
-            
-            // Default avatar URL as fallback
-            let memberImage = "https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png";
-            
-            console.log('Fetching member details for customer ID:', customerId);
-            
-            // Fetch member data to get the photo
-            const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
-            const membersData = await memberResponse.json();
-            console.log('Members data received:', membersData);
-            
-            // Find matching member
-            const matchingMember = membersData.find(member => member.member_id.toString() === customerId);
-            console.log('Matching member found:', matchingMember);
-            
-            if (matchingMember && matchingMember.member_photo) {
-                // Extract just the filename from the member_photo path
-                const photoFileName = matchingMember.member_photo.split('/').pop(); // This will get the last part after '/'
-                console.log('Extracted photo filename:', photoFileName);
-                
-                const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${photoFileName}`;
-                console.log('Constructed photo URL:', photoUrl);
-                
-                // Test if image exists
-                const img = new Image();
-                await new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = reject;
-                    img.src = photoUrl;
-                }).then(() => {
-                    memberImage = photoUrl;
-                    console.log('Member photo loaded successfully');
-                }).catch(() => {
-                    console.log('Failed to load member photo, using default avatar');
-                });
-            } else {
-                console.log('No member photo found, using default avatar');
-            }
+          // Get the training date from the input field
+          const trainingDateStr = document.getElementById('training_date').value;
+          const trainingDate = new Date(trainingDateStr);
+          const currentDate = new Date();
+          
+          // Format both dates to compare only the date part (ignoring time)
+          const formattedTrainingDate = trainingDate.toDateString();
+          const formattedCurrentDate = currentDate.toDateString();
 
-            // Show SweetAlert confirmation dialog with custom image and additional info
+          console.log("🗓️ Training Date:", formattedTrainingDate);
+          console.log("📅 Current Date:", formattedCurrentDate);
+
+          // Check if dates match
+          if (formattedTrainingDate !== formattedCurrentDate) {
+            console.log("❌ Date mismatch - Cannot mark attendance");
             Swal.fire({
-                title: "Are you sure to mark attendance?",
-                text: `Transaction ID: ${transactionId} \nOrder ID: ${orderId} \nChapter: ${chapterName} \nMember: ${memberName}`,
-                imageUrl: memberImage,
-                imageWidth: 200,
-                imageHeight: 200,
-                imageAlt: "Member Image",
-                html: `
-                    <div class="text-left">
-                        <p><b>Chapter</b>: ${chapterName}</p>
-                        <p><b>Member</b>: ${memberName}</p>
-                        <p><b>Transaction ID</b>: ${transactionId}</p>
-                        <p><b>Order ID</b>: ${orderId}</p>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, mark attendance!",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Send request to mark attendance
-                    fetch("https://bni-data-backend.onrender.com/api/markAttendence", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ 
-                            transaction_id: transactionId, 
-                            training_id, 
-                            orderId, 
-                            customerId 
-                        }),
-                    })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.success) {
-                            Swal.fire({
-                                title: "Attendance Marked!",
-                                text: "The member's attendance has been successfully marked.",
-                                icon: "success",
-                                confirmButtonText: "OK",
-                            }).then(() => {
-                                window.location.reload();
-                            });
-
-                            target.classList.remove("mark_attendence");
-                            target.classList.add("btn-success");
-                            target.innerText = "Attendance Marked ✔";
-                            target.disabled = true;
-                        } else {
-                            Swal.fire({
-                                title: "Error!",
-                                text: data.message || "Failed to mark attendance.",
-                                icon: "error",
-                                confirmButtonText: "OK",
-                            });
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error marking attendance:", error);
-                        Swal.fire({
-                            title: "Error!",
-                            text: "An unexpected error occurred.",
-                            icon: "error",
-                            confirmButtonText: "OK",
-                        });
-                    });
-                }
+              title: "Cannot Mark Attendance",
+              text: "Attendance can only be marked on the day of training.",
+              icon: "error",
+              confirmButtonText: "OK"
             });
+            return;
+          }
+
+          console.log("✅ Date matched - Proceeding with attendance marking");
+
+          // Rest of your existing attendance marking code
+          const row = target.closest("tr");
+          const transactionId = row.querySelector(".custom_id b em").innerText;
+          const orderId = row.querySelector(".o_id").innerText;
+          const customerId = row.querySelector(".customer_id").innerText;
+          const chapterName = row.querySelector(".dynamic_chapter").innerText;
+          const memberName = row.querySelector(".dynamic_member").innerText;
+          
+          // Default avatar URL as fallback
+          let memberImage = "https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png";
+          
+          console.log('Fetching member details for customer ID:', customerId);
+          
+          // Fetch member data to get the photo
+          const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+          const membersData = await memberResponse.json();
+          console.log('Members data received:', membersData);
+          
+          // Find matching member
+          const matchingMember = membersData.find(member => member.member_id.toString() === customerId);
+          console.log('Matching member found:', matchingMember);
+          
+          if (matchingMember && matchingMember.member_photo) {
+              // Extract just the filename from the member_photo path
+              const photoFileName = matchingMember.member_photo.split('/').pop(); // This will get the last part after '/'
+              console.log('Extracted photo filename:', photoFileName);
+              
+              const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${photoFileName}`;
+              console.log('Constructed photo URL:', photoUrl);
+              
+              // Test if image exists
+              const img = new Image();
+              await new Promise((resolve, reject) => {
+                  img.onload = resolve;
+                  img.onerror = reject;
+                  img.src = photoUrl;
+              }).then(() => {
+                  memberImage = photoUrl;
+                  console.log('Member photo loaded successfully');
+              }).catch(() => {
+                  console.log('Failed to load member photo, using default avatar');
+              });
+          } else {
+              console.log('No member photo found, using default avatar');
+          }
+
+          // Show SweetAlert confirmation dialog with custom image and additional info
+          Swal.fire({
+              title: "Are you sure to mark attendance?",
+              text: `Transaction ID: ${transactionId} \nOrder ID: ${orderId} \nChapter: ${chapterName} \nMember: ${memberName}`,
+              imageUrl: memberImage,
+              imageWidth: 200,
+              imageHeight: 200,
+              imageAlt: "Member Image",
+              html: `
+                  <div class="text-left">
+                      <p><b>Chapter</b>: ${chapterName}</p>
+                      <p><b>Member</b>: ${memberName}</p>
+                      <p><b>Transaction ID</b>: ${transactionId}</p>
+                      <p><b>Order ID</b>: ${orderId}</p>
+                  </div>
+              `,
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes, mark attendance!",
+          }).then((result) => {
+              if (result.isConfirmed) {
+                  // Send request to mark attendance
+                  fetch("https://bni-data-backend.onrender.com/api/markAttendence", {
+                      method: "POST",
+                      headers: {
+                          "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ 
+                          transaction_id: transactionId, 
+                          training_id, 
+                          orderId, 
+                          customerId 
+                      }),
+                  })
+                  .then((response) => response.json())
+                  .then((data) => {
+                      if (data.success) {
+                          Swal.fire({
+                              title: "Attendance Marked!",
+                              text: "The member's attendance has been successfully marked.",
+                              icon: "success",
+                              confirmButtonText: "OK",
+                          }).then(() => {
+                              window.location.reload();
+                          });
+
+                          target.classList.remove("mark_attendence");
+                          target.classList.add("btn-success");
+                          target.innerText = "Attendance Marked ✔";
+                          target.disabled = true;
+                      } else {
+                          Swal.fire({
+                              title: "Error!",
+                              text: data.message || "Failed to mark attendance.",
+                              icon: "error",
+                              confirmButtonText: "OK",
+                          });
+                      }
+                  })
+                  .catch((error) => {
+                      console.error("Error marking attendance:", error);
+                      Swal.fire({
+                          title: "Error!",
+                          text: "An unexpected error occurred.",
+                          icon: "error",
+                          confirmButtonText: "OK",
+                      });
+                  });
+              }
+          });
         } catch (error) {
             console.error("Error in attendance marking process:", error);
             Swal.fire({
