@@ -611,32 +611,38 @@ if (filters.month && transaction.order_id) {
                   cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
                     const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
                 
-                    // First SweetAlert for confirmation
                     Swal.fire({
-                        title: `Are you sure to cancel IRN for ${irn}?`,
+                        title: "Are you sure?",
+                        html: `Are you sure to cancel IRN for <b>${irn}</b>?`, // Make only IRN bold
                         icon: "warning",
                         showCancelButton: true,
-                        confirmButtonText: "Yes",
-                        cancelButtonText: "No",
+                        confirmButtonText: "Yes, Cancel IRN",
+                        cancelButtonText: "No"
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Second SweetAlert to get the cancel reason
                             Swal.fire({
-                                title: "Enter cancel reason",
+                                title: "Enter Cancel Reason",
                                 input: "textarea",
-                                inputPlaceholder: "Type the reason here...",
+                                inputPlaceholder: "Enter the reason for cancellation...",
                                 showCancelButton: true,
                                 confirmButtonText: "Cancel IRN",
+                                preConfirm: (reason) => {
+                                    if (!reason) {
+                                        Swal.showValidationMessage("Please enter a reason!");
+                                    }
+                                    return reason;
+                                }
                             }).then((reasonResult) => {
                                 if (reasonResult.isConfirmed) {
-                                    const cancelReason = reasonResult.value;
                                     console.log("IRN:", irn);
-                                    console.log("Cancel Reason:", cancelReason);
+                                    console.log("Cancel Reason:", reasonResult.value);
                                 }
                             });
                         }
                     });
-                });                  
+                });
+                
+                                  
         
                   // Check if both IRN and QR code are available
                   if (einvoiceData.irn && einvoiceData.qrcode) {
