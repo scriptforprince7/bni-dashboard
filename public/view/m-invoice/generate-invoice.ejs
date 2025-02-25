@@ -423,7 +423,15 @@ background-color: #555; /* Darker shade on hover */
 
                   <!-- Bank Transfer Option -->
                   <input type="radio" class="btn-check" name="paymentMethod" id="bankOption"/>
-                  <label class="btn btn-outline-primary" for="bankOption">Bank Transfer</label>
+                  <label class="btn btn-outline-primary" for="bankOption">Bank</label>
+
+                  <!-- Cheque Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="chequeOption"/>
+                  <label class="btn btn-outline-primary" for="chequeOption">Cheque</label>
+
+                  <!-- IMPS Option -->
+                  <!-- <input type="radio" class="btn-check" name="paymentMethod" id="impsOption"/>
+                  <label class="btn btn-outline-primary" for="impsOption">IMPS</label> -->
                 </div>
               </div>
 
@@ -448,15 +456,46 @@ background-color: #555; /* Darker shade on hover */
 
                     <input type="radio" class="btn-check" name="bankTransferType" id="neftOption"/>
                     <label class="btn btn-outline-secondary" for="neftOption">NEFT</label>
+
+                    <input type="radio" class="btn-check" name="bankTransferType" id="impsOption"/>
+                    <label class="btn btn-outline-secondary" for="impsOption">IMPS</label>
                   </div>
                 </div>
+
+                <!-- Common fields for all bank transfer types -->
+                <div class="bank-transfer-fields">
+                  <div class="mb-3">
+                    <label class="form-label">Transfer UTR</label>
+                    <input type="text" class="form-control" id="transferUTR" placeholder="Enter Transfer UTR"/>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Transfer ID</label>
+                    <input type="text" class="form-control" id="transferId" placeholder="Enter Transfer ID"/>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cheque Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="chequeFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label">Cheque No.</label>
+                  <input type="text" class="form-control" id="chequeNo" placeholder="Enter Cheque Number"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">IFSC Code</label>
+                  <input type="text" class="form-control" id="ifscCode" placeholder="Enter IFSC Code"/>
+                </div>
+              </div>
+
+              <!-- IMPS Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="impsFields" style="display: none;">
                 <div class="mb-3">
                   <label class="form-label">Transfer UTR</label>
-                  <input type="text" class="form-control" id="transferUTR" placeholder="Enter Transfer UTR"/>
+                  <input type="text" class="form-control" id="impsUTR" placeholder="Enter Transfer UTR"/>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Transfer ID</label>
-                  <input type="text" class="form-control" id="transferId" placeholder="Enter Transfer ID"/>
+                  <input type="text" class="form-control" id="impsId" placeholder="Enter Transfer ID"/>
                 </div>
               </div>
 
@@ -481,24 +520,33 @@ background-color: #555; /* Darker shade on hover */
   </div>
 </div>
 <script src="../../assets/js/cashInvoice.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const paymentMethods = document.getElementsByName('paymentMethod');
   const upiFields = document.getElementById('upiFields');
   const bankFields = document.getElementById('bankFields');
+  const chequeFields = document.getElementById('chequeFields');
+  const impsFields = document.getElementById('impsFields');
 
   paymentMethods.forEach(method => {
     method.addEventListener('change', function() {
       // Hide all payment fields first
       upiFields.style.display = 'none';
       bankFields.style.display = 'none';
+      chequeFields.style.display = 'none';
+      impsFields.style.display = 'none';
 
       // Show relevant fields based on selection
       if (this.id === 'upiOption') {
         upiFields.style.display = 'block';
       } else if (this.id === 'bankOption') {
         bankFields.style.display = 'block';
+      } else if (this.id === 'chequeOption') {
+        chequeFields.style.display = 'block';
+      } else if (this.id === 'impsOption') {
+        impsFields.style.display = 'block';
       }
     });
   });

@@ -353,52 +353,77 @@ async function fetchChapters() {
 async function fetchMembers() {
     showLoader();
     try {
-        await fetchChapters();
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error('Network response was not ok');
-        
-        const allMembersData = await response.json();
+        console.log("🔄 Starting to fetch members...");
         
         // Get user type and email
         const userType = getUserLoginType();
         const userEmail = localStorage.getItem('current_member_email') || getUserEmail();
         
-        console.log('User Type:', userType);
-        console.log('User Email:', userEmail);
-
-        // First, filter for only Prolific chapter members
-        const prolificMembers = allMembersData.filter(member => {
-            const memberChapter = chaptersMap[member.chapter_id];
-            return memberChapter && memberChapter.toLowerCase().includes('prolific');
+        console.log("🔑 User Details:", {
+            type: userType,
+            email: userEmail
         });
 
-        console.log('Prolific Members:', prolificMembers.length);
+        // Get chapter details first
+        const chapterUser = await getChapterForUser(userEmail);
+        console.log("📍 Chapter User Details:", chapterUser);
 
-        // Then handle user type access
+        // Fetch all members
+        const response = await fetch("https://bni-data-backend.onrender.com/api/members");
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const allMembersData = await response.json();
+        console.log("👥 All Members Data:", {
+            total: allMembersData.length,
+            sample: allMembersData.slice(0, 2).map(m => ({
+                name: `${m.member_first_name} ${m.member_last_name}`,
+                chapter_id: m.chapter_id
+            }))
+        });
+
+        // Filter members based on chapter_id
         if (userType === 'ro_admin') {
-            // For ro_admin, show all Prolific members
-            allMembers = prolificMembers;
-            console.log('RO Admin access - showing all Prolific members:', allMembers.length);
+            // For ro_admin, show all members
+            allMembers = allMembersData;
+            console.log("👨‍💼 RO Admin access - showing all members:", allMembers.length);
+        } else if (chapterUser) {
+            // For chapter users, filter by their specific chapter_id
+            allMembers = allMembersData.filter(member => member.chapter_id === chapterUser.chapter_id);
+            console.log("🎯 Filtered Chapter Members:", {
+                chapterId: chapterUser.chapter_id,
+                totalMembers: allMembers.length,
+                members: allMembers.map(m => ({
+                    name: `${m.member_first_name} ${m.member_last_name}`,
+                    status: m.member_status
+                }))
+            });
         } else {
-            // For chapter users, filter by their specific chapter
-            const chapterUser = await getChapterForUser(userEmail);
-            if (chapterUser) {
-                allMembers = prolificMembers.filter(member => member.chapter_id === chapterUser.chapter_id);
-                console.log('Chapter user access - showing members for chapter:', chapterUser.chapter_id);
-            } else {
-                console.error('No chapter found for user:', userEmail);
-                allMembers = [];
-            }
+            console.error("❌ No chapter found for user:", userEmail);
+            allMembers = [];
         }
 
-        console.log('Final Filtered Members:', allMembers);
-        
         // Update the display
         filteredMembers = [...allMembers];
+        console.log("📊 Final Members List:", {
+            total: filteredMembers.length,
+            sample: filteredMembers.slice(0, 3).map(m => ({
+                name: `${m.member_first_name} ${m.member_last_name}`,
+                status: m.member_status,
+                company: m.member_company_name
+            }))
+        });
+
         updateDisplay();
+        updateTotalMembersCount();
+        updateActiveInactiveMembersCount();
         
     } catch (error) {
-        console.error('Error fetching members:', error);
+        console.error("❌ Error in fetchMembers:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Loading Members',
+            text: 'Failed to load members list. Please try again.'
+        });
     } finally {
         hideLoader();
     }
@@ -426,64 +451,80 @@ const updateTotalMembersCount = () => {
 
 
 function displayMembers(members) {
-  const tableBody = document.querySelector('.table tbody');
-  tableBody.innerHTML = '';
+    console.log("🎯 Displaying Members:", {
+        total: members.length,
+        currentPage,
+        entriesPerPage
+    });
 
-  if (members.length === 0) {
-    // Show "No data" message if no chapters are available
-    const noDataRow = document.createElement("tr");
-    noDataRow.innerHTML = `
-      <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
-    `;
-    tableBody.appendChild(noDataRow);
-    return;
-  }
+    const tableBody = document.querySelector('.table tbody');
+    if (!tableBody) {
+        console.error("❌ Table body element not found!");
+        return;
+    }
+    
+    tableBody.innerHTML = '';
 
-  members.forEach(async (member, index) => {
-    const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
-    const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
-    const chapterName = chaptersMap[member.chapter_id] || 'N/A';
-    const row = document.createElement('tr');
-    row.classList.add('order-list');
-    
-    row.innerHTML = `
-      <td>${(currentPage - 1) * entriesPerPage + index + 1}</td> <!-- Adjust for pagination -->
-      <td style="border: 1px solid grey;">
-        <div class="d-flex align-items-center">
-          <span class="avatar avatar-sm me-2 avatar-rounded">
-            <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
-          </span>
-          <a href="/cm/viewchaptermember/?member_id=${member.member_id}">${fullName}</a>
-        </div>
-      </td>
-      <td style="border: 1px solid grey;">
-        <div class="d-flex align-items-center">
-          <b>${member.member_email_address}</b>
-        </div>
-      </td>
-      <td style="border: 1px solid grey;">${member.member_phone_number}</td>
-      <td class="fw-semibold" style="color:#d01f2f;">${chapterName}</td>
-      <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
-      <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
-      <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>
-      <td style="border: 1px solid grey;">
-        <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
-          ${member.member_status}
-        </span>
-      </td>
-       <td style="border: 1px solid grey">
-        <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
-           <a href="/cm/editchaptermember/?member_id=${member.member_id} "style="cursor:pointer; color:white;">Edit</a>
-        </span>
-        <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
-     Delete
-    </span>
-      </td>
-    `;
-    
-    // Append the row to the table body
-    tableBody.appendChild(row);
-  });
+    if (members.length === 0) {
+        console.log("ℹ️ No members to display");
+        const noDataRow = document.createElement("tr");
+        noDataRow.innerHTML = `
+            <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
+        `;
+        tableBody.appendChild(noDataRow);
+        return;
+    }
+
+    members.forEach((member, index) => {
+        console.log(`📋 Rendering member ${index + 1}:`, {
+            name: `${member.member_first_name} ${member.member_last_name}`,
+            company: member.member_company_name,
+            status: member.member_status
+        });
+
+        const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
+        const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
+        
+        const row = document.createElement('tr');
+        row.classList.add('order-list');
+        
+        row.innerHTML = `
+            <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
+            <td style="border: 1px solid grey;">
+                <div class="d-flex align-items-center">
+                    <span class="avatar avatar-sm me-2 avatar-rounded">
+                        <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
+                    </span>
+                    <a href="/cm/viewchaptermember/?member_id=${member.member_id}">${fullName}</a>
+                </div>
+            </td>
+            <td style="border: 1px solid grey;">
+                <div class="d-flex align-items-center">
+                    <b>${member.member_email_address}</b>
+                </div>
+            </td>
+            <td style="border: 1px solid grey;">${member.member_phone_number}</td>
+            <td class="fw-semibold" style="color:#d01f2f;">${member.member_company_name}</td>
+            <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
+            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
+            <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>
+            <td style="border: 1px solid grey;">
+                <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
+                    ${member.member_status}
+                </span>
+            </td>
+            <td style="border: 1px solid grey">
+                <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
+                    <a href="/cm/editchaptermember/?member_id=${member.member_id}" style="cursor:pointer; color:white;">Edit</a>
+                </span>
+                <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
+                    Delete
+                </span>
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
 }
 
 // Function to filter members based on search input

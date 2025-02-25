@@ -137,23 +137,30 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     // Function to update members dropdown
     function updateMemberDropdown(chapterId, allMembers) {
+      const memberDropdown = document.getElementById("company-name");
       memberDropdown.innerHTML = `<option selected>Select Member</option>`;
 
-      const filteredMembers = allMembers.filter(
-        member => member.chapter_id == chapterId
-      );
+      const filteredMembers = allMembers.filter(member => member.chapter_id == chapterId);
+      
+      console.log("👥 Available Members:", filteredMembers.map(member => ({
+        id: member.member_id,
+        name: `${member.member_first_name} ${member.member_last_name}`,
+        company: member.member_company_name
+      })));
 
       filteredMembers.forEach(member => {
-        const fullName = `${member.member_first_name} ${member.member_last_name}`.trim();
-        const memberOption = document.createElement("option");
-        memberOption.value = member.member_id; // Store member_id as value
-        memberOption.textContent = fullName;
-        memberOption.dataset.address = member.street_address_line_1; // Use correct address field
-        memberOption.dataset.companyName = member.member_company_name;
-        memberOption.dataset.phoneNumber = member.member_phone_number;
-        memberOption.dataset.gstNumber = member.member_gst_number;
-
-        memberDropdown.appendChild(memberOption);
+        const option = document.createElement("option");
+        option.value = member.member_id;
+        option.textContent = `${member.member_first_name} ${member.member_last_name}`;
+        // Store full details in dataset
+        option.dataset.firstName = member.member_first_name;
+        option.dataset.lastName = member.member_last_name;
+        option.dataset.address = member.street_address_line_1;
+        option.dataset.companyName = member.member_company_name;
+        option.dataset.phoneNumber = member.member_phone_number;
+        option.dataset.gstNumber = member.member_gst_number;
+        
+        memberDropdown.appendChild(option);
       });
 
       // Add event listener for dropdown selection
@@ -306,6 +313,156 @@ document.addEventListener("DOMContentLoaded", async function() {
         });
       }
     }
+
+    // Handle payment method changes
+    const paymentMethods = document.getElementsByName('paymentMethod');
+    const upiFields = document.getElementById('upiFields');
+    const bankFields = document.getElementById('bankFields');
+    const chequeFields = document.getElementById('chequeFields');
+
+    paymentMethods.forEach(method => {
+      method.addEventListener('change', function() {
+        // Hide all payment fields first
+        upiFields.style.display = 'none';
+        bankFields.style.display = 'none';
+        chequeFields.style.display = 'none';
+
+        // Show relevant fields based on selection
+        if (this.id === 'upiOption') {
+          upiFields.style.display = 'block';
+        } else if (this.id === 'bankOption') {
+          bankFields.style.display = 'block';
+        } else if (this.id === 'chequeOption') {
+          chequeFields.style.display = 'block';
+        }
+
+        console.log('💳 Payment Method Changed:', this.id);
+      });
+    });
+
+    // Function to get payment details
+    function getPaymentDetails() {
+      const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').id;
+      const paymentNote = document.getElementById('payment-note').value;
+      let paymentData = {
+        mode_of_payment: {}
+      };
+
+      switch(selectedMethod) {
+        case 'cashOption':
+          paymentData.mode_of_payment = {
+            cash: {
+              payment_note: paymentNote
+            }
+          };
+          break;
+
+        case 'upiOption':
+          paymentData.mode_of_payment = {
+            upi: {
+              upi_id: document.getElementById('upiId').value,
+              reference_number: document.getElementById('upiNumber').value,
+              payment_note: paymentNote
+            }
+          };
+          break;
+
+        case 'bankOption':
+          const transferType = document.querySelector('input[name="bankTransferType"]:checked')?.id;
+          paymentData.mode_of_payment = {
+            bank_transfer: {
+              transfer_type: transferType === 'rtgsOption' ? 'RTGS' : 
+                           transferType === 'neftOption' ? 'NEFT' : 
+                           transferType === 'impsOption' ? 'IMPS' : '',
+              transfer_utr: document.getElementById('transferUTR').value,
+              transfer_id: document.getElementById('transferId').value,
+              payment_note: paymentNote
+            }
+          };
+          break;
+
+        case 'chequeOption':
+          paymentData.mode_of_payment = {
+            cheque: {
+              cheque_number: document.getElementById('chequeNo').value,
+              ifsc_code: document.getElementById('ifscCode').value,
+              payment_note: paymentNote
+            }
+          };
+          break;
+      }
+
+      console.log('💳 Payment Details:', paymentData);
+      return paymentData;
+    }
+
+    // Add submit handler for the invoice form
+    document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      try {
+        showLoader();
+        
+        // Get all form data
+        const formData = new FormData(this);
+        
+        // Get payment details
+        const paymentData = getPaymentDetails();
+        
+        // Combine form data with payment data
+        const invoiceData = {
+          // Add your existing invoice data here
+          member_id: formData.get('member_id'),
+          company_id: formData.get('company_id'),
+          // ... other invoice fields ...
+          
+          // Add the payment data
+          ...paymentData
+        };
+
+        console.log('📤 Submitting invoice with data:', invoiceData);
+
+        // Send to your API
+        const response = await fetch('your-api-endpoint', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(invoiceData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create invoice');
+        }
+
+        const result = await response.json();
+        console.log('✅ Invoice created successfully:', result);
+
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Invoice created successfully',
+          showConfirmButton: false,
+          timer: 1500
+        });
+
+        // Redirect or refresh as needed
+        setTimeout(() => {
+          window.location.href = '/your-redirect-path';
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error creating invoice:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to create invoice. Please try again.'
+        });
+      } finally {
+        hideLoader();
+      }
+    });
   } catch (error) {
     console.error("Error fetching data:", error);
   } finally {
@@ -318,82 +475,171 @@ document.addEventListener("DOMContentLoaded", async function() {
 let selectedRegionId = null;  // Global variables to store IDs
 let selectedChapterId = null;
 
-document
-  .getElementById("submit_invoice")
-  .addEventListener("click", async function() {
+document.getElementById("submit_invoice").addEventListener("click", async function() {
     showLoader();
 
-    const universalLinkId = new URLSearchParams(window.location.search).get("id");
-    const trainingDropdown = document.getElementById("particulars");
+    // Get member details from selected option
+    const memberSelect = document.getElementById("company-name");
+    const selectedOption = memberSelect.options[memberSelect.selectedIndex];
 
-    console.log("🔍 Pre-submission Check:", {
-      selectedRegionId,
-      selectedChapterId,
-      universalLinkId
-    });
-
-    if (!selectedRegionId || !selectedChapterId) {
-      console.warn("⚠️ Missing required selections:", {
-        regionId: selectedRegionId,
-        chapterId: selectedChapterId
-      });
-      alert("Please select all required fields.");
-      hideLoader();
-      return;
+    // Ensure a member is selected
+    if (!selectedOption || selectedOption.value === "Select Member") {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Member Required',
+            text: 'Please select a member first'
+        });
+        hideLoader();
+        return;
     }
 
-    // Collecting form data
+    // Get member name from the dataset (which was set when populating the dropdown)
+    const memberFirstName = selectedOption.dataset.firstName;
+    const memberLastName = selectedOption.dataset.lastName;
+
+    console.log("👤 Selected Member Details:", {
+        id: selectedOption.value,
+        first_name: memberFirstName,
+        last_name: memberLastName,
+        full_name: `${memberFirstName} ${memberLastName}`,
+        company: selectedOption.dataset.companyName
+    });
+
+    // Get payment method and details
+    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').id;
+    const paymentNote = document.getElementById('payment-note').value;
+    
+    // Build mode_of_payment object
+    let mode_of_payment = {};
+    switch(selectedMethod) {
+        case 'cashOption':
+            mode_of_payment = {
+                cash: { payment_note: paymentNote }
+            };
+            break;
+        case 'upiOption':
+            mode_of_payment = {
+                upi: {
+                    upi_id: document.getElementById('upiId').value,
+                    reference_number: document.getElementById('upiNumber').value,
+                    payment_note: paymentNote
+                }
+            };
+            break;
+        case 'bankOption':
+            const transferType = document.querySelector('input[name="bankTransferType"]:checked')?.id;
+            mode_of_payment = {
+                bank_transfer: {
+                    transfer_type: transferType === 'rtgsOption' ? 'RTGS' : 
+                                 transferType === 'neftOption' ? 'NEFT' : 
+                                 transferType === 'impsOption' ? 'IMPS' : '',
+                    transfer_utr: document.getElementById('transferUTR').value,
+                    transfer_id: document.getElementById('transferId').value,
+                    payment_note: paymentNote
+                }
+            };
+            break;
+        case 'chequeOption':
+            mode_of_payment = {
+                cheque: {
+                    cheque_number: document.getElementById('chequeNo').value,
+                    ifsc_code: document.getElementById('ifscCode').value,
+                    payment_note: paymentNote
+                }
+            };
+            break;
+    }
+
+    // Build invoice data
     const invoiceData = {
-      region_id: selectedRegionId,
-      chapter_id: selectedChapterId,
-      universal_link_id: universalLinkId,
-      date_issued: document.getElementById("invoice-date-issued").value,
-      training_id: JSON.parse(document.getElementById("particulars").value).id,
-      hsn_sac: "999511",
-      rate: document.getElementById("rate").value,
-      amount: document.getElementById("price").value,
-      taxable_total_amount: document.getElementById("taxable-total-amount").value,
-      cgst_amount: document.getElementById("cgst_amount").value,
-      sgst_amount: document.getElementById("sgst_amount").value,
-      grand_total: document.getElementById("grand_total").value,
-      member_id: document.getElementById("company-name").value,
-      member_address: document.getElementById("member_address").value,
-      member_company_name: document.getElementById("member_company_name").value,
-      member_phone_number: document.getElementById("member_phone_number").value,
-      member_gst_number: document.getElementById("member_gst_number").value,
-      particulars: document.getElementById("particulars").options[document.getElementById("particulars").selectedIndex].textContent
+        region_id: selectedRegionId,
+        chapter_id: selectedChapterId,
+        universal_link_id: new URLSearchParams(window.location.search).get("id"),
+        date_issued: document.getElementById("invoice-date-issued").value,
+        training_id: JSON.parse(document.getElementById("particulars").value).id,
+        member_id: selectedOption.value,
+        member_first_name: memberFirstName,
+        member_last_name: memberLastName,
+        member_address: document.getElementById("member_address").value,
+        member_company_name: document.getElementById("member_company_name").value,
+        member_phone_number: document.getElementById("member_phone_number").value,
+        member_gst_number: document.getElementById("member_gst_number").value,
+        particulars: document.getElementById("particulars").options[document.getElementById("particulars").selectedIndex].textContent,
+        rate: document.getElementById("rate").value,
+        amount: document.getElementById("price").value,
+        taxable_total_amount: document.getElementById("taxable-total-amount").value,
+        cgst_amount: document.getElementById("cgst_amount").value,
+        sgst_amount: document.getElementById("sgst_amount").value,
+        grand_total: document.getElementById("grand_total").value,
+        mode_of_payment: mode_of_payment
     };
 
-    console.log("📝 Final Invoice Data:", {
-      ...invoiceData,
-      regionIdType: typeof selectedRegionId,
-      chapterIdType: typeof selectedChapterId
+    console.log("📝 Invoice Submission:", {
+        member: {
+            id: invoiceData.member_id,
+            name: `${memberFirstName} ${memberLastName}`,
+            company: invoiceData.member_company_name
+        },
+        amount: invoiceData.grand_total,
+        payment: mode_of_payment
     });
 
     try {
-      console.log("🚀 Sending request to backend...");
-      const response = await fetch("https://bni-data-backend.onrender.com/api/add-invoice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(invoiceData)
-      });
+        const response = await fetch("https://bni-data-backend.onrender.com/api/add-invoice", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(invoiceData)
+        });
 
-      const result = await response.json();
-      console.log("✅ Backend Response:", result);
+        const result = await response.json();
+        console.log("✅ Server Response:", result);
 
-      if (response.ok) {
-        alert("Invoice submitted successfully!");
-        window.location.reload();
-      } else {
-        console.error("❌ Backend Error:", result);
-        alert("Error submitting invoice: " + result.message);
-      }
+        if (response.ok) {
+            // Clear form fields
+            document.getElementById("company-name").value = "Select Member";
+            document.getElementById("member_address").value = "";
+            document.getElementById("member_company_name").value = "";
+            document.getElementById("member_phone_number").value = "";
+            document.getElementById("member_gst_number").value = "";
+            document.getElementById("particulars").value = "";
+            document.getElementById("rate").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("taxable-total-amount").value = "";
+            document.getElementById("cgst_amount").value = "";
+            document.getElementById("sgst_amount").value = "";
+            document.getElementById("grand_total").value = "";
+            document.getElementById("payment-note").value = "";
+
+            // Show success message with invoice details
+            await Swal.fire({
+                icon: 'success',
+                title: 'Invoice Created Successfully!',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>Member:</strong> ${memberFirstName} ${memberLastName}</p>
+                        <p><strong>Amount:</strong> ${invoiceData.grand_total}</p>
+                        <p><strong>Order ID:</strong> ${result.order_id}</p>
+                    </div>
+                `,
+                timer: 3000,
+                showConfirmButton: true,
+                confirmButtonText: 'View Transactions'
+            });
+
+            // Redirect to transactions page
+            window.location.href = '/t/all-transactions';
+        } else {
+            throw new Error(result.message || 'Failed to create invoice');
+        }
     } catch (error) {
-      console.error("❌ Fetch Error:", error);
-      alert("Failed to submit invoice. Please try again.");
+        console.error("❌ Error:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Invoice',
+            text: error.message,
+            confirmButtonText: 'Try Again'
+        });
     } finally {
-      hideLoader();
+        hideLoader();
     }
-  });
+});

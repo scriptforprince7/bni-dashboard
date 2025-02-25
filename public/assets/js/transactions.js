@@ -657,7 +657,7 @@ if (filters.month && transaction.order_id) {
               button.classList.remove('btn-success');
               button.classList.add('btn-success');
               button.setAttribute('disabled', 'true');
-              toastr.success('Payment successfully settled!');
+             
 
               let e_invoice = row.querySelector('.generate-invoice-btn');
               e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>
@@ -697,19 +697,77 @@ if (filters.month && transaction.order_id) {
               }
               
             } else {
-              toastr.info('Settlement in process. Please track after some time.');
+              // Only show "in process" toaster if NOT in auto-tracking mode
+              if (!window.isAutoTracking) {
+                  toastr.info('Settlement in process. Please track after some time.');
+              }
               button.textContent = originalText; // Restore button text
               button.disabled = false; // Re-enable the button
             }
           } catch (error) {
+            // Only show error toaster if NOT in auto-tracking mode
+            if (!window.isAutoTracking) {
+                toastr.error('An error occurred while tracking the settlement.');
+            }
             console.error('Error tracking settlement:', error.message);
-            toastr.error('An error occurred while tracking the settlement.');
             button.textContent = originalText; // Restore button text
             button.disabled = false; // Re-enable the button
           }
         }
       });
     
+
+    // Add this right after the table population loop ends
+    function autoClickTrackSettlements() {
+        console.log('🚀 Starting auto-click process after table population');
+        
+        window.isAutoTracking = true;
+        console.log('🔄 Setting auto-tracking flag');
+        
+        const buttons = document.querySelectorAll('.track-settlement');
+        console.log(`📊 Found ${buttons.length} track settlement buttons`);
+        
+        buttons.forEach((button, index) => {
+            setTimeout(async () => {
+                const orderId = button.dataset.transactionId;
+                const row = button.closest('tr');
+                
+                // Get date directly from the second column
+                const dateInTable = row.cells[1].textContent.trim();
+                
+                // Get today's date in same format (DD/MM/YYYY)
+                const today = new Date();
+                const todayString = today.toLocaleDateString('en-GB'); // This gives DD/MM/YYYY
+                
+                console.log(`Checking: Table date: ${dateInTable}, Today: ${todayString}`);
+                
+                const currentText = button.textContent.trim();
+
+                if (currentText !== 'Payment Settled ✔') {
+                    button.click();
+                    
+                    setTimeout(() => {
+                        const newText = button.textContent.trim();
+                        if (newText === 'Payment Settled ✔') {
+                            // Only show toaster if date matches today exactly
+                            if (dateInTable === todayString) {
+                                toastr.success('Payment successfully settled!');
+                            }
+                        }
+                    }, 100);
+                }
+            }, index * 500);
+        });
+
+        setTimeout(() => {
+            window.isAutoTracking = false;
+            console.log('✅ Auto-tracking completed');
+        }, (buttons.length * 500) + 1000);
+    }
+
+    // Call the function immediately after table population
+    console.log('📋 Table populated, initiating auto-click');
+    autoClickTrackSettlements();
 
     // Display the totals
     document.querySelector(
