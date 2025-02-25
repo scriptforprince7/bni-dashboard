@@ -472,6 +472,7 @@ if (filters.month && transaction.order_id) {
       let settlementValue = '<em>Not Available</em>';
       let irnValue = '<em>Not Applicable</em>';
       let qrcodeValue = '<em>Not Applicable</em>';
+      let cancelIrnValue = '<em>Not Applicable</em>';
 
       console.log('Checking payment method for transaction:', transaction.order_id);
       console.log('Payment method structure:', transaction.payment_method);
@@ -533,6 +534,7 @@ if (filters.month && transaction.order_id) {
                 <td class="irn">${irnValue}</td>
                 <td class="qrcode">${qrcodeValue}</td>
                 <td class="generate-invoice-btn">${invoiceButton}</td>
+                <td class="cancel-invoice-btn">${cancelIrnValue}</td>
             `;
 
       tableBody.appendChild(row);
@@ -584,6 +586,7 @@ if (filters.month && transaction.order_id) {
                   const irnCell = row.querySelector(".irn");
                   const qrcodeCell = row.querySelector(".qrcode");
                   const btnCell = row.querySelector(".generate-invoice-btn");
+                  const cancelIrnBtn = row.querySelector(".cancel-invoice-btn");
                   const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
                   const orderId = settlement.order_id;
                   const orderr = orders.find((o) => o.order_id === orderId);
@@ -603,6 +606,13 @@ if (filters.month && transaction.order_id) {
         
                   // Display the IRN or a message if not available
                   irnCell.innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
+                  cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+
+                  cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
+                    const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
+                    console.log("IRN:", irn);
+                });
+                  
         
                   // Check if both IRN and QR code are available
                   if (einvoiceData.irn && einvoiceData.qrcode) {
@@ -657,8 +667,7 @@ if (filters.month && transaction.order_id) {
               button.classList.remove('btn-success');
               button.classList.add('btn-success');
               button.setAttribute('disabled', 'true');
-             
-
+            
               let e_invoice = row.querySelector('.generate-invoice-btn');
               e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>
               `;
