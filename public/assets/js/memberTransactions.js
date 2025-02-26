@@ -249,6 +249,7 @@ let ledgerData = [];
 
                   
                   currentBalance -= parseFloat(kitty.penalty_fee);
+                  console.log("penalty adding ========-=-=---------");
                   ledgerData.push({
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
@@ -300,6 +301,8 @@ let ledgerData = [];
 
                   
                   currentBalance -= parseFloat(kitty.penalty_fee);
+                  console.log("penalty adding ========-=-=---------");
+
                   ledgerData.push({
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
@@ -354,6 +357,8 @@ let ledgerData = [];
 
                   
                   currentBalance -= parseFloat(kitty.penalty_fee);
+                  console.log("penalty adding ========-=-=---------");
+
                   ledgerData.push({
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
@@ -379,6 +384,8 @@ let ledgerData = [];
               one_time = true;
               no_of_late_payment++;
               currentBalance -= parseFloat(kitty.penalty_fee);
+              console.log("penalty adding ========-=-=---------");
+
               
                 ledgerData.push({
                   sNo: ledgerData.length + 1,
@@ -481,6 +488,8 @@ let ledgerData = [];
 
                   
                   currentBalance -= parseFloat(kitty.penalty_fee);
+                  console.log("penalty adding ========-=-=---------");
+
                   ledgerData.push({
                   sNo: ledgerData.length + 1,
                   date: formatDate(kitty.kitty_due_date),
@@ -525,6 +534,8 @@ let ledgerData = [];
                   no_of_late_payment++;
                   one_time = true;
                   currentBalance -= parseFloat(kitty.penalty_fee);
+                  console.log("penalty adding ========-=-=---------");
+
                   
                   ledgerData.push({
                     sNo: ledgerData.length + 1,
@@ -581,6 +592,8 @@ let ledgerData = [];
             no_of_late_payment++;
             one_time = true;
             currentBalance -= parseFloat(kitty.penalty_fee);
+            console.log("penalty adding ========-=-=---------");
+
             
                 ledgerData.push({
                   sNo: ledgerData.length + 1,
