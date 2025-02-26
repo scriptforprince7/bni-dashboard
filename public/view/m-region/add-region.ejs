@@ -324,39 +324,28 @@
                       <div class="col-xl-6">
                         <label for="accolades" class="form-label">
                           Accolades Configuration
-                          <a href="/acc/add-accolades">
-                            <button type="button" class="btn btn-outline-danger btn-sm">
+                           <a href="/acc/add-accolades">
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm"
+                            >
                               Add Accolade +
-                            </button>
+                            </button> 
                           </a>
                         </label>
                         <div class="form-check form-check-inline">
                           <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
                           <label class="form-check-label" for="selectAllAccolades">Select All</label>
                         </div>
-                        <div id="accoladesContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                        <div
+                          id="accoladesContainer"
+                          style="display: flex; flex-wrap: wrap; gap: 10px"
+                        >
                           <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="selectAllAccolades" />
                             <label class="form-check-label" for="selectAllAccolades">Select All</label>
                           </div>
                           <!-- Dynamically populated accolades will go here -->
-                        </div>
-                      </div>
-                      <div class="col-xl-6">
-                        <label for="hotel_names" class="form-label">
-                          Hotel Name & Venue
-                          <a href="/h/add-hotel">
-                            <button type="button" class="btn btn-outline-danger btn-sm">
-                              Add Hotel
-                            </button>
-                          </a>
-                        </label>
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="checkbox" id="selectAllHotels" />
-                          <label class="form-check-label" for="selectAllHotels">Select All</label>
-                        </div>
-                        <div id="hotelsContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
-                          <!-- Dynamically populated hotel checkboxes will go here -->
                         </div>
                       </div>
                       <div class="col-xl-6">
@@ -969,7 +958,6 @@
         </div>
       </div>
     </div>
-  
   </form>
   <!-- <div id="formMessage"></div> -->
 </div>
@@ -1183,13 +1171,7 @@
       website_link: document.getElementById('website_link').value,
       date_of_publishing: document.getElementById('date_of_publishing').value,
       region_launched_by: document.getElementById('region_launched_by').value,
-      // Add selected hotel IDs
-      hotel_id: Array.from(document.querySelectorAll('#hotelsContainer input[type="checkbox"]:checked'))
-        .map(checkbox => checkbox.value)
     };
-
-    // Log to see what hotel IDs are being sent
-    console.log('🏨 Selected Hotel IDs:', formFields.hotel_id);
 
     // Add all form fields to FormData
     Object.entries(formFields).forEach(([key, value]) => {
@@ -1349,90 +1331,4 @@ document.getElementById("addRegionForm").addEventListener("submit", async functi
     
   }
 });
-</script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const hotelsContainer = document.getElementById('hotelsContainer');
-    const selectAllHotels = document.getElementById('selectAllHotels');
-
-    // Fetch hotels data
-    fetch('https://bni-data-backend.onrender.com/api/getHotels')
-      .then(response => response.json())
-      .then(data => {
-        console.log('Fetched hotels:', data);
-        data.forEach(hotel => {
-          if (hotel.is_active) {
-            const hotelDiv = document.createElement('div');
-            hotelDiv.className = 'form-check';
-
-            const hotelCheckbox = document.createElement('input');
-            hotelCheckbox.type = 'checkbox';
-            hotelCheckbox.className = 'form-check-input';
-            hotelCheckbox.id = `hotel-${hotel.hotel_id}`;
-            hotelCheckbox.name = 'hotel_id[]';
-            hotelCheckbox.value = hotel.hotel_id;
-
-            const hotelLabel = document.createElement('label');
-            hotelLabel.className = 'form-check-label';
-            hotelLabel.htmlFor = `hotel-${hotel.hotel_id}`;
-            hotelLabel.textContent = hotel.hotel_name;
-
-            hotelDiv.appendChild(hotelCheckbox);
-            hotelDiv.appendChild(hotelLabel);
-            hotelsContainer.appendChild(hotelDiv);
-          }
-        });
-      })
-      .catch(error => {
-        console.error('Error fetching hotels:', error);
-      });
-
-    // Handle select all functionality
-    selectAllHotels.addEventListener('change', function() {
-      const checkboxes = hotelsContainer.querySelectorAll('input[type="checkbox"]');
-      checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAllHotels.checked;
-      });
-    });
-
-    // Handle form submission
-    document.getElementById("addRegionForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      const selectedHotelIds = Array.from(hotelsContainer.querySelectorAll('input[type="checkbox"]:checked'))
-        .map(checkbox => checkbox.value);
-
-      console.log('Selected Hotel IDs:', selectedHotelIds);
-
-      // Prepare form data
-      const formData = new FormData(this);
-      selectedHotelIds.forEach(hotelId => {
-        formData.append('hotel_ids[]', hotelId); // Append selected hotel IDs to form data
-      });
-
-      // Log form data contents
-      console.log('📦 Form data contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
-
-      // Make the API call (example URL)
-      fetch('https://bni-data-backend.onrender.com/api/regions', {
-        method: 'POST',
-        body: formData,
-      })
-      .then(response => response.json())
-      .then(result => {
-        console.log('📥 Server response data:', result);
-        if (result.success) {
-          console.log('✅ Region added successfully');
-        } else {
-          console.error('❌ Error adding region:', result.message);
-        }
-      })
-      .catch(error => {
-        console.error('❌ Network error:', error);
-      });
-    });
-  });
 </script>

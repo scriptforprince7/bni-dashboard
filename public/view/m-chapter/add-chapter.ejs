@@ -641,6 +641,7 @@
                                 placeholder="Enter city"
                               />
                             </div>
+    
       
                             <div class="col-xl-6">
                               <label for="street_address_line" class="form-label"
@@ -1093,27 +1094,6 @@
       accoladesContainer.style.display = 'none';
     }
   });
-
-  // Add this new function to fetch hotels
-  // const hotelSelect = document.getElementById('meeting_hotel_name');
-  
-  // Fetch hotels data
-  // fetch('https://bni-data-backend.onrender.com/api/getHotels')
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     hotelSelect.innerHTML = '<option value="">Select</option>';
-  //     
-  //     // Loop through each hotel and create an option for it
-  //     data.forEach(hotel => {
-  //       const option = document.createElement('option');
-  //       option.value = hotel.hotel_id;
-  //       option.textContent = hotel.hotel_name;
-  //       hotelSelect.appendChild(option);
-  //     });
-  //   })
-  //   .catch(error => {
-  //     console.error('Error fetching hotels:', error);
-  //   });
 });
 
       </script>
@@ -1214,19 +1194,6 @@
     try {
         // Create FormData object instead of regular object
         const formData = new FormData(document.getElementById('addChapterForm'));
-        
-        // Get the selected hotel ID from the dropdown
-        // const hotelSelect = document.getElementById('meeting_hotel_name');
-        // const selectedHotelId = hotelSelect.value;
-        // const selectedHotelName = hotelSelect.options[hotelSelect.selectedIndex].text;
-        
-        console.log('🏨 Selected Hotel Details:', {
-            // id: selectedHotelId,
-            // name: selectedHotelName
-        });
-
-        // Add the hotel ID to the form data
-        // formData.set('meeting_hotel_id', selectedHotelId);
         
         console.log('📦 Form data contents:');
         for (let [key, value] of formData.entries()) {

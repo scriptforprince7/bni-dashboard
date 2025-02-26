@@ -121,36 +121,6 @@ const populateCountryDropdown = async () => {
   }
 };
 
-// Add this new function to fetch and populate hotels
-const populateHotels = async (currentHotelId) => {
-  try {
-    const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
-    }
-    const hotels = await response.json();
-    const hotelSelect = document.getElementById("meeting_hotel_name");
-
-    // Clear existing options and add default
-    hotelSelect.innerHTML = '<option value="">Select Hotel</option>';
-
-    // Add options for each hotel
-    hotels.forEach(hotel => {
-      const option = document.createElement('option');
-      option.value = hotel.hotel_id;
-      option.textContent = hotel.hotel_name;
-      hotelSelect.appendChild(option);
-    });
-
-    // Set the current hotel as selected if it exists
-    if (currentHotelId) {
-      console.log('🏨 Setting selected hotel ID:', currentHotelId);
-      hotelSelect.value = currentHotelId;
-    }
-  } catch (error) {
-    console.error("❌ Error fetching hotels:", error);
-  }
-};
 
 // Fetch chapter details
 const fetchChapterDetails = async () => {
@@ -254,14 +224,6 @@ const populateChapterFields = (data) => {
     logoPreviewContainer.style.display = 'none';
   }
 
-  // Call populateHotels with the meeting_hotel_id
-  if (data.meeting_hotel_id) {
-    console.log('🏨 Populating hotels with current ID:', data.meeting_hotel_id);
-    populateHotels(data.meeting_hotel_id);
-  } else {
-    console.log('⚠️ No hotel ID found in chapter data');
-    populateHotels();
-  }
 };
 
 // Initialize the page
@@ -364,11 +326,6 @@ const validateChapterForm = () => {
         errors.push("Please enter a valid 6-digit postal code.");
     }
 
-    // Hotel Name validation
-    const hotelName = document.querySelector("#meeting_hotel_name").value.trim();
-    if (!hotelName) {
-        errors.push("Hotel name is required.");
-    }
 
     // Date of Publishing validation
     const publishingDate = document.querySelector("#date_of_publishing").value;
@@ -410,7 +367,6 @@ const collectChapterFormData = () => {
       one_time_registration_fee: document.querySelector("#one_time_registration_fee").value,
       eoi_link: document.querySelector("#eoi_link").value,
       member_app_link: document.querySelector("#member_app_link").value,
-      meeting_hotel_id: document.querySelector("#meeting_hotel_name").value,
       chapter_mission: document.querySelector("#chapter_mission").value,
       chapter_vision: document.querySelector("#chapter_vision").value,
       contact_person: document.querySelector("#contact_person").value,
