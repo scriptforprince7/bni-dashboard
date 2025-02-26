@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
             document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
             
-            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense)- parseFloat(pendingAmount));
+            document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
 
             // document.getElementById('totalKittyExpense').textContent = 'N/A';
             document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
