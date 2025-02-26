@@ -170,17 +170,46 @@ function hideLoader() {
 
             const result = await response.json();
 
+            // if (response.ok) {
+            //     Swal.fire({
+            //         icon: 'success',
+            //         title: 'Success',
+            //         text: result.message || 'Bill added successfully.',
+            //         confirmButtonText: 'OK'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             document.querySelector('form').reset();
+            //             selectedChapter = null;  // Reset selected chapter
+            //             window.location.href = '/k/kitty-management';
+            //         } else {
+            //             setTimeout(() => {
+            //                 window.location.href = '/k/kitty-management';
+            //             }, 3000);
+            //         }
+            //     });
+            // } 
             if (response.ok) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
                     text: result.message || 'Bill added successfully.',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    document.querySelector('form').reset();
-                    selectedChapter = null;  // Reset selected chapter
-
-                    window.location.href = '/k/kitty-management';
+                    confirmButtonText: 'OK',
+                    willClose: () => { // This will run before closing the Swal
+                        // Reset selected chapter and form when Swal is about to close
+                        // document.querySelector('form').reset();
+                        // selectedChapter = null; 
+                        window.location.href = '/k/kitty-management';
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirect immediately after confirmation
+                        window.location.href = '/k/kitty-management';
+                    } else {
+                        // Delay the redirect for 3 seconds after the SweetAlert closes
+                        setTimeout(() => {
+                            window.location.href = '/k/kitty-management';
+                        }, 3000);
+                    }
                 });
             } else {
                 Swal.fire({

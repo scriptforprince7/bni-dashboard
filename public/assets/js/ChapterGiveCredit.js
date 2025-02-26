@@ -197,7 +197,21 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
 
         if (response.ok) {
             const result = await response.json();
-            alert('Credit added successfully!');
+            Swal.fire({
+                title: 'Success!',
+                text: 'Credit added successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                timer: 3000,
+                timerProgressBar: true,
+                willClose: () => {
+                    window.location.href = "/ck/chapter-creditManagement";
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/ck/chapter-creditManagement";
+                }
+            });
             console.log('Credit added successfully:', result);
         } else {
             const errorResult = await response.json();
