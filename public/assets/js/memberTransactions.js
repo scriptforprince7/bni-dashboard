@@ -609,7 +609,8 @@ let ledgerData = [];
           }
         }
         });
-        const kittyRaisedOnDate = new Date(activeKittyEntries[0].raised_on);
+        let kittyRaisedOnDate = null;
+        if(activeKittyEntries.length !== 0){kittyRaisedOnDate = new Date(activeKittyEntries[0].raised_on);}
         if(activeKittyEntries.length !== 0 && memberInductionDate <= kittyRaisedOnDate){
         //   document.getElementById('total-kitty-amount').textContent = 'No Bill Raised.';
         // document.getElementById('billType').textContent = '-';
