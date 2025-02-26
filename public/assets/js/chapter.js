@@ -245,7 +245,7 @@ function populateFilters() {
 
     // Populate chapter status filter
     const statusFilter = document.getElementById("chapter-status-filter");
-    const statuses = ['running', 'pre-launch'];
+    const statuses = ['running', 'pre-Launch','re-Launch'];
     statusFilter.innerHTML = `
         <li><a class="dropdown-item" href="javascript:void(0);" data-value="all">All Status</a></li>
         ${statuses.map(status => `
