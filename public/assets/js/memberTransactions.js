@@ -157,10 +157,45 @@ let ledgerData = [];
         
         
         }
+
+        // Filter orders for meeting payments opening only
+        const meetingOpeningOrders = allAvailableOrders.filter(filtereddata => 
+          filtereddata.customer_id === userData.member_id && 
+          filtereddata.payment_note === "meeting-payments-opening-only"
+        );
+        
+        console.log("Meeting Opening Orders:", meetingOpeningOrders);
+        meetingOpeningOrders.forEach(order => {
+          const successfulTransactions = allAvailableTransactions.filter(transaction => transaction.order_id === order.order_id && transaction.payment_status === 'SUCCESS');
+          if (successfulTransactions.length > 0) {
+            successfulTransactions.forEach(transaction => {
+              console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
+              paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                  currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
+
+                  ledgerData.push({
+                  sNo: ledgerData.length + 1,
+                  date: formatDate(transaction.payment_time),
+                  description: 'Opening Balance Paid',
+                  billAmount: Math.round(transaction.payment_amount),
+                  debit: 0,
+                  credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                  gst: Math.round(parseFloat(order.tax)),
+                  balance: parseFloat(currentBalance),
+                  balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+                });
+            });
+          } else {
+            console.log('No successful transactions for this meeting opening order.');
+          }
+        });
+        
         
 
 
         const memberInductionDate = new Date(userData.member_induction_date);
+        // const memberInductionDate = new Date(userData.date_of_publishing);
+
         
 
         // Sort remainingKittyEntries based on raised_on date in ascending order
