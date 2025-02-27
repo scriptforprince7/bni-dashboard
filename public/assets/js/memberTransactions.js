@@ -117,8 +117,24 @@ let ledgerData = [];
           },
           
         ];
+        // let opcreditsBeforeTransaction= [];
+
+
+
+
+        // // Filter orders for meeting payments opening only
+        const meetingOpeningOrders = allAvailableOrders.filter(filtereddata => 
+          filtereddata.customer_id === userData.member_id && 
+          filtereddata.payment_note === "meeting-payments-opening-only"
+        );
+        
+        console.log("Meeting Opening Orders:", meetingOpeningOrders);
+
 
         if (allTimeRaisedKitty.length > 0) {
+          // sort all available kity
+          allTimeRaisedKitty.sort((a, b) => new Date(a.raised_on) - new Date(b.raised_on));
+          // opcreditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(allTimeRaisedKitty[0].raised_on));
           activeKittyEntries = allTimeRaisedKitty.filter(kitty => kitty.delete_status === 0);
           console.log('Active Kitty Entries:', activeKittyEntries);
           
@@ -129,7 +145,63 @@ let ledgerData = [];
         else{
           console.log("no bill");
           // when there is no kitty found
-          // may be show credit here and need return here also
+          // now hwew i need to do credir and transaction 
+          meetingOpeningOrders.forEach(order => {
+            const successfulTransactions = allAvailableTransactions.filter(transaction => transaction.order_id === order.order_id && transaction.payment_status === 'SUCCESS');
+            if (successfulTransactions.length > 0) {
+              successfulTransactions.forEach(transaction => {
+                const creditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(transaction.payment_time));
+  
+                if (creditsBeforeTransaction.length > 0) {
+                  creditsBeforeTransaction.forEach(credit => {
+                    console.log(`Credit Date before Transaction: ${formatDate(credit.credit_date)}`, credit);
+                    total_credit_note_amount += parseFloat(credit.credit_amount);
+                    currentBalance += parseFloat(credit.credit_amount);
+                    ledgerData.push({
+                      sNo: ledgerData.length + 1,
+                      date: formatDate(credit.credit_date),
+                      description: 'Credit Note',
+                      billAmount: 0,
+                      debit: 0,
+                      credit: parseFloat(credit.credit_amount),
+                      gst: 0,
+                      balance: parseFloat(currentBalance),
+                      balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+                    });
+                  });
+  
+                  // Remove the found entries from the original filteredCredits array
+                  filteredCredits = filteredCredits.filter(credit => new Date(credit.credit_date) > new Date(transaction.payment_time));
+                } else {
+                  console.log('No credits before this transaction.');
+                }
+  
+  
+  
+                console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
+                paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
+                    currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
+  
+                    ledgerData.push({
+                    sNo: ledgerData.length + 1,
+                    date: formatDate(transaction.payment_time),
+                    description: 'Opening Balance Paid',
+                    billAmount: Math.round(transaction.payment_amount),
+                    debit: 0,
+                    credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+                    gst: Math.round(parseFloat(order.tax)),
+                    balance: parseFloat(currentBalance),
+                    balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+                  });
+              });
+            } else {
+              console.log('No successful transactions for this meeting opening order.');
+            }
+          });
+
+
+
+          // then  all remain show credit here and need return here also
           if (filteredCredits.length > 0) {
             filteredCredits.forEach(credit => {
               console.log(`Credit Date: ${formatDate(credit.credit_date)}`);
@@ -158,17 +230,49 @@ let ledgerData = [];
         
         }
 
-        // Filter orders for meeting payments opening only
-        const meetingOpeningOrders = allAvailableOrders.filter(filtereddata => 
-          filtereddata.customer_id === userData.member_id && 
-          filtereddata.payment_note === "meeting-payments-opening-only"
-        );
+        // // Filter orders for meeting payments opening only
+        // const meetingOpeningOrders = allAvailableOrders.filter(filtereddata => 
+        //   filtereddata.customer_id === userData.member_id && 
+        //   filtereddata.payment_note === "meeting-payments-opening-only"
+        // );
         
-        console.log("Meeting Opening Orders:", meetingOpeningOrders);
+        // console.log("Meeting Opening Orders:", meetingOpeningOrders);
+        
+
+
+        // here i need to add credit before it and removed used entry of credit and credit filterd on base of all time kitty [0]
         meetingOpeningOrders.forEach(order => {
           const successfulTransactions = allAvailableTransactions.filter(transaction => transaction.order_id === order.order_id && transaction.payment_status === 'SUCCESS');
           if (successfulTransactions.length > 0) {
             successfulTransactions.forEach(transaction => {
+              const creditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(transaction.payment_time));
+
+              if (creditsBeforeTransaction.length > 0) {
+                creditsBeforeTransaction.forEach(credit => {
+                  console.log(`Credit Date before Transaction: ${formatDate(credit.credit_date)}`, credit);
+                  total_credit_note_amount += parseFloat(credit.credit_amount);
+                  currentBalance += parseFloat(credit.credit_amount);
+                  ledgerData.push({
+                    sNo: ledgerData.length + 1,
+                    date: formatDate(credit.credit_date),
+                    description: 'Credit Note',
+                    billAmount: 0,
+                    debit: 0,
+                    credit: parseFloat(credit.credit_amount),
+                    gst: 0,
+                    balance: parseFloat(currentBalance),
+                    balanceColor: parseFloat(currentBalance) >= 0 ? 'green' : 'red',
+                  });
+                });
+
+                // Remove the found entries from the original filteredCredits array
+                filteredCredits = filteredCredits.filter(credit => new Date(credit.credit_date) > new Date(transaction.payment_time));
+              } else {
+                console.log('No credits before this transaction.');
+              }
+
+
+
               console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
               paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
@@ -193,8 +297,8 @@ let ledgerData = [];
         
 
 
-        const memberInductionDate = new Date(userData.member_induction_date);
-        // const memberInductionDate = new Date(userData.date_of_publishing);
+        // const memberInductionDate = new Date(userData.member_induction_date);
+        const memberInductionDate = new Date(userData.date_of_publishing);
 
         
 
