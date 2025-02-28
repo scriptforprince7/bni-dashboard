@@ -3,100 +3,213 @@
       <!-- end header -->
 
       <!-- sidebar -->
-
       <%- include('../partials/member-sidebar') %>
+
+    
 
       <style>
         .border {
             border: 1px solid gainsboro !important;
         }
+        #invoice-POS {
+            /* Align to the right */
+            margin-left: 30rem
+            
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+            padding: 10px;
+            max-width: 300px;
+            gap: 10px;
+        }
+
+        #dynamic-logo2 {
+            width: 200px;
+            height: auto;
+            display: block;
+            object-fit: contain;
+            margin-right: 10px;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .verified-icon {
+            width: 25px;
+            height: auto;
+            display: block;
+        }
+
+        #dynamic-logo2.loaded {
+            opacity: 1;
+        }
+
+        /* Print-specific styles */
+        @media print {
+            /* Reset page margins and ensure content fits */
+            @page {
+                margin: 0;
+                size: auto;
+            }
+
+            /* Hide non-essential elements during print */
+            header, 
+            .sidebar,
+            .card-footer,
+            .d-print-none {
+                display: none !important;
+            }
+
+            /* Ensure the invoice content is centered and properly sized */
+            #invoice-POS {
+                margin: 0 auto !important;
+                padding: 10mm !important;
+                width: 100% !important;
+                max-width: 210mm !important; /* A4 width */
+                position: relative !important;
+                left: 0 !important;
+            }
+
+            /* Ensure table stays within bounds */
+            .table-responsive {
+                overflow: visible !important;
+            }
+
+            table {
+                width: 100% !important;
+                page-break-inside: avoid;
+            }
+
+            /* Ensure text and images are clear */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                /* color-adjust: exact !important; */
+                print-color-adjust: exact !important;
+            }
+
+            /* Ensure images print properly */
+            img {
+                max-width: 100% !important;
+                page-break-inside: avoid;
+            }
+
+            /* Ensure proper spacing */
+            .card-body {
+                padding: 15px !important;
+            }
+
+            /* Force background colors and borders to print */
+            .border,
+            .table td,
+            .table th {
+                border-color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Ensure text contrast */
+            .text-muted {
+                color: #666 !important;
+            }
+
+            /* Prevent content from being cut off */
+            .row {
+                page-break-inside: avoid;
+            }
+        }
+
       </style>
 
       <!-- Start::app-content -->
+      <div id="invoice-POS" class="print-section">
       <div class="main-content app-content">
         <div class="container-fluid">
 
                 
             <!-- Start::page-header -->
             <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
-                <div>
-                    <nav>
-                        <ol class="breadcrumb mb-1">
-                            <li class="breadcrumb-item">
-                                <a href="javascript:void(0);" style="color: #d01f2f;">
-                                    View Invoice
-                                </a>
-                            </li>
-                            <li class="breadcrumb-item active" aria-current="page">Invoice Details</li>
-                        </ol>
-                    </nav>
-                    <h1 class="page-title fw-medium fs-18 mb-0">Showing Invoice:</h1>
-                </div>
+                
                
             </div>
             <!-- End::page-header -->
 
             <!-- Start::row-1 -->
-            <div class="row">
+            <div class="row" >
                 <div class="col-xl-9">
-                    <div class="card custom-card">
+                    <div class="card custom-card " style="align-items: center; justify-content: center;">
                         <div class="card-header d-md-flex d-block">
                             <div class="h5 mb-0 d-sm-flex d-bllock align-items-center">
-                                <div class="ms-sm-2 ms-0 mt-sm-0 mt-2">
-                                    <div class="h6 fw-medium mb-0">Bill INVOICE <span class="text-primary" style="color: #d01f2f !important;"></span></div>
+                                <div class="ms-sm-2 ms-0 mt-sm-0 mt-2 ml-10">
+                                    <div class="logo-container">
+                                        <img 
+                                            id="dynamic-logo2"
+                                            alt="BNI Logo" 
+                                            onerror="this.onerror=null; this.src='../../assets/images/bni-new-logo.jpg'; console.log('⚠️ Logo load failed, using fallback');"
+                                        />
+                                        <img 
+                                            src="../../assets/images/check-mark.png" 
+                                            alt="Verified" 
+                                            class="verified-icon"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="ms-auto mt-md-0 mt-2">
-                                <button class="btn btn-sm btn-danger me-1" onclick="javascript:window.print();">Print<i class="ri-printer-line ms-1 align-middle d-inline-block"></i></button>
-                                <!-- <button class="btn btn-sm btn-success">Save As PDF<i class="ri-file-pdf-line ms-1 align-middle d-inline-block"></i></button> -->
-                            </div>
+                            
                         </div>
                         <div class="card-body">
                             <div class="row gy-3">
                                 <div class="col-xl-12">
-                                    <div class="row">
+                                    <div class="row" style="border: 1px solid gainsboro; padding: 20px; max-width: 800px; margin: 0 auto;">
+                                        <p class="fw-bold mb-3 text-center" 
+                                           style="border-bottom: 2px solid #333; 
+                                                  padding-bottom: 10px; 
+                                                  font-family: 'Arial', sans-serif;
+                                                  font-size: 24px;
+                                                  letter-spacing: 2px;
+                                                  font-weight: 800;">
+                                            <strong>Payment Receipt</strong>
+                                        </p>
                                         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
-                                            <p class="text-muted mb-2">
-                                                Billing From :
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Name:</span> 
+                                                <span id="member-name" class="ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
-                                            <p class="fw-bold mb-1">
-                                                ADI CORPORATE TRAINING
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Email:</span> 
+                                                <span id="customer-email" class="ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
-                                            <p class="mb-1 text-muted">
-                                                Dda Sfs Flat, Flat No 12, Pocket 1, Sector 19, Dwarka New Delhi, Delhi, 110075 India
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Company:</span> 
+                                                <span id="company-name" class="ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
-                                            <p class="mb-1 text-muted">
-                                                sunilk@bni-india.in
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Company GST:</span> 
+                                                <span id="company-gst" class="ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
-                                            <p class="mb-1 text-muted">
-                                                +91 9899789340
-                                            </p>
-                                            <p class="mb-1 text-muted">
-                                               <b>07EVVPS9453K4Z8</b> 
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Order NO:</span> 
+                                                <span id="order-number" class="ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
                                         </div>
                                         <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3">
-                                            <p class="text-muted mb-2">
-                                                Billing To :
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Payment Status:</span> 
+                                                <span class="payment-status ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
-                                            <p class="fw-bold mb-1 billing-to-name">
-                                            
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Transaction No:</span> 
+                                                <span class="transaction-no ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
-                                            <p class="text-muted mb-1  billing-to-address">
-                                                
-                                            </p>
-                                            <p class="fw-bold text-muted mb-1 billing-to-email">
-                                                
-                                            </p>
-                                            <p class=" fw-bold mb-0 text-muted billing-to-phone">
-                                                
-                                            </p>
-                                            <p class="fw-bold text-muted billing-to-gstin">
+                                            <p class="mb-2">
+                                                <span style="font-weight: 700; color: #000; font-size: 0.85rem;">Payment Method:</span> 
+                                                <span class="payment-method ms-2" style="color: #666; font-size: 0.85rem;"></span>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-3">
+                                <!-- <div class="col-xl-3">
                                     <p class="fw-medium text-muted mb-1">Invoice ID :</p>
                                     <p class="fs-15 mb-1 invoice-id">#SHG148756965</p>
                                 </div>
@@ -111,62 +224,68 @@
                                 <div class="col-xl-3">
                                     <p class="fw-medium text-muted mb-1">Paid Amount :</p>
                                     <p class="fs-16 mb-1 fw-medium due-amount">₹4,877.11</p>
-                                </div>
+                                </div> -->
                                 <div class="col-xl-12">
                                     <div class="table-responsive">
-                                        <table class="table tbody nowrap text-nowrap border mt-4 transaction-items">
+                                        <table class="table table-bordered mt-4" style="width: 100%;">
                                             <thead>
-                                                <tr>
-                                                    <th>S.No.</th>
-                                                    <th>Particulars</th>
-                                                    <th>HSN/SAC</th>
-                                                    <th>RATE PER UNIT</th>
-                                                    <th>Amount</th>
+                                                <tr style="background-color: #f8f9fa;">
+                                                    <th style="width: 50%;">Description</th>
+                                                    <th style="width: 25%;">Date</th>
+                                                    <th style="width: 25%; text-align: right;">Sub Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <!-- Dynamic rows will be populated here -->
-                                                
+                                                <tr>
+                                                    <td class="payment-type"></td>
+                                                    <td class="payment-date"></td>
+                                                    <td class="payment-amount" style="text-align: right;"></td>
+                                                </tr>
                                             </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="2" style="text-align: right;"><strong>Tax:</strong></td>
+                                                    <td class="tax-amount" style="text-align: right;"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="text-align: right;"><strong>Total:</strong></td>
+                                                    <td class="total-amount" style="text-align: right;"></td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                         
+                                    </div>
+
+                                    <!-- Legal Copy Section -->
+                                    <div id="legalcopy" class="mt-4">
+                                        <p class="legal text-muted">
+                                            <strong>Thank you for your business!</strong> Payment is expected
+                                            within 31 days; please process this invoice within that time.
+                                            There will be a 5% interest charge per month on late invoices.
+                                        </p>
                                     </div>
                                 </div>
                              
                             </div>
                         </div>
-                        <div class="card-footer text-end">
-                            <button id="downloadInvoice" class="btn btn-danger">Download <i class="ri-download-2-line ms-1 align-middle"></i></button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3">
-                    <div class="card custom-card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                Mode Of Payment
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row gy-3">
-                                <div class="col-xl-12">
-                                    <p class="fs-14 fw-medium">
-                                        Paid By: <span class="payment-mode"></span>
-                                    </p>
-                                    <p>
-                                        <span class="fw-medium text-muted fs-12">Total Amount:</span> <span class="total-amount text-success fw-medium fs-14"></span>
-                                    </p>
-                                    <p>
-                                        <span class="fw-medium text-muted fs-12">Payment Status:</span> <span class="payment-status badge"></span>
-                                    </p>
-                                    <!-- <div class="alert alert-primary2" role="alert">
-                                        Please make sure to pay the invoice bill within 120 days.
-                                    </div> -->
-                                </div>
-                            </div>
-                        </div>
+                       
+                        <!-- <div class="card-footer text-end">
+                            <button id="downloadInvoice" class="btn btn-sm btn-danger me-1">Download <i class="ri-download-2-line ms-1 align-middle"></i></button>
+                            
+                                
+                                <button class="btn btn-sm btn-success">Save As PDF<i class="ri-file-pdf-line ms-1 align-middle d-inline-block"></i></button>
+
+                        </div> -->
                         
                     </div>
+                </div>
+                <div class="card-footer d-flex" style="padding-left: 6%; margin-bottom: 10px; gap: 10px;">
+                    <button id="downloadInvoice" class="btn btn-sm btn-danger" style="width: 270px;" onclick="window.print()">
+                        Download <i class="ri-download-2-line ms-1 align-middle"></i>
+                    </button>
+                    <a href="http://localhost:5000/t/all-transactions" class="btn btn-sm btn-danger" style="width: 270px;">
+                        Back to Transactions
+                    </a>
                 </div>
             </div>
             <!--End::row-1 -->
@@ -174,13 +293,72 @@
             
         </div>
     </div>
+    </div>
     <!-- End::content  -->
 
-    <%- include('../partials/footer') %> 
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Starting logo initialization...');
+            
+            const logoElement = document.getElementById("dynamic-logo");
+            
+            const loadLogo = async (url) => {
+                return new Promise((resolve, reject) => {
+                    logoElement.onload = () => {
+                        console.log('✅ Logo loaded:', url);
+                        logoElement.classList.add('loaded');
+                        resolve(true);
+                        
+                    };
+                    logoElement.onerror = () => {
+                        console.error('❌ Failed to load:', url);
+                        reject(new Error('Logo load failed'));
+                    };
+                    logoElement.src = url;
+                });
+            };
+
+            try {
+                const response = await fetch("http://localhost:5000/api/getDisplayLogo");
+                console.log('📥 API Response:', response.status);
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const data = await response.json();
+                
+                if (data?.[0]?.display_image_name) {
+                    const imagePath = `http://localhost:5000/uploads/dynamicLogo/${data[0].display_image_name}`;
+                    console.log('🖼️ Loading logo from:', imagePath);
+                    
+                    await loadLogo(imagePath);
+                    
+                    console.log('🎯 Logo loaded successfully:', {
+                        width: logoElement.naturalWidth,
+                        height: logoElement.naturalHeight,
+                        visible: true
+                    });
+
+                    // document.getElementById("dynamic-logo").src = imagePath;
+
+                    console.log("hello-----------------------> " + imagePath);
+                    document.getElementById("dynamic-logo2").src = imagePath;
+
+
+
+                    logoElement.classList.add('loaded');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                await loadLogo('../../assets/images/bni-new-logo.jpg');
+            }
+        });
+    </script>
 
     <script src="../../assets/js/viewTransactions.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+   
 
       <!-- Footer opened -->
  
