@@ -484,6 +484,7 @@ function displayMembers(members) {
     members.forEach((member, index) => {
         const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
         const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
+        const formattedRenewalDate = member.member_renewal_date ? member.member_renewal_date.substring(0, 10) : 'N/A';
         const chapterName = window.BNI.state.chaptersMap[member.chapter_id] || 'N/A';
         
         
@@ -522,8 +523,8 @@ function displayMembers(members) {
             <td style="border: 1px solid grey;">${member.member_phone_number}</td>
             <td class="fw-semibold" style="color:#d01f2f;">${chapterName}</td>
             <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
-            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
-            <td class="fw-semibold" style="border: 1px solid grey;">2</td>
+            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedRenewalDate}</td>
+            <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>
             <td style="border: 1px solid grey;">
                 <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
                     ${member.member_status}

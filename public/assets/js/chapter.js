@@ -1,9 +1,9 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.endpoints = {
-    chapters: "https://bni-data-backend.onrender.com/api/chapters",
-    regions: "https://bni-data-backend.onrender.com/api/regions",
-    members: "https://bni-data-backend.onrender.com/api/members"
+    chapters: "http://localhost:5000/api/chapters",
+    regions: "http://localhost:5000/api/regions",
+    members: "http://localhost:5000/api/members"
 };
 let active_total =0;
 let member_total = 0;
@@ -63,11 +63,78 @@ function getRegionNameById(regionId) {
 
 // Function to update the running chapters count
 function updateRunningChaptersCount() {
-    const runningCount = window.BNI.state.filteredChapters.filter(chapter => chapter.chapter_status === 'running').length;
-    const runningChaptersElement = document.getElementById("running-chapters-count");
+    const runningCount = window.BNI.state.filteredChapters.filter(chapter => {
+        const status = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
+        return status === 'running';
+    }).length;
+    const runningChaptersElement = document.getElementById("RunningChapter");
     if (runningChaptersElement) {
         runningChaptersElement.innerHTML = `<b>${runningCount}</b>`;
     }
+}
+
+// Function to update the pre-launch chapters count
+function updatePreLaunchChaptersCount() {
+    const preLaunchCount = window.BNI.state.filteredChapters.filter(chapter => {
+        const status = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
+        return status === 'pre-launch';
+    }).length;
+    const preLaunchChaptersElement = document.getElementById("PreLaunchChapter");
+    if (preLaunchChaptersElement) {
+        preLaunchChaptersElement.innerHTML = `<b>${preLaunchCount}</b>`;
+    }
+}
+
+// Function to update the re-launch chapters count
+function updateReLaunchChaptersCount() {
+    const reLaunchCount = window.BNI.state.filteredChapters.filter(chapter => {
+        const status = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
+        return status === 're-launch';
+    }).length;
+    const reLaunchChaptersElement = document.getElementById("ReLaunchChapter");
+    if (reLaunchChaptersElement) {
+        reLaunchChaptersElement.innerHTML = `<b>${reLaunchCount}</b>`;
+    }
+}
+
+// Debug function
+function debugChapterCounts() {
+    console.group('🔍 Chapter Status Debug');
+    window.BNI.state.filteredChapters.forEach(chapter => {
+        const originalStatus = chapter.chapter_status;
+        const cleanedStatus = originalStatus.replace(/['"]+/g, '').toLowerCase().trim();
+        console.log(`Chapter: ${chapter.chapter_name}, Original Status: ${originalStatus}, Cleaned Status: ${cleanedStatus}`);
+    });
+    
+    const runningCount = window.BNI.state.filteredChapters.filter(chapter => {
+        const status = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
+        return status === 'running';
+    }).length;
+    
+    const preLaunchCount = window.BNI.state.filteredChapters.filter(chapter => {
+        const status = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
+        return status === 'pre-launch';
+    }).length;
+    
+    const reLaunchCount = window.BNI.state.filteredChapters.filter(chapter => {
+        const status = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
+        return status === 're-launch';
+    }).length;
+    
+    console.log('📊 Count Summary:');
+    console.log('Running:', runningCount);
+    console.log('Pre-Launch:', preLaunchCount);
+    console.log('Re-Launch:', reLaunchCount);
+    console.log('Total:', window.BNI.state.filteredChapters.length);
+    console.groupEnd();
+}
+
+// Function to update all counts
+function updateChapterCounts() {
+    debugChapterCounts();
+    updateRunningChaptersCount();
+    updatePreLaunchChaptersCount();
+    updateReLaunchChaptersCount();
 }
 
 // Function to display chapters
@@ -115,7 +182,7 @@ const displayChapters = (chapters) => {
     }
 
     // Fetch total members count from API
-    fetch('https://bni-data-backend.onrender.com/api/members')
+    fetch('http://localhost:5000/api/members')
         .then(response => response.json())
         .then(members => {
             const tot_member_display = document.getElementById("memberTotal");
@@ -245,7 +312,7 @@ function populateFilters() {
 
     // Populate chapter status filter
     const statusFilter = document.getElementById("chapter-status-filter");
-    const statuses = ['running', 'pre-Launch','re-Launch'];
+    const statuses = ['running', 'pre-launch'];
     statusFilter.innerHTML = `
         <li><a class="dropdown-item" href="javascript:void(0);" data-value="all">All Status</a></li>
         ${statuses.map(status => `
@@ -408,6 +475,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         
         // Display initial data
         displayChapters(window.BNI.state.filteredChapters);
+        updateChapterCounts();
 
     } catch (error) {
         console.error('Error during initialization:', error);
@@ -446,7 +514,7 @@ document.getElementById("chaptersTableBody")?.addEventListener("click", async (e
         if (result.isConfirmed) {
             try {
                 showLoader();
-                const response = await fetch(`https://bni-data-backend.onrender.com/api/deleteChapter/${chapterId}`, {
+                const response = await fetch(`http://localhost:5000/api/deleteChapter/${chapterId}`, {
                     method: "PUT"
                 });
 
