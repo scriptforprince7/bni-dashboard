@@ -486,6 +486,18 @@ function displayMembers(members) {
         const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
         const chapterName = window.BNI.state.chaptersMap[member.chapter_id] || 'N/A';
         
+        
+        // Create the photo URL if member_photo exists
+        const photoUrl = member.member_photo 
+            ? `https://bni-data-backend.onrender.com/uploads/memberPhotos/${member.member_photo}`
+            : null;
+        
+        console.log('Photo processing for member:', {
+            name: fullName,
+            hasPhoto: !!member.member_photo,
+            photoUrl: photoUrl || 'Using default avatar',
+            photoName: member.member_photo || 'No photo available'
+        });
         const row = document.createElement('tr');
         row.classList.add('order-list');
         row.innerHTML = `
@@ -493,7 +505,11 @@ function displayMembers(members) {
             <td style="border: 1px solid grey;">
                 <div class="d-flex align-items-center">
                     <span class="avatar avatar-sm me-2 avatar-rounded">
-                        <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
+                         <img 
+                            src="${photoUrl || 'https://cdn-icons-png.flaticon.com/512/194/194828.png'}" 
+                            alt="${fullName || 'avatar'}" 
+                            onerror="console.log('Image failed to load, using default avatar for:', '${fullName}'); this.src='https://cdn-icons-png.flaticon.com/512/194/194828.png';"
+                        />
                     </span>
                     <a href="javascript:void(0);" class="member-name" data-member-id="${member.member_id}" data-member-email="${member.member_email_address}">${fullName}</a>
                 </div>
