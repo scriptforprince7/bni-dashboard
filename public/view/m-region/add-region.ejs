@@ -985,7 +985,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     // Fetch accolades from the live API
-    fetch("http://localhost:5000/api/accolades")
+    fetch("https://bni-data-backend.onrender.com/api/accolades")
       .then((response) => response.json())
       .then((data) => {
         const accoladesContainer = document.getElementById("accoladesContainer");
@@ -1232,7 +1232,7 @@
 
     try {
       console.log('📤 Sending data to server');
-      const response = await fetch('http://localhost:5000/api/regions', {
+      const response = await fetch('https://bni-data-backend.onrender.com/api/regions', {
         method: 'POST',
         body: formData
       });

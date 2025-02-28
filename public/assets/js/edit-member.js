@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     showLoader();
     // Fetch member data
-    const memberResponse = await fetch(`http://localhost:5000/api/getMember/${memberId}`);
+    const memberResponse = await fetch(`https://bni-data-backend.onrender.com/api/getMember/${memberId}`);
     if (!memberResponse.ok) throw new Error('Error fetching member data');
 
     const member = await memberResponse.json();
@@ -118,19 +118,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Fetch and populate regions
-    const regionResponse = await fetch('http://localhost:5000/api/regions'); // Adjust the endpoint accordingly
+    const regionResponse = await fetch('https://bni-data-backend.onrender.com/api/regions'); // Adjust the endpoint accordingly
     if (!regionResponse.ok) throw new Error('Error fetching regions data');
     const regions = await regionResponse.json();
     populateSelectOptions('region_id', regions, 'region_id', 'region_name', member.region_id);
 
     // Fetch and populate chapters
-    const chapterResponse = await fetch('http://localhost:5000/api/chapters'); // Adjust the endpoint accordingly
+    const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters'); // Adjust the endpoint accordingly
     if (!chapterResponse.ok) throw new Error('Error fetching chapters data');
     const chapters = await chapterResponse.json();
     populateSelectOptions('chapter_id', chapters, 'chapter_id', 'chapter_name', member.chapter_id);
 
     // Fetch all accolades
-    const accoladesResponse = await fetch('http://localhost:5000/api/accolades');
+    const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
     if (!accoladesResponse.ok) throw new Error('Error fetching accolades');
     
     const accolades = await accoladesResponse.json(); // This should return a list of accolades
@@ -138,13 +138,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Set image previews if they exist
     if (member.member_photo) {
       const memberPhotoPreview = document.getElementById('memberPhotoImage');
-      memberPhotoPreview.src = `http://localhost:5000/api/uploads/memberLogos/${member.member_photo}`;
+      memberPhotoPreview.src = `https://bni-data-backend.onrender.com/api/uploads/memberLogos/${member.member_photo}`;
       document.getElementById('memberPhotoPreview').style.display = 'block';
     }
 
     if (member.member_company_logo) {
       const companyLogoPreview = document.getElementById('companyLogoImage');
-      companyLogoPreview.src = `http://localhost:5000/api/uploads/memberCompanyLogos/${member.member_company_logo}`;
+      companyLogoPreview.src = `https://bni-data-backend.onrender.com/api/uploads/memberCompanyLogos/${member.member_company_logo}`;
       document.getElementById('companyLogoPreview').style.display = 'block';
     }
 
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Fetch and populate categories
-    const categoryResponse = await fetch('http://localhost:5000/api/memberCategory');
+    const categoryResponse = await fetch('https://bni-data-backend.onrender.com/api/memberCategory');
     if (!categoryResponse.ok) throw new Error('Error fetching categories');
     
     const categories = await categoryResponse.json(); // This should return a list of categories
@@ -470,7 +470,7 @@ const updateMemberData = async () => {
                 }
             }
 
-            const response = await fetch(`http://localhost:5000/api/updateMember/${memberId}`, {
+            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateMember/${memberId}`, {
                 method: 'PUT',
                 body: formData // Don't set Content-Type header for FormData
             });
