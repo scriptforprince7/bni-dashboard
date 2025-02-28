@@ -126,7 +126,7 @@ const populateCountryDropdown = async () => {
 const fetchChapterDetails = async () => {
   showLoader();
   try {
-    const response = await fetch(`https://bni-data-backend.onrender.com/api/getChapter/${chapter_id}`);
+    const response = await fetch(`http://localhost:5000/api/getChapter/${chapter_id}`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
@@ -153,7 +153,7 @@ const fetchChapterDetails = async () => {
 // Fetch and populate regions
 const populateRegions = async (currentRegionId) => {
   try {
-    const response = await fetch("https://bni-data-backend.onrender.com/api/regions");
+    const response = await fetch("http://localhost:5000/api/regions");
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
@@ -171,6 +171,67 @@ const populateRegions = async (currentRegionId) => {
     console.error("Error fetching regions:", error);
     alert("Failed to load regions. Please try again.");
   }
+};
+
+// Function to fetch hotels based on region's hotel_ids
+const fetchAndPopulateHotels = async (selectedHotelId, regionId) => {
+    console.log('🔄 Starting hotel population process');
+    console.log('Selected Hotel ID:', selectedHotelId);
+    console.log('Region ID:', regionId);
+
+    try {
+        // First fetch region data to get hotel_ids array
+        const regionResponse = await fetch('https://bni-data-backend.onrender.com/api/regions');
+        if (!regionResponse.ok) {
+            throw new Error(`Failed to fetch regions: ${regionResponse.status}`);
+        }
+        const regions = await regionResponse.json();
+        
+        // Find the matching region
+        const selectedRegion = regions.find(region => region.region_id === parseInt(regionId));
+        console.log('📍 Selected Region:', selectedRegion?.region_name);
+        console.log('🏨 Region Hotel IDs:', selectedRegion?.hotel_id);
+
+        if (!selectedRegion || !selectedRegion.hotel_id) {
+            console.warn('⚠️ No hotel IDs found for this region');
+            return;
+        }
+
+        // Fetch all hotels
+        const hotelsResponse = await fetch('https://bni-data-backend.onrender.com/api/getHotels');
+        if (!hotelsResponse.ok) {
+            throw new Error(`Failed to fetch hotels: ${hotelsResponse.status}`);
+        }
+        const allHotels = await hotelsResponse.json();
+        console.log('📥 All Hotels:', allHotels);
+
+        // Filter hotels based on region's hotel_ids
+        const regionHotels = allHotels.filter(hotel => 
+            selectedRegion.hotel_id.includes(hotel.hotel_id)
+        );
+        console.log('🏨 Filtered Hotels for Region:', regionHotels);
+
+        const hotelSelect = document.getElementById('hotel_id');
+        hotelSelect.innerHTML = '<option value="">Select</option>';
+
+        // Populate dropdown with filtered hotels
+        regionHotels.forEach(hotel => {
+            const option = document.createElement('option');
+            option.value = hotel.hotel_id;
+            option.textContent = hotel.hotel_name;
+            
+            // Set selected if matches current hotel_id
+            if (hotel.hotel_id === parseInt(selectedHotelId)) {
+                option.selected = true;
+                console.log('✅ Pre-selecting hotel:', hotel.hotel_name);
+            }
+            
+            hotelSelect.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error('❌ Error in hotel population:', error);
+    }
 };
 
 // Populate form fields with chapter data
@@ -214,7 +275,7 @@ const populateChapterFields = (data) => {
   
   if (data.chapter_logo) {
     // Use consistent URL pattern for chapter logos
-    const logoUrl = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${data.chapter_logo}`;
+    const logoUrl = `http://localhost:5000/api/uploads/chapterLogos/${data.chapter_logo}`;
     console.log('🔗 Setting logo URL:', logoUrl);
     
     logoPreview.src = logoUrl;
@@ -224,6 +285,13 @@ const populateChapterFields = (data) => {
     logoPreviewContainer.style.display = 'none';
   }
 
+  // Add hotel population with region_id
+  if (data.hotel_id && data.region_id) {
+    console.log('🏢 Populating hotels for:');
+    console.log('Chapter Hotel ID:', data.hotel_id);
+    console.log('Region ID:', data.region_id);
+    fetchAndPopulateHotels(data.hotel_id, data.region_id);
+  }
 };
 
 // Initialize the page
@@ -390,8 +458,10 @@ const collectChapterFormData = () => {
       chapter_membership_fee_five_year: document.querySelector("#chapter_membership_fee_five_year").value,
       billing_frequency: document.querySelector("#billing_frequency").value,
       chapter_available_fund: document.querySelector("#chapter_available_fund").value,
+      hotel_id: document.getElementById('hotel_id').value,
   };
 
+  console.log('📦 Collected chapter data with hotel:', chapterData);
   return chapterData;
 };
 
@@ -438,7 +508,7 @@ const updateChapterData = async () => {
             }
             
             console.log('📤 Sending update request with logo...');
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateChapter/${chapter_id}`, {
+            const response = await fetch(`http://localhost:5000/api/updateChapter/${chapter_id}`, {
                 method: 'PUT',
                 body: formData
             });
@@ -449,7 +519,7 @@ const updateChapterData = async () => {
                 
                 // Update logo preview if new logo was uploaded
                 if (updatedChapter.chapter_logo) {
-                    const logoUrl = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${updatedChapter.chapter_logo}`;
+                    const logoUrl = `http://localhost:5000/api/uploads/chapterLogos/${updatedChapter.chapter_logo}`;
                     console.log('🔄 Updating logo preview with:', logoUrl);
                     document.getElementById('logoPreview').src = logoUrl;
                 }
@@ -496,6 +566,15 @@ document.getElementById('chapter_logo').addEventListener('change', function(e) {
             document.getElementById('logoPreviewContainer').style.display = 'block';
         };
         reader.readAsDataURL(file);
+    }
+});
+
+// Add event listener for region change to update hotels
+document.getElementById('region_id').addEventListener('change', function() {
+    const selectedRegionId = this.value;
+    console.log('🔄 Region changed to:', selectedRegionId);
+    if (selectedRegionId) {
+        fetchAndPopulateHotels(null, selectedRegionId);
     }
 });
 

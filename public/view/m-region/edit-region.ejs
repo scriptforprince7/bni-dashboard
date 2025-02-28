@@ -342,6 +342,25 @@
                         </div>
                       </div>
                       <div class="col-xl-6">
+                        <label for="hotels" class="form-label">
+                          Hotel Name and Venue
+                          <a href="/h/add-hotel">
+                            <button type="button" class="btn btn-outline-danger btn-sm">
+                              Add Hotel +
+                            </button>
+                          </a>
+                        </label>
+                        <div class="form-check mb-2">
+                          <input class="form-check-input" type="checkbox" id="selectAllHotels">
+                          <label class="form-check-label" for="selectAllHotels">
+                            <strong>Select All Hotels</strong>
+                          </label>
+                        </div>
+                        <div id="hotelsContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                          <!-- Hotels will be dynamically populated here -->
+                        </div>
+                      </div>
+                      <div class="col-xl-6">
                         <label for="chapterType" class="form-label">Chapter Type</label>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" id="selectAllTypes">
@@ -364,6 +383,8 @@
                           </div>
                         </div>
                       </div>
+
+                      
                       
                       <div class="col-xl-6">
                         <label for="mission" class="form-label"

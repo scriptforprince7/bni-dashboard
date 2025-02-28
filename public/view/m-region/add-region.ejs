@@ -369,6 +369,24 @@
                           </div>
                         </div>
                       </div>
+                      <div class="col-xl-6">
+                        <label for="hotel" class="form-label">
+                          Hotel Name and Venue
+                          <a href="/h/add-hotel">
+                            <button type="button" class="btn btn-outline-danger btn-sm">
+                              Add Hotel +
+                            </button>
+                          </a>
+                        </label>
+                        
+                        <div id="hotelsContainer" style="display: flex; flex-wrap: wrap; gap: 10px">
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllHotels" />
+                            <label class="form-check-label" for="selectAllHotels">Select All</label>
+                          </div>
+                          <!-- Dynamically populated hotels will go here -->
+                        </div>
+                      </div>
                       
                       <div class="col-xl-6">
                         <label for="mission" class="form-label"
@@ -967,7 +985,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     // Fetch accolades from the live API
-    fetch("https://bni-data-backend.onrender.com/api/accolades")
+    fetch("http://localhost:5000/api/accolades")
       .then((response) => response.json())
       .then((data) => {
         const accoladesContainer = document.getElementById("accoladesContainer");
@@ -1189,9 +1207,32 @@
     formData.append('chapterType', JSON.stringify(chapterType));
     formData.append('accolades_config', JSON.stringify(accolades));
 
+    // Collect selected hotels
+    const selectedHotels = Array.from(document.querySelectorAll('input[name="hotels[]"]:checked'))
+      .map(checkbox => checkbox.value);
+    console.log('🏨 Selected Hotel IDs:', selectedHotels);
+
+    // Add hotels to formData
+    formData.append('hotels_config', JSON.stringify(selectedHotels));
+
+    // Log all form data being sent
+    console.log('📝 Form Data Contents:');
+    const formDataObject = {};
+    formData.forEach((value, key) => {
+      formDataObject[key] = value;
+      console.log(`${key}:`, value);
+    });
+
+    // Specific logging for different types of data
+    console.log('📅 Chapter Days:', formData.get('chapterDays'));
+    console.log('📊 Chapter Status:', formData.get('chapterStatus'));
+    console.log('🏢 Chapter Type:', formData.get('chapterType'));
+    console.log('🏆 Accolades:', formData.get('accolades_config'));
+    console.log('🏨 Hotels:', formData.get('hotels_config'));
+
     try {
       console.log('📤 Sending data to server');
-      const response = await fetch('https://bni-data-backend.onrender.com/api/regions', {
+      const response = await fetch('http://localhost:5000/api/regions', {
         method: 'POST',
         body: formData
       });
@@ -1330,5 +1371,59 @@ document.getElementById("addRegionForm").addEventListener("submit", async functi
     console.error('❌ Network error:', error);
     
   }
+});
+</script>
+
+<script>
+// Add this script alongside your other scripts
+document.addEventListener("DOMContentLoaded", function () {
+  // Fetch hotels from the API
+  fetch("https://bni-data-backend.onrender.com/api/getHotels")
+    .then((response) => response.json())
+    .then((data) => {
+      const hotelsContainer = document.getElementById("hotelsContainer");
+
+      // Clear existing content (if any)
+      hotelsContainer.innerHTML = `
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" id="selectAllHotels" />
+          <label class="form-check-label" for="selectAllHotels">Select All</label>
+        </div>
+      `;
+
+      // Loop through hotels and create checkboxes
+      data.forEach((hotel) => {
+        const checkboxDiv = document.createElement("div");
+        checkboxDiv.className = "form-check";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "form-check-input";
+        checkbox.id = `hotel${hotel.hotel_id}`;
+        checkbox.name = "hotels[]";  // Use array syntax for multiple selections
+        checkbox.value = hotel.hotel_id;
+
+        const label = document.createElement("label");
+        label.className = "form-check-label";
+        label.setAttribute("for", `hotel${hotel.hotel_id}`);
+        label.textContent = hotel.hotel_name;
+
+        // Append checkbox and label to the div
+        checkboxDiv.appendChild(checkbox);
+        checkboxDiv.appendChild(label);
+
+        // Append the div to the hotels container
+        hotelsContainer.appendChild(checkboxDiv);
+      });
+
+      // Add event listener for "Select All" checkbox
+      document.getElementById('selectAllHotels').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('#hotelsContainer .form-check-input:not(#selectAllHotels)');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = this.checked;
+        });
+      });
+    })
+    .catch((error) => console.error("Error fetching hotels:", error));
 });
 </script>

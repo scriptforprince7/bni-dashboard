@@ -10,15 +10,34 @@ function hideLoader() {
 // Function to populate select options
 function populateSelectOptions(selectId, data, valueKey, textKey, selectedValue) {
   const selectElement = document.getElementById(selectId);
-  data.forEach(item => {
-    const option = document.createElement('option');
-    option.value = item[valueKey];
-    option.textContent = item[textKey];
-    if (item[valueKey] === selectedValue) {
-      option.selected = true;
-    }
-    selectElement.appendChild(option);
-  });
+  if (!selectElement) {
+    console.warn(`Element with id '${selectId}' not found`);
+    return;
+  }
+  
+  // Clear existing options first
+  selectElement.innerHTML = '';
+  
+  // Add default option
+  const defaultOption = document.createElement('option');
+  defaultOption.value = '';
+  defaultOption.textContent = 'Select';
+  selectElement.appendChild(defaultOption);
+  
+  // Add data options
+  if (Array.isArray(data)) {
+    data.forEach(item => {
+      if (item && typeof item === 'object') {
+        const option = document.createElement('option');
+        option.value = item[valueKey] || '';
+        option.textContent = item[textKey] || '';
+        if (item[valueKey] === selectedValue) {
+          option.selected = true;
+        }
+        selectElement.appendChild(option);
+      }
+    });
+  }
 }
 
 
@@ -85,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     showLoader();
     // Fetch member data
-    const memberResponse = await fetch(`https://bni-data-backend.onrender.com/api/getMember/${memberId}`);
+    const memberResponse = await fetch(`http://localhost:5000/api/getMember/${memberId}`);
     if (!memberResponse.ok) throw new Error('Error fetching member data');
 
     const member = await memberResponse.json();
@@ -99,19 +118,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Fetch and populate regions
-    const regionResponse = await fetch('https://bni-data-backend.onrender.com/api/regions'); // Adjust the endpoint accordingly
+    const regionResponse = await fetch('http://localhost:5000/api/regions'); // Adjust the endpoint accordingly
     if (!regionResponse.ok) throw new Error('Error fetching regions data');
     const regions = await regionResponse.json();
     populateSelectOptions('region_id', regions, 'region_id', 'region_name', member.region_id);
 
     // Fetch and populate chapters
-    const chapterResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters'); // Adjust the endpoint accordingly
+    const chapterResponse = await fetch('http://localhost:5000/api/chapters'); // Adjust the endpoint accordingly
     if (!chapterResponse.ok) throw new Error('Error fetching chapters data');
     const chapters = await chapterResponse.json();
     populateSelectOptions('chapter_id', chapters, 'chapter_id', 'chapter_name', member.chapter_id);
 
     // Fetch all accolades
-    const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+    const accoladesResponse = await fetch('http://localhost:5000/api/accolades');
     if (!accoladesResponse.ok) throw new Error('Error fetching accolades');
     
     const accolades = await accoladesResponse.json(); // This should return a list of accolades
@@ -119,13 +138,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Set image previews if they exist
     if (member.member_photo) {
       const memberPhotoPreview = document.getElementById('memberPhotoImage');
-      memberPhotoPreview.src = `https://bni-data-backend.onrender.com/api/uploads/memberLogos/${member.member_photo}`;
+      memberPhotoPreview.src = `http://localhost:5000/api/uploads/memberLogos/${member.member_photo}`;
       document.getElementById('memberPhotoPreview').style.display = 'block';
     }
 
     if (member.member_company_logo) {
       const companyLogoPreview = document.getElementById('companyLogoImage');
-      companyLogoPreview.src = `https://bni-data-backend.onrender.com/api/uploads/memberCompanyLogos/${member.member_company_logo}`;
+      companyLogoPreview.src = `http://localhost:5000/api/uploads/memberCompanyLogos/${member.member_company_logo}`;
       document.getElementById('companyLogoPreview').style.display = 'block';
     }
 
@@ -190,7 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Fetch and populate categories
-    const categoryResponse = await fetch('https://bni-data-backend.onrender.com/api/memberCategory');
+    const categoryResponse = await fetch('http://localhost:5000/api/memberCategory');
     if (!categoryResponse.ok) throw new Error('Error fetching categories');
     
     const categories = await categoryResponse.json(); // This should return a list of categories
@@ -204,8 +223,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       
     // Set the selected membership value
     membershipSelect.value = member.member_current_membership || 2; // Default to 2 Year if no value is found
-
-
 
     // Populate other member fields
     document.getElementById('member_first_name').value = member.member_first_name || 'Not Found';
@@ -242,8 +259,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Add this with other field populations
     document.getElementById('meeting_opening_balance').value = member.meeting_opening_balance || '0';
 
+    // Add this block to handle category input
+    const editCategoryInput = document.getElementById('editCategoryInput');
+    if (editCategoryInput) {
+      editCategoryInput.value = member.category_name || '';
+      let selectedClassification = member.category_name || '';
+
+      editCategoryInput.addEventListener('click', function() {
+        Swal.fire({
+          title: 'Update Classification',
+          input: 'text',
+          inputLabel: 'Enter new classification',
+          inputValue: selectedClassification,
+          inputPlaceholder: 'Classification name',
+          showCancelButton: true,
+          confirmButtonText: 'Update',
+          preConfirm: (classification) => {
+            if (!classification) {
+              Swal.showValidationMessage('Please enter a classification name');
+            }
+            return classification;
+          }
+        }).then((result) => {
+          if (result.isConfirmed && result.value) {
+            selectedClassification = result.value;
+            editCategoryInput.value = result.value;
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Updated!',
+              text: `Classification has been updated to "${result.value}"`,
+              timer: 1500,
+              showConfirmButton: false
+            });
+          }
+        });
+      });
+    }
+
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error:', error);
+    toastr.error('Failed to load member data');
   } finally {
     hideLoader();
   }
@@ -271,7 +327,7 @@ const collectMemberFormData = () => {
     chapter_id: document.querySelector("#chapter_id").value,
     accolades_id: Array.from(document.querySelectorAll('input[name="accolades_id"]:checked'))
       .map(checkbox => checkbox.value),
-    category_id: document.querySelector("#category").value || null,
+    category_name: document.querySelector("#editCategoryInput")?.value || '',
     member_current_membership: document.querySelector("#member_current_membership").value,
     member_renewal_date: document.querySelector("#member_renewal_date").value,
     member_gst_number: document.querySelector("#member_gst_number").value,
@@ -414,7 +470,7 @@ const updateMemberData = async () => {
                 }
             }
 
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateMember/${memberId}`, {
+            const response = await fetch(`http://localhost:5000/api/updateMember/${memberId}`, {
                 method: 'PUT',
                 body: formData // Don't set Content-Type header for FormData
             });

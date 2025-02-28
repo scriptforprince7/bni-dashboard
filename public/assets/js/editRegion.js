@@ -22,7 +22,7 @@ let accoladeMap = {};
 const fetchRegionDetails = async () => {
     showLoader();
     try {
-        const response = await fetch(`https://bni-data-backend.onrender.com/api/getRegion/${region_id}`);
+        const response = await fetch(`http://localhost:5000/api/getRegion/${region_id}`);
         if (!response.ok) {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
@@ -41,7 +41,7 @@ const fetchRegionDetails = async () => {
 const fetchAccolades = async () => {
     showLoader();
     try {
-        const response = await fetch("https://bni-data-backend.onrender.com/api/accolades");
+        const response = await fetch("http://localhost:5000/api/accolades");
         if (!response.ok) {
             throw new Error(`Accolades API error: ${response.status} ${response.statusText}`);
         }
@@ -144,6 +144,11 @@ function setupSelectAllHandlers() {
     const selectAllAccolades = document.getElementById('selectAllAccolades');
     const accoladeCheckboxes = document.querySelectorAll('#accoladesContainer .form-check-input');
     setupSelectAllForGroup(selectAllAccolades, accoladeCheckboxes, 'Accolades');
+
+    // Hotels
+    const selectAllHotels = document.getElementById('selectAllHotels');
+    const hotelCheckboxes = document.querySelectorAll('#hotelsContainer input[name="hotels[]"]');
+    setupSelectAllForGroup(selectAllHotels, hotelCheckboxes, 'Hotels');
 }
 
 function setupSelectAllForGroup(selectAllCheckbox, groupCheckboxes, groupName) {
@@ -203,6 +208,14 @@ function updateSelectAllStates() {
     if (selectAllAccolades && accoladeCheckboxes.length > 0) {
         selectAllAccolades.checked = Array.from(accoladeCheckboxes).every(cb => cb.checked);
     }
+
+    // Check Hotels
+    const hotelCheckboxes = document.querySelectorAll('#hotelsContainer input[name="hotels[]"]');
+    const selectAllHotels = document.getElementById('selectAllHotels');
+    if (selectAllHotels && hotelCheckboxes.length > 0) {
+        selectAllHotels.checked = Array.from(hotelCheckboxes).every(cb => cb.checked);
+        console.log('Hotels Select All state:', selectAllHotels.checked);
+    }
 }
 
 // Modify the existing populateFormFields function
@@ -216,7 +229,7 @@ const populateFormFields = (data) => {
         const imagePreview = document.getElementById('imagePreview');
         
         // Construct the URL if not provided in response
-        const logoUrl = data.region_logo_url || `https://bni-data-backend.onrender.com/api/uploads/regionLogos/${data.region_logo}`;
+        const logoUrl = data.region_logo_url || `http://localhost:5000/api/uploads/regionLogos/${data.region_logo}`;
         console.log('🔗 Using logo URL:', logoUrl);
         
         if (preview && imagePreview) {
@@ -336,6 +349,21 @@ const populateFormFields = (data) => {
         }
     });
 
+    // Check Hotels Configuration
+    const hotelIds = data.hotel_id || [];
+    console.log('🏨 Hotel IDs from data:', hotelIds);
+    
+    hotelIds.forEach(hotelId => {
+        console.log(`Looking for hotel checkbox with value: ${hotelId}`);
+        const checkbox = document.querySelector(`input[name="hotels[]"][value="${hotelId}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+            console.log(`✅ Checked hotel: ${hotelId}`);
+        } else {
+            console.log(`❌ Checkbox not found for hotel: ${hotelId}`);
+        }
+    });
+
     // After setting all checkboxes
     console.log('Populating form fields completed, updating Select All states');
     updateSelectAllStates();
@@ -355,6 +383,7 @@ const parseArrayString = (str) => {
 document.addEventListener("DOMContentLoaded", async () => {
     await fetchCountries(); // Ensure countries are loaded first
     await fetchAccolades(); // Fetch all accolades first
+    await fetchHotels();
     console.log('Setting up edit region page');
     setupSelectAllHandlers();
     await fetchRegionDetails(); // Then fetch and populate region details
@@ -567,6 +596,7 @@ const collectFormData = () => {
         chapter_status: Array.from(document.querySelectorAll('input[name="chapterStatus[]"]:checked')).map(checkbox => checkbox.value),
         chapter_type: Array.from(document.querySelectorAll('input[name="chapterType[]"]:checked')).map(checkbox => checkbox.value),
         accolades_config: Array.from(document.querySelectorAll('input[name="accolades[]"]:checked')).map(checkbox => checkbox.value),
+        hotels_config: Array.from(document.querySelectorAll('input[name="hotels[]"]:checked')).map(checkbox => checkbox.value),
     };
 
     // Append all fields to FormData
@@ -587,7 +617,7 @@ const updateRegionData = async () => {
         const formData = collectFormData();
         
         console.log('🚀 Sending update request to server');
-        const response = await fetch(`https://bni-data-backend.onrender.com/api/updateRegion/${region_id}`, {
+        const response = await fetch(`http://localhost:5000/api/updateRegion/${region_id}`, {
             method: 'PUT',
             body: formData
         });
@@ -782,9 +812,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const selectedAccolades = Array.from(document.querySelectorAll('input[name="accolades[]"]:checked')).map(cb => cb.value);
                 formData.append('accolades_config', JSON.stringify(selectedAccolades));
 
+                const selectedHotels = Array.from(document.querySelectorAll('input[name="hotels[]"]:checked')).map(cb => cb.value);
+                formData.append('hotels_config', JSON.stringify(selectedHotels));
+
                 console.log('🚀 Sending update request for region:', region_id);
 
-                const response = await fetch(`https://bni-data-backend.onrender.com/api/updateRegion/${region_id}`, {
+                const response = await fetch(`http://localhost:5000/api/updateRegion/${region_id}`, {
                     method: 'PUT',
                     body: formData
                 });
@@ -825,5 +858,61 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSelectAllHandlers();
     fetchRegionDetails();
 });
+
+// Add this to fetch and populate hotels
+const fetchHotels = async () => {
+    showLoader();
+    try {
+        const response = await fetch("http://localhost:5000/api/getHotels");
+        if (!response.ok) {
+            throw new Error(`Hotels API error: ${response.status} ${response.statusText}`);
+        }
+        const hotels = await response.json();
+        console.log('📥 Fetched hotels:', hotels);
+
+        // Populate hotels container
+        const hotelsContainer = document.getElementById("hotelsContainer");
+        hotelsContainer.innerHTML = ""; // Clear container
+
+        hotels.forEach(hotel => {
+            const checkboxDiv = document.createElement("div");
+            checkboxDiv.className = "form-check";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "form-check-input";
+            checkbox.name = "hotels[]";
+            checkbox.value = hotel.hotel_id;
+            checkbox.id = `hotel_${hotel.hotel_id}`;
+            
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.htmlFor = `hotel_${hotel.hotel_id}`;
+            label.textContent = hotel.hotel_name;
+
+            checkboxDiv.appendChild(checkbox);
+            checkboxDiv.appendChild(label);
+            hotelsContainer.appendChild(checkboxDiv);
+        });
+
+        // Setup select all functionality
+        const selectAllHotels = document.getElementById('selectAllHotels');
+        if (selectAllHotels) {
+            selectAllHotels.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('#hotelsContainer input[name="hotels[]"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                console.log(`🔄 Hotels Select All: ${this.checked}`);
+            });
+        }
+
+    } catch (error) {
+        console.error("Error fetching hotels:", error);
+        alert("Failed to load hotels. Please try again.");
+    } finally {
+        hideLoader();
+    }
+};
 
 
