@@ -51,25 +51,25 @@ async function fetchPayments() {
     console.log('Fetched all data successfully');
     console.log('------===------==-=----=-=-=-=-= active bill ',activeBill);
     const totalActiveBillAmount = activeBill.reduce((sum, bill) => {
-      return sum + parseFloat(parseFloat(bill.total_bill_amount) - parseFloat((bill.total_bill_amount *18)/118));
+      return sum + parseFloat(bill.total_bill_amount);
     }, 0);
     console.log('Total Active Bill Amount:', formatInIndianStyle(totalActiveBillAmount));
     document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(Math.ceil(totalActiveBillAmount))}`;
     // Calculate visitor payments
     // console.log('Calculating visitor payments...');
-    const visitorOrders = orders.filter(order => order.universal_link_id === 4);
-    const totalVisitorAmount = visitorOrders.reduce((sum, order) => {
-      const amount = parseFloat(order.order_amount || 0);
+    // const visitorOrders = orders.filter(order => order.universal_link_id === 4);
+    // const totalVisitorAmount = visitorOrders.reduce((sum, order) => {
+    //   const amount = parseFloat(order.order_amount || 0);
       // console.log(`Visitor Order ${order.order_id}: ₹${formatInIndianStyle(amount)}`);
-      return sum + amount;
-    }, 0);
+      // return sum + amount;
+    // }, 0);
     // console.log(`Total Visitor Amount: ₹${formatInIndianStyle(totalVisitorAmount)}`);
 
     // Update visitor payment display
-    const visitorAmountElement = document.querySelector('.total_V_amount');
-    if (visitorAmountElement) {
-      visitorAmountElement.textContent = `₹ ${formatInIndianStyle(totalVisitorAmount)}`;
-    }
+    // const visitorAmountElement = document.querySelector('.total_V_amount');
+    // if (visitorAmountElement) {
+      // visitorAmountElement.textContent = `₹ ${formatInIndianStyle(totalVisitorAmount)}`;
+    // }
 
     // Calculate received payments by chapter
     const chapterPayments = {};
@@ -87,7 +87,7 @@ async function fetchPayments() {
       const orderTransactions = transactions.filter(trans => 
         trans.order_id === order.order_id && 
         trans.payment_status === 'SUCCESS' &&
-        order.payment_note === "meeting-payments"
+        (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only" )
       );
 
       // console.log(`------------------Found ${orderTransactions.length} successful transactions for order ${order.order_id}`);

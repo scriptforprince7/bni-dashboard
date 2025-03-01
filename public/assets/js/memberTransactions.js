@@ -120,7 +120,7 @@ let ledgerData = [];
         // let opcreditsBeforeTransaction= [];
 
 
-
+let opening_bill_entry_shown =0;
 
         // // Filter orders for meeting payments opening only
         const meetingOpeningOrders = allAvailableOrders.filter(filtereddata => 
@@ -148,6 +148,7 @@ let ledgerData = [];
           // now hwew i need to do credir and transaction 
           meetingOpeningOrders.forEach(order => {
             const successfulTransactions = allAvailableTransactions.filter(transaction => transaction.order_id === order.order_id && transaction.payment_status === 'SUCCESS');
+            console.log("orders details:-=================================================== ", order);
             if (successfulTransactions.length > 0) {
               successfulTransactions.forEach(transaction => {
                 const creditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(transaction.payment_time));
@@ -178,6 +179,8 @@ let ledgerData = [];
   
   
   
+                opening_bill_entry_shown = 1;
+
                 console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
                 paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                     currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
@@ -239,6 +242,7 @@ let ledgerData = [];
         // console.log("Meeting Opening Orders:", meetingOpeningOrders);
         
 
+        if(opening_bill_entry_shown !== 1){
 
         // here i need to add credit before it and removed used entry of credit and credit filterd on base of all time kitty [0]
         meetingOpeningOrders.forEach(order => {
@@ -295,7 +299,7 @@ let ledgerData = [];
         });
         
         
-
+      }
 
         // const memberInductionDate = new Date(userData.member_induction_date);
         const memberInductionDate = new Date(userData.date_of_publishing);
