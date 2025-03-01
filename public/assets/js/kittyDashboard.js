@@ -310,6 +310,12 @@ function displayPayments(kittys) {
   let grandTotalPendingExpenses = 0;
   let grandTotalCreditNoteAmount = 0;
 
+  let singleEntryAvailableFund = 0;
+  let singleEntrypending = 0;
+  let singleEntryrecived = 0;
+  let singleEntrypaidEx = 0;
+  let singleEntrypendEx = 0;
+
   // Get all chapter IDs from the current table
   const tableChapterIds = kittys.map(kitty => kitty.chapter_id);
   console.log('Chapter IDs in current table:', tableChapterIds);
@@ -366,7 +372,7 @@ function displayPayments(kittys) {
   // console.log(`Total Pending Expenses: ₹${formatInIndianStyle(grandTotalPendingExpenses)}`);
   // console.log(`Total Credit Note Amount: ₹${formatInIndianStyle(grandTotalCreditNoteAmount)}`);
     console.log('all pending --------: ',allpending);
-  allTotal += parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses);
+  allTotal = parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses);
 
 
   // Update the Total Available Fund display

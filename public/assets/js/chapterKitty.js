@@ -466,8 +466,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         const chapterOrders = allOrders.filter(order => 
             order.chapter_id === chapterId && 
             order.universal_link_id === 4 &&
-            order.kitty_bill_id === kitty_bill_id &&
-            order.payment_note === "meeting-payments"
+            (order.kitty_bill_id === kitty_bill_id || order.kitty_bill_id === null) &&
+            (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only")
         );
 
         if (chapterOrders.length === 0) {
