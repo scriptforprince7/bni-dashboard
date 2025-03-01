@@ -86,13 +86,13 @@ showLoader();
       regionsResponse,
       paymentTypeResponse,
     ] = await Promise.all([
-      fetch("http://localhost:5000/api/allOrders"),
-      fetch("http://localhost:5000/api/allTransactions"),
-      fetch("http://localhost:5000/api/chapters"),
-      fetch("http://localhost:5000/api/paymentGateway"),
-      fetch("http://localhost:5000/api/universalLinks"),
-      fetch("http://localhost:5000/api/regions"),
-      fetch("http://localhost:5000/api/universalLinks"),
+      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
+      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
+      fetch("https://bni-data-backend.onrender.com/api/chapters"),
+      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
+      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      fetch("https://bni-data-backend.onrender.com/api/regions"),
+      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
     ]);
 
     const orders = await ordersResponse.json();
@@ -555,7 +555,7 @@ if (filters.month && transaction.order_id) {
           try {
             // Step 1: Send request to save settlement data
             const saveResponse = await fetch(
-              `http://localhost:5000/api/orders/${orderId}/settlementStatus`,
+              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
               { method: 'GET' }
             );
     
@@ -568,7 +568,7 @@ if (filters.month && transaction.order_id) {
             const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
     
             const fetchResponse = await fetch(
-              `http://localhost:5000/api/settlement/${cfPaymentId}`
+              `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
             );
     
             if (!fetchResponse.ok) {
@@ -580,7 +580,7 @@ if (filters.month && transaction.order_id) {
             // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
-              fetch(`http://localhost:5000/api/einvoice/${settlement.order_id}`)
+              fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -889,7 +889,7 @@ if (filters.month && transaction.order_id) {
 
                 try {
                   const backendResponse = await fetch(
-                    "http://localhost:5000/einvoice/generate-irn",
+                    "https://bni-data-backend.onrender.com/einvoice/generate-irn",
                     {
                       method: "POST",
                       headers: {
@@ -906,7 +906,7 @@ if (filters.month && transaction.order_id) {
                   
                     // Fetch IRN and QR code details after successful generation
                     const einvoiceResponse = await fetch(
-                      `http://localhost:5000/api/einvoice/${orderId}`
+                      `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
                     );
                     const einvoiceData = await einvoiceResponse.json();
                   
