@@ -357,16 +357,12 @@ async function fetchMembers() {
         
         // Get user type and email
         const userType = getUserLoginType();
-        const userEmail = localStorage.getItem('current_member_email') || getUserEmail();
+        const userEmail = localStorage.getItem('current_chapter_email') || getUserEmail();
         
         console.log("🔑 User Details:", {
             type: userType,
             email: userEmail
         });
-
-        // Get chapter details first
-        const chapterUser = await getChapterForUser(userEmail);
-        console.log("📍 Chapter User Details:", chapterUser);
 
         // Fetch all members
         const response = await fetch("https://bni-data-backend.onrender.com/api/members");
@@ -381,25 +377,35 @@ async function fetchMembers() {
             }))
         });
 
+        // Get chapter details from localStorage for ro_admin
+        const storedChapterId = localStorage.getItem('current_chapter_id');
+        console.log("Stored Chapter ID:", storedChapterId);
+
         // Filter members based on chapter_id
-        if (userType === 'ro_admin') {
-            // For ro_admin, show all members
-            allMembers = allMembersData;
-            console.log("👨‍💼 RO Admin access - showing all members:", allMembers.length);
-        } else if (chapterUser) {
-            // For chapter users, filter by their specific chapter_id
-            allMembers = allMembersData.filter(member => member.chapter_id === chapterUser.chapter_id);
-            console.log("🎯 Filtered Chapter Members:", {
-                chapterId: chapterUser.chapter_id,
-                totalMembers: allMembers.length,
-                members: allMembers.map(m => ({
-                    name: `${m.member_first_name} ${m.member_last_name}`,
-                    status: m.member_status
-                }))
-            });
+        if (userType === 'ro_admin' && storedChapterId) {
+            // For ro_admin, filter members by the chapter_id stored in localStorage
+            allMembers = allMembersData.filter(member => member.chapter_id.toString() === storedChapterId);
+            console.log("👨‍💼 RO Admin access - showing members for chapter_id:", storedChapterId, allMembers.length);
         } else {
-            console.error("❌ No chapter found for user:", userEmail);
-            allMembers = [];
+            // Get chapter details first
+            const chapterUser = await getChapterForUser(userEmail);
+            console.log("📍 Chapter User Details:", chapterUser);
+
+            if (chapterUser) {
+                // For chapter users, filter by their specific chapter_id
+                allMembers = allMembersData.filter(member => member.chapter_id === chapterUser.chapter_id);
+                console.log("🎯 Filtered Chapter Members:", {
+                    chapterId: chapterUser.chapter_id,
+                    totalMembers: allMembers.length,
+                    members: allMembers.map(m => ({
+                        name: `${m.member_first_name} ${m.member_last_name}`,
+                        status: m.member_status
+                    }))
+                });
+            } else {
+                console.error("❌ No chapter found for user:", userEmail);
+                allMembers = [];
+            }
         }
 
         // Update the display
@@ -504,7 +510,7 @@ function displayMembers(members) {
                 </div>
             </td>
             <td style="border: 1px solid grey;">${member.member_phone_number}</td>
-            <td class="fw-semibold" style="color:#d01f2f;">${member.member_company_name}</td>
+            
             <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
             <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
             <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>

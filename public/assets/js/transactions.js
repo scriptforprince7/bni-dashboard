@@ -86,13 +86,13 @@ showLoader();
       regionsResponse,
       paymentTypeResponse,
     ] = await Promise.all([
-      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
-      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
-      fetch("https://bni-data-backend.onrender.com/api/chapters"),
-      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
-      fetch("https://bni-data-backend.onrender.com/api/regions"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      fetch("http://localhost:5000/api/allOrders"),
+      fetch("http://localhost:5000/api/allTransactions"),
+      fetch("http://localhost:5000/api/chapters"),
+      fetch("http://localhost:5000/api/paymentGateway"),
+      fetch("http://localhost:5000/api/universalLinks"),
+      fetch("http://localhost:5000/api/regions"),
+      fetch("http://localhost:5000/api/universalLinks"),
     ]);
 
     const orders = await ordersResponse.json();
@@ -555,7 +555,7 @@ if (filters.month && transaction.order_id) {
           try {
             // Step 1: Send request to save settlement data
             const saveResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+              `http://localhost:5000/api/orders/${orderId}/settlementStatus`,
               { method: 'GET' }
             );
     
@@ -568,7 +568,7 @@ if (filters.month && transaction.order_id) {
             const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
     
             const fetchResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+              `http://localhost:5000/api/settlement/${cfPaymentId}`
             );
     
             if (!fetchResponse.ok) {
@@ -580,7 +580,7 @@ if (filters.month && transaction.order_id) {
             // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
-              fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+              fetch(`http://localhost:5000/api/einvoice/${settlement.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -889,7 +889,7 @@ if (filters.month && transaction.order_id) {
 
                 try {
                   const backendResponse = await fetch(
-                    "https://bni-data-backend.onrender.com/einvoice/generate-irn",
+                    "http://localhost:5000/einvoice/generate-irn",
                     {
                       method: "POST",
                       headers: {
@@ -906,7 +906,7 @@ if (filters.month && transaction.order_id) {
                   
                     // Fetch IRN and QR code details after successful generation
                     const einvoiceResponse = await fetch(
-                      `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
+                      `http://localhost:5000/api/einvoice/${orderId}`
                     );
                     const einvoiceData = await einvoiceResponse.json();
                   
@@ -975,6 +975,83 @@ if (filters.month && transaction.order_id) {
           }
         });
       }
+    });
+
+    // Function to update transaction counts
+    function updateTransactionCounts() {
+        try {
+            // Get all rows from the transaction table
+            const rows = document.getElementsByTagName('tr');
+            let maxSerialNumber = 0;
+            
+            // Find the highest serial number in the table
+            for (let i = 1; i < rows.length; i++) {
+                const firstCell = rows[i].cells[0];
+                if (firstCell) {
+                    const serialNumber = parseInt(firstCell.textContent);
+                    if (!isNaN(serialNumber) && serialNumber > maxSerialNumber) {
+                        maxSerialNumber = serialNumber;
+                    }
+                }
+            }
+            
+            // Count rows with valid IRN values
+            let generatedInvoices = 0;
+            for (let i = 1; i < rows.length; i++) {
+                const irnCell = rows[i].querySelector('.irn');
+                if (irnCell && 
+                    irnCell.textContent && 
+                    irnCell.textContent.trim() !== 'Not Applicable' && 
+                    irnCell.textContent.trim() !== 'Not Available' &&
+                    irnCell.textContent.trim() !== 'Error Loading IRN' &&
+                    irnCell.textContent.trim() !== 'Loading...') {
+                    generatedInvoices++;
+                }
+            }
+            
+            const totalTransactions = maxSerialNumber;
+            const pendingInvoices = totalTransactions - generatedInvoices;
+            
+            // Update the counters in the UI
+            document.getElementById('no_of_transaction').textContent = totalTransactions;
+            document.getElementById('settled_transaction').textContent = generatedInvoices;
+            document.getElementById('not_settle_transaction').textContent = pendingInvoices;
+            
+            console.log('📊 Transaction Counts Updated:', {
+                total: totalTransactions,
+                generated: generatedInvoices,
+                pending: pendingInvoices,
+                maxSerialFound: maxSerialNumber,
+                timestamp: new Date().toLocaleTimeString()
+            });
+        } catch (error) {
+            console.error('Error in counting transactions:', error);
+        }
+    }
+
+    // Initial count
+    updateTransactionCounts();
+
+    // Set up a MutationObserver to watch for changes in the table
+    const observer = new MutationObserver(() => {
+        updateTransactionCounts();
+    });
+
+    // Start observing the table for changes
+    const table = document.querySelector('.table');
+    if (table) {
+        observer.observe(table, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    }
+
+    // Call updateTransactionCounts whenever settlement data is processed
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('track-settlement')) {
+            setTimeout(updateTransactionCounts, 2000); // Update after settlement processing
+        }
     });
   } catch (error) {
     console.error("Error loading data:", error);

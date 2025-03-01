@@ -386,7 +386,7 @@
                                ></label
                              >
                            </div>
-                           <div class="col-xl-6">
+                           <!-- <div class="col-xl-6">
                              <label for="member_gst_number" class="form-label"
                                >GSTIN Number *</label
                              >
@@ -399,7 +399,20 @@
                                placeholder="Enter GSTIN Number.."
                              />
                          
-                           </div>
+                           </div> -->
+
+                           <div class="col-xl-6">
+                            <label for="member_gst_number" class="form-label">GSTIN Number</label>
+                            <button type="button" class="btn btn-outline-info btn-sm" id="getGstDetailsBtn">Get GST Details</button>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="member_gst_number"
+                                name="member_gst_number"
+                                required
+                                placeholder="Enter GSTIN Number.."
+                            />
+                        </div>
 
                  <div class="col-xl-6">
                            <label for="member_company_name" class="form-label"
@@ -589,8 +602,10 @@
                                  />
                                </div>
 
+                               
+
                                <div class="col-xl-6">
-                                 <label for="meeting_opening_balance" class="form-label">Meeting Opening Balance</label>
+                                 <label for="meeting_opening_balance" class="form-label">Member Pending Balance</label>
                                  <input
                                    type="text"
                                    class="form-control"
@@ -1009,6 +1024,58 @@
          });
        });
      </script>
+     <script>
+      document.getElementById("getGstDetailsBtn").addEventListener("click", function () {
+          const gstNo = document.getElementById("member_gst_number").value.trim();
+    
+          if (gstNo === "") {
+              Swal.fire({
+                  icon: "warning",
+                  title: "Empty GST Number",
+                  text: "Please enter a valid GSTIN number.",
+              });
+              return;
+          }
+    
+          fetch(`https://bni-data-backend.onrender.com/einvoice/get-gst-details/${gstNo}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                    const details = data.extractedDetails;
+    const formattedDetails = `
+    <b>GSTIN:</b> ${details.gstin}<br><br>
+    <b>Trade Name:</b> ${details.tradeName}<br><br>
+    <b>Legal Name:</b> ${details.legalName}<br><br>
+    <b>Address:</b> ${details.address}<br><br>
+    <b>Taxpayer Type:</b> ${details.taxpayerType}<br><br>
+    <b>Status:</b> ${details.status}<br><br>
+    <b>Registration Date:</b> ${details.registrationDate}
+    `;
+    
+    Swal.fire({
+        icon: "success",
+        title: "<h4 style='font-size: 22px;'>GST Details Retrieved</h4>",
+        html: `<div style="font-size: 14px; text-align: left;">${formattedDetails}</div>`,  
+    });
+    
+                  } else {
+                      Swal.fire({
+                          icon: "error",
+                          title: "Error",
+                          text: data.message || "Failed to fetch GST details.",
+                      });
+                  }
+              })
+              .catch(error => {
+                  Swal.fire({
+                      icon: "error",
+                      title: "Error",
+                      text: "Something went wrong. Please try again later.",
+                  });
+                  console.error("Error fetching GST details:", error);
+              });
+      });
+    </script>
 
 
 <script>
@@ -1368,6 +1435,7 @@ document.addEventListener('DOMContentLoaded', function() {
       event.preventDefault();
       console.log('🚀 Starting form submission');
 
+
       try {
         const formData = new FormData();
         
@@ -1443,8 +1511,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1200);
 
       } catch (error) {
-        console.error('❌ Error:', error);
         toastr.error(error.message || 'An error occurred while adding member');
+
+        console.error('❌ Error:', error);
       }
     });
 

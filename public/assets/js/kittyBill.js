@@ -98,6 +98,14 @@ function hideLoader() {
                     const validBillingFrequencies = ['weekly', 'monthly', 'quartely', 'half_yearly', 'yearly'];
                     const billingFrequency = validBillingFrequencies.includes(chapter.kitty_billing_frequency) ? chapter.kitty_billing_frequency : 'weekly';
                     document.querySelector('#kitty_billing_frequency').value = billingFrequency;
+
+                     // Fetch hotel details using hotel_id from chapter
+                const hotelResponse = await fetch(`https://bni-data-backend.onrender.com/api/getHotels`);
+                const hotels = await hotelResponse.json();
+                const hotel = hotels.find(h => h.hotel_id === chapter.hotel_id);
+
+                // Update meeting venue with hotel name
+                document.querySelector('.meeting_venue').innerText = hotel ? hotel.hotel_name : 'N/A';
     
                     // Show chapter information
                     chapterInfo.style.display = 'block';

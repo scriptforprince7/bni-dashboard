@@ -235,9 +235,14 @@ const displayChapters = (chapters) => {
             <td style="border: 1px solid grey;"><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
             <td style="border: 1px solid grey;"><b>${chapter.kitty_billing_frequency || 'N/A'}</b></td>
             <td style="border: 1px solid grey;">
-                <span class="badge bg-${cleanStatus === 'running' ? 'success' : 'danger'}">
-                    ${cleanStatus.charAt(0).toUpperCase() + cleanStatus.slice(1)}
-                </span>
+               <span class="badge bg-${
+        cleanStatus === 'running' ? 'success' :
+        cleanStatus === 'pre-launch' ? 'warning' :
+        cleanStatus === 're-launch' ? 'info' :
+        'secondary'
+    }">
+        ${cleanStatus.charAt(0).toUpperCase() + cleanStatus.slice(1)}
+    </span>
             </td>
             <td>
                 <span class="badge bg-warning text-light" style="cursor:pointer;">
@@ -348,6 +353,18 @@ function applyFilters() {
 
         return matchesMeetingDay && matchesStatus && matchesRegion;
     });
+
+
+    if (window.BNI.state.filteredChapters.length === 0) {
+        console.log('No entries match the applied filters');
+        const tableBody = document.getElementById("chaptersTableBody");
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No entries match the applied filters</td></tr>';
+        }
+    } else {
+        console.log(`Found ${window.BNI.state.filteredChapters.length} matching chapters`);
+        displayChapters(window.BNI.state.filteredChapters);
+    }
 
     console.log(`Found ${window.BNI.state.filteredChapters.length} matching chapters`);
     displayChapters(window.BNI.state.filteredChapters);
