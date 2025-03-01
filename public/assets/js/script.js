@@ -490,7 +490,7 @@ function displayMembers(members) {
         
         // Create the photo URL if member_photo exists
         const photoUrl = member.member_photo 
-            ? `https://bni-data-backend.onrender.com/uploads/memberPhotos/${member.member_photo}`
+            ? `https://bni-data-backend.onrender.com/uploads/memberLogos/${member.member_photo}`
             : null;
         
         console.log('Photo processing for member:', {
