@@ -316,6 +316,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       available_fund,
     });
     console.log("Logged-in chapter ID:", chapterId);
+    const allvisi = await fetch("https://bni-data-backend.onrender.com/api/getAllVisitors").then(response => response.json());
+
+    const visitorAmount = allvisi.filter(visi => visi.chapter_id === chapterId);
+      const visitorAmountTotal = visitorAmount.reduce((sum, visitor) => {
+        return sum + parseFloat(visitor.sub_total || 0);
+      }, 0);
+
+
+      document.querySelector('#total_V_amount').textContent = `₹ ${visitorAmountTotal}`;
 
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
