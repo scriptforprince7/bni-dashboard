@@ -268,12 +268,13 @@ checkFiltersAndToggleResetButton();
       }, {});
 
       // Filter orders and transactions for the logged-in user
-      const filteredOrders = orders.filter(order => order.customer_id === member_id);
+      console.log('here starting member id:', member_id);
+
+      const filteredOrders = orders.filter(order => Number(order.customer_id) === Number(member_id));
       // const filteredOrders = orders.filter(order => order.customer_email === member_email);
       console.log('member email:', member_email);
       console.log('Filtering orders for member id:', member_id);
       console.log('Found filtered orders:', filteredOrders.length);
-
       // Get URL parameters for filtering
       const urlParams = new URLSearchParams(window.location.search);
       const selectedPaymentType = urlParams.get('payment_type');

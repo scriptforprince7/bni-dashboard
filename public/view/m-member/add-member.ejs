@@ -521,9 +521,7 @@
                                class="form-control" 
                                id="member_company_logo"
                                name="member_company_logo"
-                               accept="image/png, image/jpeg, image/jpg"
-                               required
-                             />
+                               accept="image/png, image/jpeg, image/jpg"                             />
                            </div>
                          </div>
                        </div>
@@ -620,14 +618,23 @@
                                    id="member_renewal_date"
                                    name="member_renewal_date"
                                    required
-                                  
                                  />
                                </div>
 
-                               
+                               <!-- New input for Last Renewal Date -->
+                               <div class="col-xl-6">
+                                 <label for="member_last_renewal_date" class="form-label">Last Renewal Date</label>
+                                 <input
+                                   type="date"
+                                   class="form-control"
+                                   id="member_last_renewal_date"
+                                   name="member_last_renewal_date"
+                                   placeholder="Enter Last Renewal Date.."
+                                 />
+                               </div>
 
                                <div class="col-xl-6">
-                                 <label for="meeting_opening_balance" class="form-label">Member Pending Balance</label>
+                                 <label for="meeting_opening_balance" class="form-label">Member Pending Balance (Meeting)</label>
                                  <input
                                    type="text"
                                    class="form-control"
@@ -1461,10 +1468,27 @@ document.addEventListener('DOMContentLoaded', function() {
         inputPlaceholder: 'Classification name',
         showCancelButton: true,
         confirmButtonText: 'Add',
-        preConfirm: (classification) => {
+        preConfirm: async (classification) => {
           if (!classification) {
             Swal.showValidationMessage('Please enter a classification name');
+            return;
           }
+
+          // Check if the classification already exists
+          try {
+            const response = await fetch('https://bni-data-backend.onrender.com/api/memberCategory');
+            const categories = await response.json();
+            const categoryExists = categories.some(category => category.category_name.toLowerCase() === classification.toLowerCase());
+
+            if (categoryExists) {
+              Swal.showValidationMessage('Category already exists');
+              return;
+            }
+          } catch (error) {
+            Swal.showValidationMessage('Error checking classification: ' + error.message);
+            return;
+          }
+
           return classification;
         }
       }).then((result) => {
