@@ -181,7 +181,7 @@ let opening_bill_entry_shown =0;
   
                 opening_bill_entry_shown = 1;
 
-                console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
+                // console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
                 paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                     currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
   
@@ -277,7 +277,7 @@ let opening_bill_entry_shown =0;
 
 
 
-              console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
+              // console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
               paid_amount_show += parseFloat(parseFloat(transaction.payment_amount) - parseFloat(order.tax));
                   currentBalance += parseFloat(parseFloat(transaction.payment_amount)-parseFloat(order.tax));
 
