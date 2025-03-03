@@ -78,29 +78,56 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
   try {
       showLoader();
       
-      // Step 1: Try getting member details from multiple sources
-      let member_id = localStorage.getItem('current_member_id');
-      let member_email = localStorage.getItem('current_member_email');
-      
-      console.log('=== Starting Member All Transactions ===');
-      console.log('Initial check from localStorage:', {
-          member_id: member_id,
-          member_email: member_email
-      });
+      // Step 1: Determine member details based on login type
+      let member_id;
+      let member_email;
 
-      // If not in localStorage, try getting from token
-      if (!member_email) {
+      const loginType = getUserLoginType();
+      console.log('User login type:', loginType);
+
+      if (loginType === "member") {
+          // If the user is a member, get the email from the token
           member_email = getUserEmail();
-          console.log('Retrieved from token:', {
+          console.log('Retrieved member email from token for member login:', member_email);
+
+          // Fetch member details to get member_id
+          console.log('Fetching members data from API..');
+          const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+          if (!response.ok) {
+              throw new Error('Failed to fetch member details');
+          }
+          const members = await response.json();
+          console.log('Received members data:', members);
+          console.log('Searching for member with email:', member_email);
+
+          const member = members.find(m => m.member_email_address === member_email);
+          if (member) {
+              member_id = member.member_id;
+              console.log('✅ Found matching member:', member);
+              console.log('Retrieved member_id from API:', member_id);
+          } else {
+              console.error('❌ No member found matching email:', member_email);
+              hideLoader();
+              return;
+          }
+      } else {
+          // Otherwise, use the email and ID from localStorage
+          member_id = localStorage.getItem('current_member_id');
+          member_email = localStorage.getItem('current_member_email');
+          console.log('Using member email and ID from localStorage for non-member login:', {
+              member_id: member_id,
               member_email: member_email
           });
       }
 
-      if (!member_email) {
-          console.error('No member email found from any source');
+      if (!member_email || !member_id) {
+          console.error('No member email or ID found from any source');
           hideLoader();
           return;
       }
+
+      console.log('member email:', member_email);
+      console.log('Filtering orders for member id:', member_id);
 
       // Fetch orders, transactions, and universal links
       const [ordersResponse, transactionsResponse, universalLinksResponse] = await Promise.all([
@@ -108,6 +135,10 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
           fetch('https://bni-data-backend.onrender.com/api/allTransactions'),
           fetch('https://bni-data-backend.onrender.com/api/universalLinks'),
       ]);
+
+      if (!ordersResponse.ok || !transactionsResponse.ok || !universalLinksResponse.ok) {
+          throw new Error('Failed to fetch data from one or more APIs');
+      }
 
       const orders = await ordersResponse.json();
       const transactions = await transactionsResponse.json();
@@ -236,12 +267,11 @@ checkFiltersAndToggleResetButton();
         return map;
       }, {});
 
+      // Filter orders and transactions for the logged-in user
+      const filteredOrders = orders.filter(order => order.customer_id === member_id);
+      // const filteredOrders = orders.filter(order => order.customer_email === member_email);
       console.log('member email:', member_email);
       console.log('Filtering orders for member id:', member_id);
-      // Filter orders and transactions for the logged-in user
-      // const filteredOrders = orders.filter(order => order.customer_id === member_id);
-      const filteredOrders = orders.filter(order => order.customer_email === member_email);
-
       console.log('Found filtered orders:', filteredOrders.length);
 
       // Get URL parameters for filtering
