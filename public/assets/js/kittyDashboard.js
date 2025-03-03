@@ -15,7 +15,7 @@ const monthNames = [
 let allKittys = []; // Store all kitty payments globally
 let filteredKittys = []; // Store filtered kitty payments globally after region/chapter filtering
 let allCredits = []; // Store all credit notes globally
-
+let allvisi = [];
 let allTotal = 0;
 let allreceived = 0;
 let allpending = 0;
@@ -34,7 +34,7 @@ function hideLoader() {
 async function fetchPayments() {
   try {
     showLoader();
-    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill] = await Promise.all([ 
+    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, visiPayment] = await Promise.all([ 
       fetch('https://bni-data-backend.onrender.com/api/regions').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/chapters').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments').then(res => res.json()),
@@ -44,9 +44,12 @@ async function fetchPayments() {
       fetch('https://bni-data-backend.onrender.com/api/members').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit').then(res => res.json()),
       fetch('https://bni-data-backend.onrender.com/api/getbankOrder').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getKittyPayments').then(res => res.json())
+      fetch('https://bni-data-backend.onrender.com/api/getKittyPayments').then(res => res.json()),
+      fetch('https://bni-data-backend.onrender.com/api/getAllVisitors').then(res => res.json())
 
     ]);
+    allvisi= visiPayment;
+
 
     console.log('Fetched all data successfully');
     console.log('------===------==-=----=-=-=-=-= active bill ',activeBill);
@@ -309,6 +312,7 @@ function displayPayments(kittys) {
   let grandTotalPaidExpenses = 0;
   let grandTotalPendingExpenses = 0;
   let grandTotalCreditNoteAmount = 0;
+  let totalvisi = 0;
 
   let singleEntryAvailableFund = 0;
   let singleEntrypending = 0;
@@ -348,18 +352,33 @@ function displayPayments(kittys) {
       console.log(`Available Fund: ₹${formatInIndianStyle(availableFund)}`);
       console.log(`Running Total Available Fund: ₹${formatInIndianStyle(grandTotalAvailableFund)}`);
       console.log('------------------------',kitty);
+      const creditAmount = allCredits.filter(credit => credit.chapter_id === kitty.chapter_id);
+      const chapterCreditTotal = creditAmount.reduce((sum, credit) => {
+        return sum + parseFloat(credit.credit_amount || 0);
+      }, 0);
+
+      const visitorAmount = allvisi.filter(visi => visi.chapter_id === kitty.chapter_id);
+      const visitorAmountTotal = visitorAmount.reduce((sum, visitor) => {
+        return sum + parseFloat(visitor.sub_total || 0);
+      }, 0);
+
+      totalvisi += parseInt(visitorAmountTotal);
 
       return `
         <tr>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.chapter_name || ""}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.memberCount || 0}</strong></td>
-          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(parseFloat(parseFloat(availableFund)+parseFloat(kitty.receivedPayments)- parseFloat(kitty.totalExpenses)))}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(parseFloat(parseFloat(availableFund)+parseFloat(kitty.receivedPayments)- parseFloat(kitty.totalExpenses) + parseFloat(visitorAmountTotal)))}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.receivedPayments || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalPending || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.totalExpenses || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(kitty.pendingExpenses || 0)}</strong></td>
           <td style="border: 1px solid lightgrey; text-align: center;"><strong>${kitty.latePayment}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${chapterCreditTotal}</strong></td>
+          <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${visitorAmountTotal}</strong></td>
+
+
         </tr>
       `;
     })
@@ -372,7 +391,7 @@ function displayPayments(kittys) {
   // console.log(`Total Pending Expenses: ₹${formatInIndianStyle(grandTotalPendingExpenses)}`);
   // console.log(`Total Credit Note Amount: ₹${formatInIndianStyle(grandTotalCreditNoteAmount)}`);
     console.log('all pending --------: ',allpending);
-  allTotal = parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses);
+  allTotal = parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses) + parseFloat(totalvisi) ;
 
 
   // Update the Total Available Fund display
@@ -380,6 +399,7 @@ function displayPayments(kittys) {
   if (totalAvailableFundElement) {
     console.log('Updating Total Available Fund display...');
     totalAvailableFundElement.textContent = `₹ ${formatInIndianStyle(allTotal)}`;
+    
     console.log('Total Available Fund display updated successfully');
   } else {
     console.error('Total Available Fund element not found in DOM');
@@ -392,6 +412,7 @@ function displayPayments(kittys) {
   document.querySelector('#totalKittyAmountReceived').textContent = `₹ ${formatInIndianStyle(allreceived)}`;
   document.querySelector('#totalKittyExpense').textContent =  `₹ ${formatInIndianStyle(allpending)}`;
   document.querySelector('#total_late_amount').textContent = totalLatePayment;
+  document.querySelector('#total_V_amount').textContent = `₹ ${formatInIndianStyle(totalvisi)}`;
   
 }
 
