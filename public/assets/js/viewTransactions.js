@@ -45,9 +45,33 @@ async function fetchAllOrders() {
                 displayTransactionDetails(order);
             }
 
-            if (order.customer_id) {
-                await fetchMemberAddress(order.customer_id);
+            // Check for visitor-payment case
+            if (order.payment_note === "visitor-payment") {
+                console.log('🛬 Handling Visitor Payment case');
+                console.log('Visitor Name:', order.visitor_name);
+                console.log('Visitor Email:', order.visitor_email);
+                console.log('Visitor Company:', order.visitor_company);
+                console.log('Visitor GSTIN:', order.visitor_gstin);
+
+                document.getElementById('member-name').textContent = order.visitor_name || "N/A";
+                document.getElementById('customer-email').textContent = order.visitor_email || "N/A";
+                document.getElementById('company-name').textContent = order.visitor_company || "N/A";
+                document.getElementById('company-gst').textContent = order.visitor_gstin || "N/A";
+            } else {
+                // Directly use order data to set member details
+                console.log('Setting member details from order API:');
+                console.log('Member Name:', order.member_name);
+                console.log('Customer Email:', order.customer_email);
+                console.log('Company:', order.company);
+                console.log('Company GST:', order.gstin);
+                console.log('Order Number:', order.order_id);
+
+                document.getElementById('member-name').textContent = order.member_name || "N/A";
+                document.getElementById('customer-email').textContent = order.customer_email || "N/A";
+                document.getElementById('company-name').textContent = order.company || "N/A";
+                document.getElementById('company-gst').textContent = order.gstin || "N/A";
             }
+            document.getElementById('order-number').textContent = order.order_id || "N/A";
         } else {
             console.error('Order not found');
         }
@@ -60,25 +84,25 @@ async function fetchAllOrders() {
 }
 
 // Function to fetch and display member address
-async function fetchMemberAddress(customerId) {
-    showLoader();
-    try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/members');
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const members = await response.json();
-        const member = members.find(member => member.member_id === customerId);
+// async function fetchMemberAddress(customerId) {
+//     showLoader();
+//     try {
+//         const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+//         if (!response.ok) {
+//             throw new Error('Network response was not ok');
+//         }
+//         const members = await response.json();
+//         const member = members.find(member => member.member_id === customerId);
 
-        if (member) {
-            document.querySelector('.billing-to-address').textContent = member.street_address_line_1 || "N/A"; // Display address
-        } else {
-            console.error('Member not found');
-        }
-    } catch (error) {
-        console.error('Error fetching member address:', error);
-    }
-}
+//         if (member) {
+//             document.querySelector('.billing-to-address').textContent = member.street_address_line_1 || "N/A"; // Display address
+//         } else {
+//             console.error('Member not found');
+//         }
+//     } catch (error) {
+//         console.error('Error fetching member address:', error);
+//     }
+// }
 
 // Function to fetch transactions for a specific order
 async function fetchTransactionsForOrder(orderId) {

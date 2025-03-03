@@ -475,6 +475,28 @@
                          
                            </div>
 
+                           <!-- New input for Legal Name -->
+                           <div class="col-xl-6">
+                             <label for="member_legal_name" class="form-label">Legal Name</label>
+                             <input
+                               type="text"
+                               class="form-control"
+                               id="member_legal_name"
+                               placeholder="Enter Legal Name.."
+                             />
+                           </div>
+
+                           <!-- New input for Registration Date -->
+                           <div class="col-xl-6">
+                             <label for="member_registration_date" class="form-label">Registration Date</label>
+                             <input
+                               type="text"
+                               class="form-control"
+                               id="member_registration_date"
+                               placeholder="Enter Registration Date.."
+                             />
+                           </div>
+
                            <div class="col-xl-6">
                              <label for="member_company_pincode" class="form-label"
                                >Postal Code *</label
@@ -499,9 +521,7 @@
                                class="form-control" 
                                id="member_company_logo"
                                name="member_company_logo"
-                               accept="image/png, image/jpeg, image/jpg"
-                               required
-                             />
+                               accept="image/png, image/jpeg, image/jpg"                             />
                            </div>
                          </div>
                        </div>
@@ -598,14 +618,23 @@
                                    id="member_renewal_date"
                                    name="member_renewal_date"
                                    required
-                                  
                                  />
                                </div>
 
-                               
+                               <!-- New input for Last Renewal Date -->
+                               <div class="col-xl-6">
+                                 <label for="member_last_renewal_date" class="form-label">Last Renewal Date</label>
+                                 <input
+                                   type="date"
+                                   class="form-control"
+                                   id="member_last_renewal_date"
+                                   name="member_last_renewal_date"
+                                   placeholder="Enter Last Renewal Date.."
+                                 />
+                               </div>
 
                                <div class="col-xl-6">
-                                 <label for="meeting_opening_balance" class="form-label">Member Pending Balance</label>
+                                 <label for="meeting_opening_balance" class="form-label">Member Pending Balance (Meeting)</label>
                                  <input
                                    type="text"
                                    class="form-control"
@@ -1055,7 +1084,38 @@
     Swal.fire({
         icon: "success",
         title: "<h4 style='font-size: 22px;'>GST Details Retrieved</h4>",
-        html: `<div style="font-size: 14px; text-align: left;">${formattedDetails}</div>`,  
+        html: `<div style="font-size: 14px; text-align: left;">${formattedDetails}</div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Add Automatically',
+        cancelButtonText: 'Add Manually'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Automatically populate fields after the alert is closed
+            document.getElementById("member_company_name").value = details.tradeName;
+            document.getElementById("member_company_address").value = details.address;
+
+            // Extract postal code and state from the address
+            const addressParts = details.address.split(',');
+            const postalCode = addressParts[addressParts.length - 1].match(/\d+/)[0];
+            const state = addressParts[addressParts.length - 2].trim();
+
+            document.getElementById("member_company_pincode").value = postalCode;
+            document.getElementById("member_company_state").value = state;
+
+            // Populate Legal Name, Registration Date, and Company City
+            document.getElementById("member_legal_name").value = details.legalName;
+            document.getElementById("member_registration_date").value = details.registrationDate;
+            document.getElementById("member_company_city").value = state;
+
+            console.log("Trade Name:", details.tradeName);
+            console.log("Address:", details.address);
+            console.log("Postal Code:", postalCode);
+            console.log("State:", state);
+            console.log("Legal Name:", details.legalName);
+            console.log("Registration Date:", details.registrationDate);
+        } else {
+            console.log("User chose to add details manually.");
+        }
     });
     
                   } else {
@@ -1408,10 +1468,27 @@ document.addEventListener('DOMContentLoaded', function() {
         inputPlaceholder: 'Classification name',
         showCancelButton: true,
         confirmButtonText: 'Add',
-        preConfirm: (classification) => {
+        preConfirm: async (classification) => {
           if (!classification) {
             Swal.showValidationMessage('Please enter a classification name');
+            return;
           }
+
+          // Check if the classification already exists
+          try {
+            const response = await fetch('https://bni-data-backend.onrender.com/api/memberCategory');
+            const categories = await response.json();
+            const categoryExists = categories.some(category => category.category_name.toLowerCase() === classification.toLowerCase());
+
+            if (categoryExists) {
+              Swal.showValidationMessage('Category already exists');
+              return;
+            }
+          } catch (error) {
+            Swal.showValidationMessage('Error checking classification: ' + error.message);
+            return;
+          }
+
           return classification;
         }
       }).then((result) => {
