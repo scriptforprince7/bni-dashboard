@@ -671,7 +671,8 @@ if (filters.month && transaction.order_id) {
                                       .then(data => {
                                           console.log("Response from backend:", data);
                                           if (data.success) {
-                                              Swal.fire("Cancelled!", "IRN has been cancelled successfully.", "success");
+                                              Swal.fire("Cancelled!", "IRN has been cancelled successfully.", "success").then(()=>{window.location.href = "/t/cancelled-irns"});
+                                              
                                           } else {
                                               Swal.fire("Error!", "Something went wrong.", "error");
                                           }
