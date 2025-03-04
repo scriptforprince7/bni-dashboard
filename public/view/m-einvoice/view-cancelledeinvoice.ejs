@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://www.bni.com/wp-content/uploads/2020/05/Favicon_final.jpg?x31798" rel="icon">
+	<title>Thank You for the payment | E-Invoice - BNI Management Software</title>
+	<meta name="author" content="harnishdesign.net">
+
+	<!-- Web Fonts
+======================= -->
+	<link rel='stylesheet' href='../../../css-2?family=Poppins:100,200,300,400,500,600,700,800,900' type='text/css'>
+
+	<!-- Stylesheet
+======================= -->
+	<link rel="stylesheet" type="text/css" href="../../assets/einvoice/vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../../assets/einvoice/vendor/font-awesome/css/all.min.css">
+	<link rel="stylesheet" type="text/css" href="../../assets/einvoice/css/stylesheet.css">
+	<style>
+		.lin {
+			border: 1px solid grey;
+		}
+		
+		/* Updated styles without rotation */
+		.invoice-container {
+			position: relative;
+		}
+		
+		.cancelled-stamp {
+			position: absolute;
+			top: 5px;
+			left: 12%;
+			transform: translateX(-50%); /* Only center horizontally */
+			opacity: 0.8;
+			width: 15%;
+			z-index: 1000;
+			pointer-events: none;
+            margin-bottom: 20px;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- Container -->
+	<div class="container-fluid invoice-container">
+		<!-- Cancelled stamp without rotation -->
+		<img src="https://static.vecteezy.com/system/resources/previews/021/433/002/non_2x/cancelled-rubber-stamp-free-png.png" 
+			 class="cancelled-stamp" 
+			 alt="Cancelled">
+		<div id="loader">
+			<img src="../../assets/images/media/loader.svg" alt="" />
+		  </div>
+		<!-- Header -->
+		<header>
+			<div class="row align-items-center gy-3">
+				<div class="col-sm-4 text-center text-sm-start">
+					<img id="dynamic-logo" width="200px">
+				</div>
+				<div class="col-sm-4 text-center text-sm-start">
+					<h2 style="font-family: Arial, Helvetica, sans-serif; font-weight: 500;">Tax Invoice</h2>
+				</div>
+				<div class="col-sm-4 text-center text-sm-end">
+					<img id="logo qr_code" class="qr_code" src="" title="qrcode"
+						alt="Koice" width="150px">
+				</div>
+			</div>
+			<div class="row align-items-center gy-3">
+				<div class="col-sm-4 text-center text-sm-start">
+					<span><b>IRN :</b></span> <span class="irn_number">a8165431fa267d6da3ca0fc55
+						ea82a9e831d91dabb8533c56d6421affc5b564f</span> <br>
+					<span><b>Ack No. :</b></span> <span class="ack_no">172416019112450</span> <br>
+					<span><b>Ack Date :</b></span> <span class="ack_date">11-Nov-2024</span> <br>
+				</div>
+			</div>
+			<hr>
+		</header>
+
+		<!-- Main Content -->
+		<main>
+			<div class="row">
+				<div class="col-sm-5"><strong>Dated:</strong> <span class="invoice_date"></span></div>
+				<div class="col-sm-3"><strong>Mode:</strong> <span class="payment_mode"></span></div>
+				<div class="col-sm-4 text-sm-end"> <strong>Invoice No:</strong> IDW-<span
+						class="">16835</span> </div>
+
+			</div>
+			<hr>
+			<div class="row">
+				<div class="col-sm-4 text-sm-end order-sm-1"> <i>Buyer (Bill to):</i>
+					<address>
+						<span class="bill_to_name"><strong></strong></span> <br>
+						<span class="bill_to_company"><strong></strong></span> <br>
+						<span class="bill_to_address"><br>
+							</span> <br>
+						<span><b>GSTIN/UIN:</b> <span class="bill_to_gst"></span></span>
+						<span><b>State Name :</b> <span class="bill_to_state"></span> </span>
+					</address>
+				</div>
+				
+				<div class="col-sm-4 order-sm-0"> <strong>ADI CORPORATE TRAINING</strong>
+					<address>
+						Pocket 1, Flat No. 09, Sector 19
+						Dwarka, New Delhi Delhi, 110075. <br>
+						<span><b>GSTIN/UIN:</b></span> 07AHIPK0486D1ZH <br>
+						<span><b>State Name :</b></span> Delhi, Code : 07
+					</address>
+				</div>
+
+				<div class="col-sm-4 text-sm-end order-sm-1"> <i>Consignee (Ship to):</i>
+					<address>
+						<span class="ship_to_company"><strong></strong></span> <br>
+						<span class="ship_to_address"><br>
+							</span> <br>
+						<span><b>GSTIN/UIN:</b> <span class="ship_to_gst"></span></span>
+						<span><b>State Name :</b> <span class="ship_to_state"></span> </span>
+					</address>
+				</div>
+
+				
+			</div>
+			<div class="table-responsive">
+				<table class="table border mb-0" style="border: 1px solid black;">
+					<thead style="border: 1px solid grey;">
+						<tr class="bg-light">
+							<td class="col-2 text-center lin"><strong>SI No.</strong></td>
+							<td class="col-3 lin"><strong>Particulars</strong></td>
+							<td class="col-2 text-center lin"><strong>HSN/SAC</strong></td>
+							<td class="col-2 text-center lin"><strong>Rate</strong></td>
+							<td class="col-2 text-end lin"><strong>Amount</strong></td>
+						</tr>
+					</thead>
+					<tbody style="border: 1px solid grey;">
+						<tr>
+							<td class="col-1 text-center lin">1</td>
+							<td class="col-3 lin payment_type"></td>
+							<td class="col-2 text-center lin">999511</td>
+							<td class="col-2 text-end lin base_amount"></td>
+							<td class="col-2 text-end lin base_amountt"></td>
+						</tr>
+
+					</tbody>
+				</table>
+			</div>
+			<div class="table-responsive">
+				<table class="table border border-top-0 mb-0">
+					<tr class="bg-light">
+					  <td class="text-end"><strong>Total Taxable Value :</strong></td>
+					  <td class="col-sm-2 text-end sub_total"></td>
+					</tr>
+					<tr class="bg-light igst-row">
+					  <td class="text-end"><strong>Add IGST (18%) :</strong></td>
+					  <td class="col-sm-2 text-end tax igst">₹0</td>
+					</tr>
+					<tr class="bg-light cgst-row">
+					  <td class="text-end"><strong>Add CGST (9%) :</strong></td>
+					  <td class="col-sm-2 text-end tax cgst">₹0</td>
+					</tr>
+					<tr class="bg-light sgst-row">
+					  <td class="text-end"><strong>Add SGST (9%) :</strong></td>
+					  <td class="col-sm-2 text-end tax sgst">₹0</td>
+					</tr>
+					<tr class="bg-light">
+					  <td class="text-end"><strong>Grand Total :</strong></td>
+					  <td class="col-sm-2 text-end grand_total"><b>₹0</b></td>
+					</tr>
+				  </table>
+				
+				<span>Amount Chargeable (in words):</span>
+				<p class="text-1 amount_in_words"><strong><em></strong></em></p>
+				
+			</div>
+			<div class="row align-items-center gy-3"  style="border: 1px dashed grey;">
+				<div class="col-sm-4 text-center text-sm-start">
+					<span><b>Transaction ID :</b></span> <span class="transaction_id">11-Nov-2024</span> <br>
+					<span><b>Order ID :</b></span> <span class="order_id">11-Nov-2024</span> <br>
+					<span><b>Payment Time :</b></span> <span class="">16:30:27sss</span> <br>
+					<span><b>Buyer Email :</b></span> <span class="buyer_email">16:30:27sss</span> <br>
+					<span><b>Buyer Phone :</b></span> <span class="buyer_phone">16:30:27sss</span> <br>
+				</div>
+			</div>
+		</main>
+		<!-- Footer -->
+		<footer class="text-center mt-4">
+
+			<p class="text-1"><strong>NOTE :</strong> This is computer generated receipt and does not require physical
+				signature.</p>
+
+			<div class="btn-group btn-group-sm d-print-none"> 
+				<a href="javascript:window.print()" class="btn btn-light border text-black-50 shadow-none">
+					<i class="fa fa-print"></i> Print & Download
+				</a>
+				<a href="/t/all-transactions" class="btn btn-light border text-black-50 shadow-none mx-2">
+					<i class="fa fa-arrow-left"></i> Back to Transactions
+				</a>
+			</div>
+		</footer>
+		<script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+		<script src="../../assets/js/einvoice.js"></script>
+		<script>
+            // Fetch logo on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                fetch("https://bni-data-backend.onrender.com/api/getDisplayLogo")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0 && data[0].display_image_name) {
+                            const displayImageName = data[0].display_image_name;
+                            const imagePath = `https://bni-data-backend.onrender.com/uploads/dynamicLogo/${displayImageName}`;
+                            
+                            // Update both logo images
+                            document.getElementById("dynamic-logo").src = imagePath;
+                        } else {
+                            console.error("No valid display image found in the API response.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching display logo:", error);
+                    });
+            });
+        </script>
+	</div>
+</body>
+
+</html>

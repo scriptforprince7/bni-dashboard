@@ -169,7 +169,8 @@ function showLoader() {
                 <td><span class="badge ${
                     transaction.payment_status === "SUCCESS" ? "bg-success" : "bg-danger"
                 }">${transaction.payment_status.toLowerCase()}</span></td>
-                <td><b><em>${order ? order.member_name : 'Unknown'}</em></b></td>
+                <td><b><em>${getDisplayName(order)}</em></b></td>
+                <td><b><em>${order ? order.payment_note : 'Unknown'}</em></b></td>
             `;
             
             transactionsBody.appendChild(row);
@@ -217,4 +218,12 @@ function getPaymentMethodDisplay(paymentMethod) {
     }
     return "Other";
 }
+
+// Helper function to get the correct name based on payment note
+const getDisplayName = (order) => {
+  if (order?.payment_note === 'visitor-payment') {
+    return order.visitor_name || 'Unknown Visitor';
+  }
+  return order?.member_name || 'Unknown';
+};
   
