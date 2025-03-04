@@ -570,7 +570,7 @@ updateRegistrationCount();
               const photoFileName = matchingMember.member_photo.split('/').pop(); // This will get the last part after '/'
               console.log('Extracted photo filename:', photoFileName);
               
-              const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${photoFileName}`;
+              const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberLogos/${photoFileName}`;
               console.log('Constructed photo URL:', photoUrl);
               
               // Test if image exists
@@ -1292,7 +1292,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (matchingMember && matchingMember.member_photo) {
                     // Extract just the filename from the member_photo path
                     const photoFileName = matchingMember.member_photo.split('/').pop();
-                    const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${photoFileName}`;
+                    const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberLogos/${photoFileName}`;
                     console.log('Constructed photo URL:', photoUrl);
                     
                     // Test if image exists

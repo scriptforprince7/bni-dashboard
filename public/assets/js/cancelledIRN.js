@@ -1,0 +1,1315 @@
+document.addEventListener("DOMContentLoaded", async () => {
+    // Get table body reference
+    const tableBody = document.getElementById('transactionsTableBody');
+    const noTransactionsRow = document.getElementById('no-transactions-row');
+
+    // Function to show loader
+    function showLoader() {
+        document.getElementById('loader').style.display = 'flex';
+    }
+
+    // Function to hide loader
+    function hideLoader() {
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    // Function to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Function to update the total count
+    function updateTotalCount(count) {
+        const totalCountElement = document.getElementById('no_of_transaction');
+        if (totalCountElement) {
+            totalCountElement.textContent = count;
+        }
+    }
+
+    try {
+        showLoader();
+
+        // Fetch all necessary data in parallel
+        const [
+            cancelledIRNResponse,
+            ordersResponse,
+            transactionsResponse,
+            chaptersResponse,
+            paymentGatewayResponse,
+            universalLinksResponse
+        ] = await Promise.all([
+            fetch('https://bni-data-backend.onrender.com/api/getCancelIrn'),
+            fetch('https://bni-data-backend.onrender.com/api/allOrders'),
+            fetch('https://bni-data-backend.onrender.com/api/allTransactions'),
+            fetch('https://bni-data-backend.onrender.com/api/chapters'),
+            fetch('https://bni-data-backend.onrender.com/api/paymentGateway'),
+            fetch('https://bni-data-backend.onrender.com/api/universalLinks')
+        ]);
+
+        const cancelledIRNs = await cancelledIRNResponse.json();
+        const orders = await ordersResponse.json();
+        const transactions = await transactionsResponse.json();
+        const chapters = await chaptersResponse.json();
+        const paymentGateways = await paymentGatewayResponse.json();
+        const universalLinks = await universalLinksResponse.json();
+
+        // Create maps for quick lookups
+        const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
+        const paymentGatewayMap = new Map(paymentGateways.map(gateway => [gateway.gateway_id, gateway.gateway_name]));
+        const universalLinkMap = new Map(universalLinks.map(link => [link.universal_link_id, link.universal_link_name]));
+
+        // Clear existing table rows
+        tableBody.innerHTML = '';
+
+        if (cancelledIRNs && cancelledIRNs.length > 0) {
+            // Hide no transactions message
+            if (noTransactionsRow) {
+                noTransactionsRow.style.display = 'none';
+            }
+
+            // Update total count
+            updateTotalCount(cancelledIRNs.length);
+
+            // Populate table with data
+            cancelledIRNs.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${formatDate(item.cancel_date)}</td>
+                    <td><em>${item.order_id}</em></td>
+                    <td>
+                        <span class="text-primary">${item.irn}</span>
+                        <br>
+                        <button class="btn btn-sm btn-primary mt-2 view-invoice-btn" 
+                                data-irn="${item.irn}" 
+                                data-order-id="${item.order_id}">
+                            View Invoice
+                        </button>
+                    </td>
+                    <td><span class="text-danger">${item.cancel_reason}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Add click event listeners to all View Invoice buttons
+            document.querySelectorAll('.view-invoice-btn').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const irn = this.getAttribute('data-irn');
+                    const orderId = this.getAttribute('data-order-id');
+                    
+                    try {
+                        showLoader();
+                        
+                        // Find the corresponding order and transaction
+                        const order = orders.find(o => o.order_id === orderId);
+                        const transaction = transactions.find(t => t.order_id === orderId);
+
+                        if (order && transaction) {
+                            // Get additional details from maps
+                            const chapterName = chapterMap.get(order.chapter_id) || "N/A";
+                            const gatewayName = paymentGatewayMap.get(order.payment_gateway_id) || "Unknown";
+                            const universalLinkName = universalLinkMap.get(order.universal_link_id) || "Not Applicable";
+
+                            // Fetch einvoice data using the correct endpoint
+                            const einvoiceResponse = await fetch(`https://bni-data-backend.onrender.com/api/einvoice/${orderId}`);
+                            const einvoiceData = await einvoiceResponse.json();
+
+                            // Prepare the complete data object
+                            const completeData = {
+                                orderId: {
+                                    ...order,
+                                    chapter_name: chapterName,
+                                    payment_gateway_name: gatewayName,
+                                    universal_link_name: universalLinkName,
+                                    irn: einvoiceData.irn || irn,
+                                    ack_no: einvoiceData.ack_no,
+                                    ack_dt: einvoiceData.ack_dt
+                                },
+                                transactionId: transaction,
+                                amount: transaction.payment_amount.toString(),
+                                chapterName,
+                                gatewayName,
+                                universalLinkName,
+                                billing_details: {
+                                    name: order.member_name || order.visitor_name || "Unknown",
+                                    email: order.customer_email,
+                                    phone: order.customer_phone,
+                                    gstin: order.gstin,
+                                    company: order.company
+                                },
+                                // Add einvoice details at the top level
+                                irn: einvoiceData.irn || irn,
+                                ack_no: einvoiceData.ack_no,
+                                ack_dt: einvoiceData.ack_dt
+                            };
+
+                            // Encode data for URL
+                            const encodedInvoiceData = encodeURIComponent(JSON.stringify(completeData));
+                            const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+                            
+                            // Open invoice in new window
+                            window.open(`/v/cancelledeinvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}`, '_blank');
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Order or transaction data not found'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error fetching data:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to fetch required data. Please try again later.'
+                        });
+                    } finally {
+                        hideLoader();
+                    }
+                });
+            });
+        } else {
+            // Show no transactions message
+            if (noTransactionsRow) {
+                noTransactionsRow.style.display = 'table-row';
+            }
+            updateTotalCount(0);
+        }
+
+        // Add search functionality
+        const searchInput = document.getElementById('searchChapterInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                const searchText = e.target.value.toLowerCase();
+                const rows = tableBody.getElementsByTagName('tr');
+
+                Array.from(rows).forEach(row => {
+                    const irn = row.getElementsByTagName('td')[3]?.textContent.toLowerCase();
+                    const orderId = row.getElementsByTagName('td')[2]?.textContent.toLowerCase();
+                    
+                    if (irn.includes(searchText) || orderId.includes(searchText)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        // Show error message in table
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-danger">
+                    Error loading data. Please try again later.
+                </td>
+            </tr>
+        `;
+        updateTotalCount(0);
+    } finally {
+        hideLoader();
+    }
+});
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const regionsDropdown = document.getElementById("region-filter");
+    const chaptersDropdown = document.getElementById("chapter-filter");
+    const monthsDropdown = document.getElementById("month-filter");
+    const paymentStatusDropdown = document.getElementById("payment-status-filter");
+    const paymentTypeDropdown = document.getElementById("payment-type-filter");
+    const paymentGatewayDropdown = document.getElementById("payment-gateway-filter");
+    const paymentMethodDropdown = document.getElementById("payment-method-filter");
+    // Function to show the loader
+  function showLoader() {
+    document.getElementById('loader').style.display = 'flex';
+  }
+  
+  // Function to hide the loader
+  function hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+  }
+  
+  // Populate a dropdown with options
+  const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
+    // Clear the dropdown
+    dropdown.innerHTML = '';
+  
+    // Add a default option
+    dropdown.innerHTML += `
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" data-value="">
+          ${defaultText}
+        </a>
+      </li>
+    `;
+  
+    // Add options dynamically
+    data.forEach(item => {
+      dropdown.innerHTML += `
+        <li>
+          <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
+            ${item[textField]}
+          </a>
+        </li>
+      `;
+    });
+  
+      // Attach event listeners
+      attachDropdownListeners(dropdown);
+    };
+  
+    const attachDropdownListeners = (dropdown) => {
+      // Find the dropdown toggle specific to the current dropdown
+      const dropdownToggle = dropdown.closest('.dropdown').querySelector('.dropdown-toggle');
+    
+      dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          // Remove 'active' class from all items in the dropdown
+          dropdown.querySelectorAll('.dropdown-item.active').forEach(activeItem => {
+            activeItem.classList.remove('active');
+          });
+    
+          // Add 'active' class to the selected item
+          item.classList.add('active');
+    
+          // Get the selected value and text
+          const selectedValue = item.getAttribute('data-value');
+          const selectedText = item.textContent.trim();
+    
+          // Update the specific dropdown's toggle label
+          if (dropdownToggle) {
+            dropdownToggle.textContent = selectedText;
+          }
+    
+          console.log(`Selected Value from ${dropdown.id}:`, selectedValue);
+        });
+      });
+    };
+  
+  showLoader();
+    try {
+      // Fetch data from all necessary endpoints
+      const [
+        ordersResponse,
+        transactionsResponse,
+        chaptersResponse,
+        paymentGatewayResponse,
+        universalLinksResponse,
+        regionsResponse,
+        paymentTypeResponse,
+      ] = await Promise.all([
+        fetch("https://bni-data-backend.onrender.com/api/allOrders"),
+        fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
+        fetch("https://bni-data-backend.onrender.com/api/chapters"),
+        fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
+        fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+        fetch("https://bni-data-backend.onrender.com/api/regions"),
+        fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      ]);
+  
+      const orders = await ordersResponse.json();
+      const transactions = await transactionsResponse.json();
+      const chapters = await chaptersResponse.json();
+      const paymentGateways = await paymentGatewayResponse.json();
+      const universalLinks = await universalLinksResponse.json();
+      const regions = await regionsResponse.json();
+      const paymentType = await paymentTypeResponse.json();
+  
+      // Populate region and chapter dropdowns
+      populateDropdown(regionsDropdown, regions, "region_id", "region_name", "Select Region");
+      populateDropdown(chaptersDropdown, chapters, "chapter_id", "chapter_name", "Select Chapter");
+      populateDropdown(paymentTypeDropdown, paymentType, "id", "universal_link_name", "Select Payment Type");
+      populateDropdown(paymentGatewayDropdown, paymentGateways, "gateway_id", "gateway_name", "Select Gateway");
+  
+      // Populate month dropdown
+  const populateMonthDropdown = () => {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    monthsDropdown.innerHTML = ""; // Clear existing options
+    months.forEach((month, index) => {
+      monthsDropdown.innerHTML += `<li>
+        <a class="dropdown-item" href="javascript:void(0);" data-value="${index + 1}">
+          ${month}
+        </a>
+      </li>`;
+    });
+    // Attach listeners after populating
+    attachDropdownListeners(monthsDropdown);
+  };
+  
+  // Call the function to populate months
+  populateMonthDropdown();
+  
+  // Populate payment status dropdown
+  const populatePaymentStatusDropdown = () => {
+    try {
+      const uniqueStatuses = [...new Set(transactions.map(transaction => transaction.payment_status))];
+      paymentStatusDropdown.innerHTML = ""; // Clear existing options
+      uniqueStatuses.forEach(status => {
+        paymentStatusDropdown.innerHTML += `<li>
+          <a class="dropdown-item" href="javascript:void(0);" data-value="${status.toUpperCase()}">
+            ${status}
+          </a>
+        </li>`;
+      });
+      // Attach listeners after populating
+      attachDropdownListeners(paymentStatusDropdown);
+    } catch (error) {
+      console.error("Error populating payment status dropdown:", error);
+    }
+  };
+  
+  populatePaymentStatusDropdown();
+  // Populate payment method dropdown
+  const populatePaymentMethodDropdown = () => {
+    try {
+      const uniqueMethods = [...new Set(transactions.map(transaction => transaction.payment_group))];
+      paymentMethodDropdown.innerHTML = ""; // Clear existing options
+      uniqueMethods.forEach(method => {
+        paymentMethodDropdown.innerHTML += `<li>
+          <a class="dropdown-item" href="javascript:void(0);" data-value="${method.toUpperCase()}">
+            ${method}
+          </a>
+        </li>`;
+      });
+      // Attach listeners after populating
+      attachDropdownListeners(paymentMethodDropdown);
+    } catch (error) {
+      console.error("Error populating payment method dropdown:", error);
+    }
+  };
+  
+  // Call the function to populate payment methods
+  populatePaymentMethodDropdown();
+  
+  // Function to check if there are any filters in the query parameters
+  function checkFiltersAndToggleResetButton() {
+    const urlParams = new URLSearchParams(window.location.search);
+  
+    // Check if any query parameters exist (indicating filters are applied)
+    if (urlParams.toString()) {
+      // Show the Reset Filter button if filters are applied
+      document.getElementById("reset-filters-btn").style.display = "inline-block";
+    } else {
+      // Hide the Reset Filter button if no filters are applied
+      document.getElementById("reset-filters-btn").style.display = "none";
+    }
+  }
+  
+  // Call this function on page load to check the filters
+  window.addEventListener("load", checkFiltersAndToggleResetButton);
+  
+  // Attach event listener to a "Filter" button or trigger
+  document.getElementById("apply-filters-btn").addEventListener("click", () => {
+    // Capture selected values
+    const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const chapterId = chaptersDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const month = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const paymentStatus = paymentStatusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const paymentType = paymentTypeDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const paymentGateway = paymentGatewayDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+    const paymentMethod = (paymentMethodDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '').toLowerCase();
+  
+  
+    // Construct the query string
+    const queryParams = new URLSearchParams();
+  
+    if (regionId) queryParams.append('region_id', regionId);
+    if (chapterId) queryParams.append('chapter_id', chapterId);
+    if (month) queryParams.append('month', month);
+    if (paymentStatus) queryParams.append('payment_status', paymentStatus);
+    if (paymentType) queryParams.append('payment_type', paymentType);
+    if (paymentGateway) queryParams.append('payment_gateway', paymentGateway);
+    if (paymentMethod) queryParams.append('payment_method', paymentMethod);
+  
+    // Redirect to the filtered URL
+    const filterUrl = `/t/all-transactions?${queryParams.toString()}`;
+    window.location.href = filterUrl;
+  });
+  
+  // Attach event listener to "Reset Filter" button to clear query params
+  document.getElementById("reset-filters-btn").addEventListener("click", () => {
+    // Clear all query parameters from the URL
+    const url = new URL(window.location);
+    url.search = ''; // Remove query parameters
+  
+    // Reload the page without filters (cleared query string)
+    window.location.href = url.toString();
+  });
+  
+  // Check for filters on page load
+  checkFiltersAndToggleResetButton();
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const filters = {
+    region_id: urlParams.get("region_id"),
+    chapter_id: urlParams.get("chapter_id"),
+    month: urlParams.get("month"),
+    payment_status: urlParams.get("payment_status"),
+    payment_type: urlParams.get("payment_type"),
+    payment_gateway: urlParams.get("payment_gateway"),
+    payment_method: urlParams.get("payment_method"),
+  };
+  
+  // Show filters in the console for debugging
+  console.log(filters);
+  
+  
+  // Filter transactions based on the region_id
+  const filteredTransactions = transactions.filter((transaction) => {
+    let isValid = true;
+  
+    // console.log("Checking transaction for region:", transaction.order_id);
+  
+    if (filters.region_id && transaction.order_id) {
+      const order = orders.find(order => order.order_id === transaction.order_id);
+      if (order) {
+        // Ensure both region_id values are strings (or numbers)
+        const orderRegionId = String(order.region_id);  // Convert to string
+        const filterRegionId = String(filters.region_id);  // Convert to string
+  
+        // Compare as strings (or numbers, depending on the data type)
+        if (orderRegionId !== filterRegionId) {
+          isValid = false;
+        }
+      } else {
+        console.log(`No matching order found for transaction ${transaction.order_id}`);
+      }
+    }
+  
+    if (filters.chapter_id && transaction.order_id) {
+      const order = orders.find(order => order.order_id === transaction.order_id);
+  
+      if (order) {
+        // Ensure both region_id values are strings (or numbers)
+        const orderChapterId = String(order.chapter_id);  // Convert to string
+        const filterChapterId = String(filters.chapter_id);  // Convert to string
+  
+        // Compare as strings (or numbers, depending on the data type)
+        if (orderChapterId !== filterChapterId) {
+          isValid = false;
+        }
+      } else {
+        console.log(`No matching order found for transaction ${transaction.order_id}`);
+      }
+    }
+  
+    if (filters.payment_type && transaction.order_id) {
+      const order = orders.find(order => order.order_id === transaction.order_id);
+  
+      if (order) {
+        // Ensure both region_id values are strings (or numbers)
+        const orderPaymentId = String(order.universal_link_id);  // Convert to string
+        const filterPaymentId = String(filters.payment_type);  // Convert to string
+  
+        // Compare as strings (or numbers, depending on the data type)
+        if (orderPaymentId !== filterPaymentId) {
+          isValid = false;
+        }
+      } else {
+        console.log(`No matching order found for transaction ${transaction.order_id}`);
+      }
+    }
+  
+    if (filters.payment_gateway && transaction.order_id) {
+      const order = orders.find(order => order.order_id === transaction.order_id);
+  
+      if (order) {
+        // Ensure both region_id values are strings (or numbers)
+        const orderGatewayId = String(order.payment_gateway_id);  // Convert to string
+        const filterGatewayId = String(filters.payment_gateway);  // Convert to string
+  
+        // Compare as strings (or numbers, depending on the data type)
+        if (orderGatewayId !== filterGatewayId) {
+          isValid = false;
+        }
+      } else {
+        console.log(`No matching order found for transaction ${transaction.order_id}`);
+      }
+    }
+  
+    if (filters.payment_status && transaction.order_id) {
+      const order = orders.find(order => order.order_id === transaction.order_id);
+  
+      if (order) {
+        // Ensure both region_id values are strings (or numbers)
+        const orderPaymentStatus = transaction.payment_status; 
+        const filterPaymentStatus = filters.payment_status;
+  
+        // Compare as strings (or numbers, depending on the data type)
+        if (orderPaymentStatus !== filterPaymentStatus) {
+          isValid = false;
+        }
+      } else {
+        console.log(`No matching order found for transaction ${transaction.order_id}`);
+      }
+    }
+  
+    if (filters.payment_method && transaction.order_id) {
+      const order = orders.find(order => order.order_id === transaction.order_id);
+  
+      if (order) {
+        // Ensure both region_id values are strings (or numbers)
+        const orderPaymentMethodStatus = transaction.payment_group; 
+        const filterPaymentMethodStatus = filters.payment_method;
+  
+        // Compare as strings (or numbers, depending on the data type)
+        if (orderPaymentMethodStatus !== filterPaymentMethodStatus) {
+          isValid = false;
+        }
+      } else {
+        console.log(`No matching order found for transaction ${transaction.order_id}`);
+      }
+    }
+  
+    // Assuming `filters.month` is the selected month filter (e.g., "4" for April)
+  if (filters.month && transaction.order_id) {
+    const order = orders.find(order => order.order_id === transaction.order_id);
+  
+    if (order) {
+      // Ensure both the order's created_at and the filter are in comparable formats
+      const orderDate = new Date(order.created_at);  // Convert the created_at string to a Date object
+      const orderMonth = orderDate.getMonth() + 1; // Get the month (1-12, because we add 1 to zero-indexed value)
+      const filterMonth = parseInt(filters.month, 10); // Convert the filter to an integer
+  
+      // Compare the months (both are now 1-12 values)
+      if (orderMonth !== filterMonth) {
+        isValid = false;
+      }
+    } else {
+      console.log(`No matching order found for transaction ${transaction.order_id}`);
+    }
+  }
+  
+    return isValid;
+  });
+  
+      // Map chapter names by chapter_id for quick access
+      const chapterMap = new Map();
+      chapters.forEach((chapter) => {
+        chapterMap.set(chapter.chapter_id, chapter.chapter_name);
+      });
+  
+      // Map payment gateway names by gateway_id for quick access
+      const paymentGatewayMap = new Map();
+      paymentGateways.forEach((gateway) => {
+        paymentGatewayMap.set(gateway.gateway_id, gateway.gateway_name);
+      });
+  
+      // Map universal link names by id for quick access
+      const universalLinkMap = new Map();
+      universalLinks.forEach((link) => {
+        universalLinkMap.set(link.id, link.universal_link_name);
+      });
+  
+      // Initialize totals
+      let totalTransactionAmount = 0;
+      let settledPayments = 0;
+      let pendingPayments = 0;
+  
+      // Sort transactions by payment time (latest first)
+      filteredTransactions.sort(
+        (a, b) => new Date(b.payment_time) - new Date(a.payment_time)
+      );
+  
+      // Get the table body to insert rows
+      const tableBody = document.querySelector(".table tbody");
+  
+      filteredTransactions.forEach((transaction, index) => {
+        // console.log("Transaction in filtered list:", transaction);
+        // Find the associated order
+        const order = orders.find(
+          (order) => order.order_id === transaction.order_id
+        );
+        // Get chapter name from chapterMap
+        const chapterName = chapterMap.get(order?.chapter_id) || "N/A";
+  
+        // Get gateway name from paymentGatewayMap using order's gateway_id
+        const gatewayName =
+          paymentGatewayMap.get(order?.payment_gateway_id) || "Unknown";
+  
+        // Get universal link name from universalLinkMap using order's universal_link_id
+        const universalLinkName =
+          universalLinkMap.get(order?.universal_link_id) || "Not Applicable";
+  
+        // Update total transaction amount
+        const transactionAmount = parseFloat(transaction.payment_amount);
+        totalTransactionAmount += transactionAmount;
+  
+        // Check payment status and update settled or pending totals
+        if (transaction.payment_status === "SUCCESS") {
+          settledPayments += transactionAmount;
+        } else if (transaction.payment_status === "PENDING") {
+          pendingPayments += transactionAmount;
+        }
+  
+        // Determine payment method
+        let paymentMethod = "N/A";
+        let paymentImage = "";
+        if (transaction.payment_method) {
+          if (transaction.payment_method.upi) {
+            paymentMethod = "UPI";
+            paymentImage =
+              '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
+          } else if (transaction.payment_method.card) {
+            paymentMethod = "Card";
+            paymentImage =
+              '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
+          } else if (transaction.payment_method.netbanking) {
+            paymentMethod = "Net Banking";
+            paymentImage =
+              '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
+          } else if (transaction.payment_method.wallet) {
+            paymentMethod = "Wallet";
+            paymentImage =
+              '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+          }
+        }
+  
+        // Format date and amount
+        const formattedDate = new Date(
+          transaction.payment_time
+        ).toLocaleDateString("en-GB");
+        const formattedAmount = `+ ₹${transactionAmount.toLocaleString("en-IN")}`;
+  
+        // Create a new row for the table
+        const row = document.createElement("tr");
+        row.classList.add("invoice-list");
+  
+        let actionButton;
+        let invoiceButton;
+        let utrValue = '<em>Not Available</em>';
+        let settlementValue = '<em>Not Available</em>';
+        let irnValue = '<em>Not Applicable</em>';
+        let qrcodeValue = '<em>Not Applicable</em>';
+        let cancelIrnValue = '<em>Not Applicable</em>';
+  
+        console.log('Checking payment method for transaction:', transaction.order_id);
+        console.log('Payment method structure:', transaction.payment_method);
+  
+        if (transaction.payment_method?.payment_method?.cash?.channel === "cash collect") {
+            console.log('✅ Cash payment detected for order:', transaction.order_id);
+            actionButton = `
+                <button class="btn btn-sm btn-success" disabled>
+                    <i class="ti ti-check me-1"></i>
+                    Payment Settled
+                </button>
+            `;
+            invoiceButton = `
+                <a href="#" data-order-id="${transaction.order_id}" 
+                   class="btn btn-sm btn-success btn-wave waves-light generate-invoice">
+                    Generate E-Invoice
+                </a>
+            `;
+            
+            // Set static values for cash payments
+            utrValue = '<em>Cash Payment</em>';
+            settlementValue = '<em>Cash Payment</em>';
+            irnValue = '<em>Cash Payment</em>';
+            qrcodeValue = '<em>Cash Payment</em>';
+        } else {
+            console.log('🔄 Non-cash payment detected for order:', transaction.order_id);
+            actionButton = `
+                <a href="#" data-transaction-id="${transaction.order_id}" 
+                   class="btn btn-sm btn-outline-danger btn-wave waves-light track-settlement">
+                    Track Settlement
+                </a>
+            `;
+            invoiceButton = "Not Applicable";
+        }
+  
+        // Get the member name based on universal link type
+        const getMemberName = (order, universalLinkName) => {
+          if (universalLinkName === "Visitors Payment") {
+            return order?.visitor_name || "Unknown Visitor";
+          }
+          return order?.member_name || "Unknown";
+        };
+  
+        row.innerHTML = `
+                  <td>${index + 1}</td>
+                  <td>${formattedDate}</td>
+                  <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
+                    getMemberName(order, universalLinkName)
+                  }</td>
+                  <td><b><em>${chapterName}</em></b></td>
+                  <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${
+          transaction.order_id
+        }" class="fw-medium text-success">View</a></td>
+                  <td>${paymentImage} ${paymentMethod}</td>
+                  <td><em>${transaction.order_id}</em></td>
+                  <td><b><em>${transaction.cf_payment_id}</em></b></td>
+                  <td><span class="badge ${
+                    transaction.payment_status === "SUCCESS"
+                      ? "bg-success"
+                      : "bg-danger"
+                  }">${transaction.payment_status.toLowerCase()}</span></td>
+                  <td><b><em>${gatewayName}</em></b></td>
+                  <td><em>${universalLinkName}</em></td>
+                  <td>${actionButton}</td>
+                  <td class="utr-cell">${utrValue}</td>
+                  <td class="settlement-time">${settlementValue}</td>
+                  <td class="irn">${irnValue}</td>
+                  <td class="qrcode">${qrcodeValue}</td>
+                  <td class="generate-invoice-btn">${invoiceButton}</td>
+                  <td class="cancel-invoice-btn">${cancelIrnValue}</td>
+              `;
+  
+        tableBody.appendChild(row);
+      
+      });
+  
+        // Add event listener for "Track Settlement" buttons
+        document.addEventListener('click', async (event) => {
+          if (event.target.classList.contains('track-settlement')) {
+            event.preventDefault();
+      
+            const button = event.target;
+            const originalText = button.textContent; // Store the original button text
+            button.textContent = 'Loading...'; // Display loading text
+            button.disabled = true; // Disable the button to prevent multiple clicks
+            const orderId = button.dataset.transactionId;
+      
+            try {
+              // Step 1: Send request to save settlement data
+              const saveResponse = await fetch(
+                `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+                { method: 'GET' }
+              );
+      
+              if (!saveResponse.ok) {
+                throw new Error('Failed to save settlement data.');
+              }
+      
+              // Step 2: Fetch settlement data using cf_payment_id
+              const row = button.closest('tr');
+              const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
+      
+              const fetchResponse = await fetch(
+                `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+              );
+      
+              if (!fetchResponse.ok) {
+                throw new Error('Failed to fetch settlement data.');
+              }
+      
+              const { settlement } = await fetchResponse.json();
+      
+              // Step 3: Update the table row based on settlement data
+              if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
+  
+                fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+                .then(response => response.json())
+                .then(einvoiceData => {
+                    const irnCell = row.querySelector(".irn");
+                    const qrcodeCell = row.querySelector(".qrcode");
+                    const btnCell = row.querySelector(".generate-invoice-btn");
+                    const cancelIrnBtn = row.querySelector(".cancel-invoice-btn");
+                    const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
+                    const orderId = settlement.order_id;
+                    const orderr = orders.find((o) => o.order_id === orderId);
+                    const transaction = transactions.find((t) => t.order_id === orderId);
+                    const chapterName = chapterMap.get(settlement?.chapter_id) || "N/A";
+                    const gatewayName = paymentGatewayMap.get(settlement?.payment_gateway_id) || "Unknown";
+                    const universalLinkName = universalLinkMap.get(settlement?.universal_link_id) || "Not Applicable";
+          
+                    const invoiceData = {
+                      orderId: orderr,
+                      transactionId: transaction,
+                      amount: transaction.payment_amount,
+                      chapterName: chapterName,
+                      gatewayName: gatewayName,
+                      universalLinkName: universalLinkName,
+                    };
+          
+                    // Display the IRN or a message if not available
+                    irnCell.innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
+                    cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+  
+                    cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
+                      const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
+                  
+                      Swal.fire({
+                          title: "Are you sure?",
+                          html: `Are you sure to cancel IRN for <b>${irn}</b>?`, // Make only IRN bold
+                          icon: "warning",
+                          showCancelButton: true,
+                          confirmButtonText: "Yes, Cancel IRN",
+                          cancelButtonText: "No"
+                      }).then((result) => {
+                          if (result.isConfirmed) {
+                              Swal.fire({
+                                  title: "Enter Cancel Reason",
+                                  input: "textarea",
+                                  inputPlaceholder: "Enter the reason for cancellation...",
+                                  showCancelButton: true,
+                                  confirmButtonText: "Cancel IRN",
+                                  preConfirm: (reason) => {
+                                      if (!reason) {
+                                          Swal.showValidationMessage("Please enter a reason!");
+                                      }
+                                      return reason;
+                                  }
+                              }).then((reasonResult) => {
+                                  if (reasonResult.isConfirmed) {
+                                      console.log("IRN:", irn);
+                                      console.log("Cancel Reason:", reasonResult.value);
+                                  }
+                              });
+                          }
+                      });
+                  });
+                  
+                                    
+          
+                    // Check if both IRN and QR code are available
+                    if (einvoiceData.irn && einvoiceData.qrcode) {
+                        // Update the Generate E-Invoice button to View E-Invoice with link
+                        const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+                        const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+                        btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+                    }
+          
+                    // Check if QR code is already stored in localStorage for this order
+                    if (localStorage.getItem(qrCodeKey)) {
+                        // If QR code is stored, show the QR code image
+                        qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+                    } else if (einvoiceData.qrcode) {
+                        // If QR code is available but not yet stored, show the button
+                        qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+          
+                        // Add event listener to the button to display loading and then the QR code
+                        row.querySelector(".generate-qr-btn").addEventListener("click", () => {
+                            // Show "Loading..." message or spinner
+                            qrcodeCell.innerHTML = "<em>Loading...</em>";
+          
+                            // Simulate loading for 3-4 seconds
+                            setTimeout(() => {
+                                // Generate the QR code using the qrcode.js library
+                                const qrCodeData = einvoiceData.qrcode;
+          
+                                // Generate the QR code and set it as an image
+                                QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+                                    if (err) {
+                                        console.error('Error generating QR Code:', err);
+                                        qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
+                                    } else {
+                                        // Store the generated QR code URL in localStorage
+                                        localStorage.setItem(qrCodeKey, url);
+          
+                                        // Display the generated QR code
+                                        qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
+                                    }
+                                });
+                            }, 3000); // Delay for 3 seconds
+                        });
+                    } else {
+                        qrcodeCell.innerHTML = "<em>Not Applicable</em>";
+                    }
+                })
+                .catch(() => {
+                    row.querySelector(".irn").innerHTML = "<em>Error Loading IRN</em>";
+                    row.querySelector(".qrcode").innerHTML = "<em>Error Loading QR Code</em>";
+                });
+                button.textContent = 'Payment Settled ✔';
+                button.classList.remove('btn-success');
+                button.classList.add('btn-success');
+                button.setAttribute('disabled', 'true');
+              
+                let e_invoice = row.querySelector('.generate-invoice-btn');
+                e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>
+                `;
+      
+                // Add UTR ID cell dynamically if it doesn't exist
+                let utrCell = row.querySelector('.utr-cell');
+                let settlementTime = row.querySelector('.settlement-time');
+                if (!utrCell) {
+                  utrCell = document.createElement('td');
+                  utrCell.classList.add('utr-cell');
+                  utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+                  row.appendChild(utrCell);
+                } else {
+                  utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+                }
+                if (!settlementTime) {
+                  settlementTime = document.createElement('td');
+                  settlementTime.classList.add('utr-cell');
+                
+                  // Format the transfer time
+                  const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+                    dateStyle: 'medium', // Example: Jul 25, 2021
+                    timeStyle: 'short', // Example: 7:27 AM
+                  });
+                
+                  settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+                  row.appendChild(settlementTime);
+                } else {
+                  // Format the transfer time
+                  const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+                    dateStyle: 'medium', // Example: Jul 25, 2021
+                    timeStyle: 'short', // Example: 7:27 AM
+                  });
+                
+                  settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+                }
+                
+              } else {
+                // Only show "in process" toaster if NOT in auto-tracking mode
+                if (!window.isAutoTracking) {
+                    toastr.info('Settlement in process. Please track after some time.');
+                }
+                button.textContent = originalText; // Restore button text
+                button.disabled = false; // Re-enable the button
+              }
+            } catch (error) {
+              // Only show error toaster if NOT in auto-tracking mode
+              if (!window.isAutoTracking) {
+                  toastr.error('An error occurred while tracking the settlement.');
+              }
+              console.error('Error tracking settlement:', error.message);
+              button.textContent = originalText; // Restore button text
+              button.disabled = false; // Re-enable the button
+            }
+          }
+        });
+      
+  
+      // Add this right after the table population loop ends
+      function autoClickTrackSettlements() {
+          console.log('🚀 Starting auto-click process after table population');
+          
+          window.isAutoTracking = true;
+          console.log('🔄 Setting auto-tracking flag');
+          
+          const buttons = document.querySelectorAll('.track-settlement');
+          console.log(`📊 Found ${buttons.length} track settlement buttons`);
+          
+          buttons.forEach((button, index) => {
+              setTimeout(async () => {
+                  const orderId = button.dataset.transactionId;
+                  const row = button.closest('tr');
+                  
+                  // Get date directly from the second column
+                  const dateInTable = row.cells[1].textContent.trim();
+                  
+                  // Get today's date in same format (DD/MM/YYYY)
+                  const today = new Date();
+                  const todayString = today.toLocaleDateString('en-GB'); // This gives DD/MM/YYYY
+                  
+                  console.log(`Checking: Table date: ${dateInTable}, Today: ${todayString}`);
+                  
+                  const currentText = button.textContent.trim();
+  
+                  if (currentText !== 'Payment Settled ✔') {
+                      button.click();
+                      
+                      setTimeout(() => {
+                          const newText = button.textContent.trim();
+                          if (newText === 'Payment Settled ✔') {
+                              // Only show toaster if date matches today exactly
+                              if (dateInTable === todayString) {
+                                  toastr.success('Payment successfully settled!');
+                              }
+                          }
+                      }, 100);
+                  }
+              }, index * 500);
+          });
+  
+          setTimeout(() => {
+              window.isAutoTracking = false;
+              console.log('✅ Auto-tracking completed');
+          }, (buttons.length * 500) + 1000);
+      }
+  
+      // Call the function immediately after table population
+      console.log('📋 Table populated, initiating auto-click');
+      autoClickTrackSettlements();
+  
+      // Display the totals
+      document.querySelector(
+        ".count-up[data-count='385']"
+      ).textContent = `₹ ${totalTransactionAmount.toLocaleString("en-IN")}`;
+      document.querySelectorAll(
+        ".count-up"
+      )[1].textContent = `₹ ${settledPayments.toLocaleString("en-IN")}`;
+      document.querySelectorAll(
+        ".count-up"
+      )[2].textContent = `₹ ${pendingPayments.toLocaleString("en-IN")}`;
+  
+      document.addEventListener("click", (event) => {
+        if (event.target.classList.contains("generate-invoice")) {
+          event.preventDefault();
+  
+          // Get the order and transaction details, as in your original code
+          const orderId = event.target.getAttribute("data-order-id");
+          const order = orders.find((o) => o.order_id === orderId);
+          const transaction = transactions.find((t) => t.order_id === orderId);
+          const chapterName = chapterMap.get(order?.chapter_id) || "N/A";
+          const gatewayName =
+            paymentGatewayMap.get(order?.payment_gateway_id) || "Unknown";
+          const universalLinkName =
+            universalLinkMap.get(order?.universal_link_id) || "Not Applicable";
+  
+          // SweetAlert for confirmation, as in your original code
+          Swal.fire({
+            title: "Are you sure?",
+            text: `You are about to generate IRN and QR code for Order ID: ${orderId} and Transaction ID: ${transaction.cf_payment_id}.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Generate!",
+            cancelButtonText: "No, Cancel",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              Swal.fire({
+                title: "Please check the details",
+                html: `
+                        <strong>Order ID:</strong> ${orderId}<br>
+                        <strong>Transaction ID:</strong> ${transaction.cf_payment_id}<br>
+                        <strong>Chapter Name:</strong> ${chapterName}<br>
+                        <strong>Payment Gateway:</strong> ${gatewayName}<br>
+                        <strong>Universal Link:</strong> ${universalLinkName}<br>
+                        <strong>Amount:</strong> ₹ ${transaction.payment_amount}
+                      `,
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonText: "Confirm and Generate",
+                cancelButtonText: "Cancel",
+              }).then(async (secondResult) => {
+                if (secondResult.isConfirmed) {
+                  const invoiceData = {
+                    orderId: order,
+                    transactionId: transaction,
+                    amount: transaction.payment_amount,
+                    chapterName: chapterName,
+                    gatewayName: gatewayName,
+                    universalLinkName: universalLinkName,
+                  };
+  
+                  // Show the "Fetching IRN and QR code" loading SweetAlert
+            let timerInterval;
+            const loadingSwal = Swal.fire({
+              title: "Fetching IRN and QR code",
+              html: "Please wait while we fetch the IRN and QR code...",
+              timer: 2000,
+              timerProgressBar: true,
+              didOpen: () => {
+                Swal.showLoading();
+                const timer = Swal.getPopup().querySelector("b");
+                timerInterval = setInterval(() => {
+                  timer.textContent = `${Swal.getTimerLeft()}`;
+                }, 4000);
+              },
+              willClose: () => {
+                clearInterval(timerInterval);
+              }
+            });
+  
+                  try {
+                    const backendResponse = await fetch(
+                      "https://bni-data-backend.onrender.com/einvoice/generate-irn",
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(invoiceData),
+                      }
+                    );
+  
+                    const responseData = await backendResponse.json();
+                    if (backendResponse.ok) {
+                      // Success response handling
+                      Swal.fire("Success", responseData.message, "success");
+                    
+                      // Fetch IRN and QR code details after successful generation
+                      const einvoiceResponse = await fetch(
+                        `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
+                      );
+                      const einvoiceData = await einvoiceResponse.json();
+                    
+                      const transactionRow = event.target.closest("tr");
+                      const qrCodeKey = `qrCode_${orderId}`; // Unique key for each order
+                    
+                      // Display the IRN or a message if not available
+                      transactionRow.querySelector(".irn").innerHTML =
+                        einvoiceData.irn || "<em>Not Applicable</em>";
+                    
+                      // Check if QR code is already stored in localStorage for this order
+                      if (localStorage.getItem(qrCodeKey)) {
+                        // If QR code is stored, show the QR code image
+                        transactionRow.querySelector(".qrcode").innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="30" height="30">`;
+                      } else if (einvoiceData.qrcode) {
+                        // If QR code is available but not yet stored, show the button
+                        const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+                        const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+                        transactionRow.querySelector(".qrcode").innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+                        transactionRow.querySelector(".generate-invoice-btn").innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+                    
+                        // Add event listener to the button to display loading and then the QR code
+                        transactionRow.querySelector(".generate-qr-btn").addEventListener("click", () => {
+                          // Show "Loading..." message
+                          transactionRow.querySelector(".qrcode").innerHTML = "<em>Loading...</em>";
+                    
+                          // Simulate loading for 3-4 seconds
+                          setTimeout(() => {
+                            // Generate the QR code using the qrcode.js library
+                            const qrCodeData = einvoiceData.qrcode;
+                  
+                            // Generate the QR code and set it as an image
+                            QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+                              if (err) {
+                                console.error('Error generating QR Code:', err);
+                                transactionRow.querySelector(".qrcode").innerHTML = "<em>Error generating QR Code</em>";
+                              } else {
+                                // Store the generated QR code URL in localStorage
+                                localStorage.setItem(qrCodeKey, url);
+                  
+                                // Display the generated QR code
+                                transactionRow.querySelector(".qrcode").innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
+                              }
+                            });
+                          }, 3000); // Delay for 3 seconds
+                        });
+                      } else {
+                        transactionRow.querySelector(".qrcode").innerHTML = "<em>Not Applicable</em>";
+                      }
+                  }
+                  
+                    else {
+                      // Error response handling
+                      Swal.fire("Error", responseData.message, "error");
+                    }
+                  } catch (error) {
+                    // Handle any fetch errors
+                    Swal.fire(
+                      "Error",
+                      "There was an issue connecting to the server. Please try again later.",
+                      "error"
+                    );
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+  
+      // Function to update transaction counts
+      function updateTransactionCounts() {
+          try {
+              // Get all rows from the transaction table
+              const rows = document.getElementsByTagName('tr');
+              let maxSerialNumber = 0;
+              
+              // Find the highest serial number in the table
+              for (let i = 1; i < rows.length; i++) {
+                  const firstCell = rows[i].cells[0];
+                  if (firstCell) {
+                      const serialNumber = parseInt(firstCell.textContent);
+                      if (!isNaN(serialNumber) && serialNumber > maxSerialNumber) {
+                          maxSerialNumber = serialNumber;
+                      }
+                  }
+              }
+              
+              // Count rows with valid IRN values
+              let generatedInvoices = 0;
+              for (let i = 1; i < rows.length; i++) {
+                  const irnCell = rows[i].querySelector('.irn');
+                  if (irnCell && 
+                      irnCell.textContent && 
+                      irnCell.textContent.trim() !== 'Not Applicable' && 
+                      irnCell.textContent.trim() !== 'Not Available' &&
+                      irnCell.textContent.trim() !== 'Error Loading IRN' &&
+                      irnCell.textContent.trim() !== 'Loading...') {
+                      generatedInvoices++;
+                  }
+              }
+              
+              const totalTransactions = maxSerialNumber;
+              const pendingInvoices = totalTransactions - generatedInvoices;
+              
+              // Update the counters in the UI
+              document.getElementById('no_of_transaction').textContent = totalTransactions;
+              document.getElementById('settled_transaction').textContent = generatedInvoices;
+              document.getElementById('not_settle_transaction').textContent = pendingInvoices;
+              
+              console.log('📊 Transaction Counts Updated:', {
+                  total: totalTransactions,
+                  generated: generatedInvoices,
+                  pending: pendingInvoices,
+                  maxSerialFound: maxSerialNumber,
+                  timestamp: new Date().toLocaleTimeString()
+              });
+          } catch (error) {
+              console.error('Error in counting transactions:', error);
+          }
+      }
+  
+      // Initial count
+      updateTransactionCounts();
+  
+      // Set up a MutationObserver to watch for changes in the table
+      const observer = new MutationObserver(() => {
+          updateTransactionCounts();
+      });
+  
+      // Start observing the table for changes
+      const table = document.querySelector('.table');
+      if (table) {
+          observer.observe(table, {
+              childList: true,
+              subtree: true,
+              characterData: true
+          });
+      }
+  
+      // Call updateTransactionCounts whenever settlement data is processed
+      document.addEventListener('click', (event) => {
+          if (event.target.classList.contains('track-settlement')) {
+              setTimeout(updateTransactionCounts, 2000); // Update after settlement processing
+          }
+      });
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      hideLoader();
+  }
+  });
+  
+  
+  
+  // Define and inject CSS styles in JavaScript
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .generate-qr-btn {
+      color: transparent;
+      cursor: pointer;
+      text-align: center;
+      background: linear-gradient(90deg, red, blue, red);
+      background-size: 200% 100%;
+      background-clip: text;
+      -webkit-background-clip: text; /* for Safari */
+      animation: gradient-move 1s infinite linear;
+    }
+  
+    @keyframes gradient-move {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 0%; }
+    }
+  
+  `;
+  
+  // Append the style to the head of the document
+  document.head.appendChild(style);

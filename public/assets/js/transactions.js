@@ -508,11 +508,19 @@ if (filters.month && transaction.order_id) {
           invoiceButton = "Not Applicable";
       }
 
+      // Get the member name based on universal link type
+      const getMemberName = (order, universalLinkName) => {
+        if (universalLinkName === "Visitors Payment") {
+          return order?.visitor_name || "Unknown Visitor";
+        }
+        return order?.member_name || "Unknown";
+      };
+
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
                 <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
-                  order?.member_name || "Unknown"
+                  getMemberName(order, universalLinkName)
                 }</td>
                 <td><b><em>${chapterName}</em></b></td>
                 <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${
@@ -606,51 +614,78 @@ if (filters.month && transaction.order_id) {
         
                   // Display the IRN or a message if not available
                   irnCell.innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
-                  cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
-
-                  cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
-                    const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
-                
-                    Swal.fire({
-                        title: "Are you sure?",
-                        html: `Are you sure to cancel IRN for <b>${irn}</b>?`, // Make only IRN bold
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Yes, Cancel IRN",
-                        cancelButtonText: "No"
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            Swal.fire({
-                                title: "Enter Cancel Reason",
-                                input: "textarea",
-                                inputPlaceholder: "Enter the reason for cancellation...",
-                                showCancelButton: true,
-                                confirmButtonText: "Cancel IRN",
-                                preConfirm: (reason) => {
-                                    if (!reason) {
-                                        Swal.showValidationMessage("Please enter a reason!");
-                                    }
-                                    return reason;
-                                }
-                            }).then((reasonResult) => {
-                                if (reasonResult.isConfirmed) {
-                                    console.log("IRN:", irn);
-                                    console.log("Cancel Reason:", reasonResult.value);
-                                }
-                            });
-                        }
-                    });
-                });
                 
                                   
         
                   // Check if both IRN and QR code are available
                   if (einvoiceData.irn && einvoiceData.qrcode) {
-                      // Update the Generate E-Invoice button to View E-Invoice with link
-                      const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
-                      const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
-                      btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
-                  }
+                    // Update the Generate E-Invoice button to View E-Invoice with link
+                    const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+                    const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+                    btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+                    cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+
+                    cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
+                      const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
+                  
+                      Swal.fire({
+                          title: "Are you sure?",
+                          html: `Are you sure to cancel IRN for <b>${irn}</b>?`, // Make only IRN bold
+                          icon: "warning",
+                          showCancelButton: true,
+                          confirmButtonText: "Yes, Cancel IRN",
+                          cancelButtonText: "No"
+                      }).then((result) => {
+                          if (result.isConfirmed) {
+                              Swal.fire({
+                                  title: "Enter Cancel Reason",
+                                  input: "textarea",
+                                  inputPlaceholder: "Enter the reason for cancellation...",
+                                  showCancelButton: true,
+                                  confirmButtonText: "Cancel IRN",
+                                  preConfirm: (remarks) => {
+                                      if (!remarks) {
+                                          Swal.showValidationMessage("Please enter a reason!");
+                                      }
+                                      return remarks;
+                                  }
+                              }).then((reasonResult) => {
+                                  if (reasonResult.isConfirmed) {
+                                      const remarks = reasonResult.value;
+                                      console.log("IRN:", irn);
+                                      console.log("Cancel Remarks:", remarks);
+                  
+                                      // Send data to backend
+                                      fetch("https://bni-data-backend.onrender.com/einvoice/cancel-irn", {
+                                          method: "POST",
+                                          headers: {
+                                              "Content-Type": "application/json"
+                                          },
+                                          body: JSON.stringify({
+                                              Irn: irn,
+                                              CnlRsn: 1, // Always 1
+                                              CnlRem: remarks
+                                          })
+                                      })
+                                      .then(response => response.json())
+                                      .then(data => {
+                                          console.log("Response from backend:", data);
+                                          if (data.success) {
+                                              Swal.fire("Cancelled!", "IRN has been cancelled successfully.", "success");
+                                          } else {
+                                              Swal.fire("Error!", "Something went wrong.", "error");
+                                          }
+                                      })
+                                      .catch(error => {
+                                          console.error("Error:", error);
+                                          Swal.fire("Error!", "Failed to cancel IRN.", "error");
+                                      });
+                                  }
+                              });
+                          }
+                      });
+                  });
+                }
         
                   // Check if QR code is already stored in localStorage for this order
                   if (localStorage.getItem(qrCodeKey)) {
