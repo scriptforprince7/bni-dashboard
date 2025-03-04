@@ -483,7 +483,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // document.querySelector('.total_weeks').textContent= `${total_weeks}`;
         document.querySelector("#total_available_amount").textContent =
           indianCurrencyFormatter.format(
-            parseFloat(available_fund) - parseFloat(total_paid_expense)
+            parseFloat(available_fund) - parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal)
           );
         document.querySelector("#total_expense_amount").textContent =
           indianCurrencyFormatter.format(total_paid_expense);
@@ -540,7 +540,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             "N/A";
           document.querySelector("#total_available_amount").textContent =
             indianCurrencyFormatter.format(
-              parseFloat(available_fund) - parseFloat(total_paid_expense)
+              parseFloat(available_fund) - parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal)
             );
           const tableBody = document.getElementById("paymentsTableBody");
           const row = document.createElement("tr");
@@ -700,7 +700,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           let availableAmount =
             parseFloat(available_fund) -
             parseFloat(total_paid_expense) +
-            parseFloat(ReceivedAmount);
+            parseFloat(ReceivedAmount) + parseFloat(visitorAmountTotal);
           const formattedAvailableAmount =
             indianCurrencyFormatter.format(availableAmount);
           document.getElementById("totalKittyAmountReceived").textContent =
@@ -757,7 +757,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       document.querySelector(".total_weeks").textContent = `${total_weeks}`;
       document.querySelector("#total_available_amount").textContent =
         indianCurrencyFormatter.format(
-          parseFloat(available_fund) - parseFloat(total_paid_expense)
+          parseFloat(available_fund) - parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal)
         );
       // expense
 
@@ -814,7 +814,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       document.querySelector(".total_weeks").textContent = `${total_weeks}`;
       document.querySelector("#total_available_amount").textContent =
         indianCurrencyFormatter.format(
-          parseFloat(available_fund) - parseFloat(total_paid_expense)
+          parseFloat(available_fund) - parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal)
         );
 
       document.querySelector("#total_expense_amount").textContent =
@@ -998,7 +998,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       indianCurrencyFormatter.format(total_paid_expense);
     let availableAmount =
       parseFloat(available_fund) -
-      parseFloat(total_paid_expense) +
+      parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal) +
       parseFloat(ReceivedAmount);
     const formattedAvailableAmount =
       indianCurrencyFormatter.format(availableAmount);
