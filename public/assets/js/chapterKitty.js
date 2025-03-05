@@ -889,7 +889,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.log("=====================================r===", transactionDate);
       // find current member
       currentChapterMember = chapterMembersWithBalance.find(
-        (member) => member.member_email_address === order.customer_email
+        (member) => member.member_id === order.customer_id
       );
       console.log("Current Member:", currentChapterMember);
       console.log("current member id:", currentChapterMember.member_id);
