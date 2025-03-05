@@ -23,21 +23,22 @@
 			border: 1px solid grey;
 		}
 		
-		/* Updated styles without rotation */
+		/* Updated styles for centered and larger cancelled stamp */
 		.invoice-container {
 			position: relative;
+			min-height: 100vh; /* Ensure container takes full height */
 		}
 		
 		.cancelled-stamp {
 			position: absolute;
-			top: 5px;
-			left: 12%;
-			transform: translateX(-50%); /* Only center horizontally */
-			opacity: 0.8;
-			width: 15%;
+			top: 50%;        /* Center vertically */
+			left: 50%;       /* Center horizontally */
+			transform: translate(-50%, -50%); /* Perfect centering */
+			opacity: 0.4;    /* Make it slightly more transparent */
+			width: 60%;      /* Make it bigger (increased from 15%) */
 			z-index: 1000;
 			pointer-events: none;
-            margin-bottom: 20px;
+			margin-bottom: 20px;
 		}
 	</style>
 </head>

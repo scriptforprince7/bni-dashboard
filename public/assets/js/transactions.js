@@ -397,6 +397,9 @@ if (filters.month && transaction.order_id) {
     let settledPayments = 0;
     let pendingPayments = 0;
 
+    // Initialize total GST counter at the start of your code
+    let totalGSTAmount = 0;
+
     // Sort transactions by payment time (latest first)
     filteredTransactions.sort(
       (a, b) => new Date(b.payment_time) - new Date(a.payment_time)
@@ -433,6 +436,37 @@ if (filters.month && transaction.order_id) {
         pendingPayments += transactionAmount;
       }
 
+      // Only calculate and add GST if payment status is SUCCESS
+      if (transaction.payment_status === "SUCCESS") {
+        const gstRate = 0.18;
+        const gstAmount = Math.round(transactionAmount * gstRate); // Direct 18% of total amount
+        totalGSTAmount += gstAmount;
+        
+        console.log('💰 Transaction Details:', {
+            '🔢 Order ID': transaction.order_id,
+            '💵 Total Amount': `₹${transactionAmount.toLocaleString("en-IN")}`,
+            '📊 GST Rate': '18%',
+            '💸 GST Amount': `₹${gstAmount.toLocaleString("en-IN")}`,
+            '🏦 Running GST Total': `₹${totalGSTAmount.toLocaleString("en-IN")}`
+        });
+      } else {
+        console.log('⚠️ Skipped Transaction:', {
+            '🔢 Order ID': transaction.order_id,
+            '💵 Amount': `₹${transactionAmount.toLocaleString("en-IN")}`,
+            '❌ Status': transaction.payment_status
+        });
+      }
+
+      // Calculate GST and Actual Amount
+      const gstRate = 0.18; // 18% GST
+      const gstAmount = Math.round((transactionAmount * gstRate) / (1 + gstRate)); // GST amount
+      const actualAmount = Math.round(transactionAmount - gstAmount); // Actual amount without GST
+
+      // Format all amounts with Indian currency format
+      const formattedTotalAmount = `₹${transactionAmount.toLocaleString("en-IN")}`;
+      const formattedActualAmount = `₹${actualAmount.toLocaleString("en-IN")}`;
+      const formattedGSTAmount = `₹${gstAmount.toLocaleString("en-IN")}`;
+
       // Determine payment method
       let paymentMethod = "N/A";
       let paymentImage = "";
@@ -460,7 +494,6 @@ if (filters.month && transaction.order_id) {
       const formattedDate = new Date(
         transaction.payment_time
       ).toLocaleDateString("en-GB");
-      const formattedAmount = `+ ₹${transactionAmount.toLocaleString("en-IN")}`;
 
       // Create a new row for the table
       const row = document.createElement("tr");
@@ -515,7 +548,8 @@ if (filters.month && transaction.order_id) {
         }
         return order?.member_name || "Unknown";
       };
-
+      // <td><b>${actualAmount}</b></td>
+      // <td><b>${gstAmount}</b></td>
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
@@ -523,9 +557,10 @@ if (filters.month && transaction.order_id) {
                   getMemberName(order, universalLinkName)
                 }</td>
                 <td><b><em>${chapterName}</em></b></td>
-                <td><b>${formattedAmount}</b><br><a href="/t/view-invoice?order_id=${
+                <td><b>${formattedTotalAmount}</b><br><a href="/t/view-invoice?order_id=${
         transaction.order_id
       }" class="fw-medium text-success">View</a></td>
+               
                 <td>${paymentImage} ${paymentMethod}</td>
                 <td><em>${transaction.order_id}</em></td>
                 <td><b><em>${transaction.cf_payment_id}</em></b></td>
@@ -623,9 +658,11 @@ if (filters.month && transaction.order_id) {
                     const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
                     const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
                     btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
-                    cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+                    cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-success" disabled style="opacity: 0.5;">
+                        Already Cancelled ✓
+                    </button>`;
 
-                    cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
+                    cancelIrnBtn.querySelector(".btn-success").addEventListener("click", function () {
                       const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
                   
                       Swal.fire({
@@ -802,17 +839,15 @@ if (filters.month && transaction.order_id) {
         const buttons = document.querySelectorAll('.track-settlement');
         console.log(`📊 Found ${buttons.length} track settlement buttons`);
         
+        // First click all buttons
         buttons.forEach((button, index) => {
             setTimeout(async () => {
                 const orderId = button.dataset.transactionId;
                 const row = button.closest('tr');
                 
-                // Get date directly from the second column
                 const dateInTable = row.cells[1].textContent.trim();
-                
-                // Get today's date in same format (DD/MM/YYYY)
                 const today = new Date();
-                const todayString = today.toLocaleDateString('en-GB'); // This gives DD/MM/YYYY
+                const todayString = today.toLocaleDateString('en-GB');
                 
                 console.log(`Checking: Table date: ${dateInTable}, Today: ${todayString}`);
                 
@@ -824,20 +859,57 @@ if (filters.month && transaction.order_id) {
                     setTimeout(() => {
                         const newText = button.textContent.trim();
                         if (newText === 'Payment Settled ✔') {
-                            // Only show toaster if date matches today exactly
                             if (dateInTable === todayString) {
                                 toastr.success('Payment successfully settled!');
                             }
                         }
                     }, 100);
                 }
-            }, index * 500);
+            }, index * 1000); // Increased delay between clicks
         });
+
+        // Wait for IRNs to load, then check them
+        setTimeout(() => {
+            console.log('[CHECK] Starting IRN verification after delay');
+            
+            const irnCells = document.querySelectorAll('.irn');
+            irnCells.forEach((irnCell, index) => {
+                const currentIrn = irnCell.textContent.trim();
+                console.log(`[IRN ${index + 1}] Current value:`, currentIrn);
+                
+                if (currentIrn && currentIrn !== 'Not Applicable' && currentIrn !== 'Not Available') {
+                    console.log(`[COMPARE] Checking IRN against cancelled list:`, currentIrn);
+                    
+                    const isCancelled = cancelledIrnData.some(item => {
+                        const matches = item.irn === currentIrn;
+                        console.log(`[MATCH] Comparing:`, {
+                            currentIrn: currentIrn,
+                            cancelledIrn: item.irn,
+                            matches: matches
+                        });
+                        return matches;
+                    });
+
+                    if (isCancelled) {
+                        const row = irnCell.closest('tr');
+                        const cancelCell = row.querySelector('.cancel-invoice-btn');
+                        console.log(`[UPDATE] Marking IRN as cancelled:`, currentIrn);
+                        
+                        if (cancelCell) {
+                            cancelCell.innerHTML = `
+                                <button class="btn btn-sm btn-success" disabled style="opacity: 0.7;">
+                                    Already Cancelled ✓
+                                </button>`;
+                        }
+                    }
+                }
+            });
+        }, (buttons.length * 1000) + 1000); // Wait for all buttons plus 5 seconds
 
         setTimeout(() => {
             window.isAutoTracking = false;
             console.log('✅ Auto-tracking completed');
-        }, (buttons.length * 500) + 1000);
+        }, (buttons.length * 1000) + 6000);
     }
 
     // Call the function immediately after table population
@@ -1019,6 +1091,8 @@ if (filters.month && transaction.order_id) {
             // Get all rows from the transaction table
             const rows = document.getElementsByTagName('tr');
             let maxSerialNumber = 0;
+            let cancelledIrns = 0;
+            let generatedInvoices = 0;
             
             // Find the highest serial number in the table
             for (let i = 1; i < rows.length; i++) {
@@ -1031,32 +1105,45 @@ if (filters.month && transaction.order_id) {
                 }
             }
             
-            // Count rows with valid IRN values
-            let generatedInvoices = 0;
+            // Count rows with valid IRN values and cancelled IRNs
             for (let i = 1; i < rows.length; i++) {
-                const irnCell = rows[i].querySelector('.irn');
+                const row = rows[i];
+                const irnCell = row.querySelector('.irn');
+                const cancelCell = row.querySelector('.cancel-invoice-btn');
+                
+                // Check for valid IRN
                 if (irnCell && 
                     irnCell.textContent && 
                     irnCell.textContent.trim() !== 'Not Applicable' && 
                     irnCell.textContent.trim() !== 'Not Available' &&
                     irnCell.textContent.trim() !== 'Error Loading IRN' &&
                     irnCell.textContent.trim() !== 'Loading...') {
-                    generatedInvoices++;
+                    
+                    // Check if this IRN is cancelled
+                    if (cancelCell && 
+                        cancelCell.textContent.includes('Already Cancelled')) {
+                        cancelledIrns++;
+                    } else {
+                        // Only count as generated invoice if NOT cancelled
+                        generatedInvoices++;
+                    }
                 }
             }
             
             const totalTransactions = maxSerialNumber;
-            const pendingInvoices = totalTransactions - generatedInvoices;
+            const pendingInvoices = totalTransactions - (generatedInvoices + cancelledIrns); // Updated calculation
             
             // Update the counters in the UI
             document.getElementById('no_of_transaction').textContent = totalTransactions;
             document.getElementById('settled_transaction').textContent = generatedInvoices;
             document.getElementById('not_settle_transaction').textContent = pendingInvoices;
+            document.getElementById('cancelled_irns').textContent = cancelledIrns;
             
             console.log('📊 Transaction Counts Updated:', {
                 total: totalTransactions,
                 generated: generatedInvoices,
                 pending: pendingInvoices,
+                cancelled: cancelledIrns,
                 maxSerialFound: maxSerialNumber,
                 timestamp: new Date().toLocaleTimeString()
             });
@@ -1089,14 +1176,36 @@ if (filters.month && transaction.order_id) {
             setTimeout(updateTransactionCounts, 2000); // Update after settlement processing
         }
     });
+
+    // Final summary log
+    console.log('📑 Final GST Summary:', {
+        '💰 Total GST Collected': `₹${totalGSTAmount.toLocaleString("en-IN")}`,
+        '✅ Formula Used': 'Amount × 0.18'
+    });
+
+    // Update the GST amount display
+    document.getElementById('total_gst_amount').textContent = `₹${totalGSTAmount.toLocaleString("en-IN")}`;
   } catch (error) {
     console.error("Error loading data:", error);
   } finally {
     hideLoader();
 }
+
+// Add at the start of your file
+let cancelledIrnData = [];
+
+// Fetch cancelled IRNs first
+fetch('https://bni-data-backend.onrender.com/api/getCancelIrn')
+    .then(response => response.json())
+    .then(data => {
+        console.log('[INIT] Stored cancelled IRNs:', data);
+        cancelledIrnData = data.map(item => {
+            console.log('[DATA] Cancelled IRN:', item.irn);
+            return item;
+        });
+    })
+    .catch(error => console.error('[ERROR] Failed to fetch cancelled IRNs:', error));
 });
-
-
 
 // Define and inject CSS styles in JavaScript
 const style = document.createElement('style');
