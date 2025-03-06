@@ -93,16 +93,14 @@
                                   />
                                 </div> 
                                 <div class="col-xl-6">
-                                  <label for="training_venue" class="form-label"
-                                    >Training Venue</label
-                                  >
-                                  <input
-                                    type="text"
-                                    class="form-control"
-                                    id="training_venue"
-                                    name="training_venue"
-                                    placeholder="The Roseate House.."
-                                  />
+                                  <label for="training_venue" class="form-label">Training Venue</label>
+                                  <div class="dropdown">
+                                      <input type="text" class="form-control" id="training_venue" name="training_venue" 
+                                             placeholder="Select venue..." readonly data-bs-toggle="dropdown"/>
+                                      <ul class="dropdown-menu w-100" id="hotel-dropdown">
+                                          <!-- Hotels will be populated here -->
+                                      </ul>
+                                  </div>
                                 </div> 
           
                                 <div class="col-xl-6">

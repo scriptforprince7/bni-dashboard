@@ -70,10 +70,56 @@ async function fetchAndDisplayCompanyName() {
     }
 }
 
-// Call the function when page loads
+// Add this function to fetch and populate hotels
+async function fetchAndPopulateHotels() {
+    try {
+        console.log('🏨 Fetching hotels data...');
+        const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
+        const hotels = await response.json();
+        console.log('📍 Fetched hotels:', hotels);
+
+        const hotelDropdown = document.getElementById('hotel-dropdown');
+        hotelDropdown.innerHTML = ''; // Clear existing options
+
+        hotels.forEach(hotel => {
+            // Only add active hotels
+            if (hotel.is_active) {
+                const venueText = `${hotel.hotel_name} - ${hotel.hotel_address}`;
+                console.log('🏢 Adding hotel option:', venueText);
+
+                const li = document.createElement('li');
+                li.innerHTML = `<a class="dropdown-item" href="javascript:void(0);" 
+                                 data-hotel-id="${hotel.hotel_id}"
+                                 data-hotel-name="${hotel.hotel_name}"
+                                 data-hotel-address="${hotel.hotel_address}">
+                                 ${venueText}
+                              </a>`;
+                hotelDropdown.appendChild(li);
+            }
+        });
+
+        // Add click handlers for the dropdown items
+        hotelDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                const venueInput = document.getElementById('training_venue');
+                const selectedVenue = `${this.dataset.hotelName} - ${this.dataset.hotelAddress}`;
+                console.log('🎯 Selected venue:', selectedVenue);
+                
+                venueInput.value = selectedVenue;
+                venueInput.dataset.hotelId = this.dataset.hotelId;
+            });
+        });
+
+    } catch (error) {
+        console.error('❌ Error fetching hotels:', error);
+    }
+}
+
+// Update the DOMContentLoaded event listener to include hotel population
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Page loaded, initializing company name fetch...');
+    console.log('📄 Page loaded, initializing...');
     fetchAndDisplayCompanyName();
+    fetchAndPopulateHotels();
     
     // Initialize status options
     const dateInput = document.getElementById('training_date');
@@ -95,7 +141,10 @@ document.getElementById("submit-event").addEventListener("click", async () => {
     const training_name = document.getElementById("training_name").value.trim();
     const billing_company_field = document.getElementById("billing_company");
     const billing_company = billing_company_field.dataset.companyId || "1"; // Use stored ID or default to "1"
-    console.log('Using billing company ID for submission:', billing_company);
+    const venueInput = document.getElementById("training_venue");
+    
+    // Get the hotel_id from the venue input's data attribute
+    const hotel_id = venueInput.dataset.hotelId;
 
     // Rest of validation
     if (!training_name) {
@@ -110,19 +159,19 @@ document.getElementById("submit-event").addEventListener("click", async () => {
 
     const data = {
         training_name: training_name,
-        billing_company: billing_company, // Using the ID value
-        training_venue: document.getElementById("training_venue").value.trim() || null,
+        billing_company: billing_company,
+        training_venue: hotel_id, // Send the hotel_id instead of venue name
         training_ticket_price: document.getElementById("training_ticket_price").value || null,
         training_date: document.getElementById("training_date").value.trim() || null,
         training_note: document.getElementById("training_note").value.trim() || null,
         training_published_by: document.getElementById("training_published_by").value.trim() || null,
-        training_status: document.getElementById("training_status").value.trim() || null,
+        training_status: document.getElementById("training_status").value.trim() || null
     };
 
-    console.log('Submitting training data:', data);
+    console.log('📤 Submitting training data:', data);
 
     try {
-        const response = await fetch("https://bni-data-backend.onrender.com/api/training", {
+        const response = await fetch("http://localhost:5000/api/training", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const paymentTypeDropdown = document.getElementById("payment-type-filter");
   const paymentGatewayDropdown = document.getElementById("payment-gateway-filter");
   const paymentMethodDropdown = document.getElementById("payment-method-filter");
+  const yearDropdown = document.getElementById("year-filter");
   // Function to show the loader
 function showLoader() {
   document.getElementById('loader').style.display = 'flex';
@@ -86,13 +87,13 @@ showLoader();
       regionsResponse,
       paymentTypeResponse,
     ] = await Promise.all([
-      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
-      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
-      fetch("https://bni-data-backend.onrender.com/api/chapters"),
-      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
-      fetch("https://bni-data-backend.onrender.com/api/regions"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      fetch("http://localhost:5000/api/allOrders"),
+      fetch("http://localhost:5000/api/allTransactions"),
+      fetch("http://localhost:5000/api/chapters"),
+      fetch("http://localhost:5000/api/paymentGateway"),
+      fetch("http://localhost:5000/api/universalLinks"),
+      fetch("http://localhost:5000/api/regions"),
+      fetch("http://localhost:5000/api/universalLinks"),
     ]);
 
     const orders = await ordersResponse.json();
@@ -172,6 +173,69 @@ const populatePaymentMethodDropdown = () => {
 // Call the function to populate payment methods
 populatePaymentMethodDropdown();
 
+// Populate year dropdown
+const populateYearDropdown = () => {
+  try {
+    // Get unique years from transactions based on payment_time
+    const uniqueYears = [...new Set(transactions.map(transaction => {
+      if (transaction.payment_time) {
+        const formattedDate = new Date(transaction.payment_time).toLocaleDateString("en-GB");
+        const year = formattedDate.split('/')[2];
+        return year;
+      }
+      return null;
+    }).filter(year => year !== null))];
+
+    // Sort years in descending order (most recent first)
+    uniqueYears.sort((a, b) => b - a);
+
+    // Clear existing options
+    const yearDropdown = document.getElementById("year-filter");
+    yearDropdown.innerHTML = "";
+
+    // Add default option
+    yearDropdown.innerHTML = `
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" data-value="">
+          Select Year
+        </a>
+      </li>
+    `;
+
+    // Add year options
+    uniqueYears.forEach(year => {
+      yearDropdown.innerHTML += `
+        <li>
+          <a class="dropdown-item" href="javascript:void(0);" data-value="${year}">
+            ${year}
+          </a>
+        </li>
+      `;
+    });
+
+    // Add click event listeners to year filter options
+    const yearFilterOptions = yearDropdown.querySelectorAll('.dropdown-item');
+    yearFilterOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        // Remove active class from all options
+        yearFilterOptions.forEach(opt => opt.classList.remove('active'));
+        // Add active class to selected option
+        this.classList.add('active');
+        
+        const selectedYear = this.getAttribute('data-value');
+        const yearFilterBtn = this.closest('.dropdown').querySelector('.dropdown-toggle');
+        yearFilterBtn.textContent = selectedYear || 'Year';
+      });
+    });
+
+  } catch (error) {
+    console.error("Error populating year dropdown:", error);
+  }
+};
+
+// Call this function after your transactions data is loaded
+populateYearDropdown();
+
 // Function to check if there are any filters in the query parameters
 function checkFiltersAndToggleResetButton() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -189,17 +253,17 @@ function checkFiltersAndToggleResetButton() {
 // Call this function on page load to check the filters
 window.addEventListener("load", checkFiltersAndToggleResetButton);
 
-// Attach event listener to a "Filter" button or trigger
+// Attach event listener to "Apply Filter" button
 document.getElementById("apply-filters-btn").addEventListener("click", () => {
-  // Capture selected values
+  // Capture selected values including year
   const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const chapterId = chaptersDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const month = monthsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
+  const year = document.getElementById('year-filter').querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const paymentStatus = paymentStatusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const paymentType = paymentTypeDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const paymentGateway = paymentGatewayDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const paymentMethod = (paymentMethodDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '').toLowerCase();
-
 
   // Construct the query string
   const queryParams = new URLSearchParams();
@@ -207,10 +271,16 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
   if (regionId) queryParams.append('region_id', regionId);
   if (chapterId) queryParams.append('chapter_id', chapterId);
   if (month) queryParams.append('month', month);
+  if (year) queryParams.append('year', year);
   if (paymentStatus) queryParams.append('payment_status', paymentStatus);
   if (paymentType) queryParams.append('payment_type', paymentType);
   if (paymentGateway) queryParams.append('payment_gateway', paymentGateway);
   if (paymentMethod) queryParams.append('payment_method', paymentMethod);
+
+  // Show the Reset Filter button if any filter is applied
+  if (queryParams.toString()) {
+    document.getElementById("reset-filters-btn").style.display = "inline-block";
+  }
 
   // Redirect to the filtered URL
   const filterUrl = `/t/all-transactions?${queryParams.toString()}`;
@@ -239,6 +309,7 @@ const filters = {
   payment_type: urlParams.get("payment_type"),
   payment_gateway: urlParams.get("payment_gateway"),
   payment_method: urlParams.get("payment_method"),
+  year: urlParams.get("year"),
 };
 
 // Show filters in the console for debugging
@@ -352,24 +423,34 @@ const filteredTransactions = transactions.filter((transaction) => {
     }
   }
 
-  // Assuming `filters.month` is the selected month filter (e.g., "4" for April)
-if (filters.month && transaction.order_id) {
-  const order = orders.find(order => order.order_id === transaction.order_id);
-
-  if (order) {
-    // Ensure both the order's created_at and the filter are in comparable formats
-    const orderDate = new Date(order.created_at);  // Convert the created_at string to a Date object
-    const orderMonth = orderDate.getMonth() + 1; // Get the month (1-12, because we add 1 to zero-indexed value)
-    const filterMonth = parseInt(filters.month, 10); // Convert the filter to an integer
-
-    // Compare the months (both are now 1-12 values)
-    if (orderMonth !== filterMonth) {
+  // Add year filter condition
+  if (filters.year && transaction.payment_time) {
+    const transactionDate = new Date(transaction.payment_time).toLocaleDateString("en-GB");
+    const transactionYear = transactionDate.split('/')[2];
+    if (transactionYear !== filters.year) {
       isValid = false;
     }
-  } else {
-    console.log(`No matching order found for transaction ${transaction.order_id}`);
   }
-}
+
+  if (filters.month && transaction.payment_time) {
+    const transactionDate = new Date(transaction.payment_time);
+    const transactionMonth = transactionDate.getMonth() + 1; // getMonth() returns 0-11
+    if (transactionMonth !== parseInt(filters.month)) {
+      isValid = false;
+    }
+  }
+
+  if (filters.payment_status && transaction.payment_status) {
+    if (transaction.payment_status !== filters.payment_status) {
+      isValid = false;
+    }
+  }
+
+  if (filters.payment_method && transaction.payment_group) {
+    if (transaction.payment_group.toLowerCase() !== filters.payment_method.toLowerCase()) {
+      isValid = false;
+    }
+  }
 
   return isValid;
 });
@@ -396,9 +477,8 @@ if (filters.month && transaction.order_id) {
     let totalTransactionAmount = 0;
     let settledPayments = 0;
     let pendingPayments = 0;
-
-    // Initialize total GST counter at the start of your code
     let totalGSTAmount = 0;
+    let totalBaseAmount = 0;
 
     // Sort transactions by payment time (latest first)
     filteredTransactions.sort(
@@ -432,24 +512,37 @@ if (filters.month && transaction.order_id) {
       // Check payment status and update settled or pending totals
       if (transaction.payment_status === "SUCCESS") {
         settledPayments += transactionAmount;
+        totalTransactionAmount += transactionAmount;
+
+        // Calculate GST (18% of total amount)
+        const gstRate = 0.18;
+        const gstAmount = Math.round((transactionAmount * gstRate) / (1 + gstRate));
+        
+        // Calculate base amount (total - GST)
+        const baseAmount = transactionAmount - gstAmount;
+        
+        // Add to running totals
+        totalGSTAmount += gstAmount;
+        totalBaseAmount += baseAmount;
+        
+        console.log('💰 Transaction Breakdown:', {
+            '🔢 Order ID': transaction.order_id,
+            '💵 Total Amount Received': `₹${transactionAmount.toLocaleString("en-IN")}`,
+            '📊 Calculation Steps': {
+                '1️⃣ Total Amount': `₹${transactionAmount.toLocaleString("en-IN")}`,
+                '2️⃣ GST Rate': '18%',
+                '3️⃣ GST Formula': 'Amount × 18/118',
+                '4️⃣ GST Amount': `₹${gstAmount.toLocaleString("en-IN")}`,
+                '5️⃣ Base Amount': `₹${baseAmount.toLocaleString("en-IN")} (Total - GST)`
+            },
+            '📈 Running Totals': {
+                '💼 Total Base': `₹${totalBaseAmount.toLocaleString("en-IN")}`,
+                '🏦 Total GST': `₹${totalGSTAmount.toLocaleString("en-IN")}`,
+                '💰 Grand Total': `₹${totalTransactionAmount.toLocaleString("en-IN")}`
+            }
+        });
       } else if (transaction.payment_status === "PENDING") {
         pendingPayments += transactionAmount;
-      }
-
-      // Only calculate and add GST if payment status is SUCCESS
-      if (transaction.payment_status === "SUCCESS") {
-        const gstRate = 0.18;
-        const gstAmount = Math.round(transactionAmount * gstRate); // Direct 18% of total amount
-        totalGSTAmount += gstAmount;
-        
-        console.log('💰 Transaction Details:', {
-            '🔢 Order ID': transaction.order_id,
-            '💵 Total Amount': `₹${transactionAmount.toLocaleString("en-IN")}`,
-            '📊 GST Rate': '18%',
-            '💸 GST Amount': `₹${gstAmount.toLocaleString("en-IN")}`,
-            '🏦 Running GST Total': `₹${totalGSTAmount.toLocaleString("en-IN")}`
-        });
-      } else {
         console.log('⚠️ Skipped Transaction:', {
             '🔢 Order ID': transaction.order_id,
             '💵 Amount': `₹${transactionAmount.toLocaleString("en-IN")}`,
@@ -543,7 +636,7 @@ if (filters.month && transaction.order_id) {
 
       // Get the member name based on universal link type
       const getMemberName = (order, universalLinkName) => {
-        if (universalLinkName === "Visitors Payment") {
+        if (universalLinkName === "Visitors Payment" || universalLinkName === "New Member Payment") {
           return order?.visitor_name || "Unknown Visitor";
         }
         return order?.member_name || "Unknown";
@@ -560,6 +653,7 @@ if (filters.month && transaction.order_id) {
                 <td><b>${formattedTotalAmount}</b><br><a href="/t/view-invoice?order_id=${
         transaction.order_id
       }" class="fw-medium text-success">View</a></td>
+                   
                
                 <td>${paymentImage} ${paymentMethod}</td>
                 <td><em>${transaction.order_id}</em></td>
@@ -598,7 +692,7 @@ if (filters.month && transaction.order_id) {
           try {
             // Step 1: Send request to save settlement data
             const saveResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+              `http://localhost:5000/api/orders/${orderId}/settlementStatus`,
               { method: 'GET' }
             );
     
@@ -611,7 +705,7 @@ if (filters.month && transaction.order_id) {
             const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
     
             const fetchResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+              `http://localhost:5000/api/settlement/${cfPaymentId}`
             );
     
             if (!fetchResponse.ok) {
@@ -623,7 +717,7 @@ if (filters.month && transaction.order_id) {
             // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
-              fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+              fetch(`http://localhost:5000/api/einvoice/${settlement.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -658,71 +752,125 @@ if (filters.month && transaction.order_id) {
                     const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
                     const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
                     btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
-                    cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-success" disabled style="opacity: 0.5;">
-                        Already Cancelled ✓
-                    </button>`;
 
-                    cancelIrnBtn.querySelector(".btn-success").addEventListener("click", function () {
-                      const irn = this.getAttribute("data-id"); // Get the IRN from data attribute
-                  
-                      Swal.fire({
-                          title: "Are you sure?",
-                          html: `Are you sure to cancel IRN for <b>${irn}</b>?`, // Make only IRN bold
-                          icon: "warning",
-                          showCancelButton: true,
-                          confirmButtonText: "Yes, Cancel IRN",
-                          cancelButtonText: "No"
-                      }).then((result) => {
-                          if (result.isConfirmed) {
-                              Swal.fire({
-                                  title: "Enter Cancel Reason",
-                                  input: "textarea",
-                                  inputPlaceholder: "Enter the reason for cancellation...",
-                                  showCancelButton: true,
-                                  confirmButtonText: "Cancel IRN",
-                                  preConfirm: (remarks) => {
-                                      if (!remarks) {
-                                          Swal.showValidationMessage("Please enter a reason!");
-                                      }
-                                      return remarks;
-                                  }
-                              }).then((reasonResult) => {
-                                  if (reasonResult.isConfirmed) {
-                                      const remarks = reasonResult.value;
-                                      console.log("IRN:", irn);
-                                      console.log("Cancel Remarks:", remarks);
-                  
-                                      // Send data to backend
-                                      fetch("https://bni-data-backend.onrender.com/einvoice/cancel-irn", {
-                                          method: "POST",
-                                          headers: {
-                                              "Content-Type": "application/json"
-                                          },
-                                          body: JSON.stringify({
-                                              Irn: irn,
-                                              CnlRsn: 1, // Always 1
-                                              CnlRem: remarks
-                                          })
-                                      })
-                                      .then(response => response.json())
-                                      .then(data => {
-                                          console.log("Response from backend:", data);
-                                          if (data.success) {
-                                              Swal.fire("Cancelled!", "IRN has been cancelled successfully.", "success").then(()=>{window.location.href = "/t/cancelled-irns"});
-                                              
-                                          } else {
-                                              Swal.fire("Error!", "Something went wrong.", "error");
-                                          }
-                                      })
-                                      .catch(error => {
-                                          console.error("Error:", error);
-                                          Swal.fire("Error!", "Failed to cancel IRN.", "error");
-                                      });
-                                  }
-                              });
-                          }
-                      });
-                  });
+                    // Fetch cancelled IRNs and check if current IRN is cancelled
+                    fetch('https://bni-data-backend.onrender.com/api/getCancelIrn')
+                        .then(response => response.json())
+                        .then(cancelledIrns => {
+                            const isIrnCancelled = cancelledIrns.some(item => item.irn === einvoiceData.irn);
+                            
+                            if (isIrnCancelled) {
+                                cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-success" disabled style="opacity: 0.5;">
+                                    Already Cancelled ✓
+                                </button>`;
+                            } else {
+                                cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+
+                                cancelIrnBtn.querySelector(".cancel_irn").addEventListener("click", function () {
+                                    const irn = this.getAttribute("data-id");
+                                    
+                                    Swal.fire({
+                                        title: "Are you sure?",
+                                        html: `Are you sure to cancel IRN for <b>${irn}</b>?`,
+                                        icon: "warning",
+                                        showCancelButton: true,
+                                        confirmButtonText: "Yes, Cancel IRN",
+                                        cancelButtonText: "No"
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            Swal.fire({
+                                                title: "Enter Cancel Reason",
+                                                input: "textarea",
+                                                inputPlaceholder: "Enter the reason for cancellation...",
+                                                showCancelButton: true,
+                                                confirmButtonText: "Cancel IRN",
+                                                preConfirm: (remarks) => {
+                                                    if (!remarks) {
+                                                        Swal.showValidationMessage("Please enter a reason!");
+                                                    }
+                                                    return remarks;
+                                                }
+                                            }).then((reasonResult) => {
+                                                if (reasonResult.isConfirmed) {
+                                                    const remarks = reasonResult.value;
+                                                    console.log("IRN:", irn);
+                                                    console.log("Cancel Remarks:", remarks);
+                                                    
+                                                    // Send data to backend
+                                                    fetch("https://bni-data-backend.onrender.com/einvoice/cancel-irn", {
+                                                        method: "POST",
+                                                        headers: {
+                                                            "Content-Type": "application/json"
+                                                        },
+                                                        body: JSON.stringify({
+                                                            Irn: irn,
+                                                            CnlRsn: 1,
+                                                            CnlRem: remarks
+                                                        })
+                                                    })
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                        console.log("Response from backend:", data);
+                                                        if (data.success) {
+                                                            Swal.fire("Cancelled!", "IRN has been cancelled successfully.", "success")
+                                                                .then(() => {window.location.href = "/t/cancelled-irns"});
+                                                        } else {
+                                                            Swal.fire("Error!", "Something went wrong.", "error");
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error("Error:", error);
+                                                        Swal.fire("Error!", "Failed to cancel IRN.", "error");
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error fetching cancelled IRNs:", error);
+                            // If we can't check cancelled status, show the cancel button by default
+                            cancelIrnBtn.innerHTML = `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+                        });
+
+                    // Check if QR code is already stored in localStorage for this order
+                    if (localStorage.getItem(qrCodeKey)) {
+                        // If QR code is stored, show the QR code image
+                        qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+                    } else if (einvoiceData.qrcode) {
+                        // If QR code is available but not yet stored, show the button
+                        qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+
+                        // Add event listener to the button to display loading and then the QR code
+                        row.querySelector(".generate-qr-btn").addEventListener("click", () => {
+                            // Show "Loading..." message or spinner
+                            qrcodeCell.innerHTML = "<em>Loading...</em>";
+
+                            // Simulate loading for 3-4 seconds
+                            setTimeout(() => {
+                                // Generate the QR code using the qrcode.js library
+                                const qrCodeData = einvoiceData.qrcode;
+
+                                // Generate the QR code and set it as an image
+                                QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+                                    if (err) {
+                                        console.error('Error generating QR Code:', err);
+                                        qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
+                                    } else {
+                                        // Store the generated QR code URL in localStorage
+                                        localStorage.setItem(qrCodeKey, url);
+
+                                        // Display the generated QR code
+                                        qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
+                                    }
+                                });
+                            }, 3000); // Delay for 3 seconds
+                        });
+                    } else {
+                        qrcodeCell.innerHTML = "<em>Not Applicable</em>";
+                    }
                 }
         
                   // Check if QR code is already stored in localStorage for this order
@@ -863,7 +1011,7 @@ if (filters.month && transaction.order_id) {
                                 toastr.success('Payment successfully settled!');
                             }
                         }
-                    }, 100);
+                    }, 200);
                 }
             }, index * 1000); // Increased delay between clicks
         });
@@ -927,163 +1075,15 @@ if (filters.month && transaction.order_id) {
       ".count-up"
     )[2].textContent = `₹ ${pendingPayments.toLocaleString("en-IN")}`;
 
-    document.addEventListener("click", (event) => {
-      if (event.target.classList.contains("generate-invoice")) {
-        event.preventDefault();
-
-        // Get the order and transaction details, as in your original code
-        const orderId = event.target.getAttribute("data-order-id");
-        const order = orders.find((o) => o.order_id === orderId);
-        const transaction = transactions.find((t) => t.order_id === orderId);
-        const chapterName = chapterMap.get(order?.chapter_id) || "N/A";
-        const gatewayName =
-          paymentGatewayMap.get(order?.payment_gateway_id) || "Unknown";
-        const universalLinkName =
-          universalLinkMap.get(order?.universal_link_id) || "Not Applicable";
-
-        // SweetAlert for confirmation, as in your original code
-        Swal.fire({
-          title: "Are you sure?",
-          text: `You are about to generate IRN and QR code for Order ID: ${orderId} and Transaction ID: ${transaction.cf_payment_id}.`,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Yes, Generate!",
-          cancelButtonText: "No, Cancel",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            Swal.fire({
-              title: "Please check the details",
-              html: `
-                      <strong>Order ID:</strong> ${orderId}<br>
-                      <strong>Transaction ID:</strong> ${transaction.cf_payment_id}<br>
-                      <strong>Chapter Name:</strong> ${chapterName}<br>
-                      <strong>Payment Gateway:</strong> ${gatewayName}<br>
-                      <strong>Universal Link:</strong> ${universalLinkName}<br>
-                      <strong>Amount:</strong> ₹ ${transaction.payment_amount}
-                    `,
-              icon: "info",
-              showCancelButton: true,
-              confirmButtonText: "Confirm and Generate",
-              cancelButtonText: "Cancel",
-            }).then(async (secondResult) => {
-              if (secondResult.isConfirmed) {
-                const invoiceData = {
-                  orderId: order,
-                  transactionId: transaction,
-                  amount: transaction.payment_amount,
-                  chapterName: chapterName,
-                  gatewayName: gatewayName,
-                  universalLinkName: universalLinkName,
-                };
-
-                // Show the "Fetching IRN and QR code" loading SweetAlert
-          let timerInterval;
-          const loadingSwal = Swal.fire({
-            title: "Fetching IRN and QR code",
-            html: "Please wait while we fetch the IRN and QR code...",
-            timer: 2000,
-            timerProgressBar: true,
-            didOpen: () => {
-              Swal.showLoading();
-              const timer = Swal.getPopup().querySelector("b");
-              timerInterval = setInterval(() => {
-                timer.textContent = `${Swal.getTimerLeft()}`;
-              }, 4000);
-            },
-            willClose: () => {
-              clearInterval(timerInterval);
-            }
-          });
-
-                try {
-                  const backendResponse = await fetch(
-                    "https://bni-data-backend.onrender.com/einvoice/generate-irn",
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify(invoiceData),
-                    }
-                  );
-
-                  const responseData = await backendResponse.json();
-                  if (backendResponse.ok) {
-                    // Success response handling
-                    Swal.fire("Success", responseData.message, "success");
-                  
-                    // Fetch IRN and QR code details after successful generation
-                    const einvoiceResponse = await fetch(
-                      `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
-                    );
-                    const einvoiceData = await einvoiceResponse.json();
-                  
-                    const transactionRow = event.target.closest("tr");
-                    const qrCodeKey = `qrCode_${orderId}`; // Unique key for each order
-                  
-                    // Display the IRN or a message if not available
-                    transactionRow.querySelector(".irn").innerHTML =
-                      einvoiceData.irn || "<em>Not Applicable</em>";
-                  
-                    // Check if QR code is already stored in localStorage for this order
-                    if (localStorage.getItem(qrCodeKey)) {
-                      // If QR code is stored, show the QR code image
-                      transactionRow.querySelector(".qrcode").innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="30" height="30">`;
-                    } else if (einvoiceData.qrcode) {
-                      // If QR code is available but not yet stored, show the button
-                      const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
-                      const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
-                      transactionRow.querySelector(".qrcode").innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
-                      transactionRow.querySelector(".generate-invoice-btn").innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
-                  
-                      // Add event listener to the button to display loading and then the QR code
-                      transactionRow.querySelector(".generate-qr-btn").addEventListener("click", () => {
-                        // Show "Loading..." message
-                        transactionRow.querySelector(".qrcode").innerHTML = "<em>Loading...</em>";
-                  
-                        // Simulate loading for 3-4 seconds
-                        setTimeout(() => {
-                          // Generate the QR code using the qrcode.js library
-                          const qrCodeData = einvoiceData.qrcode;
-                
-                          // Generate the QR code and set it as an image
-                          QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
-                            if (err) {
-                              console.error('Error generating QR Code:', err);
-                              transactionRow.querySelector(".qrcode").innerHTML = "<em>Error generating QR Code</em>";
-                            } else {
-                              // Store the generated QR code URL in localStorage
-                              localStorage.setItem(qrCodeKey, url);
-                
-                              // Display the generated QR code
-                              transactionRow.querySelector(".qrcode").innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
-                            }
-                          });
-                        }, 3000); // Delay for 3 seconds
-                      });
-                    } else {
-                      transactionRow.querySelector(".qrcode").innerHTML = "<em>Not Applicable</em>";
-                    }
-                }
-                
-                  else {
-                    // Error response handling
-                    Swal.fire("Error", responseData.message, "error");
-                  }
-                } catch (error) {
-                  // Handle any fetch errors
-                  Swal.fire(
-                    "Error",
-                    "There was an issue connecting to the server. Please try again later.",
-                    "error"
-                  );
-                }
-              }
-            });
-          }
-        });
-      }
+    // Add after processing all transactions
+    console.log('📑 Final GST Summary:', {
+        '💰 Total GST Collected': `₹${totalGSTAmount.toLocaleString("en-IN")}`,
+        '✅ Formula Used': 'Amount × 0.18'
     });
+
+    // Update the GST amount display in the UI
+    document.getElementById('total_gst_amount').textContent = `₹${totalGSTAmount.toLocaleString("en-IN")}`;
+    document.getElementById('total_base_amount').textContent = `₹${totalBaseAmount.toLocaleString("en-IN")}`;
 
     // Function to update transaction counts
     function updateTransactionCounts() {
@@ -1130,8 +1130,9 @@ if (filters.month && transaction.order_id) {
                 }
             }
             
+            // Calculate totals
             const totalTransactions = maxSerialNumber;
-            const pendingInvoices = totalTransactions - (generatedInvoices + cancelledIrns); // Updated calculation
+            const pendingInvoices = totalTransactions - (generatedInvoices + cancelledIrns);
             
             // Update the counters in the UI
             document.getElementById('no_of_transaction').textContent = totalTransactions;
@@ -1140,51 +1141,210 @@ if (filters.month && transaction.order_id) {
             document.getElementById('cancelled_irns').textContent = cancelledIrns;
             
             console.log('📊 Transaction Counts Updated:', {
-                total: totalTransactions,
-                generated: generatedInvoices,
-                pending: pendingInvoices,
-                cancelled: cancelledIrns,
-                maxSerialFound: maxSerialNumber,
-                timestamp: new Date().toLocaleTimeString()
+                ' Total Transactions': totalTransactions,
+                '✅ Generated Invoices': generatedInvoices,
+                '⏳ Pending Invoices': pendingInvoices,
+                '❌ Cancelled IRNs': cancelledIrns,
+                '🔢 Max Serial Found': maxSerialNumber,
+                '⏰ Updated At': new Date().toLocaleTimeString()
             });
         } catch (error) {
             console.error('Error in counting transactions:', error);
         }
     }
 
-    // Initial count
-    updateTransactionCounts();
-
-    // Set up a MutationObserver to watch for changes in the table
-    const observer = new MutationObserver(() => {
+    // Initial count when page loads
+    document.addEventListener('DOMContentLoaded', () => {
         updateTransactionCounts();
-    });
 
-    // Start observing the table for changes
-    const table = document.querySelector('.table');
-    if (table) {
-        observer.observe(table, {
-            childList: true,
-            subtree: true,
-            characterData: true
+        // Set up a MutationObserver to watch for changes in the table
+        const observer = new MutationObserver(() => {
+            updateTransactionCounts();
         });
-    }
 
-    // Call updateTransactionCounts whenever settlement data is processed
-    document.addEventListener('click', (event) => {
-        if (event.target.classList.contains('track-settlement')) {
-            setTimeout(updateTransactionCounts, 2000); // Update after settlement processing
+        // Start observing the table for changes
+        const table = document.querySelector('.table');
+        if (table) {
+            observer.observe(table, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
         }
     });
 
-    // Final summary log
-    console.log('📑 Final GST Summary:', {
-        '💰 Total GST Collected': `₹${totalGSTAmount.toLocaleString("en-IN")}`,
-        '✅ Formula Used': 'Amount × 0.18'
+    // Update counts when settlement tracking is done
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('track-settlement')) {
+            setTimeout(updateTransactionCounts, 1000);
+        }
     });
 
-    // Update the GST amount display
-    document.getElementById('total_gst_amount').textContent = `₹${totalGSTAmount.toLocaleString("en-IN")}`;
+    // Update counts when filters are applied
+    document.getElementById('apply-filters-btn').addEventListener('click', () => {
+        setTimeout(updateTransactionCounts, 500);
+    });
+
+    // Update counts when filters are reset
+    document.getElementById('reset-filters-btn').addEventListener('click', () => {
+        setTimeout(updateTransactionCounts, 500);
+    });
+
+    // Move the click event listener inside the try block where orders and other data are available
+    document.body.addEventListener("click", async (event) => {
+        const generateButton = event.target.closest('.generate-invoice');
+        if (!generateButton) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const orderId = generateButton.getAttribute("data-order-id");
+        const order = orders.find((o) => o.order_id === orderId);
+        const transaction = transactions.find((t) => t.order_id === orderId);
+        const chapterName = chapterMap.get(order?.chapter_id) || "N/A";
+        const gatewayName = paymentGatewayMap.get(order?.payment_gateway_id) || "Unknown";
+        const universalLinkName = universalLinkMap.get(order?.universal_link_id) || "Not Applicable";
+
+        // Rest of your existing confirmation and generation logic...
+        Swal.fire({
+            title: "Are you sure?",
+            text: `You are about to generate IRN and QR code for Order ID: ${orderId} and Transaction ID: ${transaction.cf_payment_id}.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Generate!",
+            cancelButtonText: "No, Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Please check the details",
+                    html: `
+                        <strong>Order ID:</strong> ${orderId}<br>
+                        <strong>Transaction ID:</strong> ${transaction.cf_payment_id}<br>
+                        <strong>Chapter Name:</strong> ${chapterName}<br>
+                        <strong>Payment Gateway:</strong> ${gatewayName}<br>
+                        <strong>Universal Link:</strong> ${universalLinkName}<br>
+                        <strong>Amount:</strong> ₹ ${transaction.payment_amount}
+                    `,
+                    icon: "info",
+                    showCancelButton: true,
+                    confirmButtonText: "Confirm and Generate",
+                    cancelButtonText: "Cancel",
+                }).then(async (secondResult) => {
+                    if (secondResult.isConfirmed) {
+                        const invoiceData = {
+                            orderId: order,
+                            transactionId: transaction,
+                            amount: transaction.payment_amount,
+                            chapterName: chapterName,
+                            gatewayName: gatewayName,
+                            universalLinkName: universalLinkName,
+                        };
+
+                        // Show loading dialog
+                        let timerInterval;
+                        const loadingSwal = Swal.fire({
+                            title: "Fetching IRN and QR code",
+                            html: "Please wait while we fetch the IRN and QR code...",
+                            timer: 2000,
+                            timerProgressBar: true,
+                            didOpen: () => {
+                                Swal.showLoading();
+                                const timer = Swal.getPopup().querySelector("b");
+                                timerInterval = setInterval(() => {
+                                    timer.textContent = `${Swal.getTimerLeft()}`;
+                                }, 4000);
+                            },
+                            willClose: () => {
+                                clearInterval(timerInterval);
+                            }
+                        });
+
+                        try {
+                            const backendResponse = await fetch(
+                                "http://localhost:5000/einvoice/generate-irn",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(invoiceData),
+                                }
+                            );
+                            const responseData = await backendResponse.json();
+
+                            if (backendResponse.ok) {
+                                // Success response handling
+                                Swal.fire("Success", responseData.message, "success");
+
+                                // Fetch IRN and QR code details after successful generation
+                                const einvoiceResponse = await fetch(
+                                    `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
+                                );
+                                const einvoiceData = await einvoiceResponse.json();
+
+                                const transactionRow = event.target.closest("tr");
+                                const qrCodeKey = `qrCode_${orderId}`; // Unique key for each order
+
+                                // Display the IRN
+                                transactionRow.querySelector(".irn").innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
+
+                                // Update the Generate E-Invoice button to View E-Invoice
+                                const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+                                const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+                                transactionRow.querySelector(".generate-invoice-btn").innerHTML = 
+                                    `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+
+                                // Add Cancel IRN button
+                                transactionRow.querySelector(".cancel-invoice-btn").innerHTML = 
+                                    `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
+
+                                // Add event listener for Cancel IRN button
+                                // transactionRow.querySelector(".cancel_irn").addEventListener("click", function() {
+                                //     const irn = this.getAttribute("data-id");
+                                //     Swal.fire({
+                                //         title: "Are you sure?",
+                                //         html: `Are you sure to cancel IRN for <b>${irn}</b>?`,
+                                //         icon: "warning",
+                                //         showCancelButton: true,
+                                //         confirmButtonText: "Yes, Cancel IRN",
+                                //         cancelButtonText: "No"
+                                //     }).then((result) => {
+                                //         if (result.isConfirmed) {
+                                //             // ... rest of your cancel IRN logic ...
+                                //         }
+                                //     });
+                                // });
+
+                                // Handle QR code display
+                                if (localStorage.getItem(qrCodeKey)) {
+                                    transactionRow.querySelector(".qrcode").innerHTML = 
+                                        `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+                                } else if (einvoiceData.qrcode) {
+                                    transactionRow.querySelector(".qrcode").innerHTML = 
+                                        `<span class="generate-qr-btn">Generate QR Code</span>`;
+
+                                    // Add QR code generation event listener
+                                    transactionRow.querySelector(".generate-qr-btn").addEventListener("click", () => {
+                                        // ... rest of your QR code generation logic ...
+                                    });
+                                } else {
+                                    transactionRow.querySelector(".qrcode").innerHTML = "<em>Not Applicable</em>";
+                                }
+                            }
+                        } catch (error) {
+                            console.error("Error generating invoice:", error);
+                            Swal.fire(
+                                "Error",
+                                "There was an issue connecting to the server. Please try again later.",
+                                "error"
+                            );
+                        }
+                    }
+                });
+            }
+        });
+    });
+
   } catch (error) {
     console.error("Error loading data:", error);
   } finally {
@@ -1195,7 +1355,7 @@ if (filters.month && transaction.order_id) {
 let cancelledIrnData = [];
 
 // Fetch cancelled IRNs first
-fetch('https://bni-data-backend.onrender.com/api/getCancelIrn')
+fetch('http://localhost:5000/api/getCancelIrn')
     .then(response => response.json())
     .then(data => {
         console.log('[INIT] Stored cancelled IRNs:', data);

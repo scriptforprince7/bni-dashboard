@@ -29,3 +29,7 @@ exports.newMemberPayment = (req, res) => {
 exports.cancelledIRNs = (req, res) => {
     res.render('m-transactions/cancelled-irns', { title: 'Cancelled IRNs' });
 };
+
+exports.manageVisitors = (req, res) => {
+    res.render('m-visitor/manage-visitors', { title: 'Manage Visitors' });
+};

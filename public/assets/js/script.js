@@ -483,8 +483,8 @@ function displayMembers(members) {
 
     members.forEach((member, index) => {
         const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
-        const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
-        const formattedRenewalDate = member.member_renewal_date ? member.member_renewal_date.substring(0, 10) : 'N/A';
+        const formattedDate = member.member_induction_date ? formatDate(member.member_induction_date) : 'N/A';
+        const formattedRenewalDate = member.member_renewal_date ? formatDate(member.member_renewal_date) : 'N/A';
         const chapterName = window.BNI.state.chaptersMap[member.chapter_id] || 'N/A';
         
         
@@ -1010,5 +1010,15 @@ document.addEventListener('click', (event) => {
     // Perform sort
     sortMembers(columnIndex, newDirection);
 });
+
+// Function to format date
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
 

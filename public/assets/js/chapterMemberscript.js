@@ -511,8 +511,8 @@ function displayMembers(members) {
             </td>
             <td style="border: 1px solid grey;">${member.member_phone_number}</td>
             
-            <td class="fw-semibold" style="border: 1px solid grey;">${formattedDate}</td>
-            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formattedDate}</td>
+            <td class="fw-semibold" style="border: 1px solid grey;">${formatDate(member.member_induction_date)}</td>
+            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formatDate(member.member_renewal_date)}</td>
             <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>
             <td style="border: 1px solid grey;">
                 <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
@@ -729,6 +729,16 @@ function updateDisplay() {
     // Update counts
     updateTotalMembersCount();
     updateActiveInactiveMembersCount();
+}
+
+// Add this function at the top level of your file
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
 
