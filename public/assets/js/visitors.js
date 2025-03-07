@@ -80,6 +80,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
         };
 
+        // Add function to check induction status
+        const getInductionStatus = (visitor) => {
+            // Return true only if all three forms are completed
+            return visitor.visitor_form && visitor.eoi_form && visitor.new_member_form;
+        };
+
         // Populate filter dropdowns
         // Regions dropdown
         const uniqueRegions = [...new Set(regions.map(r => r.region_name))].sort();
@@ -293,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!visitorsToShow.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="11" class="text-center">No visitors found matching your search</td>
+                        <td colspan="12" class="text-center">No visitors found matching your search</td>
                     </tr>`;
                 return;
             }
@@ -301,6 +307,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const tableContent = visitorsToShow.map((visitor, index) => {
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+                const inductionStatus = getInductionStatus(visitor);
                 
                 return `
                     <tr>
@@ -315,6 +322,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${getStatusIcon(visitor.visitor_form)}</td>
                         <td class="text-center">${getStatusIcon(visitor.eoi_form)}</td>
                         <td class="text-center">${getStatusIcon(visitor.new_member_form)}</td>
+                        <td class="text-center">${getStatusIcon(inductionStatus)}</td>
                     </tr>
                 `;
             }).join('');

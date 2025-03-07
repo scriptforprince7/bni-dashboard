@@ -634,11 +634,31 @@ const filteredTransactions = transactions.filter((transaction) => {
           invoiceButton = "Not Applicable";
       }
 
-      // Get the member name based on universal link type
+      // Function to get member name with console logging
       const getMemberName = (order, universalLinkName) => {
-        if (universalLinkName === "Visitors Payment" || universalLinkName === "New Member Payment") {
-          return order?.visitor_name || "Unknown Visitor";
+        console.log('💡 Member Name Check:', {
+            'Order Details': order,
+            'Link Type': universalLinkName,
+            'Visitor Name': order?.visitor_name,
+            'Member Name': order?.member_name
+        });
+
+        // Trim the universalLinkName to handle any extra spaces
+        const linkType = universalLinkName?.trim();
+
+        if (linkType === "New Member Payment") {
+            console.log('🆕 New Member Payment Detected:', {
+                'Visitor Name': order?.visitor_name || 'Not Available',
+                'Member Name': order?.member_name || 'Not Available',
+                'Order ID': order?.order_id
+            });
+            return order?.visitor_name || "Unknown Visitor"; // Return visitor name for new member payments
         }
+
+        if (linkType === "Visitors Payment") {
+            return order?.visitor_name || "Unknown Visitor";
+        }
+
         return order?.member_name || "Unknown";
       };
       // <td><b>${actualAmount}</b></td>

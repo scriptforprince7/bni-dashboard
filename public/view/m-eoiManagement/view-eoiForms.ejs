@@ -21,21 +21,47 @@
                 <ol class="breadcrumb mb-1">
                   <li class="breadcrumb-item">
                     <a href="javascript:void(0);" style="color: #d01f2f"
-                      >Visitors Information</a
+                      >EOI Management</a
                     >
                   </li>
                   <li class="breadcrumb-item Approved" aria-current="page">
-                    View All Visitors
+                    View All EOI-Forms
                   </li>
                 </ol>
               </nav>
+
+              <!-- Radio Button Filter Group -->
+              <div class="d-flex justify-content-center mb-4">
+                <div class="btn-group" role="group" aria-label="EOI Status Filter">
+                  <input type="radio" class="btn-check" name="eoi-status" id="all" checked>
+                  <label class="btn btn-outline-primary" for="all" style="border-radius: 20px 0 0 20px;">
+                    View All
+                  </label>
+
+                  <input type="radio" class="btn-check" name="eoi-status" id="ready">
+                  <label class="btn btn-outline-success" for="ready">
+                    Yes, I'm ready to get started
+                  </label>
+
+                  <input type="radio" class="btn-check" name="eoi-status" id="maybe">
+                  <label class="btn btn-outline-warning" for="maybe">
+                    Maybe, I would like more information
+                  </label>
+
+                  <input type="radio" class="btn-check" name="eoi-status" id="no">
+                  <label class="btn btn-outline-danger" for="no" style="border-radius: 0 20px 20px 0;">
+                    No, not as of now
+                  </label>
+                </div>
+              </div>
+
               <h1 class="page-title fw-medium fs-18 mb-0">
-                Manage Visitors
+                Manage EOI-Forms
               </h1>
             </div>
             <div class="btn-list">
               <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Visitors <br />
+                Total EOI-Forms <br />
                 <span id="total-visitors-count"><b>0</b></span>
               </button>
               
@@ -172,7 +198,94 @@
       </div>
       <!-- End::content  -->
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script src="../../assets/js/visitors.js"></script>
+      <script src="../../assets/js/eoi.js"></script>
       
 
       <%- include('../partials/footer') %> 
+
+<style>
+    /* Custom styles for radio buttons */
+    .btn-group {
+        gap: 5px;
+        background: #f8f9fa;
+        padding: 5px;
+        border-radius: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 0.5px solid #343a40;
+    }
+
+    .btn-check + .btn {
+        border: 1.5px solid #6c757d;
+        padding: 8px 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-check:checked + .btn {
+        transform: scale(1.02);
+        font-weight: 500;
+        border-width: 0.8px;
+    }
+
+    .btn-check + .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Custom colors for orange button */
+    .btn-outline-warning {
+        color: #ff6b00 !important; /* Orange color */
+        border-color: #ff6b00 !important;
+    }
+
+    .btn-outline-warning:hover,
+    .btn-check:checked + .btn-outline-warning {
+        background-color: #ff6b00 !important;
+        border-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    /* Override any Bootstrap default warning colors */
+    .btn-outline-warning:not(:disabled):not(.disabled):active,
+    .btn-outline-warning:not(:disabled):not(.disabled).active,
+    .show > .btn-outline-warning.dropdown-toggle {
+        background-color: #ff6b00 !important;
+        border-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    /* Specific hover state override */
+    .btn-outline-warning:hover {
+        background-color: #ff6b00 !important;
+        border-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    /* Custom colors */
+    .btn-outline-primary {
+        color: #d01f2f;
+        border-color: #d01f2f;
+    }
+
+    .btn-outline-primary:hover,
+    .btn-check:checked + .btn-outline-primary {
+        background-color: #d01f2f;
+        border-color: #d01f2f;
+        color: white;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .btn-check + .btn {
+            border-radius: 15px !important;
+            margin: 2px 0;
+        }
+    }
+</style> 

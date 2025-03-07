@@ -32,6 +32,7 @@ const manageZonesRoutes = require('./r-manageZones/manageZones');
 const hotelRoutes = require('./r-hotel/hotelRoutes');
 const accoladesChapterRoutes = require('./r-accoladesChapter/accoladesChapterRoutes');
 const chapterTransactionRoutes = require('./r-chapterTransaction/chapterTransactionRoutes');
+const eoiManagementRoutes = require('./r-eoiManagement/eoiManagementRoutes');
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -62,6 +63,7 @@ router.use('/rexp', roExpenseRoutes);
 router.use('/z', manageZonesRoutes);
 router.use('/h', hotelRoutes);
 router.use('/trans', chapterTransactionRoutes);
+router.use('/eoi', eoiManagementRoutes);
 
 
 
