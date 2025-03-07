@@ -129,7 +129,7 @@
                     type="text"
                     id="searchAccolades"
                     class="form-control"
-                    placeholder="Search Visitors.."
+                    placeholder="Search EOI's.."
                     aria-label="Search Accolades"
                     aria-describedby="button-addon2"
                   />
@@ -150,18 +150,20 @@
                 >
                   <thead>
                     <tr>
+                      <th scope="col">Name <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">S.No. <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Visitor Name <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Invited By <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Visited Region <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Visited Chapter <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Visited On <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Phone Number <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Region Name <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Chapter Name <i class="ti ti-arrows-sort"></i></th>
+                      
                       <th scope="col">Company Name <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Visitor Form <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">EOI Form <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">New Member Form <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Induction Status <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">GST NO <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Phone No <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">EOI Filled On <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Best Time to Contact <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Is Previous Member <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Experience Rating <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Invited by<i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Is Interested <i class="ti ti-arrows-sort"></i></th>
                     </tr>
                   </thead>
                   
@@ -211,7 +213,7 @@
         padding: 5px;
         border-radius: 25px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border: 0.5px solid #343a40;
+       
     }
 
     .btn-check + .btn {
@@ -287,5 +289,38 @@
             border-radius: 15px !important;
             margin: 2px 0;
         }
+    }
+
+    /* Table styling with vertical lines */
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .table th, 
+    .table td {
+        border-right: 1px solid #e2e8f0;  /* Vertical lines */
+        border-left: 1px solid #e2e8f0;   /* Vertical lines */
+        padding: 12px;
+    }
+
+    .table th {
+        background-color: #f8fafc;
+        font-weight: 600;
+    }
+
+    .table tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Remove double borders */
+    .table th:first-child,
+    .table td:first-child {
+        border-left: none;
+    }
+
+    .table th:last-child,
+    .table td:last-child {
+        border-right: none;
     }
 </style> 

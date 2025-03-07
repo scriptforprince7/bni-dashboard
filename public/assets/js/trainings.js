@@ -258,7 +258,15 @@ async function fetchRegistrationCount(training_id) {
     }
 }
 
-// Modify only the relevant part of the existing renderTrainings function
+// Function to update total trainings count
+function updateTotalTrainingsCount(trainingsCount) {
+    const totalTrainingsButton = document.querySelector('.btn-white.btn-wave b');
+    if (totalTrainingsButton) {
+        totalTrainingsButton.textContent = trainingsCount;
+    }
+}
+
+// Modify the existing renderTrainings function
 function renderTrainings(trainingsToShow) {
     trainingsTableBody.innerHTML = '';
 
@@ -267,8 +275,12 @@ function renderTrainings(trainingsToShow) {
             <tr>
                 <td colspan="8" class="text-center text-danger">No trainings found matching your search.</td>
             </tr>`;
+        updateTotalTrainingsCount(0);
         return;
     }
+
+    // Update total count
+    updateTotalTrainingsCount(trainingsToShow.length);
 
     // Fetch hotels data first
     fetch('https://bni-data-backend.onrender.com/api/getHotels')

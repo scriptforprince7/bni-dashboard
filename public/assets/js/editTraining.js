@@ -81,44 +81,35 @@ async function setupHotelDropdown() {
     try {
         const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
         const hotels = await response.json();
+        console.log('📍 Total hotels fetched:', hotels.length);
         
-        const venueInput = document.getElementById('training_venue');
-        const hotelDropdown = document.createElement('ul');
-        hotelDropdown.className = 'dropdown-menu w-100';
-        hotelDropdown.id = 'hotel-dropdown';
-        venueInput.parentNode.appendChild(hotelDropdown);
+        const hotelDropdown = document.getElementById('hotel-dropdown');
+        hotelDropdown.innerHTML = ''; // Clear existing options
 
-        // Add click event to input to show dropdown
-        venueInput.addEventListener('click', () => {
-            hotelDropdown.style.display = 'block';
-        });
-
-        // Hide dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!venueInput.contains(e.target)) {
-                hotelDropdown.style.display = 'none';
-            }
-        });
-
-        // Populate dropdown with hotels
         hotels.forEach(hotel => {
-            if (hotel.is_active) {
-                const venueText = `${hotel.hotel_name} - ${hotel.hotel_address}`;
-                const option = document.createElement('li');
-                option.innerHTML = `<a class="dropdown-item" href="javascript:void(0);">${venueText}</a>`;
-                
-                option.querySelector('a').addEventListener('click', () => {
-                    venueInput.value = venueText;
-                    venueInput.dataset.hotelId = hotel.hotel_id;
-                    hotelDropdown.style.display = 'none';
-                });
-                
-                hotelDropdown.appendChild(option);
-            }
+            const venueText = `${hotel.hotel_name} - ${hotel.hotel_address}`;
+            const li = document.createElement('li');
+            li.innerHTML = `<a class="dropdown-item" href="javascript:void(0);" 
+                             data-hotel-id="${hotel.hotel_id}"
+                             data-hotel-name="${hotel.hotel_name}"
+                             data-hotel-address="${hotel.hotel_address}">
+                             ${venueText}
+                          </a>`;
+            hotelDropdown.appendChild(li);
+        });
+
+        // Add click handlers for the dropdown items
+        hotelDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const venueInput = document.getElementById('training_venue');
+                const selectedVenue = `${this.dataset.hotelName} - ${this.dataset.hotelAddress}`;
+                venueInput.value = selectedVenue;
+                venueInput.dataset.hotelId = this.dataset.hotelId;
+            });
         });
 
     } catch (error) {
-        console.error('Error setting up hotel dropdown:', error);
+        console.error('❌ Error setting up hotel dropdown:', error);
     }
 }
 
