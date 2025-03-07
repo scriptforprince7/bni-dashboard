@@ -270,41 +270,53 @@ function renderTrainings(trainingsToShow) {
         return;
     }
 
-    trainingsToShow.forEach(async (training, index) => {
-        // Get registration count for this training
-        const registrationsCount = await fetchRegistrationCount(training.training_id);
-        console.log(`Registration count for training ${training.training_id}: ${registrationsCount}`);
+    // Fetch hotels data first
+    fetch('https://bni-data-backend.onrender.com/api/getHotels')
+        .then(response => response.json())
+        .then(hotels => {
+            trainingsToShow.forEach(async (training, index) => {
+                // Get registration count for this training
+                const registrationsCount = await fetchRegistrationCount(training.training_id);
+                
+                // Find matching hotel
+                const hotel = hotels.find(h => h.hotel_id === parseInt(training.training_venue));
+                const venueDisplay = hotel ? 
+                    `${hotel.hotel_name}, ${hotel.hotel_address}` : 
+                    'N/A';
 
-        trainingsTableBody.innerHTML += `
-            <tr>
-                <td>${index + 1}</td>
-                <td>
-                    <a href="/tr/view-training?training_id=${training.training_id}"><b>${training.training_name}</b></a>
-                </td>
-                <td>${training.training_venue || 'N/A'}</td>
-                <td><b>${new Date(training.training_date).toLocaleDateString('en-US', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                })}</b></td>
-                <td><b>${registrationsCount}</b></td>
-                <td class="text-center"><b>${training.training_price}</b></td>
-                <td>
-                    <span class="badge bg-${getBadgeClass(training.training_status)}">${training.training_status}</span>
-                </td>
-                <td>
-                    <span class="badge bg-primary">
-                        <a href="/tr/edit-training/?training_id=${training.training_id}" style="color:white">Edit</a>
-                    </span>
-                </td>
-            </tr>`;
-    });
-
-    // Update total count
-    const totalCount = document.querySelector('.btn-white span b');
-    if (totalCount) {
-        totalCount.textContent = trainingsToShow.length;
-    }
+                trainingsTableBody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <a href="/tr/view-training?training_id=${training.training_id}"><b>${training.training_name}</b></a>
+                        </td>
+                        <td>${venueDisplay}</td>
+                        <td><b>${new Date(training.training_date).toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        })}</b></td>
+                        <td><b>${registrationsCount}</b></td>
+                        <td class="text-center"><b>${training.training_price}</b></td>
+                        <td>
+                            <span class="badge bg-${getBadgeClass(training.training_status)}">${training.training_status}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">
+                                <a href="/tr/edit-training/?training_id=${training.training_id}" style="color:white">Edit</a>
+                            </span>
+                        </td>
+                    </tr>`;
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching hotels:', error);
+            // Fallback to showing just the venue ID if hotels fetch fails
+            trainingsToShow.forEach(async (training, index) => {
+                const registrationsCount = await fetchRegistrationCount(training.training_id);
+                // ... rest of your existing rendering code with training.training_venue || 'N/A' ...
+            });
+        });
 }
 
 // Helper function for badge colors

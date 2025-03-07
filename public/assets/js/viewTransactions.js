@@ -57,7 +57,21 @@ async function fetchAllOrders() {
                 document.getElementById('customer-email').textContent = order.visitor_email || "N/A";
                 document.getElementById('company-name').textContent = order.visitor_company || "N/A";
                 document.getElementById('company-gst').textContent = order.visitor_gstin || "N/A";
-            } else {
+            } 
+            // Check for New Member Payment case
+            else if (order.payment_note === "New Member Payment") {
+                console.log('🆕 Handling New Member Payment case');
+                console.log('Visitor Name:', order.visitor_name);
+                console.log('Visitor Email:', order.visitor_email);
+                console.log('Visitor Company:', order.visitor_company);
+                console.log('Visitor GSTIN:', order.visitor_gstin);
+
+                document.getElementById('member-name').textContent = order.visitor_name || "N/A";
+                document.getElementById('customer-email').textContent = order.visitor_email || "N/A";
+                document.getElementById('company-name').textContent = order.visitor_company || "N/A";
+                document.getElementById('company-gst').textContent = order.visitor_gstin || "N/A";
+            } 
+            else {
                 // Directly use order data to set member details
                 console.log('Setting member details from order API:');
                 console.log('Member Name:', order.member_name);

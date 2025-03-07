@@ -16,11 +16,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Function to format date
     function formatDate(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-IN', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
     }
 
     // Function to update the total count
@@ -738,7 +737,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
         row.innerHTML = `
                   <td>${index + 1}</td>
-                  <td>${formattedDate}</td>
+                  <td>${formatDate(item.cancel_date)}</td>
                   <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
                     getMemberName(order, universalLinkName)
                   }</td>

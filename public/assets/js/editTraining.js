@@ -76,6 +76,84 @@ document.getElementById('training_date').addEventListener('change', function(e) 
     updateStatusOptions(e.target.value, currentStatus);
 });
 
+// Function to fetch and setup hotel dropdown
+async function setupHotelDropdown() {
+    try {
+        const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
+        const hotels = await response.json();
+        
+        const venueInput = document.getElementById('training_venue');
+        const hotelDropdown = document.createElement('ul');
+        hotelDropdown.className = 'dropdown-menu w-100';
+        hotelDropdown.id = 'hotel-dropdown';
+        venueInput.parentNode.appendChild(hotelDropdown);
+
+        // Add click event to input to show dropdown
+        venueInput.addEventListener('click', () => {
+            hotelDropdown.style.display = 'block';
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!venueInput.contains(e.target)) {
+                hotelDropdown.style.display = 'none';
+            }
+        });
+
+        // Populate dropdown with hotels
+        hotels.forEach(hotel => {
+            if (hotel.is_active) {
+                const venueText = `${hotel.hotel_name} - ${hotel.hotel_address}`;
+                const option = document.createElement('li');
+                option.innerHTML = `<a class="dropdown-item" href="javascript:void(0);">${venueText}</a>`;
+                
+                option.querySelector('a').addEventListener('click', () => {
+                    venueInput.value = venueText;
+                    venueInput.dataset.hotelId = hotel.hotel_id;
+                    hotelDropdown.style.display = 'none';
+                });
+                
+                hotelDropdown.appendChild(option);
+            }
+        });
+
+    } catch (error) {
+        console.error('Error setting up hotel dropdown:', error);
+    }
+}
+
+// Function to fetch hotel details and update venue field
+async function fetchAndDisplayHotelDetails(venueId) {
+  try {
+    const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
+    const hotels = await response.json();
+    
+    // Find the hotel that matches the venue ID
+    const hotel = hotels.find(h => h.hotel_id === parseInt(venueId));
+    
+    if (hotel) {
+      // Create the venue display text
+      const venueText = `${hotel.hotel_name} - ${hotel.hotel_address}`;
+      
+      // Update the venue input field
+      const venueInput = document.getElementById('training_venue');
+      venueInput.value = venueText;
+      venueInput.dataset.hotelId = hotel.hotel_id; // Store the hotel ID for future use
+      
+      console.log('🏨 Found and displayed hotel:', {
+        id: hotel.hotel_id,
+        name: hotel.hotel_name,
+        address: hotel.hotel_address,
+        displayText: venueText
+      });
+    } else {
+      console.warn('⚠️ No hotel found with ID:', venueId);
+    }
+  } catch (error) {
+    console.error('❌ Error fetching hotel details:', error);
+  }
+}
+
 // Function to fetch event details and populate the form
 async function fetchTrainingDetails() {
   try {
@@ -87,11 +165,14 @@ async function fetchTrainingDetails() {
 
     // Populate the form fields with the fetched data
     training_name.value = trainingData.training_name || '';
-    training_venue.value = trainingData.training_venue || '';
     training_ticket_price.value = trainingData.training_price || '';
     training_date.value = formatDateForInput(trainingData.training_date) || '';
     training_note.value = trainingData.training_note || '';
     training_published_by.value = trainingData.training_published_by || '';
+    
+    // Setup hotel dropdown and display current venue
+    await setupHotelDropdown();
+    await fetchAndDisplayHotelDetails(trainingData.training_venue);
     
     // Update status options based on the fetched date and set the current status
     updateStatusOptions(trainingData.training_date, trainingData.training_status);
@@ -110,16 +191,16 @@ window.addEventListener('load', fetchTrainingDetails);
 
 // Function to collect form data and prepare it for the update
 const collectFormData = () => {
+    const venueInput = document.querySelector("#training_venue");
     const trainingData = {
         training_name: document.querySelector("#training_name").value,
-        training_venue: document.querySelector("#training_venue").value,
+        training_venue: venueInput.dataset.hotelId, // Send the hotel ID instead of text
         training_price: document.querySelector("#training_ticket_price").value,
         training_date: document.querySelector("#training_date").value,
         training_note: document.querySelector("#training_note").value,
         training_published_by: document.querySelector("#training_published_by").value,
         training_status: document.querySelector("#training_status").value,
     };
-
     return trainingData;
 };
 
@@ -141,7 +222,7 @@ const updatetrainingData = async () => {
 
         try {
             showLoader(); // Show the loader when sending data
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateTraining/${training_id}`, {
+            const response = await fetch(`http://localhost:5000/api/updateTraining/${training_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

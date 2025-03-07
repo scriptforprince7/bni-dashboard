@@ -10,6 +10,6 @@ router.get('/view-invoice', transactionsController.viewInvoice);
 router.get('/generate-invoice', transactionsController.generateInvoice);
 router.get('/new-member-payment', transactionsController.newMemberPayment);
 router.get('/cancelled-irns', transactionsController.cancelledIRNs);
-
+router.get('/manage-visitors', transactionsController.manageVisitors);
 
 module.exports = router;
