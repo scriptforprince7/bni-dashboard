@@ -1,3 +1,117 @@
+// Declare these variables in global scope
+let regions = [];
+let chapters = [];
+
+// Declare the function in global scope
+function showInductionConfirmation(visitor) {
+    const region = regions.find(r => r.region_id === visitor.region_id);
+    const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+    
+    Swal.fire({
+        title: '<span style="color: #2563eb">Visitor Induction Confirmation</span>',
+        html: `
+            <div class="induction-details" style="text-align: left; padding: 20px;">
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-user-fill" style="color: #2563eb"></i>
+                    <strong>Name:</strong> ${visitor.visitor_name}
+                </div>
+                
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-building-fill" style="color: #2563eb"></i>
+                    <strong>Company:</strong> ${visitor.visitor_company_name}
+                </div>
+
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-file-list-fill" style="color: #2563eb"></i>
+                    <strong>GST No:</strong> ${visitor.visitor_gst || 'N/A'}
+                </div>
+                
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-map-pin-fill" style="color: #2563eb"></i>
+                    <strong>Region:</strong> ${region?.region_name}
+                </div>
+                
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-community-fill" style="color: #2563eb"></i>
+                    <strong>Chapter:</strong> ${chapter?.chapter_name}
+                </div>
+                
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-phone-fill" style="color: #2563eb"></i>
+                    <strong>Phone:</strong> +91-${visitor.visitor_phone}
+                </div>
+                
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-calendar-fill" style="color: #2563eb"></i>
+                    <strong>Visit Date:</strong> ${formatDate(visitor.visited_date)}
+                </div>
+
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-user-received-fill" style="color: #2563eb"></i>
+                    <strong>Invited By:</strong> ${visitor.invited_by_name || 'N/A'}
+                </div>
+                
+                <div class="forms-status" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> Visitor Form Completed
+                    </div>
+                    <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> EOI Form Completed
+                    </div>
+                    <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> New Member Form Completed
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        iconColor: '#2563eb',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Induct Member',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#dc2626',
+        customClass: {
+            container: 'induction-modal',
+            popup: 'induction-popup',
+            content: 'induction-content'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Log visitor data in a simplified format
+            console.log('📋 Inducting Visitor:', {
+                name: visitor.visitor_name,
+                company: visitor.visitor_company_name,
+                gst_no: visitor.visitor_gst,
+                phone: visitor.visitor_phone,
+                visit_date: formatDate(visitor.visited_date),
+                invited_by: visitor.invited_by_name,
+                region: region?.region_name,
+                chapter: chapter?.chapter_name,
+                region_id: visitor.region_id,
+                chapter_id: visitor.chapter_id,
+                visitor_form: visitor.visitor_form,
+                eoi_form: visitor.eoi_form,
+                new_member_form: visitor.new_member_form,
+                visitor_id: visitor.visitor_id
+            });
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Visitor has been inducted successfully.',
+                icon: 'success',
+                confirmButtonColor: '#2563eb'
+            });
+        }
+    });
+}
+
+// Also move formatDate to global scope
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -44,6 +158,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         .table tbody tr {
             border-bottom: 1px solid #dee2e6 !important;
         }
+
+        .btn-success {
+            padding: 4px 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        .btn-success i {
+            margin-left: 4px;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
     `;
     document.head.appendChild(style);
 
@@ -58,8 +188,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         ]);
 
         const visitors = await visitorsResponse.json();
-        const regions = await regionsResponse.json();
-        const chapters = await chaptersResponse.json();
+        regions = await regionsResponse.json();
+        chapters = await chaptersResponse.json();
 
         console.log('Fetched Data:', {
             visitors: visitors,
@@ -85,6 +215,56 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Return true only if all three forms are completed
             return visitor.visitor_form && visitor.eoi_form && visitor.new_member_form;
         };
+
+        // Function to create induction status button/icon
+        function createInductionStatus(visitor) {
+            const isReady = visitor.visitor_form && visitor.eoi_form && visitor.new_member_form;
+            
+            if (isReady) {
+                return `
+                    <button class="btn btn-success btn-sm induct-btn" onclick="showInductionConfirmation(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                        Induct Member <i class="ti ti-check" style="font-size: 12px;"></i>
+                    </button>
+                `;
+            } else {
+                return '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
+            }
+        }
+
+        // Add custom styles for the modal
+        const style = document.createElement('style');
+        style.textContent = `
+            .induction-popup {
+                border-radius: 15px;
+            }
+            
+            .induction-content {
+                padding: 20px;
+            }
+            
+            .detail-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .detail-row i {
+                font-size: 1.2em;
+            }
+            
+            .forms-status {
+                background-color: #f8fafc;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            
+            .forms-status div {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Populate filter dropdowns
         // Regions dropdown
@@ -307,7 +487,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             const tableContent = visitorsToShow.map((visitor, index) => {
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
-                const inductionStatus = getInductionStatus(visitor);
                 
                 return `
                     <tr>
@@ -322,7 +501,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${getStatusIcon(visitor.visitor_form)}</td>
                         <td class="text-center">${getStatusIcon(visitor.eoi_form)}</td>
                         <td class="text-center">${getStatusIcon(visitor.new_member_form)}</td>
-                        <td class="text-center">${getStatusIcon(inductionStatus)}</td>
+                        <td class="text-center">${createInductionStatus(visitor)}</td>
                     </tr>
                 `;
             }).join('');

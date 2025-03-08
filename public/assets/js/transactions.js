@@ -511,37 +511,11 @@ const filteredTransactions = transactions.filter((transaction) => {
 
       // Check payment status and update settled or pending totals
       if (transaction.payment_status === "SUCCESS") {
+        // Add to settled payments
         settledPayments += transactionAmount;
         totalTransactionAmount += transactionAmount;
-
-        // Calculate GST (18% of total amount)
-        const gstRate = 0.18;
-        const gstAmount = Math.round((transactionAmount * gstRate) / (1 + gstRate));
-        
-        // Calculate base amount (total - GST)
-        const baseAmount = transactionAmount - gstAmount;
-        
-        // Add to running totals
-        totalGSTAmount += gstAmount;
-        totalBaseAmount += baseAmount;
-        
-        console.log('💰 Transaction Breakdown:', {
-            '🔢 Order ID': transaction.order_id,
-            '💵 Total Amount Received': `₹${transactionAmount.toLocaleString("en-IN")}`,
-            '📊 Calculation Steps': {
-                '1️⃣ Total Amount': `₹${transactionAmount.toLocaleString("en-IN")}`,
-                '2️⃣ GST Rate': '18%',
-                '3️⃣ GST Formula': 'Amount × 18/118',
-                '4️⃣ GST Amount': `₹${gstAmount.toLocaleString("en-IN")}`,
-                '5️⃣ Base Amount': `₹${baseAmount.toLocaleString("en-IN")} (Total - GST)`
-            },
-            '📈 Running Totals': {
-                '💼 Total Base': `₹${totalBaseAmount.toLocaleString("en-IN")}`,
-                '🏦 Total GST': `₹${totalGSTAmount.toLocaleString("en-IN")}`,
-                '💰 Grand Total': `₹${totalTransactionAmount.toLocaleString("en-IN")}`
-            }
-        });
       } else if (transaction.payment_status === "PENDING") {
+        // Add to pending payments
         pendingPayments += transactionAmount;
         console.log('⚠️ Skipped Transaction:', {
             '🔢 Order ID': transaction.order_id,
@@ -550,15 +524,21 @@ const filteredTransactions = transactions.filter((transaction) => {
         });
       }
 
-      // Calculate GST and Actual Amount
-      const gstRate = 0.18; // 18% GST
-      const gstAmount = Math.round((transactionAmount * gstRate) / (1 + gstRate)); // GST amount
-      const actualAmount = Math.round(transactionAmount - gstAmount); // Actual amount without GST
+      // Calculate GST (amount × 18/118)
+      const gstAmount = Math.round((totalTransactionAmount * 18) / 118);
+      console.log('💰 GST Amount:', gstAmount);
+
+      // Calculate base amount (total amount - GST amount)
+      const baseAmount = Math.round(totalTransactionAmount - gstAmount);
+      console.log('💰 Base Amount:', baseAmount);
+
+      // Update UI elements
+      document.getElementById('total_gst_amount').textContent = `₹${gstAmount.toLocaleString("en-IN")}`;
+      document.getElementById('total_base_amount').textContent = `₹${baseAmount.toLocaleString("en-IN")}`;
 
       // Format all amounts with Indian currency format
       const formattedTotalAmount = `₹${transactionAmount.toLocaleString("en-IN")}`;
-      const formattedActualAmount = `₹${actualAmount.toLocaleString("en-IN")}`;
-      const formattedGSTAmount = `₹${gstAmount.toLocaleString("en-IN")}`;
+     
 
       // Determine payment method
       let paymentMethod = "N/A";
@@ -1101,10 +1081,6 @@ const filteredTransactions = transactions.filter((transaction) => {
         '✅ Formula Used': 'Amount × 0.18'
     });
 
-    // Update the GST amount display in the UI
-    document.getElementById('total_gst_amount').textContent = `₹${totalGSTAmount.toLocaleString("en-IN")}`;
-    document.getElementById('total_base_amount').textContent = `₹${totalBaseAmount.toLocaleString("en-IN")}`;
-
     // Function to update transaction counts
     function updateTransactionCounts() {
         try {
@@ -1317,23 +1293,6 @@ const filteredTransactions = transactions.filter((transaction) => {
                                 // Add Cancel IRN button
                                 transactionRow.querySelector(".cancel-invoice-btn").innerHTML = 
                                     `<button class="btn btn-sm btn-link cancel_irn" data-id="${einvoiceData.irn}">Cancel IRN</button>`;
-
-                                // Add event listener for Cancel IRN button
-                                // transactionRow.querySelector(".cancel_irn").addEventListener("click", function() {
-                                //     const irn = this.getAttribute("data-id");
-                                //     Swal.fire({
-                                //         title: "Are you sure?",
-                                //         html: `Are you sure to cancel IRN for <b>${irn}</b>?`,
-                                //         icon: "warning",
-                                //         showCancelButton: true,
-                                //         confirmButtonText: "Yes, Cancel IRN",
-                                //         cancelButtonText: "No"
-                                //     }).then((result) => {
-                                //         if (result.isConfirmed) {
-                                //             // ... rest of your cancel IRN logic ...
-                                //         }
-                                //     });
-                                // });
 
                                 // Handle QR code display
                                 if (localStorage.getItem(qrCodeKey)) {

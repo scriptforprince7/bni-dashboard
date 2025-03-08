@@ -167,16 +167,21 @@
                       </div> 
                       <div class="col-xl-6">
                         <label for="training_venue" class="form-label">Training Venue</label>
-                        <input
-                            type="text"
-                            class="form-control"
-                            id="training_venue"
-                            name="training_venue"
-                            placeholder="The Roseate House.."
-                            data-bs-toggle="dropdown"
-                            autocomplete="off"
-                        />
-                        <ul class="dropdown-menu w-100" id="hotel-dropdown"></ul>
+                        <div class="dropdown">
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="training_venue"
+                                name="training_venue"
+                                placeholder="Select venue..."
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                readonly
+                            />
+                            <ul class="dropdown-menu" id="hotel-dropdown" style="width: 100%;">
+                                <!-- Hotels will be populated here -->
+                            </ul>
+                        </div>
                       </div> 
 
                       <div class="col-xl-6">
@@ -267,3 +272,14 @@
 <script src="../../assets/js/editTraining.js"></script>
 
 <%- include('../partials/footer') %>
+
+<style>
+    .dropdown-menu {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .dropdown-item {
+        white-space: normal;
+        padding: 8px 16px;
+    }
+</style>

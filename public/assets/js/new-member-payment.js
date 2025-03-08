@@ -259,13 +259,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <span onclick="showJoiningFormStatus('pending')" style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">Pending</span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
-                <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
+                <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
+                <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
+                <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
             </div>
         </div>
     </td>
-    <td><em>Not Applicable</em></td>
+    <td class="induction-status">
+        <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
+            <i class="ri-checkbox-circle-line me-1"></i>Induct Member
+        </button>
+    </td>
               `;
   
         tableBody.appendChild(row);
@@ -388,8 +392,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
                 button.textContent = 'Payment Settled ✔';
                 button.classList.remove('btn-success');
-                button.classList.add('btn-success');
-                button.setAttribute('disabled', 'true');
+                button.addAttribute('disabled', 'true');
                 toastr.success('Payment successfully settled!');
   
                 let e_invoice = row.querySelector('.generate-invoice-btn');
@@ -876,4 +879,40 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         populateDropdownsFromTable();
     }, 1000); // Small delay to ensure table is loaded
+});
+
+// Add event listener for all Induct Member buttons
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.induct-member-btn')) {
+        const button = event.target.closest('.induct-member-btn');
+        const row = button.closest('tr');
+        const memberName = row.querySelector('td:nth-child(3)').textContent.trim();
+
+        Swal.fire({
+            title: 'Confirm Induction',
+            text: `Are you sure you want to induct ${memberName}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Induct',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show success message
+                Swal.fire({
+                    title: 'Success!',
+                    text: `${memberName} has been inducted successfully!`,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745'
+                }).then(() => {
+                    // Update button state after successful induction
+                    button.innerHTML = '<i class="ri-checkbox-circle-line me-1"></i>Inducted';
+                    button.disabled = true;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-secondary');
+                });
+            }
+        });
+    }
 });
