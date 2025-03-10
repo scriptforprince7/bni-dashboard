@@ -1388,3 +1388,49 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+// Function to fetch event details and populate the form
+async function fetchTrainingDetails() {
+  try {
+    showLoader();
+    
+    // Fetch both training and hotels data in parallel
+    const [trainingResponse, hotelsResponse] = await Promise.all([
+      fetch(`https://bni-data-backend.onrender.com/api/getTraining/${training_id}`),
+      fetch('https://bni-data-backend.onrender.com/api/getHotels')
+    ]);
+
+    if (!trainingResponse.ok) throw new Error('Failed to fetch training details');
+    if (!hotelsResponse.ok) throw new Error('Failed to fetch hotels');
+
+    const trainingData = await trainingResponse.json();
+    const hotels = await hotelsResponse.json();
+
+    // Find the matching hotel
+    const hotel = hotels.find(h => h.hotel_id === parseInt(trainingData.training_venue));
+    const venueDisplay = hotel ? `${hotel.hotel_name}, ${hotel.hotel_address}` : 'N/A';
+
+    // Populate the form fields with the fetched data
+    document.getElementById('page_title').textContent = trainingData.training_name || '';
+    document.getElementById('training_name').value = trainingData.training_name || '';
+    document.getElementById('training_venue').value = venueDisplay; // Show hotel name and address
+    document.getElementById('training_ticket_price').value = trainingData.training_price || '';
+    document.getElementById('training_date').value = formatDateForInput(trainingData.training_date) || '';
+    document.getElementById('training_published_by').value = trainingData.training_published_by || '';
+
+  } catch (error) {
+    console.error('Error fetching training details:', error);
+    toastr.error('Failed to load training details');
+  } finally {
+    hideLoader();
+  }
+}
+
+// Helper function to format date
+function formatDateForInput(dateString) {
+  const date = new Date(dateString);
+  return isNaN(date) ? '' : date.toISOString().split('T')[0];
+}
+
+// Call the function when page loads
+window.addEventListener('load', fetchTrainingDetails);
