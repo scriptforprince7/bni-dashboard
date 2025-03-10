@@ -507,8 +507,7 @@ const filteredTransactions = transactions.filter((transaction) => {
 
       // Update total transaction amount
       const transactionAmount = parseFloat(transaction.payment_amount);
-      totalTransactionAmount += transactionAmount;
-
+       
       // Check payment status and update settled or pending totals
       if (transaction.payment_status === "SUCCESS") {
         // Add to settled payments
