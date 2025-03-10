@@ -213,7 +213,7 @@ const updatetrainingData = async () => {
 
         try {
             showLoader(); // Show the loader when sending data
-            const response = await fetch(`http://localhost:5000/api/updateTraining/${training_id}`, {
+            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateTraining/${training_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

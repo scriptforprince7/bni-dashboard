@@ -230,18 +230,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             Array.from(rows).forEach(row => {
                 const cells = row.getElementsByTagName('td');
                 if (cells.length > 0) {
-                    // Get Name (index 3) and GST (index 5) cells
-                    const name = cells[3].textContent.toLowerCase();
-                    const gst = cells[5].textContent.toLowerCase();
-                    
+                    // Concatenate all cell text content for searching
+                    const rowText = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
+
                     console.log('Checking:', {
-                        name: name,
-                        gst: gst,
+                        rowText: rowText,
                         searchTerm: searchTerm
                     });
 
-                    // Show row if either name or GST matches search term
-                    const matches = name.includes(searchTerm) || gst.includes(searchTerm);
+                    // Show row if any cell text matches the search term
+                    const matches = rowText.includes(searchTerm);
                     row.style.display = matches ? '' : 'none';
                 }
             });

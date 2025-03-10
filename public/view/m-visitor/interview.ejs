@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Sheet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f3f4f6;
+            font-family: 'Arial', sans-serif;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .header h1 {
+            color: #1e40af;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header h3 {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.625rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        select {
+            appearance: none;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.625rem;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+            padding-right: 2.5rem;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .question-container {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .intro-text {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .question-box {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .question-number {
+            background: #dc2626 !important;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .question-header p {
+            font-weight: 500;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            background: #dc2626;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.download {
+            background: #1e40af;
+        }
+
+        .btn.download:hover {
+            background: #1e3a8a;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            main {
+                box-shadow: none;
+                margin: 0;
+                padding: 1rem;
+            }
+
+            .btn {
+                display: none;
+            }
+
+            textarea, input {
+                border: none !important;
+            }
+        }
+
+        /* Add these styles to your existing styles */
+        input, 
+        textarea, 
+        select {
+            color: #6b7280 !important;
+        }
+
+        input[readonly], 
+        textarea[readonly], 
+        select[readonly] {
+            background-color: #f9fafb !important;
+            color: #6b7280 !important;
+            cursor: default !important;
+        }
+
+        select:disabled {
+            background-color: #f9fafb !important;
+            color: #6b7280 !important;
+            cursor: default !important;
+            opacity: 1 !important;
+        }
+
+        /* Ensure placeholder text also matches the color */
+        input::placeholder,
+        textarea::placeholder {
+            color: #6b7280 !important;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="header">
+            <h1 style="color: #dc2626;">Interviewing Applicants</h1>
+            <h3>Prior to Approving an Application</h3>
+        </div>
+        <form id="interviewForm">
+            <section>
+                <div class="grid-3">
+                    <div class="flex-col">
+                        <label for="chapter">Chapter:</label>
+                        <select id="chapter">
+                            <option value="" disabled selected>Select a Chapter</option>
+                            <option value="chapter1">Chapter One</option>
+                            <option value="chapter2">Chapter Two</option>
+                            <option value="chapter3">Chapter Three</option>
+                        </select>
+                    </div>
+
+                    <div class="flex-col">
+                        <label for="memberName">Member Name:</label>
+                        <input type="text" id="memberName">
+                    </div>
+
+                    <div class="flex-col">
+                        <label for="date">Date:</label>
+                        <input type="date" id="date">
+                    </div>
+                </div>
+            </section>
+
+            <section class="question-container">
+                <p style="font-weight: bold; margin-bottom: 1rem;">
+                    Below are questions to ask when interviewing an applicant. Keep in mind that this is just a place 
+                    to start the conversation. You can add any questions you feel are pertinent or applicable to your 
+                    chapter's needs.
+                </p>
+
+                <div class="questions">
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">1.</span>
+                            <p>Why did you decide to apply to BNI, specifically our chapter?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">2.</span>
+                            <p>What would you say are the strengths you bring to BNI and our chapter?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">3.</span>
+                            <p>What do you expect to receive from BNI and from our chapter?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">4.</span>
+                            <p>Will the (7:59 am) start time pose any problems with your schedule? (Members are expected to be at the Venue before 7:29 am)</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">5.</span>
+                            <p>As you know BNI has a clearly defined attendance policy. Can you tell me what it is?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">6.</span>
+                            <p>If you cannot attend a meeting, will you be able to have a substitute present?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">7.</span>
+                            <p>Will you be able to send 20 invitation letters within the next 6 to 8 weeks to people you believe would benefit from visiting our chapter? [40 letters are mandatory for core groups.]</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">8.</span>
+                            <p>In reviewing your application, we want to make sure we understand what niche you will be representing in our chapter. What specific products and services do you offer in your industry? Is there an area that you specialize in?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">9.</span>
+                            <p>What do you like most about what you do in regards to your profession?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">10.</span>
+                            <p>All new members are required to attend a Member Success Program within the first 60 days of membership. Will you be able to attend? (The next session will be on 
+                                <input type="date" style="width: auto; display: inline-block; margin: 0 0.5rem;" readonly>
+                            </p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">11.</span>
+                            <p>There are other Trainings (Leadership Training, Power Team Workshop, Referral Skill Workshop, Advanced Referral Skills Workshop, and Presentation Skills Workshop) which you are required to attend in the next 03 months. These are essential for your success as a member. Will you attend?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">12.</span>
+                            <p>In the next 6 to 12 months you may be asked to be in a leadership role. Your Chapter Directors will suggest a role for you according to your strengths and aptitude. Are you willing to consider?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">13.</span>
+                            <p>What reservations do you have about membership in BNI?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-header">
+                            <span class="question-number">14.</span>
+                            <p>Do you have any questions for me about BNI or our chapter?</p>
+                        </div>
+                        <textarea rows="2" placeholder="Enter text here..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section style="margin-top: 1.5rem;">
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="interviewer">Interviewed By (Name/ Chapter Position):</label>
+                        <input type="text" id="interviewer">
+                    </div>
+                    <div class="flex-col">
+                        <label for="applicantSignature">Applicant's Signature:</label>
+                        <input type="text" id="applicantSignature">
+                    </div>
+                </div>
+            </section>
+
+            <div class="button-group">
+                <button type="button" class="btn" onclick="window.location.href='/t/manage-visitors'">
+                    Back
+                </button>
+                <button type="button" class="btn" onclick="window.print()">
+                    Print
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get visitor_id from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const visitorId = urlParams.get('visitor_id');
+            console.log('Visitor ID from URL:', visitorId);
+
+            const questionsContainer = document.querySelector('.questions');
+            console.log('Questions container found:', questionsContainer);
+
+            try {
+                // Fetch questions, answers, and chapters in parallel
+                console.log('Fetching questions, answers and chapters from APIs...');
+                const [questionsResponse, answersResponse, chaptersResponse] = await Promise.all([
+                    fetch('https://bni-data-backend.onrender.com/api/getInterviewSheetQuestions'),
+                    fetch('https://bni-data-backend.onrender.com/api/getInterviewSheetAnswers'),
+                    fetch('https://bni-data-backend.onrender.com/api/chapters')
+                ]);
+
+                console.log('Questions API Response:', questionsResponse);
+                console.log('Answers API Response:', answersResponse);
+                console.log('Chapters API Response:', chaptersResponse);
+
+                if (!questionsResponse.ok || !answersResponse.ok || !chaptersResponse.ok) {
+                    throw new Error(`HTTP error! status: ${questionsResponse.status || answersResponse.status || chaptersResponse.status}`);
+                }
+
+                const [questions, allAnswers, chapters] = await Promise.all([
+                    questionsResponse.json(),
+                    answersResponse.json(),
+                    chaptersResponse.json()
+                ]);
+
+                console.log('Fetched questions:', questions);
+                console.log('Fetched all answers:', allAnswers);
+                console.log('Fetched chapters:', chapters);
+
+                // Filter answers for current visitor
+                const visitorAnswers = allAnswers.filter(answer => 
+                    answer.visitor_id === parseInt(visitorId) && 
+                    !answer.delete_status && 
+                    answer.status === 'active'
+                );
+                console.log('Filtered answers for visitor:', visitorAnswers);
+
+                // If we have answers, populate chapter and other fields
+                if (visitorAnswers.length > 0) {
+                    const firstAnswer = visitorAnswers[0];
+                    console.log('First answer data:', firstAnswer);
+
+                    // Find matching chapter
+                    const matchingChapter = chapters.find(chapter => chapter.chapter_id === firstAnswer.chapter_id);
+                    console.log('Matching chapter:', matchingChapter);
+
+                    // Update chapter select field
+                    const chapterSelect = document.getElementById('chapter');
+                    if (matchingChapter) {
+                        chapterSelect.innerHTML = `<option value="${matchingChapter.chapter_id}" selected>${matchingChapter.chapter_name}</option>`;
+                        chapterSelect.setAttribute('readonly', true);
+                        chapterSelect.style.backgroundColor = '#f3f4f6';
+                        chapterSelect.style.pointerEvents = 'none';
+                    }
+
+                    // Populate other fields
+                    document.getElementById('memberName').value = firstAnswer.member_name || '';
+                    document.getElementById('interviewer').value = firstAnswer.interview_by || '';
+                    document.getElementById('applicantSignature').value = firstAnswer.applicant_signature || '';
+                    
+                    if (firstAnswer.interview_date) {
+                        document.getElementById('date').value = firstAnswer.interview_date.split('T')[0];
+                    }
+                }
+
+                // Clear existing questions
+                questionsContainer.innerHTML = '';
+
+                // Generate HTML for each question
+                questions.forEach((questionData) => {
+                    if (questionData.status === 'active' && !questionData.delete_status) {
+                        console.log('Processing question:', questionData);
+
+                        // Find matching answer for this question
+                        const matchingAnswer = visitorAnswers.find(answer => 
+                            answer.question_id === questionData.question_id
+                        );
+                        console.log(`Matching answer for question ${questionData.question_id}:`, matchingAnswer);
+
+                        const questionBox = document.createElement('div');
+                        questionBox.className = 'question-box';
+
+                        // Special handling for question 10 (Member Success Program)
+                        const isQuestion10 = questionData.question_id === 10;
+                        
+                        const questionHTML = `
+                            <div class="question-header">
+                                <span class="question-number">${questionData.question_id}.</span>
+                                <p>${questionData.question}${
+                                    isQuestion10 
+                                    ? ' (The next session will be on <input type="date" style="width: auto; display: inline-block; margin: 0 0.5rem;" readonly>)'
+                                    : ''
+                                }</p>
+                            </div>
+                            <textarea 
+                                rows="2" 
+                                placeholder="Enter text here..."
+                                data-question-id="${questionData.question_id}"
+                                data-visitor-id="${visitorId}"
+                                readonly
+                                style="color: #6b7280;"
+                            >${matchingAnswer ? matchingAnswer.answer : ''}</textarea>
+                        `;
+
+                        questionBox.innerHTML = questionHTML;
+                        questionsContainer.appendChild(questionBox);
+                        console.log('Added question box with answer:', {
+                            questionId: questionData.question_id,
+                            answer: matchingAnswer ? matchingAnswer.answer : 'No answer found'
+                        });
+                    }
+                });
+
+                // Make all input fields readonly
+                document.querySelectorAll('input').forEach(input => {
+                    input.setAttribute('readonly', true);
+                });
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                questionsContainer.innerHTML = `
+                    <div class="question-box">
+                        <p class="text-red-600">Error loading data. Please try again later.</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

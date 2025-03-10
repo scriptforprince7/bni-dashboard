@@ -33,3 +33,19 @@ exports.cancelledIRNs = (req, res) => {
 exports.manageVisitors = (req, res) => {
     res.render('m-visitor/manage-visitors', { title: 'Manage Visitors' });
 };
+
+exports.interview = (req, res) => {
+    res.render('m-visitor/interview', { title: 'Interview' });
+}; 
+
+exports.commitment = (req, res) => {
+    res.render('m-visitor/commitment', { title: 'Commitment' });
+};
+
+exports.inclusion = (req, res) => {
+    res.render('m-visitor/inclusion', { title: 'Inclusion' });
+};
+
+exports.eoiForm = (req, res) => {
+    res.render('m-visitor/eoi-form', { title: 'EOI Form' });
+};
