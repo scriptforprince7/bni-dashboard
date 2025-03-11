@@ -664,7 +664,7 @@ function showJoiningFormStatus(status) {
                 <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="https://bninewdelhi.com/commitment-sheet" target="_blank" style="color: inherit; text-decoration: none;">Commitment Sheet</a>
+                        <a href="#" onclick="showPDF('/assets/pdf/commitment (1).pdf')" style="color: inherit; text-decoration: none;">Commitment Sheet</a>
                     </div>
                     <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
                 </li>
@@ -678,7 +678,7 @@ function showJoiningFormStatus(status) {
                 <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="https://bninewdelhi.com/inclusionexclusion-sheet" target="_blank" style="color: inherit; text-decoration: none;">Inclusion & Exclusion Form</a>
+                        <a href="#" onclick="showPDF('/assets/pdf/inesheet.pdf')" style="color: inherit; text-decoration: none;">Inclusion & Exclusion Form</a>
                     </div>
                     <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
                 </li>
@@ -686,6 +686,13 @@ function showJoiningFormStatus(status) {
                     <div>
                         <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
                         <a href="https://bninewdelhi.com/" target="_blank" style="color: inherit; text-decoration: none;">ID Proof</a>
+                    </div>
+                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
+                </li>
+                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
+                        <a href="#" onclick="showPDF('/assets/pdf/interview.pdf')" style="color: inherit; text-decoration: none;">Interview Sheet</a>
                     </div>
                     <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
                 </li>
@@ -702,6 +709,24 @@ function showJoiningFormStatus(status) {
             container: 'custom-swal-container',
             popup: 'custom-swal-popup',
             confirmButton: 'btn btn-primary'
+        }
+    });
+}
+
+// Function to show PDF in modal
+function showPDF(pdfPath) {
+    event.preventDefault(); // Prevent default link behavior
+    
+    Swal.fire({
+        title: '',
+        html: `<iframe src="${pdfPath}" width="100%" height="600px" frameborder="0"></iframe>`,
+        width: '80%',
+        height: '80%',
+        showCloseButton: true,
+        showConfirmButton: false,
+        backdrop: `rgba(0,0,0,0.4)`,
+        customClass: {
+            container: 'pdf-modal-container'
         }
     });
 }
@@ -909,7 +934,7 @@ document.addEventListener('click', function(event) {
                     // Update button state after successful induction
                     button.innerHTML = '<i class="ri-checkbox-circle-line me-1"></i>Inducted';
                     button.disabled = true;
-                    button.classList.remove('btn-success');
+                    button.classList.remove('btn-success'); 
                     button.classList.add('btn-secondary');
                 });
             }

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commitment Sheet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f3f4f6;
+            font-family: 'Arial', sans-serif;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .header h1 {
+            color: #dc2626;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        /* .header h3 {
+            color: #dc2626;
+            font-size: 1.1rem;
+        } */
+
+        .commitment-point {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .commitment-point strong {
+            background: #dc2626 !important;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .bold-text {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .radio-group {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            accent-color: #1e40af;
+        }
+
+        .radio-group label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Form Styles */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .grid-12 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.625rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            background: #dc2626;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                margin: 1rem;
+                padding: 1rem;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            main {
+                box-shadow: none;
+                margin: 0;
+                padding: 1rem;
+            }
+
+            .btn {
+                display: none;
+            }
+        }
+
+        /* For any numbers in text */
+        strong span,
+        p span,
+        li span,
+        .number {
+            color: #dc2626 !important;
+        }
+
+        /* For numbered lists */
+        ol li::marker {
+            color: #dc2626 !important;
+        }
+
+        /* For any numeric values that need to be highlighted */
+        .numeric-value {
+            color: #dc2626 !important;
+        }
+
+        /* For readonly inputs and textareas */
+        input, 
+        textarea, 
+        select {
+            color: #6b7280 !important;
+        }
+
+        input[readonly], 
+        textarea[readonly], 
+        select[readonly] {
+            background-color: #f9fafb !important;
+            color: #6b7280 !important;
+            cursor: default !important;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="header">
+            <h1 style="color: #dc2626;">Making the Commitment</h1>
+            <h3>For Members Joining a Chapter</h3>
+        </div>
+
+        <form>
+            <section>
+                <!-- Commitment Points -->
+                <p class="commitment-point">
+                    <strong>1.</strong>
+                    <span class="bold-text">Time - Arrive latest by 7:29 AM Stay till 9:30 AM at least</span>
+                    - I understand the importance of arriving early each week prior to "Open Networking" so that I can help greet guests and network with the members. Therefore, I will arrive early each week and I will not leave early, as this is very disruptive to the meeting process.
+                    <div class="radio-group">
+                        <input type="radio" id="agree1" name="commitment1">
+                        <label for="agree1">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>2.</strong>
+                    <span class="bold-text">Attendance - Only 3 Absence in 6 months "Rolling Period"</span>
+                    - I will attend every meeting and when I am unable to attend, I will send a substitute to take my place. I also understand my responsibility to fully brief my substitute on what they should say and how they are to behave while acting as my substitute.
+                    <div class="radio-group">
+                        <input type="radio" id="agree2" name="commitment2">
+                        <label for="agree2">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>3.</strong>
+                    <span class="bold-text">Substitution</span>
+                    - If a member is unable to attend a meeting, a substitute (worthy of representing the member) can be sent (not a member of any chapter). This is not considered as an absence. As per the BNI Guideline, a member can look at having a maximum of 3 substitutions in a 6 months rolling period.
+                    <div class="radio-group">
+                        <input type="radio" id="agree3" name="commitment3">
+                        <label for="agree3">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>4.</strong>
+                    <span class="bold-text">Participation</span>
+                    - A member of BNI is required to participate in chapter activities by:<br>
+                    1. Providing <span class="bold-text">referrals</span>
+                    2. Inviting <span class="bold-text">visitors</span> as per Chapter goals
+                    3. Contribute to running of the chapter (by taking on a position or helping other members holding positions)
+                    <div class="radio-group">
+                        <input type="radio" id="agree4" name="commitment4">
+                        <label for="agree4">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>5.</strong>
+                    <span class="bold-text">Referrals</span>
+                    - I will bring referrals to my fellow members. I understand that this is a primary commitment of membership. I will strive to bring at least 1 referral per week.
+                    <div class="radio-group">
+                        <input type="radio" id="agree5" name="commitment5">
+                        <label for="agree5">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>6.</strong>
+                    <span class="bold-text">Visitors</span>
+                    - I will invite visitors to my chapter meetings. I understand that visitors are potential members and that the chapter can only grow through new members. I will strive to bring at least 1 visitor per month.
+                    <div class="radio-group">
+                        <input type="radio" id="agree6" name="commitment6">
+                        <label for="agree6">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>7.</strong>
+                    <span class="bold-text">One-to-Ones</span>
+                    - I will conduct One-to-One meetings with my fellow members outside the chapter meeting. I understand that this is the best way to develop stronger relationships and generate better referrals. I will have at least 1 One-to-One per week.
+                    <div class="radio-group">
+                        <input type="radio" id="agree7" name="commitment7">
+                        <label for="agree7">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>8.</strong>
+                    <span class="bold-text">Training</span>
+                    - I will attend the Member Success Program within 60 days of joining. I understand that this training will help me be more successful in the BNI program.
+                    <div class="radio-group">
+                        <input type="radio" id="agree8" name="commitment8">
+                        <label for="agree8">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>9.</strong>
+                    <span class="bold-text">Renewal</span>
+                    - I understand that my membership is for a period of one year and that I must renew my membership annually.
+                    <div class="radio-group">
+                        <input type="radio" id="agree9" name="commitment9">
+                        <label for="agree9">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>10.</strong>
+                    <span class="bold-text">Policies</span>
+                    - I will abide by BNI's rules, policies and guidelines as they are amended from time to time.
+                    <div class="radio-group">
+                        <input type="radio" id="agree10" name="commitment10">
+                        <label for="agree10">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>11.</strong>
+                    <span class="bold-text">Code of Ethics</span>
+                    - I will maintain the highest ethical standards in my business as outlined in the BNI Code of Ethics.
+                    <div class="radio-group">
+                        <input type="radio" id="agree11" name="commitment11">
+                        <label for="agree11">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>12.</strong>
+                    <span class="bold-text">Professionalism</span>
+                    - I will maintain a positive and supportive attitude with fellow members and the leadership team.
+                    <div class="radio-group">
+                        <input type="radio" id="agree12" name="commitment12">
+                        <label for="agree12">I Understand & Agree</label>
+                    </div>
+                </p>
+
+                <p class="commitment-point">
+                    <strong>13.</strong>
+                    I recognize that I am getting involved with BNI and agree to follow the system, and be coachable by the director/s.
+                    <div class="radio-group">
+                        <input type="radio" id="agree13" name="commitment13">
+                        <label for="agree13">I Understand & Agree</label>
+                    </div>
+                </p>
+            </section>
+
+            <!-- After the commitment points section -->
+            <section class="pt-4">
+                <h4 class="bold-text">Payment / Induction details:</h4>
+                
+                <!-- Payment Details -->
+                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
+                    <div class="flex flex-col">
+                        <label for="chequeNum">Cheque No:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="chequeNum"
+                            type="number"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="chequeDate">Payment Date:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none pl-2 leading-none w-full font-semibold"
+                            id="chequeDate"
+                            type="date"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="bank">Bank:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="bank"
+                            type="text"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="neftNum">NEFT No:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="neftNum"
+                            type="number"
+                        />
+                    </div>
+                </div>
+
+                <!-- Personal Details -->
+                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
+                    <div class="flex flex-col">
+                        <label for="name">Name:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="name"
+                            type="text"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="date">Date:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="date"
+                            type="date"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="sign">Sign:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="sign"
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                <!-- Contact Details -->
+                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
+                    <div class="flex flex-col">
+                        <label for="email">Email:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="email"
+                            type="email"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="mobile">Mobile:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="mobile"
+                            type="number"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="category">Category:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="category"
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                <!-- Additional Details -->
+                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
+                    <div class="flex flex-col">
+                        <label for="sponsor">Sponsor:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="sponsor"
+                            type="text"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="gstin">GSTIN:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="gstin"
+                            type="number"
+                        />
+                    </div>
+                </div>
+
+                <!-- Company Details -->
+                <div class="mt-2 mb-1 grid grid-cols-12 sm:grid-cols-12 lg:grid-cols-1 gap-4 lg:mb-2">
+                    <div class="flex flex-cols grid-cols-4">
+                        <label class="mb-1" for="address">Company Name & Address(in full):</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="address"
+                            type="text"
+                        />
+                    </div>
+                </div>
+
+                <!-- Final Details -->
+                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
+                    <div class="flex flex-col">
+                        <label for="inductionDate">Induction Date:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            id="inductiondate"
+                            type="date"
+                        />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="signature">Signature of VP:</label>
+                        <input
+                            class="bg-white border-b border-black focus:outline-none pl-2 leading-none w-full"
+                            id="signature"
+                            type="text"
+                        />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Buttons -->
+            <div class="flex justify-center items-center mt-2">
+                <!-- <button type="submit" class="text-white rounded-sm shadow-md my-3 px-6 py-2 bg-red-600 hover:bg-red-700 mr-5">
+                    Update
+                </button>
+                <button class="text-white rounded-sm shadow-md my-3 px-6 py-2 bg-red-600 hover:bg-red-700">
+                    <a href="#" class="text-white">View & Submit</a>
+                </button> -->
+            </div>
+        </form>
+    </main>
+</body>
+</html>

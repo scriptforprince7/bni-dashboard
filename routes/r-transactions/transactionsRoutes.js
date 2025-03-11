@@ -11,5 +11,10 @@ router.get('/generate-invoice', transactionsController.generateInvoice);
 router.get('/new-member-payment', transactionsController.newMemberPayment);
 router.get('/cancelled-irns', transactionsController.cancelledIRNs);
 router.get('/manage-visitors', transactionsController.manageVisitors);
+router.get('/interview', transactionsController.interview);
+router.get('/commitment', transactionsController.commitment);
+router.get('/inclusion', transactionsController.inclusion); 
+router.get('/eoi-form', transactionsController.eoiForm);
+
 
 module.exports = router;

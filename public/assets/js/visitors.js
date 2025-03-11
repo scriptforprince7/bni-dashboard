@@ -61,6 +61,15 @@ function showInductionConfirmation(visitor) {
                     <div style="color: #059669; margin-bottom: 8px;">
                         <i class="ri-checkbox-circle-fill"></i> New Member Form Completed
                     </div>
+                    <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> Interview Sheet Completed
+                    </div>
+                    <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> Commitment Sheet Completed
+                    </div>
+                    <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> Inclusion and Exclusion Sheet Completed
+                    </div>
                 </div>
             </div>
         `,
@@ -204,21 +213,54 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
 
         // Function to create status icon
-        const getStatusIcon = (status) => {
-            return status ? 
+        const getStatusIcon = (status, type = null, visitor = null) => {
+            const icon = status ? 
                 '<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>' : 
                 '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
+            
+            // Only add View link for specified types when status is true
+            if (status && type && visitor) {
+                let pageUrl;
+                switch(type) {
+                    case 'interview':
+                        pageUrl = '/t/interview';
+                        break;
+                    case 'commitment':
+                        pageUrl = '/t/commitment';
+                        break;
+                    case 'inclusion':
+                        pageUrl = '/t/inclusion';
+                        break;
+                    case 'eoi':
+                        pageUrl = '/t/eoi-form';
+                        break;
+                }
+                return `
+                    ${icon}<br>
+                    <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
+                       target="_blank" 
+                       class="view-sheet-link fw-medium text-success text-decoration-underline">
+                       View
+                    </a>
+                `;
+            }
+            return icon;
         };
 
         // Add function to check induction status
         const getInductionStatus = (visitor) => {
-            // Return true only if all three forms are completed
-            return visitor.visitor_form && visitor.eoi_form && visitor.new_member_form;
+            // Return true only if all six forms are completed
+            return visitor.visitor_form && 
+                   visitor.eoi_form && 
+                   visitor.new_member_form && 
+                   visitor.interview_sheet && 
+                   visitor.commitment_sheet && 
+                   visitor.inclusion_exclusion_sheet;
         };
 
         // Function to create induction status button/icon
         function createInductionStatus(visitor) {
-            const isReady = visitor.visitor_form && visitor.eoi_form && visitor.new_member_form;
+            const isReady = getInductionStatus(visitor);
             
             if (isReady) {
                 return `
@@ -479,7 +521,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!visitorsToShow.length) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="12" class="text-center">No visitors found matching your search</td>
+                        <td colspan="15" class="text-center">No visitors found matching your search</td>
                     </tr>`;
                 return;
             }
@@ -498,9 +540,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td><b>${formatDate(visitor.visited_date)}</b></td>
                         <td><b>${visitor.visitor_phone || 'N/A'}</b></td>
                         <td><b>${visitor.visitor_company_name || 'N/A'}</b></td>
-                        <td class="text-center">${getStatusIcon(visitor.visitor_form)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.eoi_form)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.new_member_form)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.visitor_form, null, visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.new_member_form, null, visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
                         <td class="text-center">${createInductionStatus(visitor)}</td>
                     </tr>
                 `;
@@ -523,3 +568,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         hideLoader();
     }
 });
+
+// Add CSS for the View link styling
+const style = document.createElement('style');
+style.textContent = `
+    .view-sheet-link {
+        display: inline-block;
+        margin-top: 5px;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+`;
+document.head.appendChild(style);
