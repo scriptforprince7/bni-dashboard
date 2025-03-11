@@ -1327,12 +1327,12 @@ function validateDOB(dob) {
         fullAge: `${exactAge.years} years, ${exactAge.months} months, ${exactAge.days} days`
     });
 
-    // Check if birth year is before 1980
-    if (birthDate.getFullYear() < 1980) {
+    // Check if birth year is before 1920
+    if (birthDate.getFullYear() < 1900) {
         Swal.fire({
             icon: 'error',
             title: 'Age Restriction',
-            text: 'Members must be born after 1980 to be eligible.',
+            text: 'Members must be born after 1900 to be eligible.',
             confirmButtonColor: '#d01f2f',
             confirmButtonText: 'Choose Different Date',
             showClass: {

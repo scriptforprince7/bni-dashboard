@@ -15,6 +15,8 @@ router.get('/interview', transactionsController.interview);
 router.get('/commitment', transactionsController.commitment);
 router.get('/inclusion', transactionsController.inclusion); 
 router.get('/eoi-form', transactionsController.eoiForm);
+router.get('/newmemberReceipt', transactionsController.newmemberReceipt);
+router.get('/visitorForm', transactionsController.visitorForm);
 
 
 module.exports = router;

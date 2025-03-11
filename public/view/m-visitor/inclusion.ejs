@@ -44,13 +44,23 @@
         }
 
         .intro-text {
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-            color: #374151;
-            padding: 1.25rem;
             background: #f8fafc;
+            padding: 1.5rem;
             border-radius: 8px;
+            margin-bottom: 2.5rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+
+        .intro-text input, .intro-text select {
+            width: 200px;
+            display: inline-block;
+            margin: 0 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: white;
         }
 
         .question-box {
@@ -92,22 +102,29 @@
         }
 
         .radio-group {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
-            justify-content: flex-end;
             align-items: center;
             gap: 0.5rem;
-            margin-top: 0.75rem;
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
         }
 
         .radio-group input[type="radio"] {
             width: 1.1rem;
             height: 1.1rem;
-            accent-color: #1e40af;
+            accent-color: #dc2626;
         }
 
         .radio-group label {
             font-weight: 600;
             color: #374151;
+            white-space: nowrap;
         }
 
         textarea {
@@ -180,6 +197,218 @@
             }
             .btn { display: none; }
         }
+
+        /* Enhanced form layout */
+        .form-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Improved intro text styling */
+        .intro-text {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2.5rem;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+
+        .intro-text input, .intro-text select {
+            width: 200px;
+            display: inline-block;
+            margin: 0 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background-color: white;
+        }
+
+        /* Enhanced points styling */
+        .points-container {
+            margin-top: 2rem;
+        }
+
+        .point-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .point-number {
+            background: #dc2626;
+            color: white;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .point-content {
+            flex-grow: 1;
+            padding-right: 180px; /* Space for radio button */
+        }
+
+        /* Improved radio button alignment */
+        .radio-group {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            accent-color: #dc2626;
+        }
+
+        .radio-group label {
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        /* Enhanced textarea sections */
+        .textarea-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .textarea-section label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.75rem;
+        }
+
+        .textarea-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        /* Signature section styling */
+        .signature-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .signature-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .signature-field label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .signature-field input {
+            border-bottom: 2px solid #374151;
+            padding: 0.5rem 0;
+            font-size: 1rem;
+            background: transparent;
+        }
+
+        /* Approval section styling */
+        .approval-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .approval-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .approval-field label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .approval-field input {
+            border-bottom: 2px solid #374151;
+            padding: 0.5rem 0;
+            font-size: 1rem;
+            background: transparent;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1rem;
+            }
+
+            .point-item {
+                flex-direction: column;
+                padding: 1.25rem;
+            }
+
+            .point-content {
+                padding-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .radio-group {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                justify-content: flex-end;
+                margin-top: 1rem;
+            }
+
+            .signature-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .approval-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -190,168 +419,109 @@
             </h1>
         </div>
 
-        <form class="p-4">
-            <section class="mb-6">
-                <p class="intro-text">
-                    I, 
-                    <input type="text" class="inline-input" placeholder="Enter name">
-                    , agree to the following terms and conditions of my classification of my membership in the 
-                    <select class="inline-input">
-                        <option value="" disabled selected>Select a Chapter</option>
-                        <option value="chapter1">Chapter 1</option>
-                        <option value="chapter2">Chapter 2</option>
-                        <!-- Add more chapters as needed -->
-                    </select>
-                    chapter of BNI NEW Delhi.
-                </p>
+        <form class="form-container">
+            <div class="intro-text">
+                I, 
+                <input type="text" placeholder="Enter name">
+                agree to the following terms and conditions of my classification of my membership in the 
+                <select>
+                    <option value="" disabled selected>Select a Chapter</option>
+                    <!-- Add options -->
+                </select>
+                chapter of BNI NEW Delhi.
+            </div>
 
-                <div class="flex">
-                    <label for="classification" class="text-sm font-medium text-gray-700">
-                        BNI Classification:
-                    </label>
-                    <input type="text" id="classification" class="inline-input ml-2">
-                </div>
-            </section>
-
-            <section class="mb-6 space-y-4">
-                <!-- Point 1 -->
-                <div class="flex items-start">
-                    <span class="font-bold mr-2">1.</span>
-                    <p>
+            <div class="points-container">
+                <!-- Example of a point item -->
+                <div class="point-item">
+                    <span class="point-number">1</span>
+                    <div class="point-content">
                         I confirm that I've opted for the 
                         <input type="text" class="inline-input">
                         classification to represent my business in BNI 
                         <input type="text" class="inline-input">
                         chapter.
-                        <div class="radio-group">
-                            <input type="radio" id="confirm1" name="confirmation1">
-                            <label for="confirm1">I Confirm</label>
-                        </div>
-                    </p>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="confirm1" name="confirmation1">
+                        <label for="confirm1">I Confirm</label>
+                    </div>
                 </div>
 
-                <!-- Point 2 -->
-                <div class="flex items-start">
-                    <span class="font-bold mr-2">2.</span>
-                    <p>
+                <!-- Add this inside the points-container div, after the first point -->
+                <div class="point-item">
+                    <span class="point-number">2</span>
+                    <div class="point-content">
                         I confirm that the BNI Classification I have chosen is my primary business.
-                        <div class="radio-group">
-                            <input type="radio" id="confirm2" name="confirmation2">
-                            <label for="confirm2">I Confirm</label>
-                        </div>
-                    </p>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="confirm2" name="confirmation2">
+                        <label for="confirm2">I Confirm</label>
+                    </div>
                 </div>
 
-                <!-- Point 3 -->
-                <div class="flex items-start">
-                    <span class="font-bold mr-2">3.</span>
-                    <p>
+                <div class="point-item">
+                    <span class="point-number">3</span>
+                    <div class="point-content">
                         I confirm that I will not represent any other vertical of my business or my family member's business in the chapter or in 1-2-1's or in any BNI premises.
-                        <div class="radio-group">
-                            <input type="radio" id="confirm3" name="confirmation3">
-                            <label for="confirm3">I Confirm</label>
-                        </div>
-                    </p>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="confirm3" name="confirmation3">
+                        <label for="confirm3">I Confirm</label>
+                    </div>
                 </div>
 
-                <!-- Point 4 -->
-                <div class="flex items-start">
-                    <span class="font-bold mr-2">4.</span>
-                    <p>
+                <div class="point-item">
+                    <span class="point-number">4</span>
+                    <div class="point-content">
                         I confirm that I'll be truthful to members about my classification and will do business with BNI members truthfully representing only my BNI classification.
-                        <div class="radio-group">
-                            <input type="radio" id="confirm4" name="confirmation4">
-                            <label for="confirm4">I Confirm</label>
-                        </div>
-                    </p>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="confirm4" name="confirmation4">
+                        <label for="confirm4">I Confirm</label>
+                    </div>
                 </div>
-            </section>
-
-            <!-- Area of Expertise -->
-            <div class="flex flex-col mt-4">
-                <label for="expertise" class="text-sm font-medium text-gray-700">
-                    My area of expertise includes:
-                </label>
-                <textarea
-                    id="expertise"
-                    rows="2"
-                    placeholder="Enter text here..."
-                    class="bg-white border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full p-2 font-semibold"
-                ></textarea>
             </div>
 
-            <!-- Classification Excludes -->
-            <div class="flex flex-col mt-4">
-                <label for="excludes" class="text-sm font-medium text-gray-700">
-                    I understand and confirm that my classification excludes:
-                </label>
-                <textarea
-                    id="excludes"
-                    rows="2"
-                    placeholder="Enter text here..."
-                    class="bg-white border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full p-2 font-semibold"
-                ></textarea>
+            <!-- Expertise Section -->
+            <div class="textarea-section">
+                <label>My area of expertise includes:</label>
+                <textarea placeholder="Enter your areas of expertise..."></textarea>
+            </div>
+
+            <!-- Exclusion Section -->
+            <div class="textarea-section">
+                <label>I understand and confirm that my classification excludes:</label>
+                <textarea placeholder="Enter exclusions..."></textarea>
             </div>
 
             <!-- Signature Section -->
-            <section class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col">
-                    <label for="memberName" class="text-sm font-medium text-gray-700">
-                        Member Name:
-                    </label>
-                    <input
-                        id="memberName"
-                        type="text"
-                        class="bg-white border-b border-black focus:outline-none leading-none w-full font-semibold"
-                    />
+            <div class="signature-section">
+                <div class="signature-field">
+                    <label>Member Name:</label>
+                    <input type="text">
                 </div>
-                <div class="flex flex-col">
-                    <label for="date" class="text-sm font-medium text-gray-700">
-                        Date:
-                    </label>
-                    <input
-                        id="date"
-                        type="date"
-                        class="bg-white border-b border-black focus:outline-none leading-none w-full font-semibold"
-                    />
+                <div class="signature-field">
+                    <label>Date:</label>
+                    <input type="date">
                 </div>
-            </section>
+                <div class="signature-field">
+                    <label>Signature:</label>
+                    <input type="text">
+                </div>
+            </div>
 
-            <section class="mb-6">
-                <div class="flex flex-col">
-                    <label for="signature" class="text-sm font-medium text-gray-700">
-                        Signature:
-                    </label>
-                    <input
-                        id="signature"
-                        type="text"
-                        class="bg-white border-b border-black focus:outline-none leading-none w-full font-semibold"
-                    />
+            <!-- Add the approval section -->
+            <div class="approval-section">
+                <div class="approval-field">
+                    <label>Approved: MCOM Member Name and Signature</label>
+                    <input type="text">
                 </div>
-            </section>
-
-            <section class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="flex flex-col">
-                    <label for="mcomApproval" class="text-sm font-medium text-gray-700">
-                        Approved: MCOM Member Name and Signature
-                    </label>
-                    <input
-                        id="mcomApproval"
-                        type="text"
-                        class="bg-white border-b border-black focus:outline-none leading-none w-full mt-1 font-semibold"
-                    />
+                <div class="approval-field">
+                    <label>Approved: Vice President's Name and Signature</label>
+                    <input type="text">
                 </div>
-                <div class="flex flex-col">
-                    <label for="vpApproval" class="text-sm font-medium text-gray-700">
-                        Approved: Vice President's Name and Signature
-                    </label>
-                    <input
-                        id="vpApproval"
-                        type="text"
-                        class="bg-white border-b border-black focus:outline-none leading-none w-full mt-1 font-semibold"
-                    />
-                </div>
-            </section>
+            </div>
 
             <div class="button-group">
                 <button type="submit" class="btn">Update</button>

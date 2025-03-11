@@ -491,6 +491,18 @@ function displayMembers(members) {
         const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
         const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
         
+        // Add photo URL handling like in script.js
+        const photoUrl = member.member_photo 
+            ? `https://bni-data-backend.onrender.com/uploads/memberLogos/${member.member_photo}`
+            : null;
+        
+        console.log('Photo processing for member:', {
+            name: fullName,
+            hasPhoto: !!member.member_photo,
+            photoUrl: photoUrl || 'Using default avatar',
+            photoName: member.member_photo || 'No photo available'
+        });
+
         const row = document.createElement('tr');
         row.classList.add('order-list');
         
@@ -499,7 +511,11 @@ function displayMembers(members) {
             <td style="border: 1px solid grey;">
                 <div class="d-flex align-items-center">
                     <span class="avatar avatar-sm me-2 avatar-rounded">
-                        <img src="https://cdn-icons-png.flaticon.com/512/194/194828.png" alt="" />
+                        <img 
+                            src="${photoUrl || 'https://cdn-icons-png.flaticon.com/512/194/194828.png'}" 
+                            alt="${fullName || 'avatar'}" 
+                            onerror="console.log('Image failed to load, using default avatar for:', '${fullName}'); this.src='https://cdn-icons-png.flaticon.com/512/194/194828.png';"
+                        />
                     </span>
                     <a href="/cm/viewchaptermember/?member_id=${member.member_id}">${fullName}</a>
                 </div>

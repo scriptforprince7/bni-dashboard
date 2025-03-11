@@ -153,7 +153,6 @@
             font-size: 0.95rem;
             transition: all 0.3s ease;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            text-decoration: none;
         }
 
         .btn:hover {
@@ -191,8 +190,8 @@
                 padding: 1rem;
             }
 
-            .btn {
-                display: none;
+            .button-group {
+                display: none !important;
             }
         }
 
@@ -228,6 +227,49 @@
             color: #6b7280 !important;
             cursor: default !important;
         }
+
+        .form-section {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-input {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.625rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -238,7 +280,28 @@
         </div>
 
         <form>
+            <!-- Add this new section before the commitment points -->
+           
             <section>
+
+                 <!-- Introduction text -->
+    <p class="commitment-point" style="margin-bottom: 2rem;">
+        I, 
+        <input
+            id="memberName"
+            class="border-b border-black focus:outline-none leading-none w-48 pl-1 font-semibold mx-2"
+            type="text"
+            readonly
+        />
+        agree to the following terms and conditions as part of my membership in the
+        <input
+            id="chapterName"
+            class="border-b border-black focus:outline-none leading-none w-48 pl-1 font-semibold mx-2"
+            type="text"
+            readonly
+        />
+        chapter of BNI.
+    </p>
                 <!-- Commitment Points -->
                 <p class="commitment-point">
                     <strong>1.</strong>
@@ -373,165 +436,319 @@
                 </p>
             </section>
 
-            <!-- After the commitment points section -->
-            <section class="pt-4">
-                <h4 class="bold-text">Payment / Induction details:</h4>
+            <!-- Payment and Induction Details Section -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">Payment & Induction Details</h3>
                 
                 <!-- Payment Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
+                <div class="grid-2">
+                    <div class="flex-col">
                         <label for="chequeNum">Cheque No:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="chequeNum"
                             type="number"
+                            placeholder="Enter cheque number"
                         />
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex-col">
                         <label for="chequeDate">Payment Date:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none pl-2 leading-none w-full font-semibold"
+                            class="form-input"
                             id="chequeDate"
                             type="date"
                         />
                     </div>
-                    <div class="flex flex-col">
+                </div>
+
+                <div class="grid-2">
+                    <div class="flex-col">
                         <label for="bank">Bank:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="bank"
                             type="text"
+                            placeholder="Enter bank name"
                         />
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex-col">
                         <label for="neftNum">NEFT No:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="neftNum"
                             type="number"
+                            placeholder="Enter NEFT number"
                         />
                     </div>
                 </div>
 
                 <!-- Personal Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
+                <div class="grid-2">
+                    <div class="flex-col">
                         <label for="name">Name:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="name"
                             type="text"
+                            placeholder="Enter full name"
                         />
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex-col">
                         <label for="date">Date:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="date"
                             type="date"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="sign">Sign:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="sign"
-                            type="text"
                         />
                     </div>
                 </div>
 
                 <!-- Contact Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
+                <div class="grid-3">
+                    <div class="flex-col">
                         <label for="email">Email:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="email"
                             type="email"
+                            placeholder="Enter email address"
                         />
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex-col">
                         <label for="mobile">Mobile:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="mobile"
-                            type="number"
+                            type="tel"
+                            placeholder="Enter mobile number"
                         />
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex-col">
                         <label for="category">Category:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="category"
                             type="text"
+                            placeholder="Enter category"
                         />
                     </div>
                 </div>
 
                 <!-- Additional Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
+                <div class="grid-2">
+                    <div class="flex-col">
                         <label for="sponsor">Sponsor:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="sponsor"
                             type="text"
+                            placeholder="Enter sponsor name"
                         />
                     </div>
-                    <div class="flex flex-col">
+                    <div class="flex-col">
                         <label for="gstin">GSTIN:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="gstin"
-                            type="number"
+                            type="text"
+                            placeholder="Enter GSTIN"
                         />
                     </div>
                 </div>
 
                 <!-- Company Details -->
-                <div class="mt-2 mb-1 grid grid-cols-12 sm:grid-cols-12 lg:grid-cols-1 gap-4 lg:mb-2">
-                    <div class="flex flex-cols grid-cols-4">
-                        <label class="mb-1" for="address">Company Name & Address(in full):</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="address"
-                            type="text"
-                        />
-                    </div>
+                <div class="flex-col">
+                    <label for="address">Company Name & Address:</label>
+                    <textarea
+                        class="form-input"
+                        id="address"
+                        rows="3"
+                        placeholder="Enter complete company name and address"
+                    ></textarea>
                 </div>
 
                 <!-- Final Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
+                <div class="grid-2">
+                    <div class="flex-col">
                         <label for="inductionDate">Induction Date:</label>
                         <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
+                            class="form-input"
                             id="inductiondate"
                             type="date"
                         />
                     </div>
-                    <div class="flex flex-col">
-                        <label for="signature">Signature of VP:</label>
+                    <div class="flex-col">
+                        <label for="signature">Signature of VP:</label> 
                         <input
-                            class="bg-white border-b border-black focus:outline-none pl-2 leading-none w-full"
+                            class="form-input"
                             id="signature"
                             type="text"
+                            placeholder="VP's signature"
                         />
                     </div>
                 </div>
             </section>
 
             <!-- Buttons -->
-            <div class="flex justify-center items-center mt-2">
-                <!-- <button type="submit" class="text-white rounded-sm shadow-md my-3 px-6 py-2 bg-red-600 hover:bg-red-700 mr-5">
-                    Update
+            <div class="button-group">
+                <button 
+                    type="button" 
+                    class="btn" 
+                    onclick="window.location.href='/t/manage-visitors'"
+                >
+                    Back
                 </button>
-                <button class="text-white rounded-sm shadow-md my-3 px-6 py-2 bg-red-600 hover:bg-red-700">
-                    <a href="#" class="text-white">View & Submit</a>
-                </button> -->
+                <button 
+                    type="button" 
+                    class="btn" 
+                    onclick="handlePrint()"
+                >
+                    Print
+                </button>
             </div>
         </form>
     </main>
+
+    <!-- Add this script section at the bottom of your file, before </body> -->
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            // Get visitor_id from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const visitorId = urlParams.get('visitor_id');
+            
+            console.log('Fetching data for visitor_id:', visitorId);
+
+            // Fetch Commitment Sheet data
+            const commitmentResponse = await fetch('https://bni-data-backend.onrender.com/api/getCommitmentSheet');
+            const commitmentData = await commitmentResponse.json();
+            
+            // Find matching commitment form
+            const commitment = commitmentData.find(form => form.visitor_id === parseInt(visitorId));
+            console.log('Matching Commitment:', commitment);
+
+            if (!commitment) {
+                console.error('No commitment found for visitor_id:', visitorId);
+                return;
+            }
+
+            // Fetch chapters data
+            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chaptersData = await chaptersResponse.json();
+            console.log('Chapters data:', chaptersData);
+
+            // Find matching chapter
+            const matchingChapter = chaptersData.find(chapter => chapter.chapter_id === commitment.chapter);
+            console.log('Matching Chapter:', matchingChapter);
+
+            // Set the visitor name and chapter name
+            document.getElementById('memberName').value = commitment.visitorname || '';
+            document.getElementById('chapterName').value = matchingChapter ? matchingChapter.chapter_name : '';
+
+            // Pre-fill all radio buttons (commitments)
+            for (let i = 1; i <= 13; i++) {
+                const radioBtn = document.getElementById(`agree${i}`);
+                if (radioBtn) {
+                    radioBtn.checked = true;
+                    radioBtn.disabled = true; // Make them readonly
+                }
+            }
+
+            // Populate form fields
+            document.getElementById('chequeNum').value = commitment.chequenum || '';
+            document.getElementById('chequeDate').value = commitment.chequedate ? commitment.chequedate.split('T')[0] : '';
+            document.getElementById('bank').value = commitment.bank || '';
+            document.getElementById('neftNum').value = commitment.neftnum || '';
+            document.getElementById('name').value = commitment.name || '';
+            document.getElementById('date').value = commitment.date ? commitment.date.split('T')[0] : '';
+            document.getElementById('email').value = commitment.email || '';
+            document.getElementById('mobile').value = commitment.mobile || '';
+            document.getElementById('category').value = commitment.category || '';
+            document.getElementById('sponsor').value = commitment.sponsor || '';
+            document.getElementById('gstin').value = commitment.gstin || '';
+            document.getElementById('address').value = commitment.address || '';
+            document.getElementById('inductiondate').value = commitment.inductiondate ? commitment.inductiondate.split('T')[0] : '';
+            document.getElementById('signature').value = commitment.vpsign || '';
+
+            // Make all form elements readonly
+            document.querySelectorAll('input, select, textarea').forEach(element => {
+                element.setAttribute('readonly', true);
+                if (element.tagName === 'SELECT') {
+                    element.style.pointerEvents = 'none';
+                }
+                element.style.backgroundColor = '#f3f4f6';
+            });
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    });
+
+    // Add print functionality if needed
+    function handlePrint() {
+        // Hide the buttons before printing
+        const buttons = document.querySelector('.flex.justify-center');
+        buttons.style.display = 'none';
+
+        // Create a title for the PDF
+        const visitor = document.getElementById('memberName').value;
+        const chapter = document.getElementById('chapterName').value;
+        document.title = `BNI Commitment Sheet - ${visitor} - ${chapter}`;
+
+        // Print the document
+        window.print();
+
+        // Show the buttons after printing dialog closes
+        setTimeout(() => {
+            buttons.style.display = 'flex';
+        }, 1000);
+    }
+    </script>
+
+    <!-- Add print-specific styles -->
+    <style>
+        @media print {
+            /* Hide buttons when printing */
+            .flex.justify-center {
+                display: none !important;
+            }
+            
+            /* Set page size and margins */
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+
+            /* Ensure proper color printing */
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            /* Remove box shadow and adjust margins for print */
+            main {
+                box-shadow: none;
+                margin: 0;
+                padding: 2rem;
+            }
+
+            /* Ensure all content is visible */
+            .commitment-point {
+                page-break-inside: avoid;
+            }
+
+            /* Make text darker for better printing */
+            * {
+                color: black !important;
+            }
+
+            /* Ensure proper background colors */
+            input[type="radio"]:checked {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
 </body>
 </html>
