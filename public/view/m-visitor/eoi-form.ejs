@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commitment Sheet</title>
+    <title>Expression of Interest Form</title>
     <style>
         * {
             margin: 0;
@@ -39,71 +39,28 @@
             margin-bottom: 0.5rem;
         }
 
-        /* .header h3 {
-            color: #dc2626;
+        .header h3 {
+            color: #6b7280;
             font-size: 1.1rem;
-        } */
+        }
 
-        .commitment-point {
-            background: white;
-            padding: 1.25rem;
+        .form-section {
+            background: #f8fafc;
+            padding: 1.5rem;
             border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5e7eb;
+            margin: 2rem 0;
         }
 
-        .commitment-point strong {
-            background: #dc2626 !important;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-right: 0.75rem;
-        }
-
-        .bold-text {
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .radio-group {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-
-        .radio-group input[type="radio"] {
-            width: 1.1rem;
-            height: 1.1rem;
-            accent-color: #1e40af;
-        }
-
-        .radio-group label {
-            font-weight: 600;
-            color: #374151;
-        }
-
-        /* Form Styles */
-        .grid-4 {
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1.5rem;
-            margin-bottom: 1.5rem;
         }
 
-        .grid-12 {
+        .grid-3 {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            margin-bottom: 1.5rem;
         }
 
         .flex-col {
@@ -118,19 +75,36 @@
             margin-bottom: 0.5rem;
         }
 
-        input {
+        input, select, textarea {
             background: white;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             padding: 0.625rem;
             font-size: 0.95rem;
             transition: all 0.3s ease;
+            width: 100%;
         }
 
-        input:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
         }
 
         .button-group {
@@ -153,31 +127,12 @@
             font-size: 0.95rem;
             transition: all 0.3s ease;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            text-decoration: none;
         }
 
         .btn:hover {
             background: #b91c1c;
             transform: translateY(-1px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .grid-4 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 640px) {
-            .grid-4 {
-                grid-template-columns: 1fr;
-            }
-
-            main {
-                margin: 1rem;
-                padding: 1rem;
-            }
         }
 
         @media print {
@@ -194,344 +149,345 @@
             .btn {
                 display: none;
             }
+
+            input, select, textarea {
+                border: none;
+            }
         }
 
-        /* For any numbers in text */
-        strong span,
-        p span,
-        li span,
-        .number {
-            color: #dc2626 !important;
-        }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
 
-        /* For numbered lists */
-        ol li::marker {
-            color: #dc2626 !important;
-        }
-
-        /* For any numeric values that need to be highlighted */
-        .numeric-value {
-            color: #dc2626 !important;
-        }
-
-        /* For readonly inputs and textareas */
-        input, 
-        textarea, 
-        select {
-            color: #6b7280 !important;
-        }
-
-        input[readonly], 
-        textarea[readonly], 
-        select[readonly] {
-            background-color: #f9fafb !important;
-            color: #6b7280 !important;
-            cursor: default !important;
+            .radio-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <main>
         <div class="header">
-            <h1 style="color: #dc2626;">Making the Commitment</h1>
-            <h3>For Members Joining a Chapter</h3>
+            <h1>Expression of Interest Form</h1>
+            <h3>BNI Membership Application</h3>
         </div>
 
-        <form>
-            <section>
-                <!-- Commitment Points -->
-                <p class="commitment-point">
-                    <strong>1.</strong>
-                    <span class="bold-text">Time - Arrive latest by 7:29 AM Stay till 9:30 AM at least</span>
-                    - I understand the importance of arriving early each week prior to "Open Networking" so that I can help greet guests and network with the members. Therefore, I will arrive early each week and I will not leave early, as this is very disruptive to the meeting process.
+        <form id="eoiForm">
+            <!-- Membership Interest Section -->
+            <section class="form-section">
+                <div class="flex-col">
+                    <label>Are you interested in becoming a member of BNI?</label>
                     <div class="radio-group">
-                        <input type="radio" id="agree1" name="commitment1">
-                        <label for="agree1">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>2.</strong>
-                    <span class="bold-text">Attendance - Only 3 Absence in 6 months "Rolling Period"</span>
-                    - I will attend every meeting and when I am unable to attend, I will send a substitute to take my place. I also understand my responsibility to fully brief my substitute on what they should say and how they are to behave while acting as my substitute.
-                    <div class="radio-group">
-                        <input type="radio" id="agree2" name="commitment2">
-                        <label for="agree2">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>3.</strong>
-                    <span class="bold-text">Substitution</span>
-                    - If a member is unable to attend a meeting, a substitute (worthy of representing the member) can be sent (not a member of any chapter). This is not considered as an absence. As per the BNI Guideline, a member can look at having a maximum of 3 substitutions in a 6 months rolling period.
-                    <div class="radio-group">
-                        <input type="radio" id="agree3" name="commitment3">
-                        <label for="agree3">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>4.</strong>
-                    <span class="bold-text">Participation</span>
-                    - A member of BNI is required to participate in chapter activities by:<br>
-                    1. Providing <span class="bold-text">referrals</span>
-                    2. Inviting <span class="bold-text">visitors</span> as per Chapter goals
-                    3. Contribute to running of the chapter (by taking on a position or helping other members holding positions)
-                    <div class="radio-group">
-                        <input type="radio" id="agree4" name="commitment4">
-                        <label for="agree4">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>5.</strong>
-                    <span class="bold-text">Referrals</span>
-                    - I will bring referrals to my fellow members. I understand that this is a primary commitment of membership. I will strive to bring at least 1 referral per week.
-                    <div class="radio-group">
-                        <input type="radio" id="agree5" name="commitment5">
-                        <label for="agree5">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>6.</strong>
-                    <span class="bold-text">Visitors</span>
-                    - I will invite visitors to my chapter meetings. I understand that visitors are potential members and that the chapter can only grow through new members. I will strive to bring at least 1 visitor per month.
-                    <div class="radio-group">
-                        <input type="radio" id="agree6" name="commitment6">
-                        <label for="agree6">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>7.</strong>
-                    <span class="bold-text">One-to-Ones</span>
-                    - I will conduct One-to-One meetings with my fellow members outside the chapter meeting. I understand that this is the best way to develop stronger relationships and generate better referrals. I will have at least 1 One-to-One per week.
-                    <div class="radio-group">
-                        <input type="radio" id="agree7" name="commitment7">
-                        <label for="agree7">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>8.</strong>
-                    <span class="bold-text">Training</span>
-                    - I will attend the Member Success Program within 60 days of joining. I understand that this training will help me be more successful in the BNI program.
-                    <div class="radio-group">
-                        <input type="radio" id="agree8" name="commitment8">
-                        <label for="agree8">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>9.</strong>
-                    <span class="bold-text">Renewal</span>
-                    - I understand that my membership is for a period of one year and that I must renew my membership annually.
-                    <div class="radio-group">
-                        <input type="radio" id="agree9" name="commitment9">
-                        <label for="agree9">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>10.</strong>
-                    <span class="bold-text">Policies</span>
-                    - I will abide by BNI's rules, policies and guidelines as they are amended from time to time.
-                    <div class="radio-group">
-                        <input type="radio" id="agree10" name="commitment10">
-                        <label for="agree10">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>11.</strong>
-                    <span class="bold-text">Code of Ethics</span>
-                    - I will maintain the highest ethical standards in my business as outlined in the BNI Code of Ethics.
-                    <div class="radio-group">
-                        <input type="radio" id="agree11" name="commitment11">
-                        <label for="agree11">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>12.</strong>
-                    <span class="bold-text">Professionalism</span>
-                    - I will maintain a positive and supportive attitude with fellow members and the leadership team.
-                    <div class="radio-group">
-                        <input type="radio" id="agree12" name="commitment12">
-                        <label for="agree12">I Understand & Agree</label>
-                    </div>
-                </p>
-
-                <p class="commitment-point">
-                    <strong>13.</strong>
-                    I recognize that I am getting involved with BNI and agree to follow the system, and be coachable by the director/s.
-                    <div class="radio-group">
-                        <input type="radio" id="agree13" name="commitment13">
-                        <label for="agree13">I Understand & Agree</label>
-                    </div>
-                </p>
-            </section>
-
-            <!-- After the commitment points section -->
-            <section class="pt-4">
-                <h4 class="bold-text">Payment / Induction details:</h4>
-                
-                <!-- Payment Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
-                        <label for="chequeNum">Cheque No:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="chequeNum"
-                            type="number"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="chequeDate">Payment Date:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none pl-2 leading-none w-full font-semibold"
-                            id="chequeDate"
-                            type="date"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="bank">Bank:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="bank"
-                            type="text"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="neftNum">NEFT No:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="neftNum"
-                            type="number"
-                        />
-                    </div>
-                </div>
-
-                <!-- Personal Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
-                        <label for="name">Name:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="name"
-                            type="text"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="date">Date:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="date"
-                            type="date"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="sign">Sign:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="sign"
-                            type="text"
-                        />
-                    </div>
-                </div>
-
-                <!-- Contact Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
-                        <label for="email">Email:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="email"
-                            type="email"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="mobile">Mobile:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="mobile"
-                            type="number"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="category">Category:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="category"
-                            type="text"
-                        />
-                    </div>
-                </div>
-
-                <!-- Additional Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
-                        <label for="sponsor">Sponsor:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="sponsor"
-                            type="text"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="gstin">GSTIN:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="gstin"
-                            type="number"
-                        />
-                    </div>
-                </div>
-
-                <!-- Company Details -->
-                <div class="mt-2 mb-1 grid grid-cols-12 sm:grid-cols-12 lg:grid-cols-1 gap-4 lg:mb-2">
-                    <div class="flex flex-cols grid-cols-4">
-                        <label class="mb-1" for="address">Company Name & Address(in full):</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="address"
-                            type="text"
-                        />
-                    </div>
-                </div>
-
-                <!-- Final Details -->
-                <div class="mt-2 mb-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:mb-2">
-                    <div class="flex flex-col">
-                        <label for="inductionDate">Induction Date:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none leading-none w-full pl-1 font-semibold"
-                            id="inductiondate"
-                            type="date"
-                        />
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="signature">Signature of VP:</label>
-                        <input
-                            class="bg-white border-b border-black focus:outline-none pl-2 leading-none w-full"
-                            id="signature"
-                            type="text"
-                        />
+                        <div class="radio-option">
+                            <input type="radio" name="membershipInterest" id="yes" value="Yes">
+                            <label for="yes">Yes, I'm ready to get started</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="membershipInterest" id="maybe" value="Maybe">
+                            <label for="maybe">Maybe, I would like more information</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="membershipInterest" id="no" value="No">
+                            <label for="no">No, not as of now</label>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Buttons -->
-            <div class="flex justify-center items-center mt-2">
-                <!-- <button type="submit" class="text-white rounded-sm shadow-md my-3 px-6 py-2 bg-red-600 hover:bg-red-700 mr-5">
-                    Update
+            <!-- Chapter Information -->
+            <section class="form-section">
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="region">BNI Region</label>
+                        <select id="region" name="region">
+                            <option value="">Select Region</option>
+                        </select>
+                    </div>
+                    <div class="flex-col">
+                        <label for="chapter">BNI Chapter</label>
+                        <select id="chapter" name="chapter">
+                            <option value="">Select Chapter</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Personal Information -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">Personal Information</h3>
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName">
+                    </div>
+                    <div class="flex-col">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName">
+                    </div>
+                </div>
+                <div class="flex-col">
+                    <label for="memberName">Invited By Name</label>
+                    <input type="text" id="memberName" name="memberName">
+                </div>
+                <div class="flex-col">
+                    <label for="visitDate">Chapter Visit Date</label>
+                    <input type="date" id="visitDate" name="visitDate">
+                </div>
+            </section>
+
+            <!-- Business Information -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">Business Information</h3>
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="companyName">Company Name</label>
+                        <input type="text" id="companyName" name="companyName">
+                    </div>
+                    <div class="flex-col">
+                        <label for="professionalClassification">Professional Classification</label>
+                        <input type="text" id="professionalClassification" name="professionalClassification">
+                    </div>
+                </div>
+                <div class="flex-col">
+                    <label for="industry">Industry</label>
+                    <input type="text" id="industry" name="industry">
+                </div>
+            </section>
+
+            <!-- Contact Information -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">Contact Information</h3>
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email">
+                    </div>
+                    <div class="flex-col">
+                        <label for="mobile">Mobile</label>
+                        <input type="text" id="mobile" name="mobile" maxlength="10" pattern="\d{10}">
+                    </div>
+                </div>
+                <div class="flex-col">
+                    <label for="bestTimeToReach">Best time to reach you?</label>
+                    <input type="text" id="bestTimeToReach" name="bestTimeToReach">
+                </div>
+            </section>
+
+            <!-- Additional Information -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">Additional Information</h3>
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="gstin">GSTIN</label>
+                        <input type="text" id="gstin" name="gstin" maxlength="15">
+                    </div>
+                    <div class="flex-col">
+                        <label for="companyAddress">Company Address</label>
+                        <input type="text" id="companyAddress" name="companyAddress">
+                    </div>
+                </div>
+                <div class="flex-col">
+                    <label for="descriptionBox">Description Box</label>
+                    <input type="text" id="descriptionBox" name="descriptionBox" maxlength="250">
+                </div>
+            </section>
+
+            <!-- How did you hear about us? -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">How did you hear about us?</h3>
+                <div class="grid-2">
+                    <div class="flex-col">
+                        <label for="howHeard">Select an option</label>
+                        <select id="howHeard" name="howHeard">
+                            <option value="">Select an option</option>
+                            <option value="Social Media">Social Media</option>
+                            <option value="Friend or Colleague">Friend or Colleague</option>
+                            <option value="BNI Website">BNI Website</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="flex-col">
+                        <label for="previousMember">Have you been a BNI member previously?</label>
+                        <select id="previousMember" name="previousMember">
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Meeting Experience -->
+            <section class="form-section">
+                <h3 style="margin-bottom: 1rem; color: #374151;">Meeting Experience</h3>
+                <div class="flex-col">
+                    <label for="experienceRating">On a scale of 1-10, How was your experience in this meeting?</label>
+                    <input 
+                        type="number" 
+                        id="experienceRating" 
+                        name="experienceRating" 
+                        min="1" 
+                        max="10" 
+                        style="max-width: 100px;"
+                        placeholder="1-10"
+                    >
+                    <small style="color: #6b7280; margin-top: 0.25rem;">1 = Poor, 10 = Excellent</small>
+                </div>
+            </section>
+
+            <!-- Button Group -->
+            <div class="button-group">
+                <button type="button" class="btn" onclick="window.location.href='/t/manage-visitors'">
+                    Back
                 </button>
-                <button class="text-white rounded-sm shadow-md my-3 px-6 py-2 bg-red-600 hover:bg-red-700">
-                    <a href="#" class="text-white">View & Submit</a>
-                </button> -->
+                <button type="button" class="btn" onclick="handlePrint()">
+                    Print / Download
+                </button>
             </div>
         </form>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Get visitor_id from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const visitorId = urlParams.get('visitor_id');
+                
+                console.log('Fetching data for visitor_id:', visitorId);
+
+                // Fetch EOI Form data
+                const eoiResponse = await fetch(`https://bni-data-backend.onrender.com/api/getEoiForms`);
+                const eoiForms = await eoiResponse.json();
+                console.log('All EOI Forms:', eoiForms);
+
+                // Find matching EOI form
+                const eoiData = eoiForms.find(form => form.visitor_id === parseInt(visitorId));
+                console.log('Matching EOI Form:', eoiData);
+
+                if (!eoiData) {
+                    console.error('No EOI form found for visitor_id:', visitorId);
+                    return;
+                }
+
+                // Fetch Regions
+                const regionsResponse = await fetch('https://bni-data-backend.onrender.com/api/regions');
+                const regions = await regionsResponse.json();
+                console.log('Regions data:', regions);
+
+                // Fetch Chapters
+                const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+                const chapters = await chaptersResponse.json();
+                console.log('Chapters data:', chapters);
+
+                // Fetch Members
+                const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+                const members = await membersResponse.json();
+                console.log('Members data:', members);
+
+                // Find matching region, chapter and member
+                const matchingRegion = regions.find(region => region.region_id === eoiData.region_id);
+                const matchingChapter = chapters.find(chapter => chapter.chapter_id === eoiData.chapter_id);
+                const matchingMember = members.find(member => member.member_id === eoiData.invited_by_member_id);
+
+                console.log('Matching Region:', matchingRegion);
+                console.log('Matching Chapter:', matchingChapter);
+                console.log('Matching Member:', matchingMember);
+
+                // Set radio button based on is_interested
+                const radioButton = document.querySelector(`input[value="${eoiData.is_interested}"]`);
+                if (radioButton) {
+                    radioButton.checked = true;
+                }
+
+                // Populate form fields
+                document.getElementById('region').innerHTML = `<option selected>${matchingRegion?.region_name || ''}</option>`;
+                document.getElementById('chapter').innerHTML = `<option selected>${matchingChapter?.chapter_name || ''}</option>`;
+                document.getElementById('firstName').value = eoiData.first_name;
+                document.getElementById('lastName').value = eoiData.last_name;
+                document.getElementById('memberName').value = `${matchingMember?.member_first_name || ''} ${matchingMember?.member_last_name || ''}`;
+                document.getElementById('visitDate').value = eoiData.chapter_visit_date.split('T')[0];
+                document.getElementById('companyName').value = eoiData.company_name;
+                document.getElementById('professionalClassification').value = eoiData.category;
+                document.getElementById('industry').value = eoiData.business;
+                document.getElementById('email').value = eoiData.email;
+                document.getElementById('mobile').value = eoiData.phone_no;
+                document.getElementById('bestTimeToReach').value = eoiData.best_time_to_reach;
+                document.getElementById('gstin').value = eoiData.company_gstin;
+                document.getElementById('companyAddress').value = eoiData.company_address;
+                document.getElementById('howHeard').value = eoiData.hear_about_us;
+                document.getElementById('previousMember').value = eoiData.previous_member ? 'Yes' : 'No';
+                document.getElementById('experienceRating').value = eoiData.exp_rating;
+
+                // Make all form elements readonly
+                document.querySelectorAll('input, select, textarea').forEach(element => {
+                    element.setAttribute('readonly', true);
+                    if (element.tagName === 'SELECT') {
+                        element.style.pointerEvents = 'none';
+                    }
+                    element.style.backgroundColor = '#f3f4f6';
+                });
+
+                // Disable radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.disabled = true;
+                });
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+
+        // Add this function for print handling
+        function handlePrint() {
+            // Create print preview and download options
+            const opt = {
+                margin: 1,
+                filename: 'EOI_Form.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Hide buttons before printing
+            const buttons = document.querySelector('.button-group');
+            buttons.style.display = 'none';
+
+            // Print the document
+            window.print();
+
+            // Show buttons after printing dialog closes
+            setTimeout(() => {
+                buttons.style.display = 'flex';
+            }, 1000);
+        }
+    </script>
+
+    <!-- Add print-specific styles -->
+    <style>
+        @media print {
+            .button-group {
+                display: none !important;
+            }
+            
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            main {
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
 </body>
 </html>

@@ -49,3 +49,12 @@ exports.inclusion = (req, res) => {
 exports.eoiForm = (req, res) => {
     res.render('m-visitor/eoi-form', { title: 'EOI Form' });
 };
+
+exports.newmemberReceipt = (req, res) => {
+    res.render('m-visitor/newmemberReceipt', { title: 'New Member Receipt' });
+};
+
+exports.visitorForm = (req, res) => {
+    res.render('m-visitor/visitorForm', { title: 'Visitor Form' });
+};
+

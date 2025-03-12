@@ -607,7 +607,7 @@ window.addEventListener('load', fetchTrainingDetails);
 </script>
 <script type="module" src="../../assets/js/viewTraining.js"></script>
 
-<script>
+<!-- <script>
 // Remove these duplicate declarations since they're already defined in the earlier script
 // const urlParams = new URLSearchParams(window.location.search);
 // const training_id = urlParams.get('training_id');
@@ -616,17 +616,32 @@ window.addEventListener('load', fetchTrainingDetails);
 fetch('https://bni-data-backend.onrender.com/api/allCheckins')
 .then((response) => response.json())
 .then((data) => {
+    console.log('All checkins data:', data);
+    console.log('Current training_id:', training_id);
+    
     // Filter checkins for the specific training_id
-    const trainingCheckins = data.filter(checkin => checkin.training_id === parseInt(training_id));
+    const trainingCheckins = data.filter(checkin => {
+        console.log('Comparing checkin training_id:', checkin.training_id, 'with current training_id:', parseInt(training_id));
+        return checkin.training_id === parseInt(training_id);
+    });
+    
+    console.log('Filtered checkins for this training:', trainingCheckins);
     
     // Count the total check-ins where checked_in is true for this training
-    const totalCheckins = trainingCheckins.filter((checkin) => checkin.checked_in === true).length;
+    const totalCheckins = trainingCheckins.filter((checkin) => {
+        console.log('Checkin status for record:', checkin.checked_in);
+        return checkin.checked_in === true;
+    }).length;
     
-    // Count the total check-ins where checked_in is false (missed) for this training
-    const totalMissed = trainingCheckins.filter((checkin) => checkin.checked_in === false).length;
+    console.log('Total checked in:', totalCheckins);
     
     // Total registrations is the total number of checkins for this training
     const totalRegistrations = trainingCheckins.length;
+    console.log('Total registrations:', totalRegistrations);
+    
+    // Count the total missed (total registrations minus total checkins)
+    const totalMissed = totalRegistrations - totalCheckins;
+    console.log('Total missed:', totalMissed);
 
     // Update header numbers
     document.querySelector('.registrations').textContent = totalRegistrations;
@@ -637,9 +652,18 @@ fetch('https://bni-data-backend.onrender.com/api/allCheckins')
     const cardElements = document.querySelectorAll('.count-up');
     cardElements.forEach((element, index) => {
         if (element.closest('.col-xxl-3')) {  // Only target the card elements
-            if (index === 0) element.textContent = totalRegistrations;
-            if (index === 1) element.textContent = totalCheckins;
-            if (index === 2) element.textContent = totalMissed;
+            if (index === 0) {
+                console.log('Setting registrations card to:', totalRegistrations);
+                element.textContent = totalRegistrations;
+            }
+            if (index === 1) {
+                console.log('Setting checkins card to:', totalCheckins);
+                element.textContent = totalCheckins;
+            }
+            if (index === 2) {
+                console.log('Setting missed card to:', totalMissed);
+                element.textContent = totalMissed;
+            }
         }
     });
 })
@@ -647,7 +671,7 @@ fetch('https://bni-data-backend.onrender.com/api/allCheckins')
     console.error('Error fetching check-ins:', error);
 });
 
-</script>
+</script> -->
 
 <%- include('../partials/footer') %> 
 
@@ -682,13 +706,31 @@ fetch('https://bni-data-backend.onrender.com/api/allCheckins')
       const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
       const checkinsData = await checkinsResponse.json();
       
-      // Calculate checkins
-      const totalCheckins = checkinsData.filter(checkin => 
-        checkin.training_id === parseInt(training_id) && checkin.checked_in === true
-      ).length;
+      // Filter and deduplicate checkins
+      const uniqueCheckins = {};
+      checkinsData.forEach(checkin => {
+        if (checkin.training_id === parseInt(training_id)) {
+          const orderId = checkin.order_id;
+          // Only keep the latest checkin for each order_id
+          if (!uniqueCheckins[orderId] || checkin.checkin_id > uniqueCheckins[orderId].checkin_id) {
+            uniqueCheckins[orderId] = checkin;
+          }
+        }
+      });
+
+      // Calculate total unique checkins
+      const totalCheckins = Object.values(uniqueCheckins)
+        .filter(checkin => checkin.checked_in === true).length;
 
       // Calculate missed (table entries minus checkins)
       const totalMissed = totalRegistrations - totalCheckins;
+      
+      console.log('Attendance Numbers:', {
+        totalRegistrations,
+        totalCheckins,
+        totalMissed,
+        uniqueCheckinCount: Object.keys(uniqueCheckins).length
+      });
       
       // Update the display
       document.querySelector('.registrations').textContent = totalRegistrations;

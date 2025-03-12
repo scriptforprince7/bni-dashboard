@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
         };
 
-        // Function to create status icon
+        // Function to create status icon with view link
         const getStatusIcon = (status, type = null, visitor = null) => {
             const icon = status ? 
                 '<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>' : 
@@ -233,6 +233,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         break;
                     case 'eoi':
                         pageUrl = '/t/eoi-form';
+                        break;
+                    case 'visitor':
+                        pageUrl = '/t/visitorForm';
+                        break;
+                    case 'payment':
+                        pageUrl = '/t/newmemberReceipt';
                         break;
                 }
                 return `
@@ -540,9 +546,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td><b>${formatDate(visitor.visited_date)}</b></td>
                         <td><b>${visitor.visitor_phone || 'N/A'}</b></td>
                         <td><b>${visitor.visitor_company_name || 'N/A'}</b></td>
-                        <td class="text-center">${getStatusIcon(visitor.visitor_form, null, visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.visitor_form, 'visitor', visitor)}</td>
                         <td class="text-center">${getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.new_member_form, null, visitor)}</td>
+                        <td class="text-center">${getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
                         <td class="text-center">${getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
                         <td class="text-center">${getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
                         <td class="text-center">${getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>

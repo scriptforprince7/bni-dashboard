@@ -7,6 +7,7 @@ let currentPage = 1; // Current active page
 let filteredTrainings = [];
 let selectedStatus = '';
 let searchQuery = '';
+let hotels = [];
 
 // Function to show the loader
 function showLoader() {
@@ -19,12 +20,12 @@ function hideLoader() {
 }
 
 // Function to render the current page of events
-function renderPage(page) {
+async function renderPage(page) {
     const startIndex = (page - 1) * trainingPerPage;
     const endIndex = startIndex + trainingPerPage;
     const pageData = trainings.slice(startIndex, endIndex);
 
-    trainingsTableBody.innerHTML = ''; // Clear the table
+    trainingsTableBody.innerHTML = '';
 
     if (pageData.length === 0) {
         trainingsTableBody.innerHTML = `
@@ -34,7 +35,27 @@ function renderPage(page) {
         return;
     }
 
-    pageData.forEach((training, index) => {
+    for (const [index, training] of pageData.entries()) {
+        const isRegistered = await checkRegistrationStatus(training);
+        console.log('Registration status for training:', training.training_id, isRegistered);
+
+        console.log('Processing training:', training);
+        console.log('Training venue ID:', training.training_venue);
+        
+        // Find matching hotel
+        const matchingHotel = hotels.find(hotel => {
+            console.log('Comparing hotel_id:', hotel.hotel_id, 'with venue:', parseInt(training.training_venue));
+            return hotel.hotel_id === parseInt(training.training_venue);
+        });
+        
+        console.log('Matching hotel found:', matchingHotel);
+
+        const venueDisplay = matchingHotel ? 
+            `${matchingHotel.hotel_name}, ${matchingHotel.hotel_address}` : 
+            training.training_venue || 'N/A';
+            
+        console.log('Final venue display:', venueDisplay);
+
         let availabilityStatus, badgeClass;
     
         // Determine availability status and corresponding badge class
@@ -66,7 +87,7 @@ function renderPage(page) {
                 <td>
                   <a href="#"><b>${training.training_name}</b></a>  
                 </td>
-                <td>${training.training_venue || 'N/A'}</td>
+                <td><b>${venueDisplay}</b></td>
                 <td><b>${new Date(training.training_date).toLocaleDateString('en-US', {
                   day: '2-digit',
                   month: 'short',
@@ -78,18 +99,17 @@ function renderPage(page) {
                     <span class="badge bg-${badgeClass}">${availabilityStatus}</span>
                 </td>
                 <td>
-    <span class="badge bg-${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' ? 'success' : 'danger'}">
-      ${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' 
-        ? `<a href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1" style="color: white; text-decoration: none;">Register Now</a>` 
-        : 'Registration Closed'}
-    </span>
-</td>
-
-
-
+                    ${isRegistered ? 
+                        `<span class="badge bg-secondary" style="opacity: 0.7;">Already Registered ✓</span>` :
+                        `<span class="badge bg-${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' ? 'success' : 'danger'}">
+                            ${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' 
+                                ? `<a href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1" style="color: white; text-decoration: none;">Register Now</a>` 
+                                : 'Registration Closed'}
+                        </span>`
+                    }
+                </td>
             </tr>`;
-    });
-    
+    }
 }
 
 // Function to render pagination controls
@@ -132,14 +152,17 @@ function changePage(page) {
 async function fetchAndDisplaytrainings() {
     try {
         showLoader();
+        // Fetch hotels first
+        await fetchHotels();
+        
         const response = await fetch(trainingsApiUrl);
         if (!response.ok) throw new Error('Error fetching trainings data');
 
         trainings = await response.json();
         filteredTrainings = [...trainings];
         currentPage = 1;
-        renderFilteredPage(currentPage);
-        renderFilteredPagination();
+        await renderPage(currentPage);
+        renderPagination();
         populateStatusFilter();
         setupFilterButtons();
         setupSearch();
@@ -260,6 +283,23 @@ function renderFilteredPage(page) {
     }
 
     pageData.forEach((training, index) => {
+        console.log('Processing training:', training);
+        console.log('Training venue ID:', training.training_venue);
+        
+        // Find matching hotel
+        const matchingHotel = hotels.find(hotel => {
+            console.log('Comparing hotel_id:', hotel.hotel_id, 'with venue:', parseInt(training.training_venue));
+            return hotel.hotel_id === parseInt(training.training_venue);
+        });
+        
+        console.log('Matching hotel found:', matchingHotel);
+
+        const venueDisplay = matchingHotel ? 
+            `${matchingHotel.hotel_name}, ${matchingHotel.hotel_address}` : 
+            training.training_venue || 'N/A';
+            
+        console.log('Final venue display:', venueDisplay);
+
         let availabilityStatus, badgeClass;
     
         switch (training.training_status) {
@@ -290,7 +330,7 @@ function renderFilteredPage(page) {
                 <td>
                     <a href="#"><b>${training.training_name}</b></a>  
                 </td>
-                <td>${training.training_venue || 'N/A'}</td>
+                <td><b>${venueDisplay}</b></td>
                 <td><b>${new Date(training.training_date).toLocaleDateString('en-US', {
                     day: '2-digit',
                     month: 'short',
@@ -373,6 +413,87 @@ function filterTrainings() {
     currentPage = 1;
     renderFilteredPage(currentPage);
     renderFilteredPagination();
+}
+
+// Add this function to fetch hotels
+async function fetchHotels() {
+    try {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/getHotels');
+        if (!response.ok) throw new Error('Failed to fetch hotels');
+        hotels = await response.json();
+        console.log('Hotels fetched successfully:', hotels);
+        return hotels;
+    } catch (error) {
+        console.error('Error fetching hotels:', error);
+        return [];
+    }
+}
+
+// Add this new function
+async function checkRegistrationStatus(training) {
+    try {
+        let userEmail;
+        const loginType = getUserLoginType();
+        
+        // Determine which email to use
+        if (loginType === 'ro_admin') {
+            userEmail = localStorage.getItem('current_member_email');
+            console.log('RO Admin checking for member email:', userEmail);
+        } else {
+            userEmail = getUserEmail();
+            console.log('Regular member email:', userEmail);
+        }
+
+        if (!userEmail) {
+            console.log('No email found to check registration');
+            return false;
+        }
+
+        // Get member details
+        const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const members = await memberResponse.json();
+        console.log('Fetched all members:', members);
+
+        const member = members.find(m => m.member_email_address === userEmail);
+        console.log('Found member:', member);
+
+        if (!member) {
+            console.log('No member found for email:', userEmail);
+            return false;
+        }
+
+        // Get orders
+        const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const orders = await ordersResponse.json();
+        console.log('Fetched all orders:', orders);
+
+        const memberOrder = orders.find(order => 
+            order.customer_id === member.member_id && 
+            order.training_id === training.training_id
+        );
+        console.log('Found member order:', memberOrder);
+
+        if (!memberOrder) {
+            console.log('No order found for member:', member.member_id);
+            return false;
+        }
+
+        // Get transactions
+        const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const transactions = await transactionsResponse.json();
+        console.log('Fetched all transactions:', transactions);
+
+        const successTransaction = transactions.find(t => 
+            t.order_id === memberOrder.order_id && 
+            t.payment_status === 'SUCCESS'
+        );
+        console.log('Found success transaction:', successTransaction);
+
+        return !!successTransaction;
+    } catch (error) {
+        console.error('Error checking registration:', error);
+        return false;
+    }
 }
 
 
