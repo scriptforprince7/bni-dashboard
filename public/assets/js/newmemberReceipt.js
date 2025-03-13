@@ -12,11 +12,41 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
+// Function to get order ID from membership pending
+async function getMembershipOrderId(visitorId) {
+    try {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/getMembershipPending');
+        if (!response.ok) {
+            throw new Error('Failed to fetch membership data');
+        }
+        
+        const membershipData = await response.json();
+        const membershipRecord = membershipData.find(record => 
+            record.visitor_id === parseInt(visitorId) && 
+            parseFloat(record.due_balance) < 1
+        );
+
+        if (!membershipRecord) {
+            throw new Error('No valid payment record found or payment is pending');
+        }
+
+        return membershipRecord.order_id;
+    } catch (error) {
+        console.error('Error fetching membership data:', error);
+        throw error;
+    }
+}
+
 // Fetch all orders and display details
 async function fetchAllOrders() {
     console.log('Starting fetchAllOrders');
     showLoader();
     try {
+        // First get the correct order_id from membership pending
+        const targetOrderId = await getMembershipOrderId(visitorId);
+        console.log('Target Order ID:', targetOrderId);
+
+        // Then fetch all orders
         const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
         console.log('API Response status:', response.status);
         
@@ -26,64 +56,44 @@ async function fetchAllOrders() {
         
         const allOrders = await response.json();
         console.log("All Orders:", allOrders);
-        console.log("Looking for visitor_id:", visitorId);
 
-        // Filter orders for this visitor and payment_note = "visitor-payment"
-        const visitorOrders = allOrders.filter(order => 
-            order.visitor_id === parseInt(visitorId) && 
-            order.payment_note === "visitor-payment"
-        );
-        
-        console.log("Filtered visitor orders:", visitorOrders);
+        // Find order with matching order_id
+        const order = allOrders.find(order => order.order_id === targetOrderId);
+        console.log("Found order:", order);
 
-        if (visitorOrders.length > 0) {
-            // Sort by created_at date in descending order (most recent first)
-            const sortedOrders = visitorOrders.sort((a, b) => 
-                new Date(b.created_at) - new Date(a.created_at)
-            );
+        if (order) {
+            orderId = order.order_id;
             
-            console.log("Sorted orders by date:", sortedOrders);
-            
-            // Get the most recent order
-            const mostRecentOrder = sortedOrders[0];
-            console.log("Most recent order:", mostRecentOrder);
-            
-            orderId = mostRecentOrder.order_id;
-            
-            // Fetch transactions for the most recent order
+            // Fetch transactions first to get cf_payment_id
             const transactions = await fetchTransactionsForOrder(orderId);
             console.log("Fetched transactions:", transactions);
             
-            const transaction = transactions[0];
+            const transaction = transactions[0]; // Get the first transaction
             console.log("Using transaction:", transaction);
             
             // Update displayOrderDetails to include transaction details
-            displayOrderDetails(mostRecentOrder, transaction);
+            displayOrderDetails(order, transaction);
 
-            if (mostRecentOrder.universal_link_id) {
-                universalLinkName = await fetchUniversalLinkName(mostRecentOrder.universal_link_id);
+            if (order.universal_link_id) {
+                universalLinkName = await fetchUniversalLinkName(order.universal_link_id);
+                displayTransactionDetails(order);
             }
-            
-            displayTransactionDetails(mostRecentOrder);
 
-            // Handle visitor payment details
-            console.log('🛬 Handling Visitor Payment case');
-            console.log('Visitor Name:', mostRecentOrder.visitor_name);
-            console.log('Visitor Email:', mostRecentOrder.visitor_email);
-            console.log('Visitor Company:', mostRecentOrder.visitor_company);
-            console.log('Visitor GSTIN:', mostRecentOrder.visitor_gstin);
-
-            document.getElementById('member-name').textContent = mostRecentOrder.visitor_name || "N/A";
-            document.getElementById('customer-email').textContent = mostRecentOrder.visitor_email || "N/A";
-            document.getElementById('company-name').textContent = mostRecentOrder.visitor_company || "N/A";
-            document.getElementById('company-gst').textContent = mostRecentOrder.visitor_gstin || "N/A";
+            // Display visitor details
+            document.getElementById('member-name').textContent = order.visitor_name || "N/A";
+            document.getElementById('customer-email').textContent = order.visitor_email || "N/A";
+            document.getElementById('company-name').textContent = order.visitor_company || "N/A";
+            document.getElementById('company-gst').textContent = order.visitor_gstin || "N/A";
             document.getElementById('order-number').textContent = orderId || "N/A";
         } else {
-            console.error('No visitor payment orders found for visitor_id:', visitorId);
+            console.error('Order not found with order_id:', targetOrderId);
+            throw new Error('Order details not found');
         }
     } catch (error) {
         console.error('Error in fetchAllOrders:', error);
         console.error('Error stack:', error.stack);
+        // Show error message to user
+        alert('Unable to fetch receipt details. ' + error.message);
     } finally {
         hideLoader();
     }
@@ -318,12 +328,14 @@ function displayOrderDetails(order, transaction) {
         // Log order details
         console.log('Order ID:', order?.order_id);
         console.log('Member Name:', order?.member_name);
+        console.log('Invited By:', order?.member_name || 'Unknown');
         console.log('Customer Email:', order?.customer_email);
         console.log('Company:', order?.company);
         console.log('GSTIN:', order?.gstin);
         
         // Populate member details
         const memberName = document.getElementById('member-name');
+        const invitedBy = document.getElementById('invited-by');
         const customerEmail = document.getElementById('customer-email');
         const companyName = document.getElementById('company-name');
         const companyGst = document.getElementById('company-gst');
@@ -331,6 +343,7 @@ function displayOrderDetails(order, transaction) {
 
         console.log('Found DOM elements:', {
             memberName,
+            invitedBy,
             customerEmail,
             companyName,
             companyGst,
@@ -343,6 +356,14 @@ function displayOrderDetails(order, transaction) {
             console.log('Set member name to:', memberName.textContent);
         } else {
             console.error('member-name element not found');
+        }
+
+        // Add invited by handling
+        if (invitedBy) {
+            invitedBy.textContent = order?.member_name === "Unknown" ? "Self Invited" : (order?.member_name || "Self Invited");
+            console.log('Set invited by to:', invitedBy.textContent);
+        } else {
+            console.error('invited-by element not found');
         }
 
         if (customerEmail) {

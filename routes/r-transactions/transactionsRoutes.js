@@ -19,4 +19,6 @@ router.get('/newmemberReceipt', transactionsController.newmemberReceipt);
 router.get('/visitorForm', transactionsController.visitorForm);
 
 
+
+
 module.exports = router;

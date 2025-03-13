@@ -121,6 +121,23 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
 }
 
+// Function to check payment status from membership pending data
+async function checkMembershipPayment(visitorId) {
+    try {
+        const response = await fetch('https://bni-data-backend.onrender.com/api/getMembershipPending');
+        const membershipData = await response.json();
+        
+        // Find the membership record for this visitor
+        const membershipRecord = membershipData.find(record => record.visitor_id === visitorId);
+        
+        // Return true if there's a record and due_balance is less than 1
+        return membershipRecord && parseFloat(membershipRecord.due_balance) < 1;
+    } catch (error) {
+        console.error('Error checking membership payment:', error);
+        return false;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -213,7 +230,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
 
         // Function to create status icon with view link
-        const getStatusIcon = (status, type = null, visitor = null) => {
+        const getStatusIcon = async (status, type = null, visitor = null) => {
+            // For new member form, check payment status
+            if (type === 'payment') {
+                const isPaid = await checkMembershipPayment(visitor.visitor_id);
+                status = status && isPaid; // Only show green check if both form is completed AND payment is made
+            }
+
             const icon = status ? 
                 '<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>' : 
                 '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
@@ -238,6 +261,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                         pageUrl = '/t/visitorForm';
                         break;
                     case 'payment':
+                        // Only show view link if payment is completed
+                        const isPaid = await checkMembershipPayment(visitor.visitor_id);
+                        if (!isPaid) return icon;
                         pageUrl = '/t/newmemberReceipt';
                         break;
                 }
@@ -520,7 +546,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         // Update renderVisitors function
-        function renderVisitors(visitorsToShow) {
+        async function renderVisitors(visitorsToShow) {
             // Update total count
             updateTotalCount(visitorsToShow.length);
 
@@ -532,9 +558,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
-            const tableContent = visitorsToShow.map((visitor, index) => {
+            const tableContent = await Promise.all(visitorsToShow.map(async (visitor, index) => {
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+                
+                // Get all status icons (now async)
+                const paymentStatus = await getStatusIcon(visitor.new_member_form, 'payment', visitor);
                 
                 return `
                     <tr>
@@ -546,18 +575,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td><b>${formatDate(visitor.visited_date)}</b></td>
                         <td><b>${visitor.visitor_phone || 'N/A'}</b></td>
                         <td><b>${visitor.visitor_company_name || 'N/A'}</b></td>
-                        <td class="text-center">${getStatusIcon(visitor.visitor_form, 'visitor', visitor)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
-                        <td class="text-center">${getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.visitor_form, 'visitor', visitor)}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
+                        <td class="text-center">${paymentStatus}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
                         <td class="text-center">${createInductionStatus(visitor)}</td>
                     </tr>
                 `;
-            }).join('');
+            }));
 
-            tableBody.innerHTML = tableContent;
+            tableBody.innerHTML = tableContent.join('');
         }
 
         // Initial render with total count

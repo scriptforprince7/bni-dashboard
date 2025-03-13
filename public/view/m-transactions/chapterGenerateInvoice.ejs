@@ -1,0 +1,556 @@
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+<style>
+  /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+max-height: 200px; /* Adjust the height as needed */
+overflow-y: auto;  /* Enables vertical scrolling */
+overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+background-color: #888; /* Color of the scrollbar thumb */
+border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+background-color: #555; /* Darker shade on hover */
+}
+
+.btn-group .btn-outline-primary {
+  border-color: #6259ca;
+  color: #6259ca;
+}
+
+.btn-group .btn-check:checked + .btn-outline-primary {
+  background-color: #6259ca;
+  border-color: #6259ca;
+  color: white;
+}
+
+.btn-group .btn-outline-secondary {
+  border-color: #7987a1;
+  color: #7987a1;
+}
+
+.btn-group .btn-check:checked + .btn-outline-secondary {
+  background-color: #7987a1;
+  border-color: #7987a1;
+  color: white;
+}
+
+.payment-fields {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
+<%- include('../partials/chapter-sidebar') %>
+
+<!-- end sidebar -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <!-- <li class="breadcrumb-item">
+                    <a href="javascript:void(0);"> Pages </a>
+                  </li> -->
+            <li class="breadcrumb-item" aria-current="page">
+              <a href="javascript:void(0);">Invoice</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Create Invoice
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0" id="universal-link-name">
+          Loading...
+        </h1>
+      </div>
+      <div class="btn-list">
+        <!-- <button class="btn btn-white btn-wave">
+                <i class="ri-filter-3-line align-middle me-1 lh-1"></i> Filter
+              </button> -->
+      </div>
+    </div>
+    <!-- End::page-header -->
+
+    <div class="dropdown">
+      <!-- Region Dropdown -->
+      <a
+        href="javascript:void(0);"
+        class="btn btn-sm btn-light text-muted dropdown-toggle"
+        data-bs-toggle="dropdown"
+        aria-expanded="true"
+        id="regionDropdownBtn"
+      >
+        <i class="ti ti-sort-descending-2 me-1"></i>
+        Choose Region
+      </a>
+      <ul class="dropdown-menu" id="regionDropdown" role="menu"></ul>
+    
+      <!-- Chapter Dropdown -->
+      <a
+        href="javascript:void(0);"
+        class="btn btn-sm btn-light text-muted dropdown-toggle"
+        data-bs-toggle="dropdown"
+        aria-expanded="true"
+        id="chapterDropdownBtn"
+      >
+        <i class="ti ti-sort-descending-2 me-1"></i>
+        Choose Chapter
+      </a>
+      <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
+    </div>
+    
+
+    <!-- Start::row-1 -->
+    <div class="row">
+      <div class="col-xl-9">
+        <div class="card custom-card">
+          <div class="card-header d-md-flex d-block">
+            <div class="h5 mb-0 d-sm-flex d-block align-items-center">
+              <div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-xl-12">
+                <div class="row">
+                  <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
+                    <p class="dw-semibold mb-2">Billing From :</p>
+                    <div class="row gy-2">
+                      <div class="col-xl-12">
+                        <!-- dropdown -->
+                        <select
+                          class="form-select form-select-light company_info"
+                        >
+                          <option selected>Select Company</option>
+                        </select>
+                      </div>
+                      <div class="col-xl-12">
+                        <textarea
+                          class="form-control form-control-light"
+                          id="company-address"
+                          placeholder="Enter Address"
+                          rows="3"
+                          readonly
+                        ></textarea>
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="company-mail"
+                          placeholder="Company Email"
+                          value=""
+                          readonly
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="company-phone"
+                          placeholder="Phone Number"
+                          value=""
+                          readonly
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="company-gst"
+                          placeholder="GST Number"
+                          value=""
+                          readonly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3"
+                  >
+                    <p class="dw-semibold mb-2">Billing To :</p>
+                    <div class="row gy-2">
+                      <div class="col-xl-12">
+                        <select class="form-select form-select-light" id="company-name">
+
+                          <option selected>Select Member</option>
+                        </select>
+                      </div>
+                      <div class="col-xl-12">
+                        <textarea
+                          class="form-control form-control-light"
+                          id="member_address"
+                          placeholder="Enter Address"
+                          rows="3"
+                          readonly
+                        ></textarea>
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="member_company_name"
+                          placeholder="Customer Company Name"
+                          value=""
+                          readonly
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="member_phone_number"
+                          placeholder="Phone Number"
+                          value=""
+                          readonly
+                        />
+                      </div>
+                      <div class="col-xl-12">
+                        <input
+                          type="text"
+                          class="form-control form-control-light"
+                          id="member_gst_number"
+                          placeholder="GST Number"
+                          value=""
+                          readonly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-xl-12">
+                <div class="table-responsive">
+                  <table class="table nowrap text-nowrap border mt-3">
+                    <thead>
+                      <tr>
+                        <th>Date Issued</th>
+                        <th>PARTICULARS</th>
+                        <th>HSN/SAC</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <input
+                  type="date"
+                  class="form-control form-control-light"
+                  id="invoice-date-issued"
+                  placeholder="Choose date"
+                />
+                        </td>
+                        <td>
+                          <textarea
+                            rows="1"
+                            class="form-control form-control-light"
+                            placeholder="Enter Description"
+                            name="particulars"
+                            id="particulars"
+                          ></textarea>
+                        </td>
+                        <td>
+                          <input
+                            class="form-control form-control-light"
+                            placeholder=""
+                            type="text"
+                            value="999511"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="form-control form-control-light rate"
+                            placeholder=""
+                            type="text"
+                            value="-"
+                            id="rate"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="form-control form-control-light price"
+                            placeholder=""
+                            type="text"
+                            value="-"
+                            id="price"
+                            readonly
+                          />
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td colspan="4"></td>
+                        <td colspan="2">
+                          <table
+                            class="table table-sm text-nowrap mb-0 table-borderless"
+                          >
+                            <tbody>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fw-medium">Total Taxable Value :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input taxable-total-amount"
+                                    placeholder="Enter Amount"
+                                    value="-"
+                                    id="taxable-total-amount"
+                                    readonly
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fw-medium">
+                                    Add CGST (9%)
+                                    :
+                                  </div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input cgst_amount"
+                                    placeholder="Enter Amount"
+                                    value="-"
+                                    id="cgst_amount"
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fw-medium">
+                                    Add SGST (9%)
+                                    :
+                                  </div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input sgst_amount"
+                                    placeholder="Enter Amount"
+                                    value="-"
+                                    id="sgst_amount"
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Grand Total :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input grand_total"
+                                    placeholder="Enter Amount"
+                                    value="-"
+                                    id="grand_total"
+                                    readonly
+                                  />
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="card-footer d-flex align-items-center justify-content-between gap-2"
+          >
+            <button class="btn btn-danger">
+              Make Invoice
+              <i
+                class="ri-send-plane-2-line ms-1 align-middle d-inline-block submit_invoice"
+                id="submit_invoice"
+              ></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3">
+        <div class="card custom-card">
+          <div class="card-header">
+            <div class="card-title">Mode Of Payment</div>
+          </div>
+          <div class="card-body">
+            <div class="row gy-3">
+              <div class="col-xl-12">
+                <div class="btn-group w-100" role="group" aria-label="Payment Methods">
+                  <!-- Cash Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="cashOption" checked/>
+                  <label class="btn btn-outline-primary" for="cashOption">Cash</label>
+
+                  <!-- UPI Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="upiOption"/>
+                  <label class="btn btn-outline-primary" for="upiOption">UPI</label>
+
+                  <!-- Bank Transfer Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="bankOption"/>
+                  <label class="btn btn-outline-primary" for="bankOption">Bank</label>
+
+                  <!-- Cheque Option -->
+                  <input type="radio" class="btn-check" name="paymentMethod" id="chequeOption"/>
+                  <label class="btn btn-outline-primary" for="chequeOption">Cheque</label>
+
+                  <!-- IMPS Option -->
+                  <!-- <input type="radio" class="btn-check" name="paymentMethod" id="impsOption"/>
+                  <label class="btn btn-outline-primary" for="impsOption">IMPS</label> -->
+                </div>
+              </div>
+
+              <!-- UPI Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="upiFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label">UPI ID</label>
+                  <input type="text" class="form-control" id="upiId" placeholder="Enter UPI ID"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">UPI Reference Number</label>
+                  <input type="text" class="form-control" id="upiNumber" placeholder="Enter UPI Reference Number"/>
+                </div>
+              </div>
+
+              <!-- Bank Transfer Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="bankFields" style="display: none;">
+                <div class="mb-3">
+                  <div class="btn-group w-100" role="group" aria-label="Bank Transfer Type">
+                    <input type="radio" class="btn-check" name="bankTransferType" id="rtgsOption"/>
+                    <label class="btn btn-outline-secondary" for="rtgsOption">RTGS</label>
+
+                    <input type="radio" class="btn-check" name="bankTransferType" id="neftOption"/>
+                    <label class="btn btn-outline-secondary" for="neftOption">NEFT</label>
+
+                    <input type="radio" class="btn-check" name="bankTransferType" id="impsOption"/>
+                    <label class="btn btn-outline-secondary" for="impsOption">IMPS</label>
+                  </div>
+                </div>
+
+                <!-- Common fields for all bank transfer types -->
+                <div class="bank-transfer-fields">
+                  <div class="mb-3">
+                    <label class="form-label">Transfer UTR</label>
+                    <input type="text" class="form-control" id="transferUTR" placeholder="Enter Transfer UTR"/>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Transfer ID</label>
+                    <input type="text" class="form-control" id="transferId" placeholder="Enter Transfer ID"/>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cheque Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="chequeFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label">Cheque No.</label>
+                  <input type="text" class="form-control" id="chequeNo" placeholder="Enter Cheque Number"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">IFSC Code</label>
+                  <input type="text" class="form-control" id="ifscCode" placeholder="Enter IFSC Code"/>
+                </div>
+              </div>
+
+              <!-- IMPS Fields (Hidden by default) -->
+              <div class="col-xl-12 payment-fields" id="impsFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label">Transfer UTR</label>
+                  <input type="text" class="form-control" id="impsUTR" placeholder="Enter Transfer UTR"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Transfer ID</label>
+                  <input type="text" class="form-control" id="impsId" placeholder="Enter Transfer ID"/>
+                </div>
+              </div>
+
+              <!-- Payment Note -->
+              <div class="col-xl-12">
+                <div class="form-group">
+                  <label for="payment-note">Payment Note</label>
+                  <textarea
+                    class="form-control"
+                    id="payment-note"
+                    rows="4"
+                    placeholder="Enter payment details or notes here"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+<script src="../../assets/js/cashInvoice2.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const paymentMethods = document.getElementsByName('paymentMethod');
+  const upiFields = document.getElementById('upiFields');
+  const bankFields = document.getElementById('bankFields');
+  const chequeFields = document.getElementById('chequeFields');
+  const impsFields = document.getElementById('impsFields');
+
+  paymentMethods.forEach(method => {
+    method.addEventListener('change', function() {
+      // Hide all payment fields first
+      upiFields.style.display = 'none';
+      bankFields.style.display = 'none';
+      chequeFields.style.display = 'none';
+      impsFields.style.display = 'none';
+
+      // Show relevant fields based on selection
+      if (this.id === 'upiOption') {
+        upiFields.style.display = 'block';
+      } else if (this.id === 'bankOption') {
+        bankFields.style.display = 'block';
+      } else if (this.id === 'chequeOption') {
+        chequeFields.style.display = 'block';
+      } else if (this.id === 'impsOption') {
+        impsFields.style.display = 'block';
+      }
+    });
+  });
+});
+</script>
+
+<%- include('../partials/footer') %>
