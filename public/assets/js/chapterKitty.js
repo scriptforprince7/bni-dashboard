@@ -11,7 +11,7 @@ let pendingAmount = 0;
 async function populateGatewayFilter() {
   try {
     const response = await fetch(
-      "https://bni-data-backend.onrender.com/api/paymentGateway"
+      "https://backend.bninewdelhi.com/api/paymentGateway"
     );
     const gateways = await response.json();
 
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Get chapter_id from chapters API
       const chaptersResponse = await fetch(
-        "https://bni-data-backend.onrender.com/api/chapters"
+        "https://backend.bninewdelhi.com/api/chapters"
       );
       const chapters = await chaptersResponse.json();
       const chapter = chapters.find((ch) => ch.email_id === chapterEmail);
@@ -273,7 +273,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Fetch write-off data and calculate total
     console.log("Fetching write-off data for chapter:", chapter_id);
     const writeoffResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/getAllMemberWriteOff"
+      "https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
     );
     const writeoffData = await writeoffResponse.json();
 
@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
     const chapterResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/chapters"
+      "https://backend.bninewdelhi.com/api/chapters"
     );
     const chaptersData = await chapterResponse.json();
     console.log("Chapters data received:", chaptersData.length, "chapters");
@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       available_fund,
     });
     console.log("Logged-in chapter ID:", chapterId);
-    const allvisi = await fetch("https://bni-data-backend.onrender.com/api/getAllVisitors").then(response => response.json());
+    const allvisi = await fetch("https://backend.bninewdelhi.com/api/getAllVisitors").then(response => response.json());
 
     const visitorAmount = allvisi.filter(visi => visi.chapter_id === chapterId);
       const visitorAmountTotal = visitorAmount.reduce((sum, visitor) => {
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
     const membersResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/members"
+      "https://backend.bninewdelhi.com/api/members"
     );
     const allMembers = await membersResponse.json();
     const chapterMembersWithBalance = allMembers.filter(
@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     //     // pendingAmount += balance;
     // });
     const bankOrderResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/getbankOrder"
+      "https://backend.bninewdelhi.com/api/getbankOrder"
     );
     const bankOrders = await bankOrderResponse.json();
     console.log("Bank Orders Data:", bankOrders);
@@ -386,7 +386,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Continue with existing code
     const expenseResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/allExpenses"
+      "https://backend.bninewdelhi.com/api/allExpenses"
     );
     const expenses = await expenseResponse.json();
     console.log("expense", expenses);
@@ -406,7 +406,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Total Paid Expense:", total_paid_expense);
 
     const creditResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/getAllMemberCredit"
+      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
     );
     const memberCredits = await creditResponse.json();
     console.log("Member Credits Data:", memberCredits);
@@ -424,7 +424,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     console.log("Total Credit Amount:", totalCreditAmount);
 
-    // const bankOrderResponse = await fetch('https://bni-data-backend.onrender.com/api/getbankOrder');
+    // const bankOrderResponse = await fetch('https://backend.bninewdelhi.com/api/getbankOrder');
     // const bankOrders = await bankOrderResponse.json();
     // console.log('Bank Orders Data:', bankOrders);
     // const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapterId);
@@ -437,7 +437,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/getKittyPayments"
+      "https://backend.bninewdelhi.com/api/getKittyPayments"
     );
     const kittyPayments = await kittyResponse.json();
     const chapterKittyPayment = kittyPayments.find(
@@ -503,7 +503,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
       } else {
         const ordersResponse = await fetch(
-          "https://bni-data-backend.onrender.com/api/allOrders"
+          "https://backend.bninewdelhi.com/api/allOrders"
         );
         const allOrders = await ordersResponse.json();
 
@@ -554,7 +554,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // else 0
         else {
           const transactionsResponse = await fetch(
-            "https://bni-data-backend.onrender.com/api/allTransactions"
+            "https://backend.bninewdelhi.com/api/allTransactions"
           );
           const allTransactions = await transactionsResponse.json();
           console.log("Fetched Transactions:", allTransactions);
@@ -581,7 +581,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           let ReceivedAmount = 0;
           let MiscellaneousAmount = 0;
 
-          // const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
+          // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
           // const pendingBalances = await pendingBalanceResponse.json();
 
           chapterOrders.forEach(async (order) => {
@@ -784,7 +784,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 6: Fetch all orders for the chapter
     const ordersResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/allOrders"
+      "https://backend.bninewdelhi.com/api/allOrders"
     );
     const allOrders = await ordersResponse.json();
 
@@ -838,7 +838,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Fetched Orders:", chapterOrders);
 
     const transactionsResponse = await fetch(
-      "https://bni-data-backend.onrender.com/api/allTransactions"
+      "https://backend.bninewdelhi.com/api/allTransactions"
     );
     const allTransactions = await transactionsResponse.json();
     console.log("Fetched Transactions:", allTransactions);
@@ -865,7 +865,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     let ReceivedAmount = 0;
     let MiscellaneousAmount = 0;
 
-    // const pendingBalanceResponse = await fetch('https://bni-data-backend.onrender.com/api/memberPendingKittyOpeningBalance');
+    // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
     // const pendingBalances = await pendingBalanceResponse.json();
 
     chapterOrders.forEach(async (order) => {

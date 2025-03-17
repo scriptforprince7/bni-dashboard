@@ -100,7 +100,7 @@ function showLoader() {
 
         // First fetch chapters to get chapter_id
         console.log('📊 Fetching chapters data...');
-        const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         
         // Find matching chapter based on email
@@ -119,9 +119,9 @@ function showLoader() {
 
         // Fetch all required data in parallel
         const [ordersResponse, transactionsResponse, universalLinksResponse] = await Promise.all([
-            fetch('https://bni-data-backend.onrender.com/api/allOrders'),
-            fetch('https://bni-data-backend.onrender.com/api/allTransactions'),
-            fetch('https://bni-data-backend.onrender.com/api/universalLinks')
+            fetch('https://backend.bninewdelhi.com/api/allOrders'),
+            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+            fetch('https://backend.bninewdelhi.com/api/universalLinks')
         ]);
 
         const orders = await ordersResponse.json();

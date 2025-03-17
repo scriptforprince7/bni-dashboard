@@ -52,7 +52,7 @@ async function fetchMemberData() {
         console.log('Using member email:', member_email); // Debug log to confirm which email is being used
 
         // Fetch members data
-        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const membersData = await membersResponse.json();
         debugLog('Members data fetched:', membersData);
 
@@ -68,7 +68,7 @@ async function fetchMemberData() {
         debugLog('Member accolades IDs:', loggedInMember.accolades_id);
 
         // Get accolades data
-        const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accoladesData = await accoladesResponse.json();
         debugLog('All accolades data fetched:', accoladesData);
 
@@ -144,7 +144,7 @@ function updateAccoladesCount() {
 async function populateAccoladesDropdown() {
     try {
         // Fetch accolades data
-        const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accoladesData = await accoladesResponse.json();
         debugLog('Accolades data fetched for dropdown:', accoladesData);
 

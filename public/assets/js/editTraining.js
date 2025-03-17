@@ -79,7 +79,7 @@ document.getElementById('training_date').addEventListener('change', function(e) 
 // Function to fetch and setup hotel dropdown
 async function setupHotelDropdown() {
     try {
-        const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
+        const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
         const hotels = await response.json();
         console.log('📍 Total hotels fetched:', hotels.length);
         
@@ -116,7 +116,7 @@ async function setupHotelDropdown() {
 // Function to fetch hotel details and update venue field
 async function fetchAndDisplayHotelDetails(venueId) {
   try {
-    const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
+    const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
     const hotels = await response.json();
     
     // Find the hotel that matches the venue ID
@@ -149,7 +149,7 @@ async function fetchAndDisplayHotelDetails(venueId) {
 async function fetchTrainingDetails() {
   try {
     showLoader();
-    const response = await fetch(`https://bni-data-backend.onrender.com/api/getTraining/${training_id}`);
+    const response = await fetch(`https://backend.bninewdelhi.com/api/getTraining/${training_id}`);
     if (!response.ok) throw new Error('Failed to fetch event details');
     
     const trainingData = await response.json();
@@ -213,7 +213,7 @@ const updatetrainingData = async () => {
 
         try {
             showLoader(); // Show the loader when sending data
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateTraining/${training_id}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/updateTraining/${training_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

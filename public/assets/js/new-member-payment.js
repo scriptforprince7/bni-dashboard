@@ -89,13 +89,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         regionsResponse,
         paymentTypeResponse,
       ] = await Promise.all([
-        fetch("https://bni-data-backend.onrender.com/api/allOrders"),
-        fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
-        fetch("https://bni-data-backend.onrender.com/api/chapters"),
-        fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
-        fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
-        fetch("https://bni-data-backend.onrender.com/api/regions"),
-        fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+        fetch("https://backend.bninewdelhi.com/api/allOrders"),
+        fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+        fetch("https://backend.bninewdelhi.com/api/chapters"),
+        fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
+        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+        fetch("https://backend.bninewdelhi.com/api/regions"),
+        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
       ]);
   
       console.log('✅ All API calls completed');
@@ -290,7 +290,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
               // Step 1: Send request to save settlement data
               const saveResponse = await fetch(
-                `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+                `https://backend.bninewdelhi.com/api/orders/${orderId}/settlementStatus`,
                 { method: 'GET' }
               );
       
@@ -303,7 +303,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
       
               const fetchResponse = await fetch(
-                `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+                `https://backend.bninewdelhi.com/api/settlement/${cfPaymentId}`
               );
       
               if (!fetchResponse.ok) {
@@ -315,7 +315,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               // Step 3: Update the table row based on settlement data
               if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
   
-                fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+                fetch(`https://backend.bninewdelhi.com/api/einvoice/${settlement.order_id}`)
                 .then(response => response.json())
                 .then(einvoiceData => {
                     const irnCell = row.querySelector(".irn");
@@ -525,7 +525,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
                   try {
                     const backendResponse = await fetch(
-                      "https://bni-data-backend.onrender.com/einvoice/generate-irn",
+                      "https://backend.bninewdelhi.com/einvoice/generate-irn",
                       {
                         method: "POST",
                         headers: {
@@ -542,7 +542,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     
                       // Fetch IRN and QR code details after successful generation
                       const einvoiceResponse = await fetch(
-                        `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
+                        `https://backend.bninewdelhi.com/api/einvoice/${orderId}`
                       );
                       const einvoiceData = await einvoiceResponse.json();
                     

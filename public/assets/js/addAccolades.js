@@ -32,7 +32,7 @@ document.getElementById("submit-accolade").addEventListener("click", async () =>
   };
 
   try {
-    const response = await fetch("https://bni-data-backend.onrender.com/api/accolades", {
+    const response = await fetch("https://backend.bninewdelhi.com/api/accolades", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

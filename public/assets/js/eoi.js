@@ -41,10 +41,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch all required data
         const [eoiResponse, regionsResponse, chaptersResponse, membersResponse] = await Promise.all([
-            fetch('https://bni-data-backend.onrender.com/api/getEoiForms'),
-            fetch('https://bni-data-backend.onrender.com/api/regions'),
-            fetch('https://bni-data-backend.onrender.com/api/chapters'),
-            fetch('https://bni-data-backend.onrender.com/api/members')
+            fetch('https://backend.bninewdelhi.com/api/getEoiForms'),
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/members')
         ]);
 
         const [eoiForms, regions, chapters, members] = await Promise.all([

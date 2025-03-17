@@ -48,7 +48,7 @@ async function fetchAndDisplayCompanyName() {
 
     try {
         console.log('Fetching companies from API...');
-        const companyResponse = await fetch("https://bni-data-backend.onrender.com/api/company");
+        const companyResponse = await fetch("https://backend.bninewdelhi.com/api/company");
         const companies = await companyResponse.json();
         console.log('Fetched companies data:', companies);
 
@@ -74,7 +74,7 @@ async function fetchAndDisplayCompanyName() {
 async function fetchAndPopulateHotels() {
     try {
         console.log('🏨 Fetching hotels data...');
-        const response = await fetch("https://bni-data-backend.onrender.com/api/getHotels");
+        const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
         const hotels = await response.json();
         console.log('📍 Fetched hotels:', hotels);
 
@@ -171,7 +171,7 @@ document.getElementById("submit-event").addEventListener("click", async () => {
     console.log('📤 Submitting training data:', data);
 
     try {
-        const response = await fetch("https://bni-data-backend.onrender.com/api/training", {
+        const response = await fetch("https://backend.bninewdelhi.com/api/training", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

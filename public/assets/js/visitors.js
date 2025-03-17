@@ -124,7 +124,7 @@ function formatDate(dateString) {
 // Function to check payment status from membership pending data
 async function checkMembershipPayment(visitorId) {
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/getMembershipPending');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getMembershipPending');
         const membershipData = await response.json();
         
         // Find the membership record for this visitor
@@ -208,9 +208,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch all required data
         const [visitorsResponse, regionsResponse, chaptersResponse] = await Promise.all([
-            fetch('https://bni-data-backend.onrender.com/api/getallVisitors'),
-            fetch('https://bni-data-backend.onrender.com/api/regions'),
-            fetch('https://bni-data-backend.onrender.com/api/chapters')
+            fetch('https://backend.bninewdelhi.com/api/getallVisitors'),
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters')
         ]);
 
         const visitors = await visitorsResponse.json();

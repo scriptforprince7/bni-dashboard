@@ -620,7 +620,7 @@
             console.log('Fetching data for visitor_id:', visitorId);
 
             // Fetch Commitment Sheet data
-            const commitmentResponse = await fetch('https://bni-data-backend.onrender.com/api/getCommitmentSheet');
+            const commitmentResponse = await fetch('https://backend.bninewdelhi.com/api/getCommitmentSheet');
             const commitmentData = await commitmentResponse.json();
             
             // Find matching commitment form
@@ -633,7 +633,7 @@
             }
 
             // Fetch chapters data
-            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chaptersData = await chaptersResponse.json();
             console.log('Chapters data:', chaptersData);
 

@@ -359,7 +359,7 @@
                 console.log('Fetching data for visitor_id:', visitorId);
 
                 // Fetch EOI Form data
-                const eoiResponse = await fetch(`https://bni-data-backend.onrender.com/api/getEoiForms`);
+                const eoiResponse = await fetch(`https://backend.bninewdelhi.com/api/getEoiForms`);
                 const eoiForms = await eoiResponse.json();
                 console.log('All EOI Forms:', eoiForms);
 
@@ -373,17 +373,17 @@
                 }
 
                 // Fetch Regions
-                const regionsResponse = await fetch('https://bni-data-backend.onrender.com/api/regions');
+                const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
                 const regions = await regionsResponse.json();
                 console.log('Regions data:', regions);
 
                 // Fetch Chapters
-                const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+                const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
                 const chapters = await chaptersResponse.json();
                 console.log('Chapters data:', chapters);
 
                 // Fetch Members
-                const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+                const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
                 const members = await membersResponse.json();
                 console.log('Members data:', members);
 

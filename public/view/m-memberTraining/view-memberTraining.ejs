@@ -515,7 +515,7 @@ function hideLoader() {
           }
 
           // Step 2: Fetch Member Data
-          const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+          const response = await fetch('https://backend.bninewdelhi.com/api/members');
           if (!response.ok) throw new Error('Failed to fetch members data');
           const members = await response.json();
           console.log('Looking for member with email:', member_email);
@@ -530,7 +530,7 @@ function hideLoader() {
           member_id = member.member_id;
 
           // Step 3: Fetch Orders
-          const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+          const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
           if (!ordersResponse.ok) throw new Error('Failed to fetch orders');
           const orders = await ordersResponse.json();
           
@@ -541,7 +541,7 @@ function hideLoader() {
           console.log('Training IDs:', trainingIds);
 
           // Step 4: Fetch Trainings
-          const trainingsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+          const trainingsResponse = await fetch('https://backend.bninewdelhi.com/api/allTrainings');
           if (!trainingsResponse.ok) throw new Error('Failed to fetch trainings');
           const trainings = await trainingsResponse.json();
           
@@ -638,7 +638,7 @@ function hideLoader() {
 
         // Step 2: Fetch Member Data
         console.log('=== FETCHING MEMBERS DATA ===');
-        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const membersData = await membersResponse.json();
         console.log('Looking for member with email:', member_email);
         
@@ -655,7 +655,7 @@ function hideLoader() {
 
         // Step 3: Fetch orders for this member
         console.log('=== FETCHING ORDERS ===');
-        const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         const ordersData = await ordersResponse.json();
         
         // Filter orders by member's customer_id

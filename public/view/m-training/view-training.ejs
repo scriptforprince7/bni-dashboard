@@ -580,7 +580,7 @@ return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 async function fetchTrainingDetails() {
 try {
 showLoader();
-const response = await fetch(`https://bni-data-backend.onrender.com/api/getTraining/${training_id}`);
+const response = await fetch(`https://backend.bninewdelhi.com/api/getTraining/${training_id}`);
 if (!response.ok) throw new Error('Failed to fetch event details');
 
 const trainingData = await response.json();
@@ -613,7 +613,7 @@ window.addEventListener('load', fetchTrainingDetails);
 // const training_id = urlParams.get('training_id');
 
 // Use the existing urlParams and training_id variables
-fetch('https://bni-data-backend.onrender.com/api/allCheckins')
+fetch('https://backend.bninewdelhi.com/api/allCheckins')
 .then((response) => response.json())
 .then((data) => {
     console.log('All checkins data:', data);
@@ -703,7 +703,7 @@ fetch('https://bni-data-backend.onrender.com/api/allCheckins')
       const totalRegistrations = tableBody ? tableBody.rows.length - 1 : 0; // Subtract 1 for header row
       
       // Get all checkins
-      const checkinsResponse = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
+      const checkinsResponse = await fetch('https://backend.bninewdelhi.com/api/allCheckins');
       const checkinsData = await checkinsResponse.json();
       
       // Filter and deduplicate checkins

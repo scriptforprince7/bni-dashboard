@@ -62,7 +62,7 @@ let ledgerData = [];
         }
 
         // Step 2: Fetch member data using the email
-        const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const memberResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await memberResponse.json();
         
         console.log('Looking for member with email:', member_email);
@@ -82,20 +82,20 @@ let ledgerData = [];
         // let currentBalance = 0;
 
         
-        const AllTimeRaisedKittyResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments');
+        const AllTimeRaisedKittyResponse = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
         const AllTimeRaisedKitty = await AllTimeRaisedKittyResponse.json();
         const allTimeRaisedKitty = AllTimeRaisedKitty.filter(kitty => kitty.chapter_id === chapter_id); 
         console.log("heree", allTimeRaisedKitty);
         // Declare variables for activeKittyEntries and remainingKittyEntries
         let activeKittyEntries = [];
         let remainingKittyEntries = [];
-        const allAvailableOrdersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const allAvailableOrdersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         const allAvailableOrders = await allAvailableOrdersResponse.json();
-        const allAvailableTransactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const allAvailableTransactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         const allAvailableTransactions = await allAvailableTransactionsResponse.json();
 
         // Fetch all member credits
-        const memberCreditResponse = await fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit');
+        const memberCreditResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit');
         const memberCredits = await memberCreditResponse.json();
         let filteredCredits = memberCredits.filter(credit => credit.member_id === userData.member_id && credit.chapter_id === chapter_id);
         console.log("filteredCredits",filteredCredits);

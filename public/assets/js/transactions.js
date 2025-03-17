@@ -87,13 +87,13 @@ showLoader();
       regionsResponse,
       paymentTypeResponse,
     ] = await Promise.all([
-      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
-      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
-      fetch("https://bni-data-backend.onrender.com/api/chapters"),
-      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
-      fetch("https://bni-data-backend.onrender.com/api/regions"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
+      fetch("https://backend.bninewdelhi.com/api/allOrders"),
+      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+      fetch("https://backend.bninewdelhi.com/api/chapters"),
+      fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
+      fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+      fetch("https://backend.bninewdelhi.com/api/regions"),
+      fetch("https://backend.bninewdelhi.com/api/universalLinks"),
     ]);
 
     const orders = await ordersResponse.json();
@@ -691,7 +691,7 @@ const filteredTransactions = transactions.filter((transaction) => {
           try {
             // Step 1: Send request to save settlement data
             const saveResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+              `https://backend.bninewdelhi.com/api/orders/${orderId}/settlementStatus`,
               { method: 'GET' }
             );
     
@@ -704,7 +704,7 @@ const filteredTransactions = transactions.filter((transaction) => {
             const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
     
             const fetchResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+              `https://backend.bninewdelhi.com/api/settlement/${cfPaymentId}`
             );
     
             if (!fetchResponse.ok) {
@@ -716,7 +716,7 @@ const filteredTransactions = transactions.filter((transaction) => {
             // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
-              fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+              fetch(`https://backend.bninewdelhi.com/api/einvoice/${settlement.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -753,7 +753,7 @@ const filteredTransactions = transactions.filter((transaction) => {
                     btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
 
                     // Fetch cancelled IRNs and check if current IRN is cancelled
-                    fetch('https://bni-data-backend.onrender.com/api/getCancelIrn')
+                    fetch('https://backend.bninewdelhi.com/api/getCancelIrn')
                         .then(response => response.json())
                         .then(cancelledIrns => {
                             const isIrnCancelled = cancelledIrns.some(item => item.irn === einvoiceData.irn);
@@ -796,7 +796,7 @@ const filteredTransactions = transactions.filter((transaction) => {
                                                     console.log("Cancel Remarks:", remarks);
                                                     
                                                     // Send data to backend
-                                                    fetch("https://bni-data-backend.onrender.com/einvoice/cancel-irn", {
+                                                    fetch("https://backend.bninewdelhi.com/einvoice/cancel-irn", {
                                                         method: "POST",
                                                         headers: {
                                                             "Content-Type": "application/json"
@@ -1256,7 +1256,7 @@ const filteredTransactions = transactions.filter((transaction) => {
 
                         try {
                             const backendResponse = await fetch(
-                                "https://bni-data-backend.onrender.com/einvoice/generate-irn",
+                                "https://backend.bninewdelhi.com/einvoice/generate-irn",
                                 {
                                     method: "POST",
                                     headers: {
@@ -1273,7 +1273,7 @@ const filteredTransactions = transactions.filter((transaction) => {
 
                                 // Fetch IRN and QR code details after successful generation
                                 const einvoiceResponse = await fetch(
-                                    `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
+                                    `https://backend.bninewdelhi.com/api/einvoice/${orderId}`
                                 );
                                 const einvoiceData = await einvoiceResponse.json();
 
@@ -1333,7 +1333,7 @@ const filteredTransactions = transactions.filter((transaction) => {
 let cancelledIrnData = [];
 
 // Fetch cancelled IRNs first
-fetch('https://bni-data-backend.onrender.com/api/getCancelIrn')
+fetch('https://backend.bninewdelhi.com/api/getCancelIrn')
     .then(response => response.json())
     .then(data => {
         console.log('[INIT] Stored cancelled IRNs:', data);

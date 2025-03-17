@@ -35,7 +35,7 @@ async function fetchChapterData() {
 
         // Fetch chapters data
         console.log('Attempting to fetch chapters data from API...');
-        const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await response.json();
         console.log('Received chapters data:', chapters);
 
@@ -146,7 +146,7 @@ function populateChapterLogo(chapter) {
         if (chapter.chapter_logo && chapter.chapter_logo !== 'Not Found') {
             console.log('🖼️ Found chapter logo:', chapter.chapter_logo);
             // Use the consistent URL pattern for chapter logos
-            const photoPath = `https://bni-data-backend.onrender.com/api/uploads/chapterLogos/${chapter.chapter_logo}`;
+            const photoPath = `https://backend.bninewdelhi.com/api/uploads/chapterLogos/${chapter.chapter_logo}`;
             console.log('🔗 Full photo path:', photoPath);
             
             logoPreview.src = photoPath;
@@ -247,7 +247,7 @@ async function saveChanges() {
         }
 
         console.log('📤 Sending update request...');
-        const response = await fetch('https://bni-data-backend.onrender.com/api/updateChapterSettings', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterSettings', {
             method: 'PUT',
             body: formData
         });

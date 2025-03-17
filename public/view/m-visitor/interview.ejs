@@ -474,9 +474,9 @@
                 // Fetch questions, answers, and chapters in parallel
                 console.log('Fetching questions, answers and chapters from APIs...');
                 const [questionsResponse, answersResponse, chaptersResponse] = await Promise.all([
-                    fetch('https://bni-data-backend.onrender.com/api/getInterviewSheetQuestions'),
-                    fetch('https://bni-data-backend.onrender.com/api/getInterviewSheetAnswers'),
-                    fetch('https://bni-data-backend.onrender.com/api/chapters')
+                    fetch('https://backend.bninewdelhi.com/api/getInterviewSheetQuestions'),
+                    fetch('https://backend.bninewdelhi.com/api/getInterviewSheetAnswers'),
+                    fetch('https://backend.bninewdelhi.com/api/chapters')
                 ]);
 
                 console.log('Questions API Response:', questionsResponse);

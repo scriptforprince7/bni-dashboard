@@ -6,8 +6,8 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-// const apiUrl = 'https://bni-data-backend.onrender.com/api/members';
-const chaptersApiUrl = 'https://bni-data-backend.onrender.com/api/chapters'; 
+// const apiUrl = 'https://backend.bninewdelhi.com/api/members';
+const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
 
 let current_user;
 let allCurrentUserPayments;
@@ -74,7 +74,7 @@ const fetchChapterId = async () => {
 fetchChapterId();
 
 const fetchAllCurrentkittyPayments = async () => {
-    const kittyPaymentsApiUrl = `https://bni-data-backend.onrender.com/api/getAllKittyPayments`;
+    const kittyPaymentsApiUrl = `https://backend.bninewdelhi.com/api/getAllKittyPayments`;
     try {
         showLoader();
         const response = await fetch(kittyPaymentsApiUrl);
@@ -180,7 +180,7 @@ const updateTableWithPayments = async () => {
 // updateTableWithPayments();
 
 const fetchKittyPayments = async () => {
-    const kittyPaymentsApiUrl = `https://bni-data-backend.onrender.com/api/getKittyPayments`;
+    const kittyPaymentsApiUrl = `https://backend.bninewdelhi.com/api/getKittyPayments`;
     try {
         const response = await fetch(kittyPaymentsApiUrl);
         if (!response.ok) throw new Error('Network response was not ok');
@@ -302,7 +302,7 @@ const autofillFields = async () => {
         try {
             showLoader();
 
-            const response = await fetch('https://bni-data-backend.onrender.com/api/addKittyPayment', {
+            const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPayment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

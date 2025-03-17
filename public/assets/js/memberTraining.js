@@ -1,4 +1,4 @@
-const trainingsApiUrl = 'https://bni-data-backend.onrender.com/api/allTrainings';
+const trainingsApiUrl = 'https://backend.bninewdelhi.com/api/allTrainings';
 const trainingsTableBody = document.querySelector('table tbody');
 const paginationContainer = document.querySelector('.pagination');
 let trainings = []; // To store all fetched events
@@ -194,7 +194,7 @@ const deleteTraining = async (training_id) => {
     if (result.isConfirmed) {
         try {
             showLoader();  // Show loading indicator
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/deleteTraining/${training_id}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/deleteTraining/${training_id}`, {
                 method: 'PUT',
             });
   
@@ -418,7 +418,7 @@ function filterTrainings() {
 // Add this function to fetch hotels
 async function fetchHotels() {
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/getHotels');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
         if (!response.ok) throw new Error('Failed to fetch hotels');
         hotels = await response.json();
         console.log('Hotels fetched successfully:', hotels);
@@ -450,7 +450,7 @@ async function checkRegistrationStatus(training) {
         }
 
         // Get member details
-        const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const memberResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await memberResponse.json();
         console.log('Fetched all members:', members);
 
@@ -463,7 +463,7 @@ async function checkRegistrationStatus(training) {
         }
 
         // Get orders
-        const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         const orders = await ordersResponse.json();
         console.log('Fetched all orders:', orders);
 
@@ -479,7 +479,7 @@ async function checkRegistrationStatus(training) {
         }
 
         // Get transactions
-        const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         const transactions = await transactionsResponse.json();
         console.log('Fetched all transactions:', transactions);
 

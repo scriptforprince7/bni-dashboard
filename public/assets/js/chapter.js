@@ -1,9 +1,9 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.endpoints = {
-    chapters: "https://bni-data-backend.onrender.com/api/chapters",
-    regions: "https://bni-data-backend.onrender.com/api/regions",
-    members: "https://bni-data-backend.onrender.com/api/members"
+    chapters: "https://backend.bninewdelhi.com/api/chapters",
+    regions: "https://backend.bninewdelhi.com/api/regions",
+    members: "https://backend.bninewdelhi.com/api/members"
 };
 let active_total =0;
 let member_total = 0;
@@ -182,7 +182,7 @@ const displayChapters = (chapters) => {
     }
 
     // Fetch total members count from API
-    fetch('https://bni-data-backend.onrender.com/api/members')
+    fetch('https://backend.bninewdelhi.com/api/members')
         .then(response => response.json())
         .then(members => {
             const tot_member_display = document.getElementById("memberTotal");
@@ -531,7 +531,7 @@ document.getElementById("chaptersTableBody")?.addEventListener("click", async (e
         if (result.isConfirmed) {
             try {
                 showLoader();
-                const response = await fetch(`https://bni-data-backend.onrender.com/api/deleteChapter/${chapterId}`, {
+                const response = await fetch(`https://backend.bninewdelhi.com/api/deleteChapter/${chapterId}`, {
                     method: "PUT"
                 });
 

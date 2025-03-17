@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
             submitButton.disabled = true;
 
             // Perform POST request
-            const response = await fetch("https://bni-data-backend.onrender.com/api/auth/login", {
+            const response = await fetch("https://backend.bninewdelhi.com/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

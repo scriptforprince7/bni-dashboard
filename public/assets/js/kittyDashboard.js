@@ -35,17 +35,17 @@ async function fetchPayments() {
   try {
     showLoader();
     const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, visiPayment] = await Promise.all([ 
-      fetch('https://bni-data-backend.onrender.com/api/regions').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/chapters').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/allExpenses').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/allOrders').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/allTransactions').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/members').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getAllMemberCredit').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getbankOrder').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getKittyPayments').then(res => res.json()),
-      fetch('https://bni-data-backend.onrender.com/api/getAllVisitors').then(res => res.json())
+      fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/allExpenses').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getAllVisitors').then(res => res.json())
 
     ]);
     allvisi= visiPayment;
@@ -216,7 +216,7 @@ async function handleRegionSelection(event) {
     
     try {
       // Fetch chapters from API
-      const response = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+      const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await response.json();
       
       console.log('All chapters:', chapters);
@@ -463,7 +463,7 @@ function populateRegionFilter() {
     }
 
     // Fetch regions from API
-    fetch('https://bni-data-backend.onrender.com/api/regions')
+    fetch('https://backend.bninewdelhi.com/api/regions')
       .then(res => res.json())
       .then(regions => {
         console.log('Fetched regions:', regions);

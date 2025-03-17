@@ -1427,7 +1427,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Fetch zone data from correct API endpoint
-    fetch(`https://bni-data-backend.onrender.com/api/getZone/${zoneId}`)
+    fetch(`https://backend.bninewdelhi.com/api/getZone/${zoneId}`)
         .then(response => {
             console.log('Response received:', response.status);
             if (!response.ok) {

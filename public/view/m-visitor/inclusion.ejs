@@ -600,7 +600,7 @@
         // Fetch data when page loads
         window.onload = async function() {
             try {
-                const response = await fetch('https://bni-data-backend.onrender.com/api/getInclusionSheet');
+                const response = await fetch('https://backend.bninewdelhi.com/api/getInclusionSheet');
                 const data = await response.json();
                 const inclusionData = data[0]; // Get first item from array
 

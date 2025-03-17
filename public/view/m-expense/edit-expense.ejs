@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Fetch data for "Type of Expense"
   try {
     showLoader();
-    const response = await fetch("https://bni-data-backend.onrender.com/api/expenseType");
+    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
     if (!response.ok) {
       throw new Error('Failed to fetch expense types');
     }
@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Fetch the specific expense details using the expense_id
   try {
     showLoader();
-    const response = await fetch(`https://bni-data-backend.onrender.com/api/expense/${expense_id}`);
+    const response = await fetch(`https://backend.bninewdelhi.com/api/expense/${expense_id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch expense data');
     }
@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     try {
       showLoader();
-      const response = await fetch(`https://bni-data-backend.onrender.com/api/expense/${expense_id}`, {
+      const response = await fetch(`https://backend.bninewdelhi.com/api/expense/${expense_id}`, {
         method: "PUT",
         body: formData,
       });

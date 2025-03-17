@@ -15,7 +15,7 @@ async function fetchAllOrders() {
     console.log('Starting fetchAllOrders');
     showLoader();
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+        const response = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         console.log('API Response status:', response.status);
         
         if (!response.ok) {
@@ -101,7 +101,7 @@ async function fetchAllOrders() {
 // async function fetchMemberAddress(customerId) {
 //     showLoader();
 //     try {
-//         const response = await fetch('https://bni-data-backend.onrender.com/api/members');
+//         const response = await fetch('https://backend.bninewdelhi.com/api/members');
 //         if (!response.ok) {
 //             throw new Error('Network response was not ok');
 //         }
@@ -122,7 +122,7 @@ async function fetchAllOrders() {
 async function fetchTransactionsForOrder(orderId) {
     showLoader();
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+        const response = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -141,7 +141,7 @@ async function fetchTransactionsForOrder(orderId) {
 async function fetchUniversalLinkName(universalLinkId) {
     showLoader();
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/universalLinks');
+        const response = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -165,7 +165,7 @@ async function fetchUniversalLinkName(universalLinkId) {
 // Add new function to fetch training name
 async function fetchTrainingName(trainingId) {
     try {
-        const response = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+        const response = await fetch('https://backend.bninewdelhi.com/api/allTrainings');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -214,7 +214,7 @@ async function displayTransactionDetails(order) {
             else if (order.training_id) {
                 console.log('Fetching training details for ID:', order.training_id);
                 try {
-                    const res = await fetch('https://bni-data-backend.onrender.com/api/allTrainings');
+                    const res = await fetch('https://backend.bninewdelhi.com/api/allTrainings');
                     const trainings = await res.json();
                     console.log('Fetched trainings:', trainings);
                     
@@ -233,7 +233,7 @@ async function displayTransactionDetails(order) {
             else if (order.kitty_bill_id) {
                 console.log('Fetching kitty details for ID:', order.kitty_bill_id);
                 try {
-                    const res = await fetch('https://bni-data-backend.onrender.com/api/getAllKittyPayments');
+                    const res = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
                     const kittyPayments = await res.json();
                     console.log('Fetched kitty payments:', kittyPayments);
                     

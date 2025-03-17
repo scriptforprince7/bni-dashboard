@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function checkAttendanceStatus() {
     try {
-      const response = await fetch('https://bni-data-backend.onrender.com/api/allCheckins');
+      const response = await fetch('https://backend.bninewdelhi.com/api/allCheckins');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -120,13 +120,13 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
       regionsResponse,
           // Added this new item
     ] = await Promise.all([
-      fetch(`https://bni-data-backend.onrender.com/api/getTrainingOrder/${training_id}`),
-      fetch("https://bni-data-backend.onrender.com/api/allTransactions"),
-      fetch("https://bni-data-backend.onrender.com/api/chapters"),
-      fetch("https://bni-data-backend.onrender.com/api/paymentGateway"),
-      fetch("https://bni-data-backend.onrender.com/api/universalLinks"),
-      fetch("https://bni-data-backend.onrender.com/api/regions"),
-      fetch("https://bni-data-backend.onrender.com/api/allOrders"),
+      fetch(`https://backend.bninewdelhi.com/api/getTrainingOrder/${training_id}`),
+      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+      fetch("https://backend.bninewdelhi.com/api/chapters"),
+      fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
+      fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+      fetch("https://backend.bninewdelhi.com/api/regions"),
+      fetch("https://backend.bninewdelhi.com/api/allOrders"),
       
     ]);
 
@@ -557,7 +557,7 @@ updateRegistrationCount();
           console.log('Fetching member details for customer ID:', customerId);
           
           // Fetch member data to get the photo
-          const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+          const memberResponse = await fetch('https://backend.bninewdelhi.com/api/members');
           const membersData = await memberResponse.json();
           console.log('Members data received:', membersData);
           
@@ -570,7 +570,7 @@ updateRegistrationCount();
               const photoFileName = matchingMember.member_photo.split('/').pop(); // This will get the last part after '/'
               console.log('Extracted photo filename:', photoFileName);
               
-              const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberLogos/${photoFileName}`;
+              const photoUrl = `https://backend.bninewdelhi.com/uploads/memberLogos/${photoFileName}`;
               console.log('Constructed photo URL:', photoUrl);
               
               // Test if image exists
@@ -612,7 +612,7 @@ updateRegistrationCount();
           }).then((result) => {
               if (result.isConfirmed) {
                   // Send request to mark attendance
-                  fetch("https://bni-data-backend.onrender.com/api/markAttendence", {
+                  fetch("https://backend.bninewdelhi.com/api/markAttendence", {
                       method: "POST",
                       headers: {
                           "Content-Type": "application/json",
@@ -686,7 +686,7 @@ updateRegistrationCount();
           try {
             // Step 1: Send request to save settlement data
             const saveResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/orders/${orderId}/settlementStatus`,
+              `https://backend.bninewdelhi.com/api/orders/${orderId}/settlementStatus`,
               { method: 'GET' }
             );
     
@@ -699,7 +699,7 @@ updateRegistrationCount();
             const cfPaymentId = row.querySelector('.custom_id').innerText;
     
             const fetchResponse = await fetch(
-              `https://bni-data-backend.onrender.com/api/settlement/${cfPaymentId}`
+              `https://backend.bninewdelhi.com/api/settlement/${cfPaymentId}`
             );
     
             if (!fetchResponse.ok) {
@@ -711,7 +711,7 @@ updateRegistrationCount();
             // Step 3: Update the table row based on settlement data
             if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
 
-              fetch(`https://bni-data-backend.onrender.com/api/einvoice/${settlement.order_id}`)
+              fetch(`https://backend.bninewdelhi.com/api/einvoice/${settlement.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -777,7 +777,7 @@ updateRegistrationCount();
                               loaderDiv.remove();
 
                               // Fetch the transaction data to get the orderId
-                              fetch('https://bni-data-backend.onrender.com/api/allTransactions')
+                              fetch('https://backend.bninewdelhi.com/api/allTransactions')
                                   .then(response => response.json())
                                   .then(transactions => {
                                       // Find the transaction with the matching cf_payment_id
@@ -786,7 +786,7 @@ updateRegistrationCount();
                                           const orderId = transaction.order_id; // Get the order_id
 
                                           // Send both orderId and cf_payment_id to the backend
-                                          fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
+                                          fetch('https://backend.bninewdelhi.com/api/send-qr-code', {
                                               method: 'POST',
                                               headers: {
                                                   'Content-Type': 'application/json',
@@ -957,7 +957,7 @@ updateRegistrationCount();
 
                 try {
                   const backendResponse = await fetch(
-                    "https://bni-data-backend.onrender.com/einvoice/generate-irn",
+                    "https://backend.bninewdelhi.com/einvoice/generate-irn",
                     {
                       method: "POST",
                       headers: {
@@ -974,7 +974,7 @@ updateRegistrationCount();
                   
                     // Fetch IRN and QR code details after successful generation
                     const einvoiceResponse = await fetch(
-                      `https://bni-data-backend.onrender.com/api/einvoice/${orderId}`
+                      `https://backend.bninewdelhi.com/api/einvoice/${orderId}`
                     );
                     const einvoiceData = await einvoiceResponse.json();
                   
@@ -1063,7 +1063,7 @@ document.addEventListener('click', async function(event) {
     async function fetchTrainingDetails() {
       try {
         showLoader();
-        const response = await fetch(`https://bni-data-backend.onrender.com/api/getTraining/${training_id}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/api/getTraining/${training_id}`);
         if (!response.ok) throw new Error('Failed to fetch training details');
         return await response.json(); // Return the training data
       } catch (error) {
@@ -1115,7 +1115,7 @@ document.addEventListener('click', async function(event) {
           const training_published_by = trainingData.training_published_by || '';
 
           // Fetch the transaction data to get the orderId
-          fetch('https://bni-data-backend.onrender.com/api/allTransactions')
+          fetch('https://backend.bninewdelhi.com/api/allTransactions')
               .then(response => response.json())
               .then(transactions => {
                   // Find the transaction with the matching cf_payment_id
@@ -1124,7 +1124,7 @@ document.addEventListener('click', async function(event) {
                       const orderId = transaction.order_id; // Get the order_id
 
                       // Send all details to the backend
-                      fetch('https://bni-data-backend.onrender.com/api/send-qr-code', {
+                      fetch('https://backend.bninewdelhi.com/api/send-qr-code', {
                           method: 'POST',
                           headers: {
                               'Content-Type': 'application/json',
@@ -1281,7 +1281,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
                 // Fetch member data to get the photo
-                const memberResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+                const memberResponse = await fetch('https://backend.bninewdelhi.com/api/members');
                 const membersData = await memberResponse.json();
                 console.log('Members data received:', membersData);
                 
@@ -1292,7 +1292,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (matchingMember && matchingMember.member_photo) {
                     // Extract just the filename from the member_photo path
                     const photoFileName = matchingMember.member_photo.split('/').pop();
-                    const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberLogos/${photoFileName}`;
+                    const photoUrl = `https://backend.bninewdelhi.com/uploads/memberLogos/${photoFileName}`;
                     console.log('Constructed photo URL:', photoUrl);
                     
                     // Test if image exists
@@ -1335,7 +1335,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (result.isConfirmed) {
                 try {
                     // Send the scanned QR code to the backend
-                    const response = await fetch("https://bni-data-backend.onrender.com/api/verify-qr-code", {
+                    const response = await fetch("https://backend.bninewdelhi.com/api/verify-qr-code", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -1396,8 +1396,8 @@ async function fetchTrainingDetails() {
     
     // Fetch both training and hotels data in parallel
     const [trainingResponse, hotelsResponse] = await Promise.all([
-      fetch(`https://bni-data-backend.onrender.com/api/getTraining/${training_id}`),
-      fetch('https://bni-data-backend.onrender.com/api/getHotels')
+      fetch(`https://backend.bninewdelhi.com/api/getTraining/${training_id}`),
+      fetch('https://backend.bninewdelhi.com/api/getHotels')
     ]);
 
     if (!trainingResponse.ok) throw new Error('Failed to fetch training details');

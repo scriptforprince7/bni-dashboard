@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('Attempting to fetch data for email:', userEmail);
     
-    fetch('https://bni-data-backend.onrender.com/api/members')
+    fetch('https://backend.bninewdelhi.com/api/members')
         .then(response => response.json())
         .then(members => {
             const member = members.find(m => m.member_email_address === userEmail);
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (member.member_photo) {
                     // Construct the complete URL for the photo
-                    const photoUrl = `https://bni-data-backend.onrender.com/uploads/memberPhotos/${member.member_photo}`;
+                    const photoUrl = `https://backend.bninewdelhi.com/uploads/memberPhotos/${member.member_photo}`;
                     console.log('Photo URL:', photoUrl);
                     
                     photoPreview.src = photoUrl;
@@ -102,7 +102,7 @@ function saveChanges() {
 
     console.log('Data being sent:', updatedData);
 
-    fetch('https://bni-data-backend.onrender.com/api/updateMemberSettings', {
+    fetch('https://backend.bninewdelhi.com/api/updateMemberSettings', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

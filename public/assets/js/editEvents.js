@@ -30,7 +30,7 @@ function formatDateForInput(dateString) {
 async function fetchEventDetails() {
   try {
     showLoader();
-    const response = await fetch(`https://bni-data-backend.onrender.com/api/getEvent/${event_id}`);
+    const response = await fetch(`https://backend.bninewdelhi.com/api/getEvent/${event_id}`);
     if (!response.ok) throw new Error('Failed to fetch event details');
     
     const eventData = await response.json();
@@ -87,7 +87,7 @@ const updateeventData = async () => {
 
         try {
             showLoader(); // Show the loader when sending data
-            const response = await fetch(`https://bni-data-backend.onrender.com/api/updateEvent/${event_id}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/updateEvent/${event_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

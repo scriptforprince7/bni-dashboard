@@ -301,7 +301,7 @@
                     <div class="card custom-card">
                       <div class="card-header justify-content-between">
                         <div class="card-title">Latest Transactions</div>
-                        <a href="https://bni-data-backend.onrender.com/exp/manage-expenses" class="btn btn-light btn-wave btn-sm text-muted">
+                        <a href="https://backend.bninewdelhi.com/exp/manage-expenses" class="btn btn-light btn-wave btn-sm text-muted">
                           View All<i class="ti ti-arrow-narrow-right ms-1"></i>
                         </a>
                       </div>
@@ -4005,11 +4005,11 @@
       async function fetchTransactions() {
           try {
               // Fetch orders first
-              const ordersResponse = await fetch('https://bni-data-backend.onrender.com/api/allOrders');
+              const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
               const orders = await ordersResponse.json();
 
               // Fetch transactions
-              const transactionsResponse = await fetch('https://bni-data-backend.onrender.com/api/allTransactions');
+              const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
               const transactions = await transactionsResponse.json();
 
               // Get table body element
