@@ -237,6 +237,9 @@ window.addEventListener("load", checkFiltersAndToggleResetButton);
 
 // Attach event listener to a "Filter" button or trigger
 document.getElementById("apply-filters-btn").addEventListener("click", () => {
+  // Get the current training_id from URL
+  const training_id = new URLSearchParams(window.location.search).get('training_id');
+  
   // Capture selected values
   const regionId = regionsDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const chapterId = chaptersDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
@@ -245,10 +248,13 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
   const paymentGateway = paymentGatewayDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '';
   const paymentMethod = (paymentMethodDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value') || '').toLowerCase();
 
-
   // Construct the query string
   const queryParams = new URLSearchParams();
 
+  // Always include the training_id first
+  queryParams.append('training_id', training_id);
+  
+  // Add other filters
   if (regionId) queryParams.append('region_id', regionId);
   if (chapterId) queryParams.append('chapter_id', chapterId);
   if (month) queryParams.append('month', month);
@@ -256,19 +262,18 @@ document.getElementById("apply-filters-btn").addEventListener("click", () => {
   if (paymentGateway) queryParams.append('payment_gateway', paymentGateway);
   if (paymentMethod) queryParams.append('payment_method', paymentMethod);
 
-  // Redirect to the filtered URL
-  const filterUrl = `/t/all-transactions?${queryParams.toString()}`;
+  // Redirect to the same page (view-training) with filters
+  const filterUrl = `/tr/view-training?${queryParams.toString()}`;
   window.location.href = filterUrl;
 });
 
-// Attach event listener to "Reset Filter" button to clear query params
+// Also update the reset filters button
 document.getElementById("reset-filters-btn").addEventListener("click", () => {
-  // Clear all query parameters from the URL
-  const url = new URL(window.location);
-  url.search = ''; // Remove query parameters
-
-  // Reload the page without filters (cleared query string)
-  window.location.href = url.toString();
+  // Get the current training_id
+  const training_id = new URLSearchParams(window.location.search).get('training_id');
+  
+  // Redirect to the same page with only training_id
+  window.location.href = `/tr/view-training?training_id=${training_id}`;
 });
 
 // Check for filters on page load
