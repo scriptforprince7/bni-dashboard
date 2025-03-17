@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 hotel_address: document.getElementById("hotel_address").value.trim(),
                 hotel_bill_amount: document.getElementById("hotel_bill_amount").value.trim(),
                 hotel_pincode: document.getElementById("hotel_pincode").value.trim(),
-                hotel_status: document.getElementById("hotel_status").value.trim(),
+                hotel_status: document.getElementById("hotel_status").value === "Active" ? true : false, // Convert to boolean
                 hotel_published_by: document.getElementById("hotel_published_by").value.trim(),
                 hotel_email: document.getElementById("hotel_email").value.trim(),
                 hotel_phone: document.getElementById("hotel_phone").value.trim(),
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("📤 Sending hotel data:", formData);
 
             try {
-                const response = await fetch("https://backend.bninewdelhi.com/api/addHotel", {
+                const response = await fetch("http://localhost:5000/api/addHotel", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
