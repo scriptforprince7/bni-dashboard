@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Application Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f3f4f6;
+            font-family: 'Arial', sans-serif;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .header h1 {
+            color: #dc2626;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-heading {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .section-heading h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .section-heading p {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+            color: #6b7280;
+        }
+
+        input[readonly], 
+        textarea[readonly], 
+        select[readonly],
+        select:disabled {
+            background-color: #f9fafb;
+            color: #6b7280;
+            cursor: default;
+            opacity: 1;
+        }
+
+        .radio-group {
+            margin: 0.5rem 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            outline: none;
+            margin-right: 0.5rem;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"]:checked {
+            border-color: #dc2626;
+            background-color: #dc2626;
+            accent-color: #dc2626;
+        }
+
+        .radio-option input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background-color: white;
+        }
+
+        .radio-option input[type="radio"]:disabled:checked {
+            border-color: #dc2626;
+            background-color: #dc2626;
+            opacity: 1;
+        }
+
+        .radio-option label {
+            font-size: 0.95rem;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        .question-box {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .question-container {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            background: #dc2626;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .signature-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .signature-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .signature-field label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .inline-input {
+            display: inline-block;
+            width: auto;
+            border-width: 0;
+            border-bottom: 1px solid #d1d5db;
+            border-radius: 0;
+            padding: 0.25rem 0;
+            margin: 0 0.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .signature-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media print {
+            .button-group {
+                display: none !important;
+            }
+            
+            @page {
+                size: A4;
+                margin: 1cm;
+            }
+            
+            body {
+                background: white;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            main {
+                box-shadow: none;
+                margin: 0;
+                padding: 1rem;
+            }
+
+            * {
+                color: black !important;
+            }
+        }
+
+        /* Style for filled input fields */
+        input[readonly]:not([type="radio"]):not([type="checkbox"]),
+        textarea[readonly],
+        select[readonly] {
+            background-color: #f8f8f8;
+            color: #1a1a1a !important; /* Darker text */
+            font-weight: 500;
+            border: 1px solid #ddd;
+        }
+
+        /* Style for checked radio buttons */
+        input[type="radio"]:checked {
+            accent-color: #dc2626; /* Red color for checked radio buttons */
+        }
+
+        /* Style for checked checkboxes */
+        input[type="checkbox"]:checked {
+            accent-color: #dc2626; /* Red color for checked checkboxes */
+        }
+
+        /* Style for selected options in dropdowns */
+        select option:checked {
+            color: #1a1a1a !important;
+            font-weight: 500;
+        }
+
+        /* Style for disabled but checked radio buttons and checkboxes */
+        input[type="radio"]:disabled:checked,
+        input[type="checkbox"]:disabled:checked {
+            opacity: 1;
+            accent-color: #dc2626;
+        }
+
+        /* Style for radio button and checkbox labels when checked */
+        input[type="radio"]:checked + label,
+        input[type="checkbox"]:checked + label {
+            color: #1a1a1a !important;
+            font-weight: 500;
+        }
+
+        /* Target specific checkboxes by ID */
+        #informReferences,
+        #agreeTerms {
+            width: 1.1rem;
+            height: 1.1rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            outline: none;
+            position: relative;
+            cursor: pointer;
+        }
+
+        #informReferences:checked,
+        #agreeTerms:checked {
+            background-color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        #informReferences:checked::after,
+        #agreeTerms:checked::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+        }
+
+        #informReferences:disabled:checked,
+        #agreeTerms:disabled:checked {
+            background-color: #dc2626;
+            border-color: #dc2626;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="header">
+            <h1 class="text-center">MEMBER APPLICATION FORM</h1>
+        </div>
+
+        <form class="form-container">
+            <div class="grid-2">
+                <div class="flex-col">
+                    <label for="region">Region:</label>
+                    <select id="region" readonly>
+                        <option value="" selected></option>
+                    </select>
+                </div>
+                <div class="flex-col">
+                    <label for="chapter">BNI Chapter:</label>
+                    <select id="chapter" readonly>
+                        <option value="" selected></option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="section-heading">
+                <h2>PERSONAL INFORMATION</h2>
+            </div>
+
+            <div class="grid-2">
+                <div class="flex-col">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="mobile">Mobile:</label>
+                    <input type="tel" id="mobile" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="secondaryPhone">Secondary Phone No:</label>
+                    <input type="tel" id="secondaryPhone" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="businessWebsite">Business Website:</label>
+                    <input type="text" id="businessWebsite" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="gstin">GSTIN:</label>
+                    <input type="text" id="gstin" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="companyAddress">Company Address:</label>
+                    <input type="text" id="companyAddress" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="howHeard">How did you hear about us?</label>
+                    <input type="text" id="howHeard" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="invitedBy">Invited by:</label>
+                    <input type="text" id="invitedBy" readonly>
+                </div>
+            </div>
+
+            <!-- Business Information -->
+            <div class="section-heading">
+                <h2>BUSINESS INFORMATION</h2>
+            </div>
+
+            <div class="grid-2">
+                <div class="flex-col">
+                    <label for="companyName">Company Name:</label>
+                    <input type="text" id="companyName" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="industry">Industry:</label>
+                    <input type="text" id="industry" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="professionalClassification">Professional Classification:</label>
+                    <input type="text" id="professionalClassification" readonly>
+                </div>
+                <div class="flex-col">
+                    <label for="chapterVisitDate">Chapter Visit Date:</label>
+                    <input type="date" id="chapterVisitDate" readonly>
+                </div>
+            </div>
+
+            <!-- Questionnaire Section -->
+            <div class="section-heading">
+                <h2>QUESTIONNAIRE</h2>
+                <p>Please answer the following questions to help us understand your business needs and how BNI can help you.</p>
+            </div>
+
+            <div class="question-container">
+                <!-- New Questions -->
+                <div class="question-box">
+                    <label>1. Share the experience you possess in your professional classification (please be specific):</label>
+                    <textarea id="q1_experience" rows="4" cols="50"></textarea>
+                </div>
+
+                <div class="question-box">
+                    <label>2. Share the experience you possess in your professional classification (please be specific):</label>
+                    <textarea id="q2_experience" rows="4" cols="50"></textarea>
+                </div>
+
+                <div class="question-box">
+                    <label>3. Educational background, training, certifications in professional classification or degree:</label>
+                    <textarea id="q3_education" rows="4" cols="50"></textarea>
+                </div>
+
+                <div class="question-box">
+                    <label>4. Has your professional license ever been revoked or suspended? *(required)</label>
+                    <div class="radio-group" id="q4_license_status">
+                        <div class="radio-option">
+                            <input type="radio" id="q4_no" name="q4_license_status" value="no">
+                            <label for="q4_no">NO, my professional license has never been revoked or suspended</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q4_yes" name="q4_license_status" value="yes">
+                            <label for="q4_yes">Yes</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label>5. Is your primary occupation the professional industry/classification you entered above?</label>
+                    <div class="radio-group" id="q5_primary_occupation">
+                        <div class="radio-option">
+                            <input type="radio" id="q5_yes" name="q5_primary_occupation" value="yes">
+                            <label for="q5_yes">YES, it is my full-time occupation</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q5_no" name="q5_primary_occupation" value="no">
+                            <label for="q5_no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Standards & Expectations Section -->
+                <div class="section-heading">
+                    <h2>STANDARDS & EXPECTATIONS</h2>
+                </div>
+
+                <div class="question-box">
+                    <label>6. Are you willing and able to make the commitment to arrive at our weekly meetings on time, stay throughout the 90 minutes, attend the Member Success Program training, and do you agree to abide by BNI's Member Policies, Guidelines, and Code of Ethics? *(required)</label>
+                    <div class="radio-group" id="q6_commitment">
+                        <div class="radio-option">
+                            <input type="radio" id="q6_yes" name="q6_commitment" value="yes">
+                            <label for="q6_yes">YES, I am willing/able to make this commitment</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q6_no" name="q6_commitment" value="no">
+                            <label for="q6_no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label>7. Are you willing to find and send a qualified substitute if you are unable to attend a meeting? *(required)</label>
+                    <div class="radio-group" id="q7_substitute">
+                        <div class="radio-option">
+                            <input type="radio" id="q7_yes" name="q7_substitute" value="yes">
+                            <label for="q7_yes">YES, I am willing/able to make this commitment</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q7_no" name="q7_substitute" value="no">
+                            <label for="q7_no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label>8. Are you willing/able to bring referrals and/or visitors to this chapter? *(required)</label>
+                    <div class="radio-group" id="q8_referral_commitment">
+                        <div class="radio-option">
+                            <input type="radio" id="q8_yes" name="q8_referral_commitment" value="yes">
+                            <label for="q8_yes">YES, I am willing/able to make this commitment</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q8_no" name="q8_referral_commitment" value="no">
+                            <label for="q8_no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label>9. Please rate your ability to provide quality Referrals and Visitors to the chapter *(required)</label>
+                    <div class="radio-group" id="q9_referral_ability">
+                        <!-- Radio buttons from 1 to 9 -->
+                        <div class="radio-option">
+                            <input type="radio" id="q9_1" name="q9_referral_ability" value="1">
+                            <label for="q9_1">1</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_2" name="q9_referral_ability" value="2">
+                            <label for="q9_2">2</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_3" name="q9_referral_ability" value="3">
+                            <label for="q9_3">3</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_4" name="q9_referral_ability" value="4">
+                            <label for="q9_4">4</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_5" name="q9_referral_ability" value="5">
+                            <label for="q9_5">5</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_6" name="q9_referral_ability" value="6">
+                            <label for="q9_6">6</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_7" name="q9_referral_ability" value="7">
+                            <label for="q9_7">7</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_8" name="q9_referral_ability" value="8">
+                            <label for="q9_8">8</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q9_9" name="q9_referral_ability" value="9">
+                            <label for="q9_9">9</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label>10. Have you or your company ever been a member of a BNI chapter? *(required)</label>
+                    <div class="radio-group" id="q10_bni_member">
+                        <div class="radio-option">
+                            <input type="radio" id="q10_yes" name="q10_bni_member" value="yes">
+                            <label for="q10_yes">YES, I have/My company has been a BNI Member before</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q10_no" name="q10_bni_member" value="no">
+                            <label for="q10_no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label>11. Do you belong to any other networking organizations? *(required)</label>
+                    <div class="radio-group" id="q11_other_networks">
+                        <div class="radio-option">
+                            <input type="radio" id="q11_yes" name="q11_other_networks" value="yes">
+                            <label for="q11_yes">YES, I belong to other networking organizations</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="q11_no" name="q11_other_networks" value="no">
+                            <label for="q11_no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+               
+
+               
+            </div>
+
+            <!-- Business References Section -->
+            <div class="section-heading">
+                <h2>BUSINESS REFERENCES</h2>
+                <p>Business references are people who have experience with your business: customers, referral partners, vendors, etc. This information will be used only for contacting references, not for any promotional purposes.</p>
+            </div>
+
+            <div class="question-container">
+                <!-- Reference 1 -->
+                <div class="question-box">
+                    <h3 style="margin-bottom: 1rem; color: #4b5563;">Reference #1</h3>
+                    <div class="grid-2">
+                        <div class="flex-col">
+                            <label for="ref1_first_name">First Name:</label>
+                            <input type="text" id="ref1_first_name" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref1_last_name">Last Name:</label>
+                            <input type="text" id="ref1_last_name" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref1_business_name">Business Name:</label>
+                            <input type="text" id="ref1_business_name" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref1_phone">Phone:</label>
+                            <input type="tel" id="ref1_phone" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref1_email">Email:</label>
+                            <input type="email" id="ref1_email" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref1_relationship">Relationship:</label>
+                            <input type="text" id="ref1_relationship" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reference 2 -->
+                <div class="question-box">
+                    <h3 style="margin-bottom: 1rem; color: #4b5563;">Reference #2</h3>
+                    <div class="grid-2">
+                        <div class="flex-col">
+                            <label for="ref2_first_name">First Name:</label>
+                            <input type="text" id="ref2_first_name" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref2_last_name">Last Name:</label>
+                            <input type="text" id="ref2_last_name" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref2_business_name">Business Name:</label>
+                            <input type="text" id="ref2_business_name" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref2_phone">Phone:</label>
+                            <input type="tel" id="ref2_phone" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref2_email">Email:</label>
+                            <input type="email" id="ref2_email" readonly>
+                        </div>
+                        <div class="flex-col">
+                            <label for="ref2_relationship">Relationship:</label>
+                            <input type="text" id="ref2_relationship" readonly>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+                <div class="flex-col" style="display: flex; align-items: center;">
+                    <input type="checkbox" id="informReferences" required style="margin-right: 0.5rem;">
+                    <label for="informReferences" style="margin: 0;">I have/will inform the above contacts that I am sharing their information with BNI for the purpose of references.</label>
+                </div>
+            </div>
+
+            <!-- Terms and Membership Code -->
+            <div class="section-heading">
+                <h2>TERMS AND CONDITIONS</h2>
+            </div>
+
+            <div class="question-container">
+                <div class="question-box">
+                    <p style="margin-bottom: 1rem;">
+                        By submitting this application, I agree to the following terms and conditions:
+                    </p>
+                    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                        <li>I understand the program rules and regulations</li>
+                        <li>I agree to adhere to the Core Values of BNI</li>
+                        <li>I understand the membership requirements and fees</li>
+                        <li>I commit to contributing to the chapter's success</li>
+                        <li>I agree to attend weekly meetings and required trainings</li>
+                    </ul>
+                    <div class="radio-group" id="terms_agreed">
+                        <!-- Radio options will be populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checkbox for agreeing to Terms and Conditions & Privacy Policy -->
+<div class="flex-col" style="display: flex; align-items: center; margin-top: 1rem;">
+    <input type="checkbox" id="agreeTerms" required style="margin-right: 0.5rem;">
+    <label for="agreeTerms" style="margin: 0;">I Agree to the Terms and Conditions & Privacy Policy</label>
+</div>
+
+          
+
+            <div class="button-group">
+                <button type="button" class="btn" onclick="window.location.href='/t/manage-visitors'">
+                    Back
+                </button>
+                <button type="button" class="btn" onclick="window.print()">
+                    Print
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Fetch data when page loads
+        window.onload = async function() {
+            try {
+                // Get visitor_id from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const visitorId = urlParams.get('visitor_id');
+                
+                // Fetch member application data
+                const response = await fetch(`https://backend.bninewdelhi.com/api/memberApplicationFormNewMember`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const application = data.find(app => app.visitor_id === parseInt(visitorId));
+                
+                if (!application) {
+                    throw new Error('No application data found');
+                }
+
+                // Fetch region and chapter names
+                const regionResponse = await fetch(`https://bni-data-backend.onrender.com/api/regions`);
+                const chapterResponse = await fetch(`https://bni-data-backend.onrender.com/api/chapters`);
+                
+                console.log('Region Response Status:', regionResponse.status);
+                console.log('Chapter Response Status:', chapterResponse.status);
+                
+                if (!regionResponse.ok || !chapterResponse.ok) {
+                    throw new Error('Error fetching region or chapter data');
+                }
+
+                const regions = await regionResponse.json();
+                const chapters = await chapterResponse.json();
+                
+                console.log('Application Region ID:', application.region);
+                console.log('Application Chapter ID:', application.chapter);
+                console.log('All Regions:', regions);
+                console.log('All Chapters:', chapters);
+
+                const region = regions.find(r => r.region_id === application.region);
+                const chapter = chapters.find(c => c.chapter_id === application.chapter);
+                
+                console.log('Found Region:', region);
+                console.log('Found Chapter:', chapter);
+
+                // Populate select fields with fetched data
+                if (region) {
+                    const regionSelect = document.getElementById('region');
+                    regionSelect.innerHTML = ''; // Clear existing options
+                    const option = document.createElement('option');
+                    option.value = region.region_id;
+                    option.text = region.region_name;
+                    option.selected = true;
+                    regionSelect.appendChild(option);
+                }
+
+                if (chapter) {
+                    const chapterSelect = document.getElementById('chapter');
+                    chapterSelect.innerHTML = ''; // Clear existing options
+                    const option = document.createElement('option');
+                    option.value = chapter.chapter_id;
+                    option.text = chapter.chapter_name;
+                    option.selected = true;
+                    chapterSelect.appendChild(option);
+                }
+
+                // Populate fields with fetched data
+                document.getElementById('firstName').value = application.firstname;
+                document.getElementById('lastName').value = application.lastname;
+                document.getElementById('email').value = application.email;
+                document.getElementById('mobile').value = application.mobile;
+                document.getElementById('secondaryPhone').value = application.secondaryphone;
+                document.getElementById('businessWebsite').value = application.businesswebsite;
+                document.getElementById('gstin').value = application.gstin;
+                document.getElementById('companyAddress').value = application.companyaddress;
+                document.getElementById('howHeard').value = application.howheard;
+                document.getElementById('invitedBy').value = application.membername;
+                document.getElementById('chapterVisitDate').value = new Date(application.visitdate).toISOString().split('T')[0];
+
+                // Populate questionnaire
+                document.getElementById('q1_experience').value = application.q1_experience;
+                document.getElementById('q2_experience').value = application.q2_length_time;
+                document.getElementById('q3_education').value = application.q3_education;
+
+                // Function to set radio button checked state
+                const setRadioChecked = (name, value) => {
+                    // Convert 'a' to 'yes' and 'b' to 'no'
+                    let radioValue = value;
+                    if (value === 'a') radioValue = 'yes';
+                    if (value === 'b') radioValue = 'no';
+
+                    const radio = document.querySelector(`input[name="${name}"][value="${radioValue}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                    } else {
+                        console.warn(`Radio button with name "${name}" and value "${radioValue}" not found.`);
+                    }
+                };
+
+                // Set radio buttons based on application data
+                setRadioChecked("q4_license_status", application.q4_license);
+                setRadioChecked("q5_primary_occupation", application.q5_primary_occupation);
+                setRadioChecked("q6_commitment", application.q6_weekly_commitment);
+                setRadioChecked("q7_substitute", application.q7_substitute_commitment);
+                setRadioChecked("q8_referral_commitment", application.q8_referral_commitment);
+                
+                // Handle referral ability rating (1-9)
+                const referralRating = document.querySelector(`input[name="q9_referral_ability"][value="${application.q9_referral_ability}"]`);
+                if (referralRating) {
+                    referralRating.checked = true;
+                }
+                
+                setRadioChecked("q10_bni_member", application.q10_previous_member);
+                setRadioChecked("q11_other_networks", application.q11_other_networks);
+
+                // Populate references
+                document.getElementById('ref1_first_name').value = application.ref1_first_name;
+                document.getElementById('ref1_last_name').value = application.ref1_last_name;
+                document.getElementById('ref1_business_name').value = application.ref1_business_name;
+                document.getElementById('ref1_phone').value = application.ref1_phone;
+                document.getElementById('ref1_email').value = application.ref1_email;
+                document.getElementById('ref1_relationship').value = application.ref1_relationship;
+
+                document.getElementById('ref2_first_name').value = application.ref2_first_name;
+                document.getElementById('ref2_last_name').value = application.ref2_last_name;
+                document.getElementById('ref2_business_name').value = application.ref2_business_name;
+                document.getElementById('ref2_phone').value = application.ref2_phone;
+                document.getElementById('ref2_email').value = application.ref2_email;
+                document.getElementById('ref2_relationship').value = application.ref2_relationship;
+
+                // Handle checkboxes with proper checks
+                const informReferencesCheckbox = document.getElementById('informReferences');
+                if (informReferencesCheckbox && application.reference_consent) {
+                    informReferencesCheckbox.checked = true;
+                }
+
+                const agreeTermsCheckbox = document.getElementById('agreeTerms');
+                if (agreeTermsCheckbox && application.terms_accepted) {
+                    agreeTermsCheckbox.checked = true;
+                }
+
+                // Make all inputs readonly after populating
+                document.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), textarea').forEach(element => {
+                    element.setAttribute('readonly', true);
+                });
+
+                // Disable radio buttons and checkboxes
+                document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(element => {
+                    element.disabled = true;
+                });
+
+                // Log the relevant data from API response
+                console.log('Company Data:', {
+                    companyName: application.companyname,
+                    industry: application.industry,
+                    classification: application.professionalclassification
+                });
+
+                // Populate company information fields
+                document.getElementById('companyName').value = application.companyname;
+                document.getElementById('industry').value = application.industry;
+                document.getElementById('professionalClassification').value = application.professionalclassification;
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.querySelector('main').innerHTML += `
+                    <div style="color: #dc2626; text-align: center; padding: 2rem;">
+                        <p>Error loading application data. Please try again later.</p>
+                    </div>
+                `;
+            }
+        };
+    </script>
+</body>
+</html>

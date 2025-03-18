@@ -59,6 +59,9 @@ function showInductionConfirmation(visitor) {
                         <i class="ri-checkbox-circle-fill"></i> EOI Form Completed
                     </div>
                     <div style="color: #059669; margin-bottom: 8px;">
+                        <i class="ri-checkbox-circle-fill"></i> Member Application Form Completed
+                    </div>
+                    <div style="color: #059669; margin-bottom: 8px;">
                         <i class="ri-checkbox-circle-fill"></i> New Member Form Completed
                     </div>
                     <div style="color: #059669; margin-bottom: 8px;">
@@ -260,6 +263,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     case 'visitor':
                         pageUrl = '/t/visitorForm';
                         break;
+                    case 'member_application':  // Add new case for member application
+                        pageUrl = '/t/memberApplication';
+                        break;
                     case 'payment':
                         // Only show view link if payment is completed
                         const isPaid = await checkMembershipPayment(visitor.visitor_id);
@@ -281,9 +287,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Add function to check induction status
         const getInductionStatus = (visitor) => {
-            // Return true only if all six forms are completed
+            // Return true only if all seven forms are completed
             return visitor.visitor_form && 
                    visitor.eoi_form && 
+                   visitor.member_application_form &&  // Add member_application check
                    visitor.new_member_form && 
                    visitor.interview_sheet && 
                    visitor.commitment_sheet && 
@@ -562,9 +569,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
                 
-                // Get all status icons (now async)
-                const paymentStatus = await getStatusIcon(visitor.new_member_form, 'payment', visitor);
-                
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -577,7 +581,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td><b>${visitor.visitor_company_name || 'N/A'}</b></td>
                         <td class="text-center">${await getStatusIcon(visitor.visitor_form, 'visitor', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
-                        <td class="text-center">${paymentStatus}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.member_application_form, 'member_application', visitor)}</td>
+                        <td class="text-center">${await getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>

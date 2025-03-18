@@ -57,6 +57,10 @@ exports.newmemberReceipt = (req, res) => {
 exports.visitorForm = (req, res) => {
     res.render('m-visitor/visitorForm', { title: 'Visitor Form' });
 };
+exports.MemberApplication = (req, res) => {
+    res.render('m-visitor/memberApplication', { title: 'Member Application Form' });
+};
+
 
 
 

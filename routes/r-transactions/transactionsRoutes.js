@@ -17,6 +17,8 @@ router.get('/inclusion', transactionsController.inclusion);
 router.get('/eoi-form', transactionsController.eoiForm);
 router.get('/newmemberReceipt', transactionsController.newmemberReceipt);
 router.get('/visitorForm', transactionsController.visitorForm);
+router.get('/memberApplication', transactionsController.MemberApplication);
+
 
 
 
