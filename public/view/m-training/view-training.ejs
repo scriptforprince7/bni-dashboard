@@ -50,7 +50,12 @@ background-color: #555; /* Darker shade on hover */
                         <li class="breadcrumb-item active" aria-current="page">View Training Details</li>
                     </ol>
                 </nav>
-                <h1 class="page-title fw-medium fs-18 mb-0" id="page_title"></h1>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="page-title fw-medium fs-18 mb-0" id="page_title"></h1>
+                    <button class="btn btn-danger btn-wave me-0" id="markAsCompletedBtn">
+                        <i class="ri-check-line me-1"></i> Mark as Completed
+                    </button>
+                </div>
             </div>
             <div class="btn-list">
               <!-- <h6>No. of Registrations: <span style="color: #fb3e4e;" class="registrations"><b>0</b></span></h6>
@@ -751,4 +756,82 @@ fetch('https://backend.bninewdelhi.com/api/allCheckins')
     childList: true,
     subtree: true
   });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get training_id from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('training_id');
+    
+    // Get the button element
+    const markAsCompletedBtn = document.getElementById('markAsCompletedBtn');
+
+    // Add click event listener to the button
+    markAsCompletedBtn.addEventListener('click', async function() {
+        try {
+            // First confirm with the user
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "You want to mark this training as completed?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d01f2f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, mark as completed!'
+            });
+
+            if (result.isConfirmed) {
+                // Fetch current training data to verify
+                const response = await fetch('https://backend.bninewdelhi.com/api/alltrainings');
+                const trainings = await response.json();
+                
+                // Find the specific training
+                const training = trainings.find(t => t.training_id === parseInt(trainingId));
+                
+                if (!training) {
+                    throw new Error('Training not found');
+                }
+
+                if (training.training_status === 'Completed') {
+                    Swal.fire(
+                        'Already Completed!',
+                        'This training is already marked as completed.',
+                        'info'
+                    );
+                    return;
+                }
+
+                // Here you'll add the API call to update the status
+                // const updateResponse = await fetch('YOUR_UPDATE_API_ENDPOINT', {
+                //     method: 'PUT',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     body: JSON.stringify({
+                //         training_id: trainingId,
+                //         training_status: 'Completed'
+                //     })
+                // });
+
+                // For now, show success message
+                Swal.fire(
+                    'Updated!',
+                    'Training has been marked as completed.',
+                    'success'
+                ).then(() => {
+                    // Reload page to reflect changes
+                    window.location.reload();
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire(
+                'Error!',
+                'Something went wrong while updating the training status.',
+                'error'
+            );
+        }
+    });
+});
 </script>

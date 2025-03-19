@@ -287,14 +287,18 @@ function renderTrainings(trainingsToShow) {
         .then(response => response.json())
         .then(hotels => {
             trainingsToShow.forEach(async (training, index) => {
-                // Get registration count for this training
                 const registrationsCount = await fetchRegistrationCount(training.training_id);
                 
                 // Find matching hotel
                 const hotel = hotels.find(h => h.hotel_id === parseInt(training.training_venue));
-                const venueDisplay = hotel ? 
-                    `${hotel.hotel_name}, ${hotel.hotel_address}` : 
-                    'N/A';
+                let venueDisplay = 'N/A';
+                
+                if (hotel) {
+                    // Get first two parts of the address (up to second comma)
+                    const addressParts = hotel.hotel_address.split(',');
+                    const shortenedAddress = addressParts.length > 1 ? addressParts[0] : hotel.hotel_address;
+                    venueDisplay = `${hotel.hotel_name}, ${shortenedAddress}`;
+                }
 
                 trainingsTableBody.innerHTML += `
                     <tr>

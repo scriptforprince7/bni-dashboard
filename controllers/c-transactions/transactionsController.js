@@ -60,6 +60,9 @@ exports.visitorForm = (req, res) => {
 exports.MemberApplication = (req, res) => {
     res.render('m-visitor/memberApplication', { title: 'Member Application Form' });
 };
+exports.chapterVisitors = (req, res) => {
+    res.render('m-visitor/chapter-visitors', { title: 'Chapter Visitors' });
+};
 
 
 

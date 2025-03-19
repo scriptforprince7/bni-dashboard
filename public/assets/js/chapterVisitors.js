@@ -595,8 +595,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${await getStatusIcon(visitor.member_application_form, 'member_application', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
                         <td class="text-center">
-                            <button class="mail-sent-btn">
-                                Mail Sent <i class="ri-check-line"></i>
+                            <button class="send-mail-btn">
+                                Send Mail <i class="ri-mail-send-line"></i>
                             </button>
                         </td>
                         <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
@@ -696,6 +696,28 @@ document.head.querySelector('style').textContent += `
         object-fit: cover;
         cursor: pointer;
         border: 1px solid #e5e7eb;
+    }
+
+    .send-mail-btn {
+        background-color: rgba(34, 197, 94, 0.1);  // Light green with opacity
+        color: #16a34a;                            // Green text
+        border: none;                              // No border at all
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .send-mail-btn:hover {
+        background-color: rgba(34, 197, 94, 0.15);
+    }
+
+    .send-mail-btn i {
+        font-size: 14px;
     }
 `;
 
