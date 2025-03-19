@@ -88,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         universalLinksResponse,
         regionsResponse,
         paymentTypeResponse,
+        visitorsResponse
       ] = await Promise.all([
         fetch("https://backend.bninewdelhi.com/api/allOrders"),
         fetch("https://backend.bninewdelhi.com/api/allTransactions"),
@@ -96,6 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         fetch("https://backend.bninewdelhi.com/api/universalLinks"),
         fetch("https://backend.bninewdelhi.com/api/regions"),
         fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+        fetch("https://backend.bninewdelhi.com/api/getallVisitors")
       ]);
   
       console.log('✅ All API calls completed');
@@ -107,6 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const universalLinks = await universalLinksResponse.json();
       const regions = await regionsResponse.json();
       const paymentType = await paymentTypeResponse.json();
+      const visitors = await visitorsResponse.json();
   
       console.log('📊 Initial Data Overview:', {
         totalOrders: orders.length,
@@ -125,7 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.log('💰 Total New Member Transactions:', allNewMemberTransactions.length);
   
       // Filter for only SUCCESS transactions
-      const successfulTransactions = allNewMemberTransactions.filter(transaction => 
+      const successfulTransactions = transactions.filter(transaction => 
         transaction.payment_status === "SUCCESS"
       );
   
@@ -160,6 +163,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Initialize totals (only for successful transactions)
       let totalTransactionAmount = 0;
       let settledPayments = 0;
+  
+      // Function to check form completion status
+      const getFormStatus = (visitor) => {
+        if (!visitor) return 'pending';
+
+        const requiredForms = [
+            'visitor_form',
+            'eoi_form',
+            'new_member_form',
+            'interview_sheet',
+            'commitment_sheet',
+            'inclusion_exclusion_sheet',
+            'member_application_form'
+        ];
+
+        // Only return 'completed' if ALL forms are true
+        return requiredForms.every(form => visitor[form] === true) ? 'completed' : 'pending';
+    };
   
       // Populate table with successful transactions only
       successfulTransactions.forEach((transaction, index) => {
@@ -196,6 +217,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           transaction.payment_time
         ).toLocaleDateString("en-GB");
         const formattedAmount = `+ ₹${transactionAmount.toLocaleString("en-IN")}`;
+  
+        // Find matching visitor
+        const visitor = visitors.find(v => v.order_id === order.order_id);
+        const formStatus = getFormStatus(visitor);
   
         // Create a new row for the table
         const row = document.createElement("tr");
@@ -254,21 +279,29 @@ document.addEventListener("DOMContentLoaded", async () => {
                   <td class="joining-form-column">
         <div style="display: grid; grid-template-columns: auto 20px; gap: 5px; align-items: start;">
             <div style="display: flex; flex-direction: column; gap: 9px;">
-                <span onclick="showJoiningFormStatus('completed')" style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">Completed</span>
-                <span onclick="showJoiningFormStatus('partial')" style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">Partial</span>
-                <span onclick="showJoiningFormStatus('pending')" style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">Pending</span>
+                <span onclick="showJoiningFormStatus('completed')" 
+                      style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer; 
+                      ${formStatus !== 'completed' ? 'opacity: 0.5;' : ''}">
+                    Completed
+                </span>
+                <span onclick="showJoiningFormStatus('pending')" 
+                      style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;
+                      ${formStatus !== 'pending' ? 'opacity: 0.5;' : ''}">
+                    Pending
+                </span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
-                <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
-                <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
-                <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
+                <i class="ri-checkbox-circle-line" style="color: ${formStatus === 'completed' ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
+                <i class="ri-checkbox-circle-line" style="color: ${formStatus === 'pending' ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
             </div>
         </div>
     </td>
     <td class="induction-status">
-        <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
-            <i class="ri-checkbox-circle-line me-1"></i>Induct Member
-        </button>
+        ${formStatus === 'completed' ? `
+            <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
+                <i class="ri-checkbox-circle-line me-1"></i>Induct Member
+            </button>
+        ` : ''}
     </td>
               `;
   

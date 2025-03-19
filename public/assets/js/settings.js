@@ -2,20 +2,65 @@ console.log('Settings.js loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded');
-    const userEmail = getUserEmail(); // Changed from localStorage to token-based
     
-    if (!userEmail) {
-        console.error('No user email found in token');
-        window.location.href = '/login'; // Redirect to login if no email found
-        return;
+    // First check the user type
+    const userType = getUserLoginType();
+    console.log('User Type:', userType);
+    
+    let targetEmail;
+    
+    if (userType === 'ro_admin') {
+        // For RO admin, get email from localStorage
+        targetEmail = localStorage.getItem('current_member_email');
+        const currentMemberId = localStorage.getItem('current_member_id');
+        console.log('RO Admin viewing member:', targetEmail, 'with ID:', currentMemberId);
+        
+        if (!targetEmail || !currentMemberId) {
+            console.error('No member selected for viewing');
+            window.location.href = '/dashboard'; // Redirect to dashboard if no member selected
+            return;
+        }
+    } else {
+        // For regular member, get email from token
+        targetEmail = getUserEmail();
+        console.log('Member viewing own profile:', targetEmail);
+        
+        if (!targetEmail) {
+            console.error('No user email found in token');
+            window.location.href = '/login';
+            return;
+        }
     }
     
-    console.log('Attempting to fetch data for email:', userEmail);
+    console.log('Attempting to fetch data for email:', targetEmail);
     
+    function setupPdfPreview(pdfPreview, imagePreview, url) {
+        // Create a wrapper div for better styling
+        const wrapper = document.createElement('div');
+        wrapper.className = 'pdf-preview-wrapper';
+        wrapper.style.cursor = 'pointer';
+        wrapper.innerHTML = `
+            <embed src="${url}" type="application/pdf" width="100%" height="300px" />
+            <div class="pdf-overlay">
+                <span>Click to view full PDF</span>
+            </div>
+        `;
+        
+        // Add click event to open PDF in new tab
+        wrapper.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.open(url, '_blank', 'noopener,noreferrer');
+        });
+
+        // Replace the existing preview with the wrapper
+        pdfPreview.parentNode.replaceChild(wrapper, pdfPreview);
+        if (imagePreview) imagePreview.style.display = 'none';
+    }
+
     fetch('https://backend.bninewdelhi.com/api/members')
         .then(response => response.json())
         .then(members => {
-            const member = members.find(m => m.member_email_address === userEmail);
+            const member = members.find(m => m.member_email_address === targetEmail);
             
             console.log('Found member data:', member);
             
@@ -51,21 +96,89 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Handle member photo display
-                const photoPreview = document.getElementById('member-photo-preview');
-                const noPhotoMessage = document.getElementById('no-photo-message');
-                
                 if (member.member_photo) {
-                    // Construct the complete URL for the photo
-                    const photoUrl = `https://backend.bninewdelhi.com/uploads/memberPhotos/${member.member_photo}`;
-                    console.log('Photo URL:', photoUrl);
+                    console.log('Loading member photo:', member.member_photo);
+                    const photoUrl = `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`;
+                    console.log('Member Photo URL:', photoUrl);
+                    
+                    const photoPreview = document.getElementById('member-photo-preview');
+                    const noPhotoMessage = document.getElementById('no-photo-message');
                     
                     photoPreview.src = photoUrl;
                     photoPreview.style.display = 'block';
                     noPhotoMessage.style.display = 'none';
-                } else {
-                    photoPreview.style.display = 'none';
-                    noPhotoMessage.style.display = 'block';
                 }
+
+                // Handle Aadhar card display
+                if (member.member_aadhar_image) {
+                    const aadharUrl = `https://backend.bninewdelhi.com/uploads/aadharCards/${member.member_aadhar_image}`;
+                    const aadharPreview = document.getElementById('aadhar-preview');
+                    const aadharPdfPreview = document.getElementById('aadhar-pdf-preview');
+                    const noAadharMessage = document.getElementById('no-aadhar-message');
+                    
+                    if (aadharPdfPreview && noAadharMessage) {
+                        if (member.member_aadhar_image.toLowerCase().endsWith('.pdf')) {
+                            setupPdfPreview(aadharPdfPreview, aadharPreview, aadharUrl);
+                        } else {
+                            aadharPreview.src = aadharUrl;
+                            aadharPreview.style.display = 'block';
+                            aadharPdfPreview.style.display = 'none';
+                        }
+                        noAadharMessage.style.display = 'none';
+                    }
+                } else {
+                    console.log('No Aadhar image found in member data');
+                }
+
+                // Handle PAN card display
+                if (member.member_pan_image) {
+                    const panUrl = `https://backend.bninewdelhi.com/uploads/panCards/${member.member_pan_image}`;
+                    const panPreview = document.getElementById('pan-preview');
+                    const panPdfPreview = document.getElementById('pan-pdf-preview');
+                    const noPanMessage = document.getElementById('no-pan-message');
+                    
+                    if (panPdfPreview && noPanMessage) {
+                        if (member.member_pan_image.toLowerCase().endsWith('.pdf')) {
+                            setupPdfPreview(panPdfPreview, panPreview, panUrl);
+                        } else {
+                            panPreview.src = panUrl;
+                            panPreview.style.display = 'block';
+                            panPdfPreview.style.display = 'none';
+                        }
+                        noPanMessage.style.display = 'none';
+                    }
+                } else {
+                    console.log('No PAN image found in member data');
+                }
+
+                // Handle GST certificate display
+                if (member.member_gst_certificate_image) {
+                    const gstUrl = `https://backend.bninewdelhi.com/uploads/gstCertificates/${member.member_gst_certificate_image}`;
+                    const gstPreview = document.getElementById('gst-cert-preview');
+                    const gstPdfPreview = document.getElementById('gst-cert-pdf-preview');
+                    const noGstMessage = document.getElementById('no-gst-cert-message');
+                    
+                    if (gstPdfPreview && noGstMessage) {
+                        if (member.member_gst_certificate_image.toLowerCase().endsWith('.pdf')) {
+                            setupPdfPreview(gstPdfPreview, gstPreview, gstUrl);
+                        } else {
+                            gstPreview.src = gstUrl;
+                            gstPreview.style.display = 'block';
+                            gstPdfPreview.style.display = 'none';
+                        }
+                        noGstMessage.style.display = 'none';
+                    }
+                } else {
+                    console.log('No GST certificate found in member data');
+                }
+
+                // Debug log for all document fields
+                console.log('Document fields in member data:', {
+                    member_photo: member.member_photo,
+                    member_aadhar: member.member_aadhar_image,
+                    member_pan: member.member_pan_image,
+                    member_gst: member.member_gst_certificate_image
+                });
 
                 // Update social media links
                 document.getElementById('facebook').value = member.member_facebook || 'Not Available';
@@ -78,8 +191,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Instagram:', member.member_instagram);
                 console.log('Youtube:', member.member_youtube);
                 console.log('LinkedIn:', member.member_linkedin);
+
+                // Add debug logs for access type
+                console.log('Access Type:', userType === 'ro_admin' ? 'RO Admin View' : 'Member Self View');
+                console.log('Viewing Member Email:', targetEmail);
             } else {
-                console.error('Member not found with email:', userEmail);
+                console.error('Member not found with email:', targetEmail);
+                if (userType === 'ro_admin') {
+                    window.location.href = '/dashboard';
+                } else {
+                    window.location.href = '/login';
+                }
             }
         })
         .catch(error => {
@@ -172,3 +294,39 @@ document.getElementById('member-photo-input').addEventListener('change', functio
         reader.readAsDataURL(file);
     }
 });
+
+// Add this CSS to your styles
+const style = document.createElement('style');
+style.textContent = `
+    .pdf-preview-wrapper {
+        position: relative;
+        width: 80%;          /* Reduced from 100% */
+        min-height: 200px;   /* Reduced from 300px */
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0 auto;      /* Center the wrapper */
+    }
+    .pdf-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .pdf-overlay span {
+        background: rgba(255,255,255,0.9);
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+    .pdf-preview-wrapper:hover .pdf-overlay {
+        opacity: 1;
+    }
+`;
+document.head.appendChild(style);
