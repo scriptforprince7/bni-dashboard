@@ -533,8 +533,8 @@ const filteredTransactions = transactions.filter((transaction) => {
 
       // Update UI elements
       document.getElementById('total_gst_amount').textContent = `₹${gstAmount.toLocaleString("en-IN")}`;
-      document.getElementById('total_base_amount').textContent = `₹${baseAmount.toLocaleString("en-IN")}`;
-
+      // document.getElementById('total_base_amount').textContent = `₹${baseAmount.toLocaleString("en-IN")}`;
+// 
       // Format all amounts with Indian currency format
       const formattedTotalAmount = `₹${transactionAmount.toLocaleString("en-IN")}`;
      
