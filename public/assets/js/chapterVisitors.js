@@ -141,6 +141,19 @@ async function checkMembershipPayment(visitorId) {
     }
 }
 
+// Add this function at the top level
+async function fetchMemberApplicationDetails(visitorId) {
+    try {
+        console.log("🔍 Fetching member application details for visitor ID:", visitorId);
+        const response = await fetch('https://backend.bninewdelhi.com/api/memberApplicationFormNewMember');
+        const applications = await response.json();
+        return applications.find(app => app.visitor_id === visitorId) || null;
+    } catch (error) {
+        console.error("❌ Error fetching member application:", error);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -580,6 +593,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
                 
+                // Fetch member application details for this visitor
+                const memberApplication = await fetchMemberApplicationDetails(visitor.visitor_id);
+                
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -599,23 +615,34 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 Send Mail <i class="ri-mail-send-line"></i>
                             </button>
                         </td>
+                        <td class="text-center">
+                            <button class="send-mail-btn">
+                                Send Mail <i class="ri-mail-send-line"></i>
+                            </button>
+                        </td>
                         <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
                         <td class="text-center">
-                            <label class="upload-btn">
-                                <i class="ri-upload-2-line"></i> Upload Screenshot
-                                <input type="file" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event, ${visitor.visitor_id})">
-                            </label>
+                            ${createDocumentDisplay(
+                                memberApplication?.aadhar_card_img,
+                                memberApplication?.aadhar_card_number,
+                                'aadharCard'
+                            )}
                         </td>
                         <td class="text-center">
-                            <img src="../../assets/images/media/demo-aadhar.png" class="doc-preview" onclick="previewDocument(this.src, 'Aadhar Card')" alt="Aadhar Preview">
+                            ${createDocumentDisplay(
+                                memberApplication?.pan_card_img,
+                                memberApplication?.pan_card_number,
+                                'panCard'
+                            )}
                         </td>
                         <td class="text-center">
-                            <img src="../../assets/images/media/demo-pan.png" class="doc-preview" onclick="previewDocument(this.src, 'PAN Card')" alt="PAN Preview">
-                        </td>
-                        <td class="text-center">
-                            <img src="../../assets/images/media/demo-gst.png" class="doc-preview" onclick="previewDocument(this.src, 'GST Certificate')" alt="GST Preview">
+                            ${createDocumentDisplay(
+                                memberApplication?.gst_certificate,
+                                visitor.visitor_gst,
+                                'gstCertificate'
+                            )}
                         </td>
                         <td class="text-center">${createInductionStatus(visitor)}</td>
                     </tr>
@@ -623,6 +650,33 @@ document.addEventListener('DOMContentLoaded', async function() {
             }));
 
             tableBody.innerHTML = tableContent.join('');
+        }
+
+        // Add this helper function
+        function createDocumentDisplay(imgPath, docNumber, docType) {
+            if (!imgPath) {
+                return `
+                    <div class="doc-container">
+                        <div class="no-doc">No ${docType} Found</div>
+                    </div>`;
+            }
+
+            const folderName = docType === 'aadharCard' ? 'aadharCards' : 
+                              docType === 'panCard' ? 'panCards' : 
+                              'gstCertificates';
+                              
+            const fullImageUrl = `https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}`;
+            
+            return `
+                <div class="doc-container">
+                    <img src="${fullImageUrl}" 
+                         class="doc-preview" 
+                         onclick="previewDocument(this.src, '${docType}')" 
+                         alt="${docType} Preview"
+                         onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                    />
+                    <div class="doc-number">${docNumber || 'N/A'}</div>
+                </div>`;
         }
 
         // Initial render with total count

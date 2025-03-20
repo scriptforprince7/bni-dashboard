@@ -141,6 +141,24 @@ async function checkMembershipPayment(visitorId) {
     }
 }
 
+// Add this function to fetch member application details
+async function fetchMemberApplicationDetails(visitorId) {
+    try {
+        console.log("🔍 Fetching member application details for visitor ID:", visitorId);
+        const response = await fetch('https://backend.bninewdelhi.com/api/memberApplicationFormNewMember');
+        const applications = await response.json();
+        console.log("📄 All applications:", applications);
+        
+        const matchedApplication = applications.find(app => app.visitor_id === visitorId);
+        console.log("🎯 Matched application:", matchedApplication);
+        
+        return matchedApplication || null;
+    } catch (error) {
+        console.error("❌ Error fetching member application:", error);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -577,9 +595,46 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             const tableContent = await Promise.all(filteredVisitors.map(async (visitor, index) => {
+                console.log("👤 Processing visitor:", visitor);
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
                 
+                // Fetch member application details for this visitor
+                const memberApplication = await fetchMemberApplicationDetails(visitor.visitor_id);
+                console.log("📑 Member application data:", memberApplication);
+                
+                // Document display helper function
+                const createDocumentDisplay = (imgPath, docNumber, docType) => {
+                    console.log(`🖼️ Creating ${docType} display:`, { imgPath, docNumber });
+                    
+                    if (!imgPath) {
+                        console.log(`⚠️ No ${docType} image found`);
+                        return `
+                            <div class="doc-container">
+                                <div class="no-doc">No ${docType} Found</div>
+                            </div>`;
+                    }
+
+                    // Use correct folder names for each document type
+                    const folderName = docType === 'aadharCard' ? 'aadharCards' : 
+                                      docType === 'panCard' ? 'panCards' : 
+                                      'gstCertificates';
+                      
+                    const fullImageUrl = `https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}`;
+                    console.log(`🔗 Full image URL for ${docType}:`, fullImageUrl);
+                    
+                    return `
+                        <div class="doc-container">
+                            <img src="${fullImageUrl}" 
+                                 class="doc-preview" 
+                                 onclick="previewDocument(this.src, '${docType}')" 
+                                 alt="${docType} Preview"
+                                 onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                            />
+                            <div class="doc-number">${docNumber || 'N/A'}</div>
+                        </div>`;
+                };
+
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -599,6 +654,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 Mail Sent <i class="ri-check-line"></i>
                             </button>
                         </td>
+                        <td class="text-center">
+                            <button class="mail-sent-btn">
+                                Mail Sent <i class="ri-check-line"></i>
+                            </button>
+                        </td>
                         <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
@@ -609,13 +669,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                             </label>
                         </td>
                         <td class="text-center">
-                            <img src="../../assets/images/media/demo-aadhar.png" class="doc-preview" onclick="previewDocument(this.src, 'Aadhar Card')" alt="Aadhar Preview">
+                            ${createDocumentDisplay(
+                                memberApplication?.aadhar_card_img,
+                                memberApplication?.aadhar_card_number,
+                                'aadharCard'
+                            )}
                         </td>
                         <td class="text-center">
-                            <img src="../../assets/images/media/demo-pan.png" class="doc-preview" onclick="previewDocument(this.src, 'PAN Card')" alt="PAN Preview">
+                            ${createDocumentDisplay(
+                                memberApplication?.pan_card_img,
+                                memberApplication?.pan_card_number,
+                                'panCard'
+                            )}
                         </td>
                         <td class="text-center">
-                            <img src="../../assets/images/media/demo-gst.png" class="doc-preview" onclick="previewDocument(this.src, 'GST Certificate')" alt="GST Preview">
+                            ${createDocumentDisplay(
+                                memberApplication?.gst_certificate,
+                                visitor.visitor_gst,
+                                'gstCertificate'
+                            )}
                         </td>
                         <td class="text-center">${createInductionStatus(visitor)}</td>
                     </tr>
@@ -689,13 +761,46 @@ document.head.querySelector('style').textContent += `
         background-color: #e5e7eb;
     }
 
+    .doc-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
+    }
+
     .doc-preview {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border-radius: 4px;
         object-fit: cover;
         cursor: pointer;
         border: 1px solid #e5e7eb;
+        transition: transform 0.2s;
+        background-color: #f9fafb;
+    }
+
+    .doc-preview:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .doc-number {
+        font-size: 11px;
+        color: #4b5563;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: center;
+        margin-top: 4px;
+    }
+
+    .no-doc {
+        color: #9ca3af;
+        font-size: 12px;
+        text-align: center;
+        padding: 5px;
     }
 `;
 
@@ -727,11 +832,22 @@ function handleScreenshotUpload(event, visitorId) {
 }
 
 function previewDocument(src, title) {
+    console.log("🔍 Previewing document:", { src, title });
     Swal.fire({
         title: title,
         imageUrl: src,
         imageAlt: title,
+        imageWidth: 400,
+        imageHeight: 400,
         confirmButtonText: 'Close',
-        confirmButtonColor: '#2563eb'
+        confirmButtonColor: '#2563eb',
+        showCloseButton: true,
+        imageErrorCallback: function() {
+            console.error("❌ Error loading image in preview");
+            Swal.update({
+                imageUrl: '../../assets/images/media/no-image.png',
+                text: 'Error loading image'
+            });
+        }
     });
 }

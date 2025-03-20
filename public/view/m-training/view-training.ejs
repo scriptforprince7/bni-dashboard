@@ -760,17 +760,33 @@ fetch('https://backend.bninewdelhi.com/api/allCheckins')
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Get training_id from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const trainingId = urlParams.get('training_id');
-    
-    // Get the button element
     const markAsCompletedBtn = document.getElementById('markAsCompletedBtn');
 
-    // Add click event listener to the button
+    // Check training status and update button accordingly
+    async function checkTrainingStatus() {
+        try {
+            const response = await fetch('https://backend.bninewdelhi.com/api/alltrainings');
+            const trainings = await response.json();
+            const training = trainings.find(t => t.training_id === parseInt(trainingId));
+            
+            if (training && training.training_status === 'Completed') {
+                markAsCompletedBtn.classList.remove('btn-danger');
+                markAsCompletedBtn.classList.add('btn-success');
+                markAsCompletedBtn.innerHTML = '<i class="ri-check-double-line me-1"></i> Already Completed';
+                markAsCompletedBtn.disabled = true;
+            }
+        } catch (error) {
+            console.error('Error checking training status:', error);
+        }
+    }
+
+    // Check status on page load
+    checkTrainingStatus();
+
     markAsCompletedBtn.addEventListener('click', async function() {
         try {
-            // First confirm with the user
             const result = await Swal.fire({
                 title: 'Are you sure?',
                 text: "You want to mark this training as completed?",
@@ -782,47 +798,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (result.isConfirmed) {
-                // Fetch current training data to verify
-                const response = await fetch('https://backend.bninewdelhi.com/api/alltrainings');
-                const trainings = await response.json();
-                
-                // Find the specific training
-                const training = trainings.find(t => t.training_id === parseInt(trainingId));
-                
-                if (!training) {
-                    throw new Error('Training not found');
+                const updateResponse = await fetch('https://backend.bninewdelhi.com/api/markTrainingCompleted', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        training_id: trainingId
+                    })
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Failed to update training status');
                 }
 
-                if (training.training_status === 'Completed') {
-                    Swal.fire(
-                        'Already Completed!',
-                        'This training is already marked as completed.',
-                        'info'
-                    );
-                    return;
-                }
+                // Update button appearance
+                markAsCompletedBtn.classList.remove('btn-danger');
+                markAsCompletedBtn.classList.add('btn-success');
+                markAsCompletedBtn.innerHTML = '<i class="ri-check-double-line me-1"></i> Already Completed';
+                markAsCompletedBtn.disabled = true;
 
-                // Here you'll add the API call to update the status
-                // const updateResponse = await fetch('YOUR_UPDATE_API_ENDPOINT', {
-                //     method: 'PUT',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify({
-                //         training_id: trainingId,
-                //         training_status: 'Completed'
-                //     })
-                // });
-
-                // For now, show success message
                 Swal.fire(
                     'Updated!',
                     'Training has been marked as completed.',
                     'success'
-                ).then(() => {
-                    // Reload page to reflect changes
-                    window.location.reload();
-                });
+                );
             }
         } catch (error) {
             console.error('Error:', error);
