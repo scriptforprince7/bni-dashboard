@@ -229,7 +229,7 @@ const populateFormFields = (data) => {
         const imagePreview = document.getElementById('imagePreview');
         
         // Construct the URL if not provided in response
-        const logoUrl = data.region_logo_url || `https://backend.bninewdelhi.com/api/uploads/regionLogos/${data.region_logo}`;
+        const logoUrl = `https://backend.bninewdelhi.com/api/uploads/regionLogos/${data.region_logo}`;
         console.log('🔗 Using logo URL:', logoUrl);
         
         if (preview && imagePreview) {
