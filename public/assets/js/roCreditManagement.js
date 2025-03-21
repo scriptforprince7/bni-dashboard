@@ -36,44 +36,14 @@ async function fetchAndFilterData() {
         showLoader();
         await fetchMembersData();
 
-        // Get logged-in chapter info
-        const loginType = getUserLoginType();
-        let chapterEmail, chapter_id;
-
-        if (loginType === 'ro_admin') {
-            chapterEmail = localStorage.getItem('current_chapter_email');
-            chapter_id = localStorage.getItem('current_chapter_id');
-            if (!chapterEmail || !chapter_id) {
-                console.error('Missing required data for RO Admin');
-                hideLoader();
-                return;
-            }
-        } else {
-            chapterEmail = getUserEmail();
-            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters'); 
-            const chapters = await chaptersResponse.json();
-            const chapter = chapters.find(ch => ch.email_id === chapterEmail);
-            if (chapter) {
-                chapter_id = chapter.chapter_id;
-                console.log("Chapter ID:", chapter_id);
-            } else {
-                console.error('Chapter not found');
-                hideLoader();
-                return;
-            }
-        }
-
         // Fetch credit data
         const response = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
         const data = await response.json();
-        
-        // Filter data for current chapter
-        const chapterData = data.filter(item => parseInt(item.chapter_id) === parseInt(chapter_id));
-        console.log("Chapter Data:", chapterData);
+        console.log("📊 All credit data:", data);
         
         // Clear existing table content
         const tableBody = document.getElementById('chaptersTableBody');
-        console.log("Table Body Element:", tableBody);
+        console.log("🎯 Table Body Element:", tableBody);
         
         if (tableBody) {
             tableBody.innerHTML = '';
@@ -82,7 +52,7 @@ async function fetchAndFilterData() {
             totalcreditamount = 0;
 
             // Group data by credit_date and credit_type
-            const groupedData = chapterData.reduce((acc, curr) => {
+            const groupedData = data.reduce((acc, curr) => {
                 const key = `${curr.credit_date}_${curr.credit_type}`;
                 if (!acc[key]) {
                     acc[key] = [];
@@ -90,6 +60,8 @@ async function fetchAndFilterData() {
                 acc[key].push(curr);
                 return acc;
             }, {});
+
+            console.log("🔍 Grouped credit data:", groupedData);
 
             // Process each group
             Object.values(groupedData).forEach(entries => {
@@ -116,7 +88,7 @@ async function fetchAndFilterData() {
                         <td><b>${totalCreditAmount}</b></td>
                         <td><b>${getUserEmail().split('@')[0]}</b></td>
                     `;
-                    console.log('Created row:', row);
+                    console.log('✅ Created row:', row);
                     tableBody.appendChild(row);
                 }
             });
@@ -125,13 +97,14 @@ async function fetchAndFilterData() {
             const totalElement = document.getElementById('total_credit_amount');
             if (totalElement) {
                 totalElement.textContent = totalcreditamount;
+                console.log('💰 Total credit amount:', totalcreditamount);
             }
         } else {
-            console.error("Table body element not found");
+            console.error("❌ Table body element not found");
         }
 
     } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("❌ Error fetching data:", error);
     } finally {
         hideLoader();
     }
