@@ -563,10 +563,7 @@ const filteredTransactions = transactions.filter((transaction) => {
       }
 
       // Format date and amount
-      const formattedDate = new Date(
-        transaction.payment_time
-      ).toLocaleDateString("en-GB");
-
+      const formattedDate = transaction.payment_time.split('T')[0].split('-').reverse().join('/');
       // Create a new row for the table
       const row = document.createElement("tr");
       row.classList.add("invoice-list");
@@ -1368,3 +1365,40 @@ style.innerHTML = `
 
 // Append the style to the head of the document
 document.head.appendChild(style);
+
+// New calculation for base amount
+async function calculateExpenseBaseAmount() {
+  try {
+    const response = await fetch('https://backend.bninewdelhi.com/api/allexpenses');
+    const expenses = await response.json();
+    
+    let totalAmount = 0;
+    expenses.forEach(expense => {
+      const amount = parseFloat(expense.amount);
+      console.log('💵 Individual Expense Amount:', amount);
+      totalAmount += amount;
+    });
+    
+    console.log('💰 Total Sum of Expenses:', totalAmount);
+    const calculation = (totalAmount * 18);
+    console.log('📊 After multiplying by 18:', calculation);
+    const finalAmount = Math.round(calculation / 118);
+    console.log('🎯 Final Base Amount:', finalAmount);
+    
+    // Make sure the element exists
+    const baseAmountElement = document.getElementById('total_base_amount');
+    if (baseAmountElement) {
+      baseAmountElement.textContent = `₹${finalAmount.toLocaleString("en-IN")}`;
+      console.log('✅ UI Updated with amount:', `₹${finalAmount.toLocaleString("en-IN")}`);
+    } else {
+      console.error('❌ Could not find total_base_amount element');
+    }
+  } catch (error) {
+    console.error('❌ Error calculating base amount:', error);
+  }
+}
+
+// Call the function after the DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  calculateExpenseBaseAmount();
+});
