@@ -20,5 +20,8 @@ exports.chapterCreditManagement = (req, res) => {
 
 exports.chapterMemberRightOff = (req, res) => {
     res.render('m-chapterKitty/chapter-memberRightOff', { title: 'Chapter Member Right Off' });
-};6
+};
 
+exports.chapterMemberWiseKitty = (req, res) => {
+    res.render('m-chapterKitty/chapter-memberWiseKitty', { title: 'Chapter Member Wise Kitty' });
+};

@@ -9,5 +9,6 @@ router.get('/chapter-kittyInvoice', chapterKitty.chapterKittyInvoice);
 router.get('/chapter-giveCredit', chapterKitty.chapterGiveCredit);
 router.get('/chapter-creditManagement', chapterKitty.chapterCreditManagement);
 router.get('/chapter-memberRightOff', chapterKitty.chapterMemberRightOff);
+router.get('/chapter-memberWiseKitty', chapterKitty.chapterMemberWiseKitty);
 
 module.exports = router;

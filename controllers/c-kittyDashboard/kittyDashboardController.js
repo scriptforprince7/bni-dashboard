@@ -18,3 +18,6 @@ exports.memberWriteOff = (req, res) => {
     res.render('m-kitty-dashboard/roMember-write-off', { title: 'Member Write Off' });
 };
 
+exports.memberWiseKitty = (req, res) => {
+    res.render('m-kitty-dashboard/roMember-wise-kitty', { title: 'Member Wise Kitty' });
+};
