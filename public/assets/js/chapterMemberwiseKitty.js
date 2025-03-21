@@ -29,9 +29,30 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       console.log('🚀 Fetching member-wise kitty data...');
   
-      // Get logged in chapter's email
-      const loggedInEmail = getUserEmail();
-      console.log('👤 Logged in user email:', loggedInEmail);
+      // Check login type
+      const loginType = getUserLoginType();
+      console.log('👤 User login type:', loginType);
+  
+      // Get the appropriate email based on login type
+      let chapterEmail;
+      let chapterId;
+  
+      if (loginType === 'ro_admin') {
+        chapterEmail = localStorage.getItem('current_chapter_email');
+        chapterId = localStorage.getItem('current_chapter_id');
+        console.log('🔑 RO Admin accessing chapter:', {
+          email: chapterEmail,
+          id: chapterId
+        });
+      } else {
+        chapterEmail = getUserEmail();
+        console.log('👤 Chapter user email:', chapterEmail);
+      }
+  
+      if (!chapterEmail && !chapterId) {
+        console.error('❌ No chapter access details found');
+        return;
+      }
   
       const [orders, transactions, bankOrders, activeBill, members, credits, chapters] = await Promise.all([
         fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
@@ -45,12 +66,18 @@ document.addEventListener("DOMContentLoaded", () => {
   
       console.log('✅ Data fetched successfully');
   
-      // Find logged in chapter's details
-      const loggedInChapter = chapters.find(ch => ch.email_id === loggedInEmail);
-      console.log('🏢 Logged in chapter details:', loggedInChapter);
+      // Find chapter details based on login type
+      let loggedInChapter;
+      if (loginType === 'ro_admin') {
+        loggedInChapter = chapters.find(ch => ch.chapter_id === parseInt(chapterId));
+        console.log('🏢 RO Admin viewing chapter:', loggedInChapter);
+      } else {
+        loggedInChapter = chapters.find(ch => ch.email_id === chapterEmail);
+        console.log('🏢 Chapter details:', loggedInChapter);
+      }
   
       if (!loggedInChapter) {
-        console.error('❌ No matching chapter found for email:', loggedInEmail);
+        console.error('❌ No matching chapter found');
         return;
       }
   
