@@ -151,12 +151,21 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('✅ Table populated with chapter-specific entries');
       }
   
-      // Calculate total kitty amount from active bill
-      const totalActiveBillAmount = activeBill.reduce((sum, bill) => {
-        return sum + parseFloat(bill.total_bill_amount);
-      }, 0);
-      console.log('💰 Total Active Bill Amount:', formatInIndianStyle(totalActiveBillAmount));
-      document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(Math.ceil(totalActiveBillAmount))}`;
+      // Calculate total kitty amount from bank orders
+      let totalPendingAmount = 0;
+      bankOrders.forEach(order => {
+        if (order.amount_to_pay > 0 && order.chapter_id === loggedInChapter.chapter_id) {
+          totalPendingAmount += parseFloat(order.amount_to_pay);
+        }
+      });
+  
+      console.log('💰 Total Pending Amount for chapter:', {
+        chapterId: loggedInChapter.chapter_id,
+        chapterName: loggedInChapter.chapter_name,
+        totalPending: formatInIndianStyle(totalPendingAmount)
+      });
+  
+      document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(totalPendingAmount)}`;
   
       // Calculate total received amount
       let allReceived = 0;
@@ -176,19 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
   
-      // Calculate total pending amount from bank orders
-      let totalPendingAmount = 0;
-      bankOrders.forEach(order => {
-        if (order.amount_to_pay > 0) {
-          totalPendingAmount += parseFloat(order.amount_to_pay);
-        }
-      });
-  
       console.log('💰 Total Received Amount:', formatInIndianStyle(allReceived));
-      console.log('💰 Total Pending Amount:', formatInIndianStyle(totalPendingAmount));
       
       document.querySelector('#total_V_amount').textContent = `₹ ${formatInIndianStyle(allReceived)}`;
-      document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(totalPendingAmount)}`;
   
     } catch (error) {
       console.error('❌ Error fetching member-wise kitty data:', error);
