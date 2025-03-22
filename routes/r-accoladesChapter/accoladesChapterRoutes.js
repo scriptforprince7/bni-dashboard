@@ -8,6 +8,7 @@ router.get('/add-accolade', accoladesChapterController.addAccolades);
 router.get('/edit-accolade', accoladesChapterController.editAccolades);
 router.get('/request-chapter-accolade', accoladesChapterController.requestChapterAccolades);
 router.get('/requested-chapter-requisition', accoladesChapterController.requestChapterRequisition);
+router.get('/member-wise-accolades', accoladesChapterController.memberWiseAccolades);
 
 
 module.exports = router;

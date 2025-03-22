@@ -1,4 +1,3 @@
-require('dotenv').config(); // Load environment variables from .env file
 const apiRoutes = require('./routes/r-api/apiRoutes'); // Adjust the path as needed
 const express = require('express');
 const path = require('path');
