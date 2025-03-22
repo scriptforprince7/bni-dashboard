@@ -28,13 +28,43 @@ async function fetchAllOrders() {
         console.log("All Orders:", allOrders);
         console.log("Looking for visitor_id:", visitorId);
 
-        // Filter orders for this visitor and payment_note = "visitor-payment"
-        const visitorOrders = allOrders.filter(order => 
+        // First try: Filter orders for this visitor and payment_note = "visitor-payment"
+        let visitorOrders = allOrders.filter(order => 
             order.visitor_id === parseInt(visitorId) && 
             order.payment_note === "visitor-payment"
         );
         
-        console.log("Filtered visitor orders:", visitorOrders);
+        console.log("Initial filtered visitor orders:", visitorOrders);
+
+        // If no orders found, try alternative approach using getAllVisitors
+        if (visitorOrders.length === 0) {
+            console.log("No direct visitor orders found, checking getAllVisitors API");
+            
+            const visitorsResponse = await fetch('https://backend.bninewdelhi.com/api/getallVisitors');
+            const visitors = await visitorsResponse.json();
+            console.log("All visitors:", visitors);
+
+            // Find matching visitor
+            const matchingVisitor = visitors.find(visitor => visitor.visitor_id === parseInt(visitorId));
+            console.log("Matching visitor:", matchingVisitor);
+
+            if (matchingVisitor && matchingVisitor.order_id) {
+                console.log("Found matching visitor with order_id:", matchingVisitor.order_id);
+                
+                // Find the order in allOrders using the order_id from visitor
+                const matchingOrder = allOrders.find(order => 
+                    order.order_id === matchingVisitor.order_id && 
+                    order.payment_note === "visitor-payment"
+                );
+
+                if (matchingOrder) {
+                    console.log("Found matching order:", matchingOrder);
+                    visitorOrders = [matchingOrder];
+                }
+            }
+        }
+
+        console.log("Final visitor orders:", visitorOrders);
 
         if (visitorOrders.length > 0) {
             // Sort by created_at date in descending order (most recent first)
