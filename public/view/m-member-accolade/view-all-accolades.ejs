@@ -4,7 +4,7 @@
 
     <!-- sidebar -->
 
-    <%- include('../partials/chapter-sidebar') %>
+    <%- include('../partials/member-sidebar') %>
     <div id="loader">
       <img src="../../assets/images/media/loader.svg" alt="" />
     </div>
@@ -21,33 +21,27 @@
                 <ol class="breadcrumb mb-1">
                   <li class="breadcrumb-item">
                     <a href="javascript:void(0);" style="color: #d01f2f"
-                      >Accolades Information</a
+                      >Requisitions Information</a
                     >
                   </li>
                   <li class="breadcrumb-item Approved" aria-current="page">
-                    View All Accolades
+                    View All Requisitions
                   </li>
                 </ol>
               </nav>
               <h1 class="page-title fw-medium fs-18 mb-0">
-                Manage Accolades
+                My Requisitions
               </h1>
             </div>
             <div class="btn-list">
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total In Stock Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
+              <button class="btn btn-white btn-wave" id="totalAccoladesBtn" style="background-color: gainsboro !important; border-radius: 10px;">
+                Total assigned Accolades<br />
+                <span id="totalAccoladesCount"><b>0</b></span>
               </button>
-
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Rejected Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
-              </button>
-
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Approved Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
-              </button>
+              <!-- <button class="btn btn-white btn-wave" id="totalAccoladesBtn" style="background-color: gainsboro !important; border-radius: 10px;">
+                Total Requested Accolades<br />
+                <span id="totalAccoladesCount"><b>0</b></span>
+              </button> -->
               
             </div>
           </div>
@@ -57,25 +51,6 @@
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
               <div class="card-title">All Accolades List</div>
-              <div class="d-flex gap-3 align-items-center flex-wrap">
-               
-                <div class="custom-form-group flex-grow-1">
-                  <input
-                    type="text"
-                    id="searchAccolades"
-                    class="form-control"
-                    placeholder="Search Accolades.."
-                    aria-label="Search Accolades"
-                    aria-describedby="button-addon2"
-                  />
-                  <a
-                    href="javascript:void(0);"
-                    class="text-muted custom-form-btn"
-                    ><i class="ti ti-search"></i
-                  ></a>
-                </div>
-                
-              </div>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive">
@@ -85,22 +60,18 @@
                 >
                   <thead>
                     <tr>
-                      <th scope="col">S.No.</th>
-                      <th scope="col">Accolades Name</th>
-                      <th scope="col">Published by</th>
-                    
-                      <th scope="col">Stock Available</th>
-                      <th scope="col">Stock In Date</th>
-                      <th scope="col">Item Type</th>
-                      <th scope="col">Accolade Type</th>
+                      <th>S.No.</th>
+                      <th>Accolade Name</th>
+                      <th>Item Type</th>
+                      <th>Accolade Status</th>
                       
-                      <th scope="col">Status</th>
+                      
+                      
                       
                     </tr>
                   </thead>
-                  
-                  <tbody id="chaptersTableBody">
-                    <!-- No accolades message will be shown here -->
+                  <tbody>
+                    <!-- Data will be populated by JavaScript -->
                   </tbody>
                 </table>
               </div>
@@ -132,7 +103,7 @@
       </div>
       <!-- End::content  -->
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script src="../../assets/js/requestChapterRequisition.js"></script>
+      <script src="../../assets/js/viewMemberaccolades.js"></script>
       
 
       <%- include('../partials/footer') %> 

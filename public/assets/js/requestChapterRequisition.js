@@ -130,20 +130,32 @@ async function fetchAndDisplayAccolades() {
               </div>
             </div>
           </td>
-          <td>
-            <span class="badge ${availabilityClass}">${availabilityStatus}</span>
-          </td>
-          <td>
-            <span class="badge ${activeClass}">${activeStatus}</span>
-          </td>
-          <td>
-            <span class="badge bg-primary text-light" style="cursor:pointer; color:white;">
-              <a href="/acc/edit-accolades/?accolade_id=${accolade.accolade_id}" style="color:white">Edit</a>
-            </span>
-            <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-accolade-id="${accolade.accolade_id}">
-              Delete
-            </span>
-          </td>
+          
+           <td class="text-center">
+            <button class="btn btn-primary btn-wave request-accolade-btn" 
+                style="
+                    background-color: #2563eb;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: white;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+                     margin-right: auto;
+            position: relative;
+            left: -45px;
+                "
+                onmouseover="this.style.backgroundColor='#1d4ed8'"
+                onmouseout="this.style.backgroundColor='#2563eb'"
+                data-accolade-id="${accolade.accolade_id}"
+            >
+                <i class="ri-send-plane-fill me-1"></i>
+                Request Accolade
+            </button>
+        </td>
+          
         </tr>
       `;
     });
