@@ -130,11 +130,20 @@ async function checkMembershipPayment(visitorId) {
         const response = await fetch('https://backend.bninewdelhi.com/api/getMembershipPending');
         const membershipData = await response.json();
         
-        // Find the membership record for this visitor
         const membershipRecord = membershipData.find(record => record.visitor_id === visitorId);
         
-        // Return true if there's a record and due_balance is less than 1
-        return membershipRecord && parseFloat(membershipRecord.due_balance) < 1;
+        if (!membershipRecord) return false;
+        
+        // Handle NaN or invalid due_balance
+        const dueBalance = parseFloat(membershipRecord.due_balance);
+        if (isNaN(dueBalance)) {
+            // If due_balance is NaN, check if paid_amount is greater than or equal to total_amount
+            const paidAmount = parseFloat(membershipRecord.paid_amount) || 0;
+            const totalAmount = parseFloat(membershipRecord.total_amount) || 0;
+            return paidAmount >= totalAmount;
+        }
+        
+        return dueBalance < 1;
     } catch (error) {
         console.error('Error checking membership payment:', error);
         return false;
@@ -635,6 +644,39 @@ document.addEventListener('DOMContentLoaded', async function() {
                         </div>`;
                 };
 
+                // Add this new section for onboarding call display
+                const onboardingCallDisplay = visitor.onboarding_call 
+                    ? `
+                        <div class="doc-container">
+                            <img src="https://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
+                                 class="doc-preview" 
+                                 onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                                 alt="Onboarding Call Preview"
+                                 onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                            />
+                            <div class="doc-actions">
+                                <label class="upload-btn" title="Upload New">
+                                    <i class="ri-upload-2-line"></i>
+                                    <input type="file" 
+                                           accept="image/*" 
+                                           style="display: none;" 
+                                           onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
+                                    >
+                                </label>
+                            </div>
+                        </div>
+                    `
+                    : `
+                        <label class="upload-btn">
+                            <i class="ri-upload-2-line"></i> Upload Screenshot
+                            <input type="file" 
+                                   accept="image/*" 
+                                   style="display: none;" 
+                                   onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
+                            >
+                        </label>
+                    `;
+
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -663,10 +705,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
                         <td class="text-center">
-                            <label class="upload-btn">
-                                <i class="ri-upload-2-line"></i> Upload Screenshot
-                                <input type="file" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event, ${visitor.visitor_id})">
-                            </label>
+                            ${onboardingCallDisplay}
                         </td>
                         <td class="text-center">
                             ${createDocumentDisplay(
@@ -804,30 +843,77 @@ document.head.querySelector('style').textContent += `
     }
 `;
 
-// Add these functions outside the DOMContentLoaded event
-function handleScreenshotUpload(event, visitorId) {
+// Function to handle screenshot upload
+async function handleScreenshotUpload(event, visitor_id) {
     const file = event.target.files[0];
-    if (file) {
-        // Show preview in a SweetAlert2 dialog
-        const reader = new FileReader();
-        reader.onload = function(e) {
+    if (!file) return;
+
+    try {
+        // Show loading state
+        Swal.fire({
+            title: 'Uploading...',
+            text: 'Please wait while we upload your screenshot',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('onboarding_call_img', file);
+
+        const response = await fetch(`https://backend.bninewdelhi.com/api/updateOnboardingCall/${visitor_id}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Show success message
             Swal.fire({
-                title: 'Onboarding Call Screenshot',
-                imageUrl: e.target.result,
-                imageAlt: 'Screenshot Preview',
-                showCancelButton: true,
-                confirmButtonText: 'Upload',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#dc2626'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Here you'll add the actual upload logic later
-                    Swal.fire('Success!', 'Screenshot uploaded successfully', 'success');
-                }
+                icon: 'success',
+                title: 'Success!',
+                text: 'Screenshot uploaded successfully'
             });
-        };
-        reader.readAsDataURL(file);
+
+            // Update just the image cell instead of re-rendering the whole table
+            const uploadCell = event.target.closest('td');
+            uploadCell.innerHTML = `
+                <div class="doc-container">
+                    <img src="${result.data.imageUrl}" 
+                         class="doc-preview" 
+                         onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                         alt="Onboarding Call Preview"
+                         onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                    />
+                    <div class="doc-actions">
+                        <label class="upload-btn" title="Upload New">
+                            <i class="ri-upload-2-line"></i>
+                            <input type="file" 
+                                   accept="image/*" 
+                                   style="display: none;" 
+                                   onchange="handleScreenshotUpload(event, ${visitor_id})"
+                            >
+                        </label>
+                    </div>
+                </div>
+            `;
+        } else {
+            throw new Error(result.message || 'Upload failed');
+        }
+
+    } catch (error) {
+        console.error('Error uploading screenshot:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload screenshot. Please try again.'
+        });
     }
 }
 

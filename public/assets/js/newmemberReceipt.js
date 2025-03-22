@@ -21,10 +21,22 @@ async function getMembershipOrderId(visitorId) {
         }
         
         const membershipData = await response.json();
-        const membershipRecord = membershipData.find(record => 
-            record.visitor_id === parseInt(visitorId) && 
-            parseFloat(record.due_balance) < 1
-        );
+        const membershipRecord = membershipData.find(record => {
+            // First check if visitor_id matches
+            if (record.visitor_id !== parseInt(visitorId)) return false;
+            
+            // Handle NaN or invalid due_balance
+            const dueBalance = parseFloat(record.due_balance);
+            if (isNaN(dueBalance)) {
+                // If due_balance is NaN, check if paid_amount is greater than or equal to total_amount
+                const paidAmount = parseFloat(record.paid_amount) || 0;
+                const totalAmount = parseFloat(record.total_amount) || 0;
+                return paidAmount >= totalAmount;
+            }
+            
+            // Otherwise check if due_balance is less than 1
+            return dueBalance < 1;
+        });
 
         if (!membershipRecord) {
             throw new Error('No valid payment record found or payment is pending');

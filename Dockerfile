@@ -10,8 +10,8 @@ ARG NODE_VERSION=20.11.1
 
 FROM node:${NODE_VERSION}-alpine
 
-# Use production node environment by default.
-ENV NODE_ENV production
+# Use sandbox node environment by default.
+ENV NODE_ENV sandbox
 
 
 WORKDIR /usr/src/app
