@@ -1112,11 +1112,14 @@ const filteredTransactions = transactions.filter((transaction) => {
                     irnCell.textContent.trim() !== 'Loading...') {
                     
                     // Check if this IRN is cancelled
-                    if (cancelCell && 
-                        cancelCell.textContent.includes('Already Cancelled')) {
+                    const currentIrn = irnCell.textContent.trim();
+                    const isCancelled = cancelledIrnData.some(item => item.irn === currentIrn);
+                    
+                    if (isCancelled || 
+                        (cancelCell && cancelCell.innerHTML.includes('Already Cancelled'))) {
                         cancelledIrns++;
+                        console.log(`Found cancelled IRN: ${currentIrn}`);
                     } else {
-                        // Only count as generated invoice if NOT cancelled
                         generatedInvoices++;
                     }
                 }
@@ -1145,41 +1148,32 @@ const filteredTransactions = transactions.filter((transaction) => {
         }
     }
 
-    // Initial count when page loads
-    document.addEventListener('DOMContentLoaded', () => {
-        updateTransactionCounts();
-
-        // Set up a MutationObserver to watch for changes in the table
-        const observer = new MutationObserver(() => {
-            updateTransactionCounts();
-        });
-
-        // Start observing the table for changes
-        const table = document.querySelector('.table');
-        if (table) {
-            observer.observe(table, {
-                childList: true,
-                subtree: true,
-                characterData: true
-            });
-        }
-    });
-
-    // Update counts when settlement tracking is done
-    document.addEventListener('click', (event) => {
-        if (event.target.classList.contains('track-settlement')) {
+    // Update counts when IRN is cancelled
+    document.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('cancel_irn')) {
+            // Wait for the cancellation process to complete
             setTimeout(updateTransactionCounts, 1000);
         }
     });
 
-    // Update counts when filters are applied
-    document.getElementById('apply-filters-btn').addEventListener('click', () => {
-        setTimeout(updateTransactionCounts, 500);
+    // Set up a MutationObserver to watch for changes in the table
+    const observer = new MutationObserver(() => {
+        updateTransactionCounts();
     });
 
-    // Update counts when filters are reset
-    document.getElementById('reset-filters-btn').addEventListener('click', () => {
-        setTimeout(updateTransactionCounts, 500);
+    // Start observing the table for changes
+    const table = document.querySelector('.table');
+    if (table) {
+        observer.observe(table, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    }
+
+    // Initial count when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        updateTransactionCounts();
     });
 
     // Move the click event listener inside the try block where orders and other data are available
