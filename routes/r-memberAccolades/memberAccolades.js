@@ -5,6 +5,7 @@ const memberAccoladesController = require('../../controllers/c-member-accolades/
 // Chapter routes
 router.get('/manage-memberAccolades', memberAccoladesController.manageMemberAccolades);
 router.get('/request-memberAccolades', memberAccoladesController.requestMemberAccolades);
+router.get('/view-all-accolades', memberAccoladesController.viewAllAccolades);
 
 
 module.exports = router;
