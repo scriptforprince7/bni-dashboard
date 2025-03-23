@@ -41,48 +41,73 @@ async function loadMembers() {
   renderTable(allMembers);
 }
 
-
-
+// Update the renderTable function to show count and clickable popup
 const renderTable = (members) => {
-    const tableBody = document.getElementById("chaptersTableBody");
-    tableBody.innerHTML = members
-      .map((member, index) => {
-        const memberName = `${member.member_first_name} ${member.member_last_name}`;
-        const accoladeCounts = {};
-  
-        member.accolades_id.forEach((id) => {
-          accoladeCounts[id] = (accoladeCounts[id] || 0) + 1;
-        });
-  
-        const memberAccolades = Object.entries(accoladeCounts)
-          .map(([id, count]) => {
-            const accolade = allAccolades.find((a) => a.accolade_id === Number(id));
-            return accolade
-              ? `<span class="accolade-link" data-member="${memberName}" data-accolade="${accolade.accolade_name}" data-date="2024-10-10">
-                  ${accolade.accolade_name}
-                  <span class="accolade-badge">x${count}</span>
-                </span>`
-              : `<span class="text-danger">Unknown Accolade</span>`;
-          })
-          .join("<br>");
-  
-        const statusBadge =
-          member.member_status === "active"
-            ? `<span class="badge bg-success">Active</span>`
-            : `<span class="badge bg-danger">Inactive</span>`;
-  
-        return `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${memberName}</td>
-            <td>${memberAccolades || "No Accolades"}</td>
-            <td>${statusBadge}</td>
-          </tr>`;
-      })
-      .join("");
-  
-    setupModalListener();
-  };
+  const tableBody = document.getElementById("chaptersTableBody");
+  tableBody.innerHTML = members
+    .map((member, index) => {
+      const memberName = `${member.member_first_name} ${member.member_last_name}`;
+      const accoladeDetails = member.accolades_id.map(id => {
+        const accolade = allAccolades.find(a => a.accolade_id === Number(id));
+        return accolade ? { name: accolade.accolade_name, date: accolade.accolade_publish_date || 'Unknown Date' } : null;
+      }).filter(Boolean);
+      
+      const accoladeCount = accoladeDetails.length;
+      const accoladeInfo = accoladeDetails.map(acc => `<li>${acc.name} (Issued: ${acc.date})</li>`).join('');
+
+      const statusBadge =
+        member.member_status === "active"
+          ? `<span class="badge bg-success">Active</span>`
+          : `<span class="badge bg-danger">Inactive</span>`;
+
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td><b>${memberName}</b></td>
+          <td>
+            <span class="accolade-count" data-member="${memberName}" data-info="${accoladeInfo}">
+              ${accoladeCount} Accolade(s)
+            </span>
+          </td>
+          <td>${statusBadge}</td>
+        </tr>`;
+    })
+    .join("");
+
+  setupModalListener();
+};
+
+
+
+function setupModalListener() {
+  document.querySelectorAll(".accolade-count").forEach((count) => {
+    count.addEventListener("click", (e) => {
+      const memberName = e.target.getAttribute("data-member");
+      const accoladeInfo = e.target.getAttribute("data-info");
+
+      document.getElementById("modalTitle").textContent = `${memberName}'s Accolades`;
+      document.getElementById("modalBody").innerHTML =
+        accoladeInfo && accoladeInfo !== "null"
+          ? `<ul>${accoladeInfo}</ul>`
+          : "<p>No accolades issued</p>";
+
+      const accoladeModal = new bootstrap.Modal(document.getElementById("accoladeModal"));
+      accoladeModal.show();
+    });
+  });
+}
+
+
+
+
+
+function showAccoladePopup(details) {
+  document.getElementById("modalTitle").textContent = "Accolades Details";
+  document.getElementById("modalBody").innerHTML = `<p>${details}</p>`;
+  const accoladeModal = new bootstrap.Modal(document.getElementById("accoladeModal"));
+  accoladeModal.show();
+}
+
   
   
   
@@ -128,15 +153,7 @@ function filterMembers() {
   renderTable(filteredMembers.length ? filteredMembers : allMembers);
 }
 
-// Set up the modal listener to show accolade details
-function setupModalListener() {
-  document.querySelectorAll(".accolade-link").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      showAccoladePopup(e.target);
-    });
-  });
-}
+
 
 // Show Popup with Accolade Details
 function showAccoladePopup(target) {
