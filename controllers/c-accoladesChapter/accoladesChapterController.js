@@ -18,3 +18,7 @@ exports.requestChapterRequisition = (req, res) => {
     res.render('m-accoladeChapter/request-chapter-requisition', { title: 'Request Chapter Requisition' });
 };
 
+exports.memberWiseAccolades = (req, res) => {
+    res.render('m-accoladeChapter/member-wise-accolade', { title: 'Member Wise Accolade' });
+};
+
