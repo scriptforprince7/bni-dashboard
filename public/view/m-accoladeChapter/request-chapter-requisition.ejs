@@ -1,138 +1,253 @@
-    <!-- header -->
-    <%- include('../partials/header') %> 
-    <!-- end header -->
+<!-- header -->
+<script src="../../assets/js/tokenUtils.js"></script>
+<script>
+  console.log('=== Back to Admin Button Rendering Process Started ===');
+  
+  // Get login type from token
+  const userType = getUserLoginType();
+  console.log('Current User Type:', userType);
+  
+  // Prepare button HTML
+  
+  // Add button if user is ro_admin
+ 
+  
+  console.log('=== Back to Admin Button Rendering Process Completed ===');
+</script>
 
-    <!-- sidebar -->
+<%- include('../partials/header') %> 
 
-    <%- include('../partials/chapter-sidebar') %>
-    <div id="loader">
-      <img src="../../assets/images/media/loader.svg" alt="" />
+<style>
+  /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+max-height: 200px; /* Adjust the height as needed */
+overflow-y: auto;  /* Enables vertical scrolling */
+overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+background-color: #888; /* Color of the scrollbar thumb */
+border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+background-color: #555; /* Darker shade on hover */
+}
+
+</style>
+<!-- end header -->
+<div id="loader" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+  <div class="spinner-border text-light" role="status">
+      <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<!-- sidebar -->
+
+<%- include('../partials/chapter-sidebar') %>
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div
+      class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+    >
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);">Manage Credit Transactions & History </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              View All Credit History
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+         
+        </h1>
+      </div>
     </div>
+    <!-- End::page-header -->
+    <div class="row" style="display: flex; justify-content: center; margin-top: 20px;">
+        <div class="col-12 d-flex justify-content-center gap-4">
+            <!-- Apply New Requisition Button -->
+            <div class="action-button">
+                <button class="btn btn-lg btn-danger d-flex align-items-center gap-2" style="
+                    min-width: 250px;
+                    padding: 15px 25px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+                    transition: all 0.3s ease;
+                ">
+                    <i class="ri-file-add-line" style="font-size: 1.5em;"></i>
+                    <div class="d-flex flex-column align-items-start">
+                        <span style="font-size: 0.85em; opacity: 0.9">New Request</span>
+                        <span style="font-size: 1.1em">Apply Requisition</span>
+                    </div>
+                </button>
+            </div>
 
-      <!-- Start::app-content -->
-      <div class="main-content app-content">
-        <div class="container-fluid">
-          <!-- Page Header -->
+            <!-- View History Button -->
+            <div class="action-button">
+                <button class="btn btn-lg btn-danger d-flex align-items-center gap-2" style="
+                    min-width: 250px;
+                    padding: 15px 25px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+                    transition: all 0.3s ease;
+                ">
+                    <i class="ri-history-line" style="font-size: 1.5em;"></i>
+                    <div class="d-flex flex-column align-items-start">
+                        <span style="font-size: 0.85em; opacity: 0.9">Track Records</span>
+                        <span style="font-size: 1.1em">View History</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Download Report Button -->
+            <div class="action-button">
+                <button class="btn btn-lg btn-danger d-flex align-items-center gap-2" style="
+                    min-width: 250px;
+                    padding: 15px 25px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+                    transition: all 0.3s ease;
+                ">
+                    <i class="ri-download-cloud-line" style="font-size: 1.5em;"></i>
+                    <div class="d-flex flex-column align-items-start">
+                        <span style="font-size: 0.85em; opacity: 0.9">Generate Report</span>
+                        <span style="font-size: 1.1em">Download Data</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin-bottom: 5px;">
+      <div class="col-9"></div>
+      <div class="col-3">
+        <div class="custom-form-group">
+          <input
+            type="text"
+            id="searchChapterInput"
+            class="form-control"
+            placeholder="Search Credit Transaction."
+            aria-label="Event : custom'id"
+            aria-describedby="button-addon2"
+          />
+          <a href="javascript:void(0);" class="text-muted custom-form-btn">
+            <i class="ti ti-search"></i>
+          </a>
+        </div>
+        
+      </div>
+    </div>
+    <!-- Start::row-1 -->
+    <div class="row">
+      <div class="col-xl-12">
+        <div class="card custom-card">
           <div
-            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+            class="card-header justify-content-between"
+            style="background-color: gainsboro !important"
           >
-            <div>
-              <nav>
-                <ol class="breadcrumb mb-1">
-                  <li class="breadcrumb-item">
-                    <a href="javascript:void(0);" style="color: #d01f2f"
-                      >Accolades Information</a
-                    >
-                  </li>
-                  <li class="breadcrumb-item Approved" aria-current="page">
-                    View All Accolades
-                  </li>
-                </ol>
-              </nav>
-              <h1 class="page-title fw-medium fs-18 mb-0">
-                Manage Accolades
-              </h1>
-            </div>
-            <div class="btn-list">
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total In Stock Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
-              </button>
-
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Rejected Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
-              </button>
-
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total Approved Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
-              </button>
-              
+            <div class="card-title">All Credit History</div>
+            
+            
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table text-nowrap">
+                <thead>
+                  <tr>
+                    <th scope="col">S.No.</th>
+                    <th scope="col"> Date</th>
+                    <th scope="col">No.of Accolades</th>
+                    <th scope="col">Approved</th>
+                    <th scope="col">Declined</th>
+                    <th scope="col">Pickup Status</th>
+                    <th scope="col">Given Status</th>
+                  </tr>
+                </thead>
+                <tbody id="chaptersTableBody">
+                </tbody>
+              </table>
             </div>
           </div>
-          <!-- Page Header Close -->
-
-          <!-- Start::row-1 -->
-          <div class="card custom-card" style="background-color: gainsboro">
-            <div class="card-header justify-content-between">
-              <div class="card-title">All Accolades List</div>
-              <div class="d-flex gap-3 align-items-center flex-wrap">
-               
-                <div class="custom-form-group flex-grow-1">
-                  <input
-                    type="text"
-                    id="searchAccolades"
-                    class="form-control"
-                    placeholder="Search Accolades.."
-                    aria-label="Search Accolades"
-                    aria-describedby="button-addon2"
-                  />
-                  <a
-                    href="javascript:void(0);"
-                    class="text-muted custom-form-btn"
-                    ><i class="ti ti-search"></i
-                  ></a>
-                </div>
-                
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table
-                  class="table table-hover text-nowrap chaptersTableBody"
-                  style="border: 1px solid grey"
-                >
-                  <thead>
-                    <tr>
-                      <th scope="col">S.No.</th>
-                      <th scope="col">Accolades Name</th>
-                      <th scope="col">Published by</th>
-                    
-                      <th scope="col">Stock Available</th>
-                      <th scope="col">Stock In Date</th>
-                      <th scope="col">Item Type</th>
-                      <th scope="col">Accolade Type</th>
-                      
-                      <th scope="col">Status</th>
-                      
-                    </tr>
-                  </thead>
-                  
-                  <tbody id="chaptersTableBody">
-                    <!-- No accolades message will be shown here -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="card-footer border-top-0">
-              <div class="d-flex align-items-center flex-wrap overflow-auto">
-                <div class="mb-2 mb-sm-0">
-                  Showing <b>1</b> to <b>10</b> entries
-                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
-                </div>
-                <div class="ms-auto">
-                  <ul class="pagination mb-0 overflow-auto">
-                    <li class="page-item disabled">
-                      <a class="page-link">Previous</a>
-                    </li>
-                    <li class="page-item Approved" aria-current="page">
-                      <a class="page-link" href="javascript:void(0)">1</a>
-                    </li>
-                    <li class="page-item">
-                      <a class="page-link" href="javascript:void(0)">Next</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+          <div class="card-footer border-top-0">
+            <nav aria-label="Page navigation">
+              <ul class="pagination mb-0 float-end">
+                <li class="page-item disabled">
+                  <a class="page-link">Previous</a>
+                </li>
+                <li class="page-item active">
+                  <a class="page-link" href="javascript:void(0);">1</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="javascript:void(0);">Next</a>
+                </li>
+              </ul>
+            </nav>
           </div>
-          <!--End::row-1 -->
         </div>
       </div>
-      <!-- End::content  -->
-      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <script src="../../assets/js/requestChapterRequisition.js"></script>
-      
+    </div>
+    <!--End::row-1 -->
+  </div>
+</div>
+<!-- End::content  -->
 
-      <%- include('../partials/footer') %> 
+<script src="../../assets/js/tokenUtils.js"></script>
+<script src="../../assets/js/requisitions.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<style>
+    .btn-danger {
+        background-color: #dc2626;
+        border-color: #dc2626;
+    }
+    
+    .btn-danger:hover {
+        background-color: #b91c1c;
+        border-color: #b91c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3) !important;
+    }
+
+    .action-button {
+        position: relative;
+    }
+
+    .action-button::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 3px;
+        background: rgba(220, 38, 38, 0.3);
+        border-radius: 2px;
+        transition: all 0.3s ease;
+    }
+
+    .action-button:hover::after {
+        width: 95%;
+        background: rgba(220, 38, 38, 0.6);
+    }
+</style>
+
+<%- include('../partials/footer') %>
+
+
+
