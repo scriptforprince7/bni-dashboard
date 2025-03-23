@@ -207,6 +207,23 @@ style.textContent = `
     .members-modal::-webkit-scrollbar-track {
         background-color: #f1f5f9;
     }
+
+    .member-checkbox-item:hover {
+        background-color: #f8fafc;
+    }
+
+    .member-checkbox-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .member-checkbox-container::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .member-checkbox-container::-webkit-scrollbar-track {
+        background-color: #f1f5f9;
+    }
 `;
 
 document.head.appendChild(style);
@@ -447,3 +464,371 @@ function showDeclinedMembers(declinedCount) {
         }
     });
 }
+
+// Add click handler for "Apply Requisition" button
+document.querySelector('.action-button button').addEventListener('click', showRequisitionForm);
+
+async function showRequisitionForm() {
+    try {
+        // Fetch accolades and members
+        const [accoladesResponse, membersResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/members')
+        ]);
+        
+        const accolades = await accoladesResponse.json();
+        const members = await membersResponse.json();
+
+        // Track selected assignments
+        let assignments = [];
+        let currentSno = 1;
+
+        const formHtml = `
+            <div class="requisition-container" style="
+                display: flex;
+                gap: 20px;
+                height: 700px;
+            ">
+                <!-- Left Panel - Form -->
+                <div class="form-panel" style="
+                    flex: 1;
+                    padding: 25px;
+                    background: #f8fafc;
+                    border-radius: 12px;
+                    border: 1px solid #e2e8f0;
+                ">
+                    <h3 style="
+                        font-size: 1.2em;
+                        color: #334155;
+                        margin-bottom: 25px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <i class="ri-file-add-line"></i> New Requisition
+                    </h3>
+
+                    <!-- Accolade Selection -->
+                    <div class="form-group mb-4">
+                        <label style="
+                            display: block;
+                            margin-bottom: 10px;
+                            color: #475569;
+                            font-size: 0.95em;
+                            font-weight: 500;
+                        ">
+                            <i class="ri-award-line me-1"></i> Select Accolade
+                        </label>
+                        <select id="accoladeSelect" class="form-select" style="
+                            width: 100%;
+                            padding: 10px 14px;
+                            border: 1px solid #cbd5e1;
+                            border-radius: 6px;
+                            background-color: white;
+                            font-size: 1em;
+                        ">
+                            <option value="">Choose an accolade...</option>
+                            ${accolades.map(a => `
+                                <option value="${a.accolade_id}">${a.accolade_name}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+
+                    <!-- Multiple Member Selection with Checkboxes -->
+                    <div class="form-group mb-4">
+                        <label style="
+                            display: block;
+                            margin-bottom: 10px;
+                            color: #475569;
+                            font-size: 0.95em;
+                            font-weight: 500;
+                        ">
+                            <i class="ri-team-line me-1"></i> Select Members
+                        </label>
+                        <div class="member-checkbox-container" style="
+                            max-height: 200px;
+                            overflow-y: auto;
+                            border: 1px solid #cbd5e1;
+                            border-radius: 6px;
+                            background-color: white;
+                            padding: 5px;
+                        ">
+                            ${members.map(m => `
+                                <div class="member-checkbox-item" style="
+                                    padding: 8px 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                    border-bottom: 1px solid #f1f5f9;
+                                    transition: background-color 0.2s;
+                                    cursor: pointer;
+                                ">
+                                    <input type="checkbox" 
+                                           id="member-${m.member_id}" 
+                                           value="${m.member_id}"
+                                           style="width: 16px; height: 16px; cursor: pointer;"
+                                    >
+                                    <label for="member-${m.member_id}" style="
+                                        margin: 0;
+                                        cursor: pointer;
+                                        flex: 1;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                    ">
+                                        <i class="ri-user-line" style="color: #64748b;"></i>
+                                        ${m.member_first_name} ${m.member_last_name}
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Comment Field -->
+                    <div class="form-group mb-4">
+                        <label style="
+                            display: block;
+                            margin-bottom: 10px;
+                            color: #475569;
+                            font-size: 0.95em;
+                            font-weight: 500;
+                        ">
+                            <i class="ri-chat-1-line me-1"></i> Comment
+                        </label>
+                        <textarea id="commentInput" class="form-control" rows="4" style="
+                            width: 100%;
+                            padding: 10px 14px;
+                            border: 1px solid #cbd5e1;
+                            border-radius: 6px;
+                            resize: none;
+                            background-color: white;
+                            font-size: 1em;
+                        "></textarea>
+                    </div>
+
+                    <!-- Updated Button Text -->
+                    <button onclick="addAssignment()" class="btn btn-primary w-100" style="
+                        background: #2563eb;
+                        border: none;
+                        padding: 12px;
+                        border-radius: 6px;
+                        color: white;
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        font-size: 1em;
+                    ">
+                        <i class="ri-file-add-line"></i> Apply Requisition
+                    </button>
+                </div>
+
+                <!-- Right Panel - Assignments List -->
+                <div class="assignments-panel" style="
+                    flex: 1;
+                    padding: 25px;
+                    background: #f8fafc;
+                    border-radius: 12px;
+                    border: 1px solid #e2e8f0;
+                    overflow-y: auto;
+                ">
+                    <h3 style="
+                        font-size: 1.2em;
+                        color: #334155;
+                        margin-bottom: 25px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <i class="ri-list-check"></i> Added Requisitions
+                    </h3>
+                    <div id="assignmentsList"></div>
+                </div>
+            </div>
+        `;
+
+        Swal.fire({
+            title: '<span style="color: #2563eb;"><i class="ri-file-list-3-line"></i> Create New Requisition</span>',
+            html: formHtml,
+            width: 1200,
+            height: 800,
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Submit Requisition',
+            confirmButtonColor: '#2563eb',
+            customClass: {
+                container: 'requisition-modal',
+                popup: 'requisition-popup'
+            },
+            preConfirm: () => {
+                // Check if there are any assignments
+                if (assignments.length === 0) {
+                    Swal.showValidationMessage('Please add at least one assignment before submitting');
+                    return false;
+                }
+                return true;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '<span style="color: #059669;">Success!</span>',
+                    html: `
+                        <div style="
+                            padding: 20px;
+                            background: rgba(34, 197, 94, 0.1);
+                            border-radius: 8px;
+                            margin: 20px 0;
+                        ">
+                            <div style="
+                                color: #059669;
+                                font-size: 1.1em;
+                                margin-bottom: 10px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                justify-content: center;
+                            ">
+                                <i class="ri-checkbox-circle-line"></i>
+                                Requisition Submitted Successfully
+                            </div>
+                            <div style="
+                                color: #065f46;
+                                font-size: 0.9em;
+                                text-align: center;
+                            ">
+                                Your requisition has been processed and will be reviewed shortly.
+                            </div>
+                        </div>
+                    `,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Done',
+                    confirmButtonColor: '#059669',
+                    customClass: {
+                        popup: 'success-popup'
+                    }
+                }).then(() => {
+                    // Optional: Refresh the page or update the table
+                    // window.location.reload();
+                });
+            }
+        });
+
+        // Function to add new assignment
+        window.addAssignment = function() {
+            const accoladeSelect = document.getElementById('accoladeSelect');
+            const commentInput = document.getElementById('commentInput');
+            const selectedCheckboxes = document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked');
+
+            const accolade = accolades.find(a => a.accolade_id === parseInt(accoladeSelect.value));
+            const selectedMembers = Array.from(selectedCheckboxes).map(checkbox => 
+                members.find(m => m.member_id === parseInt(checkbox.value))
+            );
+
+            if (!accolade || selectedMembers.length === 0 || !commentInput.value.trim()) {
+                Swal.showValidationMessage('Please select an accolade, at least one member, and add a comment');
+                return;
+            }
+
+            // Add an assignment for each selected member
+            selectedMembers.forEach(member => {
+                assignments.push({
+                    sno: currentSno++,
+                    accolade,
+                    member,
+                    comment: commentInput.value.trim()
+                });
+            });
+
+            renderAssignments();
+            
+            // Reset form (keep accolade selected)
+            selectedCheckboxes.forEach(checkbox => checkbox.checked = false);
+            commentInput.value = '';
+        };
+
+        // Function to render assignments
+        function renderAssignments() {
+            const assignmentsList = document.getElementById('assignmentsList');
+            assignmentsList.innerHTML = assignments.map(assignment => `
+                <div class="assignment-item" style="
+                    background: white;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 12px;
+                    border: 1px solid #e2e8f0;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                ">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <span style="
+                            background: #2563eb;
+                            color: white;
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 0.8em;
+                        ">${assignment.sno}</span>
+                        <strong style="color: #1e40af;">${assignment.accolade.accolade_name}</strong>
+                    </div>
+                    
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        margin-bottom: 8px;
+                        color: #475569;
+                    ">
+                        <i class="ri-user-line"></i>
+                        ${assignment.member.member_first_name} ${assignment.member.member_last_name}
+                    </div>
+                    
+                    <div style="
+                        color: #64748b;
+                        font-size: 0.9em;
+                        padding: 8px;
+                        background: #f1f5f9;
+                        border-radius: 4px;
+                    ">
+                        <i class="ri-chat-1-line me-1"></i>
+                        ${assignment.comment}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load form data'
+        });
+    }
+}
+
+// Add success popup styling
+const successStyles = `
+    .success-popup {
+        border-radius: 12px;
+        padding: 10px;
+    }
+    
+    .success-popup .swal2-icon {
+        border-color: #059669;
+        color: #059669;
+    }
+    
+    .success-popup .swal2-confirm {
+        box-shadow: 0 4px 6px rgba(5, 150, 105, 0.2);
+    }
+    
+    .success-popup .swal2-confirm:hover {
+        background-color: #047857 !important;
+    }
+`;
+
+style.textContent += successStyles;
