@@ -38,13 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Render the table with static data
     const tableContent = requisitions.map(req => `
         <tr class="align-middle">
-            <td class="fw-bold text-center">${req.sno}</td>
+            <td class="fw-bold">${req.sno}</td>
             
-            <td class="text-center">
+            <td>
                 <span class="text-dark fw-semibold">${req.date}</span>
             </td>
             
-            <td class="text-center">
+            <td>
                 <span class="badge bg-primary-transparent" 
                       style="font-size: 0.9em; cursor: pointer;"
                       onclick="showAccoladeDetails(${req.totalAccolades})">
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </span>
             </td>
             
-            <td class="text-center">
+            <td>
                 <span class="badge bg-success-transparent" 
                       style="font-size: 0.9em; cursor: pointer;"
                       onclick="showApprovedMembers(${req.approved})">
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </span>
             </td>
             
-            <td class="text-center">
+            <td>
                 <span class="badge bg-danger-transparent" 
                       style="font-size: 0.9em; cursor: pointer;"
                       onclick="showDeclinedMembers(${req.declined})">
@@ -70,10 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </span>
             </td>
             
-            <td class="text-center">
+            <td>
                 ${req.pickupStatus.status === 'Picked Up' 
-                    ? `<div class="d-flex flex-column align-items-center">
-                        <span class="badge bg-success-transparent mb-1">
+                    ? `<div class="d-flex flex-column" style="min-width: 80px;">
+                        <span class="badge bg-success-transparent mb-1" style="width: fit-content;">
                             <i class="ri-checkbox-circle-line me-1"></i>
                             ${req.pickupStatus.status}
                         </span>
@@ -82,17 +82,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${req.pickupStatus.date}
                         </small>
                        </div>`
-                    : `<span class="badge bg-warning-transparent">
+                    : `<span class="badge bg-warning-transparent" style="width: fit-content;">
                         <i class="ri-time-line me-1"></i>
                         ${req.pickupStatus.status}
                        </span>`
                 }
             </td>
             
-            <td class="text-center">
+            <td>
                 ${req.givenStatus.status === 'Given' 
-                    ? `<div class="d-flex flex-column align-items-center">
-                        <span class="badge bg-success-transparent mb-1">
+                    ? `<div class="d-flex flex-column" style="min-width: 120px;">
+                        <span class="badge bg-success-transparent mb-1" style="width: fit-content;">
                             <i class="ri-checkbox-circle-line me-1"></i>
                             ${req.givenStatus.status}
                         </span>
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${req.givenStatus.date}
                         </small>
                        </div>`
-                    : `<span class="badge bg-warning-transparent">
+                    : `<span class="badge bg-warning-transparent" style="width: fit-content;">
                         <i class="ri-time-line me-1"></i>
                         ${req.givenStatus.status}
                        </span>`
@@ -434,7 +434,7 @@ function showDeclinedMembers(declinedCount) {
     Swal.fire({
         title: '<span style="color: #dc2626;"><i class="ri-close-circle-line"></i> Declined Accolades</span>',
         html: `
-            <div style="max-height: 400px; overflow-y: auto; padding: 10px;">
+            <div style="max-height: 400px; overflow-y: auto; padding: 10px;"></div>
                 ${membersHtml}
             </div>
         `,
