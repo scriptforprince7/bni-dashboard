@@ -51,6 +51,25 @@
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
               <div class="card-title">All Accolades List</div>
+              <div class="d-flex gap-3 align-items-center">
+                <div class="dropdown me-2">
+                  <a href="javascript:void(0);"
+                    class="btn btn-sm btn-light text-muted dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="true">
+                    <i class="ti ti-calendar me-1"></i> Select Month
+                  </a>
+                  <ul class="dropdown-menu" id="month-filter" role="menu">
+                    <!-- Months will be dynamically inserted here -->
+                  </ul>
+                </div>
+                <button id="applyFilter" class="btn btn-sm btn-primary" style="display: none;">
+                  <i class="ti ti-check me-1"></i> Apply Filter
+                </button>
+                <button id="resetFilter" class="btn btn-sm btn-danger" style="display: none;">
+                  <i class="ti ti-x me-1"></i> Reset
+                </button>
+              </div>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive">
@@ -63,11 +82,11 @@
                       <th>S.No.</th>
                       <th>Accolade Name</th>
                       <th>Item Type</th>
-                      <th>Accolade Type</th>
+                      <th>Accolade Count</th>
                       <th>Issued By</th>
                       <th>Issued Date</th>
                       <th>Given Date</th>
-                      <th>Requested</th>
+                      <th>Request</th>
                       
                     </tr>
                   </thead>

@@ -19,6 +19,71 @@ function debugLog(message, data = null) {
     }
 }
 
+// Add these variables at the top of your file
+let selectedMonth = null;
+let memberOriginalAccolades = []; // Store only member's original accolades
+
+// Function to format date as MMM-YYYY
+function formatMonthYear(date) {
+    const d = new Date(date);
+    return `${d.toLocaleString('default', { month: 'short' })}-${d.getFullYear()}`;
+}
+
+// Function to populate month filter
+function populateMonthFilter(memberAccolades) {
+    const monthSet = new Set();
+    const monthFilterEl = document.getElementById('month-filter');
+    
+    memberAccolades.forEach(accolade => {
+        if (accolade.accolade_publish_date) {
+            monthSet.add(formatMonthYear(accolade.accolade_publish_date));
+        }
+    });
+
+    const sortedMonths = Array.from(monthSet).sort((a, b) => {
+        const [monthA, yearA] = a.split('-');
+        const [monthB, yearB] = b.split('-');
+        return new Date(`${monthA} ${yearA}`) - new Date(`${monthB} ${yearB}`);
+    });
+
+    monthFilterEl.innerHTML = sortedMonths.map(month => `
+        <li>
+            <a class="dropdown-item" href="javascript:void(0);" data-month="${month}">
+                ${month}
+            </a>
+        </li>
+    `).join('');
+
+    // Add click handlers for filter items
+    monthFilterEl.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            selectedMonth = item.dataset.month;
+            document.querySelector('.dropdown-toggle').textContent = selectedMonth;
+            document.getElementById('applyFilter').style.display = 'inline-block';
+            document.getElementById('resetFilter').style.display = 'inline-block';
+        });
+    });
+}
+
+// Function to apply filter
+function applyFilter() {
+    if (!selectedMonth) return;
+
+    const filteredAccolades = memberOriginalAccolades.filter(accolade => 
+        formatMonthYear(accolade.accolade_publish_date) === selectedMonth
+    );
+    populateAccoladesTable(filteredAccolades);
+}
+
+// Function to reset filter
+function resetFilter() {
+    selectedMonth = null;
+    document.querySelector('.dropdown-toggle').textContent = 'Select Month';
+    document.getElementById('applyFilter').style.display = 'none';
+    document.getElementById('resetFilter').style.display = 'none';
+    populateAccoladesTable(memberOriginalAccolades); // Reset to member's original accolades
+}
+
 async function fetchMemberData() {
     try {
         showLoader();
@@ -85,11 +150,17 @@ async function fetchMemberData() {
 
         debugLog(`Total accolades found: ${memberAccolades.length}`, memberAccolades);
 
+        // After you've mapped the member's accolades
+        memberOriginalAccolades = memberAccolades; // Store only the member's accolades
+        
+        // Populate month filter with member's accolades only
+        populateMonthFilter(memberAccolades);
+        
         // Populate table
         populateAccoladesTable(memberAccolades);
 
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error:', error);
         debugLog('Error occurred:', error);
     } finally {
         hideLoader();
@@ -132,7 +203,7 @@ function populateAccoladesTable(accolades) {
                 >${accolade.accolade_name || 'N/A'}</span>
             </td>
             <td>${accolade.item_type || 'N/A'}</td>
-            <td>${accolade.accolade_type || 'N/A'}</td>
+            <td><span style="font-weight: 600">1</span></td>
             <td>${accolade.accolade_published_by || 'N/A'}</td>
             <td><span style="font-weight: 600">${publishDate}</span></td>
             <td><span style="font-weight: 600">${accolade.accolade_given_date || '-'}</span></td>
@@ -230,7 +301,7 @@ async function handleRequestAndPay(accoladeId) {
             'style': 'height: 120px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;'
         },
         showCancelButton: true,
-        confirmButtonText: 'Submit Request',
+        confirmButtonText: 'Pay Now',
         cancelButtonText: 'Cancel',
         confirmButtonColor: '#2563eb',
         cancelButtonColor: '#dc2626',
@@ -372,4 +443,8 @@ document.addEventListener('DOMContentLoaded', () => {
     debugLog('Document ready, initializing...');
     fetchMemberData();
     populateAccoladesDropdown();
+    
+    // Add filter button listeners
+    document.getElementById('applyFilter').addEventListener('click', applyFilter);
+    document.getElementById('resetFilter').addEventListener('click', resetFilter);
 });
