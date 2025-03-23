@@ -56,7 +56,125 @@ function getRandomAccolades(count = 5) {
     return shuffled.slice(0, count);
 }
 
-// Update the renderTable function to show chapters with styled accolades
+// Add function to handle accolade click
+function handleAccoladeClick(accolade) {
+    // Get a random member from the demo data
+    const demoMember = {
+        member_first_name: "Raja",
+        member_last_name: "Shukla",
+        member_email_address: "rajashukla@outlook.com",
+        member_company_name: "NATIONAL MARKETING PROJECTS INC",
+        category_name: "IT"
+    };
+
+    Swal.fire({
+        title: '<span style="color: #2563eb"><i class="ri-award-fill"></i> Accolade Request Review</span>',
+        html: `
+            <div class="member-details" style="text-align: left; padding: 20px;">
+                <div class="detail-row" style="margin-bottom: 20px;">
+                    <i class="ri-user-fill" style="color: #2563eb"></i>
+                    <strong>Member Name:</strong> 
+                    <span style="color: #1e293b; font-size: 1.1em;">
+                        ${demoMember.member_first_name} ${demoMember.member_last_name}
+                    </span>
+                </div>
+                
+                <div class="detail-row" style="margin-bottom: 20px;">
+                    <i class="ri-building-fill" style="color: #2563eb"></i>
+                    <strong>Company:</strong> 
+                    <span style="color: #1e293b">${demoMember.member_company_name}</span>
+                </div>
+
+                <div class="detail-row" style="margin-bottom: 20px;">
+                    <i class="ri-mail-fill" style="color: #2563eb"></i>
+                    <strong>Email:</strong> 
+                    <span style="color: #1e293b">${demoMember.member_email_address}</span>
+                </div>
+
+                <div class="accolade-info" style="
+                    margin: 25px 0;
+                    padding: 15px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                    border-left: 4px solid #2563eb;
+                ">
+                    <div style="margin-bottom: 10px;">
+                        <i class="ri-award-line" style="color: #2563eb"></i>
+                        <strong>Requested Accolade:</strong> 
+                        <span style="color: #1e293b">${accolade.accolade_name}</span>
+                    </div>
+                    <div>
+                        <i class="ri-folder-info-line" style="color: #2563eb"></i>
+                        <strong>Category:</strong> 
+                        <span style="color: #1e293b">${demoMember.category_name}</span>
+                    </div>
+                </div>
+
+                <div class="approval-section" style="margin: 20px 0;">
+                    <label style="display: block; margin-bottom: 10px; color: #1e293b;">
+                        <i class="ri-checkbox-circle-line" style="color: #2563eb"></i>
+                        <strong>Approval Status:</strong>
+                    </label>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="approval_status" value="approved">
+                            <span style="color: #059669">
+                                <i class="ri-checkbox-circle-fill"></i> Approve
+                            </span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="approval_status" value="rejected">
+                            <span style="color: #dc2626">
+                                <i class="ri-close-circle-fill"></i> Reject
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="comment-section">
+                    <label style="display: block; margin-bottom: 8px; color: #1e293b;">
+                        <i class="ri-chat-3-line" style="color: #2563eb"></i>
+                        <strong>Leave your comment:</strong>
+                    </label>
+                    <textarea id="accolade-comment" 
+                            class="form-control" 
+                            style="width: 100%; min-height: 80px; border-radius: 8px; padding: 10px;"
+                            placeholder="Enter your comment here..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-check-line"></i> Submit Review',
+        cancelButtonText: '<i class="ri-close-line"></i> Cancel',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#dc2626',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const status = document.querySelector('input[name="approval_status"]:checked')?.value;
+            const comment = document.getElementById('accolade-comment').value;
+
+            if (!status) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selection Required',
+                    text: 'Please select either Approve or Reject.',
+                    confirmButtonColor: '#2563eb'
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Review Submitted!',
+                text: `Accolade has been ${status} successfully!`,
+                confirmButtonColor: '#2563eb'
+            });
+        }
+    });
+}
+
+// Update the renderTable function to make accolades clickable
 const renderTable = () => {
     const tableBody = document.getElementById("chaptersTableBody");
     
@@ -65,13 +183,16 @@ const renderTable = () => {
             const randomAccolades = getRandomAccolades();
             const accoladesHtml = randomAccolades
                 .map(accolade => `
-                    <div class="accolade-item" style="
-                        margin-bottom: 8px;
-                        padding: 8px;
-                        border-left: 3px solid #2563eb;
-                        background: linear-gradient(to right, #f8fafc, transparent);
-                        border-radius: 4px;
-                        transition: all 0.3s ease;
+                    <div class="accolade-item" 
+                         onclick="handleAccoladeClick(${JSON.stringify(accolade).replace(/"/g, '&quot;')})"
+                         style="
+                            margin-bottom: 8px;
+                            padding: 8px;
+                            border-left: 3px solid #2563eb;
+                            background: linear-gradient(to right, #f8fafc, transparent);
+                            border-radius: 4px;
+                            transition: all 0.3s ease;
+                            cursor: pointer;
                     ">
                         <span class="accolade-badge" style="
                             background: ${accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
