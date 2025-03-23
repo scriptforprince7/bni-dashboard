@@ -130,11 +130,20 @@ async function checkMembershipPayment(visitorId) {
         const response = await fetch('https://backend.bninewdelhi.com/api/getMembershipPending');
         const membershipData = await response.json();
         
-        // Find the membership record for this visitor
         const membershipRecord = membershipData.find(record => record.visitor_id === visitorId);
         
-        // Return true if there's a record and due_balance is less than 1
-        return membershipRecord && parseFloat(membershipRecord.due_balance) < 1;
+        if (!membershipRecord) return false;
+        
+        // Handle NaN or invalid due_balance
+        const dueBalance = parseFloat(membershipRecord.due_balance);
+        if (isNaN(dueBalance)) {
+            // If due_balance is NaN, check if paid_amount is greater than or equal to total_amount
+            const paidAmount = parseFloat(membershipRecord.paid_amount) || 0;
+            const totalAmount = parseFloat(membershipRecord.total_amount) || 0;
+            return paidAmount >= totalAmount;
+        }
+        
+        return dueBalance < 1;
     } catch (error) {
         console.error('Error checking membership payment:', error);
         return false;
@@ -152,6 +161,149 @@ async function fetchMemberApplicationDetails(visitorId) {
         console.error("❌ Error fetching member application:", error);
         return null;
     }
+}
+
+// Add this function at the global scope
+async function handleScreenshotUpload(event, visitor_id) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        // Show loading state
+        Swal.fire({
+            title: 'Uploading...',
+            text: 'Please wait while we upload your screenshot',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('onboarding_call_img', file);
+
+        const response = await fetch(`https://backend.bninewdelhi.com/api/updateOnboardingCall/${visitor_id}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Screenshot uploaded successfully'
+            });
+
+            // Update just the image cell instead of re-rendering the whole table
+            const uploadCell = event.target.closest('td');
+            uploadCell.innerHTML = `
+                <div class="doc-container">
+                    <img src="${result.data.imageUrl}" 
+                         class="doc-preview" 
+                         onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                         alt="Onboarding Call Preview"
+                         onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                    />
+                    <div class="doc-actions">
+                        <label class="upload-btn" title="Upload New">
+                            <i class="ri-upload-2-line"></i>
+                            <input type="file" 
+                                   accept="image/*" 
+                                   style="display: none;" 
+                                   onchange="handleScreenshotUpload(event, ${visitor_id})"
+                            >
+                        </label>
+                    </div>
+                </div>
+            `;
+        } else {
+            throw new Error(result.message || 'Upload failed');
+        }
+
+    } catch (error) {
+        console.error('Error uploading screenshot:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload screenshot. Please try again.'
+        });
+    }
+}
+
+// Add this function for document preview
+function previewDocument(src, title) {
+    console.log("🔍 Previewing document:", { src, title });
+    Swal.fire({
+        title: title,
+        imageUrl: src,
+        imageAlt: title,
+        imageWidth: 400,
+        imageHeight: 400,
+        confirmButtonText: 'Close',
+        confirmButtonColor: '#2563eb',
+        showCloseButton: true,
+        imageErrorCallback: function() {
+            console.error("❌ Error loading image in preview");
+            Swal.update({
+                imageUrl: '../../assets/images/media/no-image.png',
+                text: 'Error loading image'
+            });
+        }
+    });
+}
+
+// Add this function to check induction readiness (if not already present)
+function getInductionStatus(visitor) {
+    return visitor.visitor_form && 
+           visitor.eoi_form && 
+           visitor.member_application_form && 
+           visitor.new_member_form && 
+           visitor.interview_sheet && 
+           visitor.commitment_sheet && 
+           visitor.inclusion_exclusion_sheet;
+}
+
+// Add this function to handle induction kit application
+function handleInductionKitApply(visitor) {
+    Swal.fire({
+        title: 'Apply Induction Kit?',
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <p><strong>Visitor Name:</strong> ${visitor.visitor_name}</p>
+                <p><strong>Company:</strong> ${visitor.visitor_company_name || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${visitor.visitor_phone}</p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Apply Kit',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show success message
+            Swal.fire({
+                title: 'Success!',
+                text: 'Induction Kit has been applied successfully',
+                icon: 'success',
+                confirmButtonColor: '#2563eb'
+            }).then(() => {
+                // Update the button to show tick mark
+                const kitCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
+                if (kitCell) {
+                    kitCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
+                }
+            });
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -296,18 +448,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 `;
             }
             return icon;
-        };
-
-        // Add function to check induction status
-        const getInductionStatus = (visitor) => {
-            // Return true only if all seven forms are completed
-            return visitor.visitor_form && 
-                   visitor.eoi_form && 
-                   visitor.member_application_form &&  // Add member_application check
-                   visitor.new_member_form && 
-                   visitor.interview_sheet && 
-                   visitor.commitment_sheet && 
-                   visitor.inclusion_exclusion_sheet;
         };
 
         // Function to create induction status button/icon
@@ -595,7 +735,50 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Fetch member application details for this visitor
                 const memberApplication = await fetchMemberApplicationDetails(visitor.visitor_id);
-                
+
+                const onboardingCallDisplay = visitor.onboarding_call 
+                    ? `
+                        <div class="doc-container">
+                            <img src="https://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
+                                 class="doc-preview" 
+                                 onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                                 alt="Onboarding Call Preview"
+                                 onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                            />
+                            <div class="doc-actions">
+                                <label class="upload-btn" title="Upload New">
+                                    <i class="ri-upload-2-line"></i>
+                                    <input type="file" 
+                                           accept="image/*" 
+                                           style="display: none;" 
+                                           onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
+                                    >
+                                </label>
+                            </div>
+                        </div>
+                    `
+                    : `
+                        <label class="upload-btn">
+                            <i class="ri-upload-2-line"></i> Upload Screenshot
+                            <input type="file" 
+                                   accept="image/*" 
+                                   style="display: none;" 
+                                   onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
+                            >
+                        </label>
+                    `;
+
+                // Update the inductionKitDisplay
+                const isReadyForInduction = getInductionStatus(visitor);
+                const inductionKitDisplay = isReadyForInduction 
+                    ? visitor.induction_kit_status 
+                        ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
+                        : `<button class="btn btn-primary btn-sm apply-kit-btn" 
+                                    onclick="handleInductionKitApply(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                             Apply Induction Kit <i class="ti ti-box"></i>
+                           </button>`
+                    : `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
+
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -623,6 +806,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
+                        <td class="text-center">${onboardingCallDisplay}</td>
                         <td class="text-center">
                             ${createDocumentDisplay(
                                 memberApplication?.aadhar_card_img,
@@ -644,7 +828,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 'gstCertificate'
                             )}
                         </td>
+                        <td class="text-center" data-visitor-id="${visitor.visitor_id}">${inductionKitDisplay}</td>
                         <td class="text-center">${createInductionStatus(visitor)}</td>
+                        
                     </tr>
                 `;
             }));
@@ -773,41 +959,26 @@ document.head.querySelector('style').textContent += `
     .send-mail-btn i {
         font-size: 14px;
     }
-`;
 
-// Add these functions outside the DOMContentLoaded event
-function handleScreenshotUpload(event, visitorId) {
-    const file = event.target.files[0];
-    if (file) {
-        // Show preview in a SweetAlert2 dialog
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            Swal.fire({
-                title: 'Onboarding Call Screenshot',
-                imageUrl: e.target.result,
-                imageAlt: 'Screenshot Preview',
-                showCancelButton: true,
-                confirmButtonText: 'Upload',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#dc2626'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Here you'll add the actual upload logic later
-                    Swal.fire('Success!', 'Screenshot uploaded successfully', 'success');
-                }
-            });
-        };
-        reader.readAsDataURL(file);
+    .apply-kit-btn {
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
-}
 
-function previewDocument(src, title) {
-    Swal.fire({
-        title: title,
-        imageUrl: src,
-        imageAlt: title,
-        confirmButtonText: 'Close',
-        confirmButtonColor: '#2563eb'
-    });
-}
+    .apply-kit-btn:hover {
+        background-color: #1d4ed8;
+    }
+
+    .apply-kit-btn i {
+        font-size: 14px;
+    }
+`;

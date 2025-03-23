@@ -6,5 +6,6 @@ const accoladesController = require('../../controllers/c-accolades/accoladesCont
 router.get('/manage-accolades', accoladesController.manageAccolades);
 router.get('/add-accolades', accoladesController.addAccolades);
 router.get('/edit-accolades', accoladesController.editAccolades);
+router.get('/requested-requisitions', accoladesController.requestedRequisitions);
 
 module.exports = router;

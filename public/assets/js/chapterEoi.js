@@ -37,20 +37,80 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     try {
         showLoader();
-        console.log('🔄 Fetching EOI data...');
+        console.log('🔄 Starting data fetch process...');
 
-        // Fetch all required data
-        const [eoiResponse, regionsResponse, chaptersResponse, membersResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/getEoiForms'),
+        // Get login type and handle access accordingly
+        const loginType = getUserLoginType();
+        console.log('👤 User login type:', loginType);
+
+        let userEmail, chapterId;
+
+        if (loginType === 'ro_admin') {
+            // For RO admin, get chapter details from localStorage
+            chapterId = localStorage.getItem('current_chapter_id');
+            userEmail = localStorage.getItem('current_chapter_email');
+            console.log('🔑 RO Admin accessing chapter:', {
+                chapter_id: chapterId,
+                chapter_email: userEmail
+            });
+        } else {
+            // For chapter login, get email from token
+            userEmail = getUserEmail();
+            console.log('📧 Chapter user email:', userEmail);
+        }
+
+        // Fetch chapters data
+        console.log('📚 Fetching chapters data...');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chapters = await chaptersResponse.json();
+        console.log('📘 Chapters data received:', chapters);
+
+        // Find the chapter based on login type
+        let userChapter;
+        if (loginType === 'ro_admin') {
+            userChapter = chapters.find(chapter => 
+                chapter.chapter_id.toString() === chapterId && 
+                chapter.email_id === userEmail
+            );
+            console.log('🏢 RO Admin accessing chapter details:', userChapter);
+        } else {
+            userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+            console.log('🏢 Chapter user details:', userChapter);
+        }
+
+        if (!userChapter) {
+            console.warn('⚠️ No matching chapter found:', {
+                loginType,
+                userEmail,
+                chapterId
+            });
+            throw new Error('Unauthorized access: No matching chapter found');
+        }
+
+        // Now fetch EOI forms
+        console.log('📝 Fetching EOI forms...');
+        const eoiResponse = await fetch('https://backend.bninewdelhi.com/api/getEoiForms');
+        const allEoiForms = await eoiResponse.json();
+        console.log('📋 All EOI forms received:', allEoiForms);
+
+        // Filter EOI forms for this chapter only
+        const eoiForms = allEoiForms.filter(eoi => eoi.chapter_id === userChapter.chapter_id);
+        console.log('🔍 Filtered EOI forms for chapter:', {
+            chapter_id: userChapter.chapter_id,
+            total_forms: allEoiForms.length,
+            filtered_forms: eoiForms.length,
+            accessing_as: loginType
+        });
+
+        // Fetch remaining required data
+        console.log('🔄 Fetching additional data...');
+        const [regionsResponse, membersResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/regions'),
-            fetch('https://backend.bninewdelhi.com/api/chapters'),
             fetch('https://backend.bninewdelhi.com/api/members')
         ]);
 
-        const [eoiForms, regions, chapters, members] = await Promise.all([
-            eoiResponse.json(),
+        const [regions, members] = await Promise.all([
             regionsResponse.json(),
-            chaptersResponse.json(),
             membersResponse.json()
         ]);
 
@@ -70,13 +130,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get table body
         const tableBody = document.getElementById('chaptersTableBody');
         
-        // Update total count
+        // Update total count with filtered forms
         document.getElementById('total-visitors-count').textContent = eoiForms.length;
+        console.log('📊 Updated total count:', eoiForms.length);
 
         // Populate table
         eoiForms.forEach((eoi, index) => {
-            console.log('🔄 Processing EOI form:', eoi);
-            console.log('Visit Date:', eoi.chapter_visit_date);
+            console.log('📝 Processing EOI form:', {
+                index: index + 1,
+                eoi_id: eoi.eoi_id,
+                chapter_id: eoi.chapter_id
+            });
             
             const formattedDate = formatDate(eoi.chapter_visit_date);
             console.log('Formatted Date:', formattedDate);
@@ -439,11 +503,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.head.appendChild(style);
 
     } catch (error) {
-        console.error('❌ Error fetching data:', error);
+        console.error('❌ Error in data processing:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong while fetching the data!'
+            title: 'Access Error',
+            text: loginType === 'ro_admin' 
+                ? 'Unable to access chapter data. Please ensure you have selected a valid chapter.'
+                : 'You do not have permission to view this data or an error occurred.'
         });
     } finally {
         hideLoader();

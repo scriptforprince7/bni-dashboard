@@ -677,6 +677,35 @@ document.addEventListener('DOMContentLoaded', async function() {
                         </label>
                     `;
 
+                // Add this function to handle induction kit status
+                function createInductionKitStatus(visitor) {
+                    const isReady = visitor.visitor_form && 
+                                    visitor.eoi_form && 
+                                    visitor.member_application_form && 
+                                    visitor.new_member_form && 
+                                    visitor.interview_sheet && 
+                                    visitor.commitment_sheet && 
+                                    visitor.inclusion_exclusion_sheet;
+                    
+                    return isReady 
+                        ? visitor.induction_kit_status 
+                            ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
+                            : `<button class="btn btn-primary btn-sm approve-kit-btn" 
+                                       onclick="handleInductionKitApprove(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                 Approve Induction Kit <i class="ti ti-check"></i>
+                               </button>`
+                        : `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
+                }
+
+                // Add these new cells before the induction kit status cell
+                const isReadyForInduction = visitor.visitor_form && 
+                                           visitor.eoi_form && 
+                                           visitor.member_application_form && 
+                                           visitor.new_member_form && 
+                                           visitor.interview_sheet && 
+                                           visitor.commitment_sheet && 
+                                           visitor.inclusion_exclusion_sheet;
+
                 return `
                     <tr>
                         <td>${index + 1}</td>
@@ -727,6 +756,29 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 visitor.visitor_gst,
                                 'gstCertificate'
                             )}
+                        </td>
+                        <td class="text-center" data-entry-id="${visitor.visitor_id}">
+                            ${visitor.visitor_entry_status 
+                                ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
+                                : isReadyForInduction
+                                    ? `<button class="btn btn-primary btn-sm" onclick="handleVisitorEntry(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                         <i class="ri-user-add-line"></i> Update Entry
+                                       </button>`
+                                    : `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`
+                            }
+                        </td>
+                        <td class="text-center" data-sheet-id="${visitor.visitor_id}">
+                            ${visitor.google_sheet_status 
+                                ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
+                                : isReadyForInduction
+                                    ? `<button class="btn btn-primary btn-sm" onclick="handleGoogleSheet(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                         <i class="ri-google-line"></i> Update Sheet
+                                       </button>`
+                                    : `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`
+                            }
+                        </td>
+                        <td class="text-center" data-visitor-id="${visitor.visitor_id}">
+                            ${createInductionKitStatus(visitor)}
                         </td>
                         <td class="text-center">${createInductionStatus(visitor)}</td>
                     </tr>
@@ -933,6 +985,205 @@ function previewDocument(src, title) {
             Swal.update({
                 imageUrl: '../../assets/images/media/no-image.png',
                 text: 'Error loading image'
+            });
+        }
+    });
+}
+
+// Add this function to handle the approval process
+function handleInductionKitApprove(visitor) {
+    Swal.fire({
+        title: 'Approve Induction Kit?',
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <p><strong>Visitor Name:</strong> ${visitor.visitor_name}</p>
+                <p><strong>Company:</strong> ${visitor.visitor_company_name || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${visitor.visitor_phone}</p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Approve Kit',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#dc2626'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Success!',
+                text: 'Induction Kit has been approved successfully',
+                icon: 'success',
+                confirmButtonColor: '#2563eb'
+            }).then(() => {
+                const kitCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
+                if (kitCell) {
+                    kitCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
+                }
+            });
+        }
+    });
+}
+
+// Add these functions for handling Visitor Entry and Google Sheet updates
+function handleVisitorEntry(visitor) {
+    Swal.fire({
+        title: '<span style="color: #2563eb"><i class="ri-user-add-fill"></i> Visitor Entry Confirmation</span>',
+        html: `
+            <div class="entry-details" style="text-align: left; padding: 20px;">
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-user-fill" style="color: #2563eb"></i>
+                    <strong>Visitor:</strong> ${visitor.visitor_name}
+                </div>
+                
+                <div class="question-box" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <p style="color: #1e293b; margin-bottom: 15px;">
+                        <i class="ri-question-fill" style="color: #2563eb"></i>
+                        Have you entered this visitor in the Visitor's Entry?
+                    </p>
+                    <div class="radio-group" style="display: flex; gap: 20px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="entry_status" value="yes">
+                            <span style="color: #059669"><i class="ri-checkbox-circle-fill"></i> Yes</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="entry_status" value="no">
+                            <span style="color: #dc2626"><i class="ri-close-circle-fill"></i> No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="comment-box" style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #1e293b;">
+                        <i class="ri-chat-3-fill" style="color: #2563eb"></i>
+                        Leave your comment:
+                    </label>
+                    <textarea id="visitor-entry-comment" 
+                            class="form-control" 
+                            style="width: 100%; min-height: 80px; border-radius: 8px; padding: 10px;"
+                            placeholder="Enter your comment here..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-check-line"></i> Confirm Entry',
+        cancelButtonText: '<i class="ri-close-line"></i> Cancel',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#dc2626',
+        reverseButtons: true,
+        customClass: {
+            container: 'entry-modal',
+            popup: 'entry-popup',
+            content: 'entry-content'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const entryStatus = document.querySelector('input[name="entry_status"]:checked')?.value;
+            const comment = document.getElementById('visitor-entry-comment').value;
+
+            if (!entryStatus) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selection Required',
+                    text: 'Please select Yes or No for the entry status.',
+                    confirmButtonColor: '#2563eb'
+                });
+                return;
+            }
+
+            // Success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Entry Updated!',
+                text: 'Visitor entry status has been updated successfully',
+                confirmButtonColor: '#2563eb'
+            }).then(() => {
+                // Update the cell with a check mark
+                const entryCell = document.querySelector(`[data-entry-id="${visitor.visitor_id}"]`);
+                if (entryCell) {
+                    entryCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
+                }
+            });
+        }
+    });
+}
+
+function handleGoogleSheet(visitor) {
+    Swal.fire({
+        title: '<span style="color: #2563eb"><i class="ri-google-fill"></i> Google Sheet Update</span>',
+        html: `
+            <div class="sheet-details" style="text-align: left; padding: 20px;">
+                <div class="detail-row" style="margin-bottom: 15px;">
+                    <i class="ri-user-fill" style="color: #2563eb"></i>
+                    <strong>Visitor:</strong> ${visitor.visitor_name}
+                </div>
+                
+                <div class="question-box" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                    <p style="color: #1e293b; margin-bottom: 15px;">
+                        <i class="ri-question-fill" style="color: #2563eb"></i>
+                        Have you updated the Google Sheet with visitor's information?
+                    </p>
+                    <div class="radio-group" style="display: flex; gap: 20px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="sheet_status" value="yes">
+                            <span style="color: #059669"><i class="ri-checkbox-circle-fill"></i> Yes</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="sheet_status" value="no">
+                            <span style="color: #dc2626"><i class="ri-close-circle-fill"></i> No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="comment-box" style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #1e293b;">
+                        <i class="ri-chat-3-fill" style="color: #2563eb"></i>
+                        Leave your comment:
+                    </label>
+                    <textarea id="google-sheet-comment" 
+                            class="form-control" 
+                            style="width: 100%; min-height: 80px; border-radius: 8px; padding: 10px;"
+                            placeholder="Enter your comment here..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-check-line"></i> Confirm Update',
+        cancelButtonText: '<i class="ri-close-line"></i> Cancel',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#dc2626',
+        reverseButtons: true,
+        customClass: {
+            container: 'sheet-modal',
+            popup: 'sheet-popup',
+            content: 'sheet-content'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const sheetStatus = document.querySelector('input[name="sheet_status"]:checked')?.value;
+            const comment = document.getElementById('google-sheet-comment').value;
+
+            if (!sheetStatus) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selection Required',
+                    text: 'Please select Yes or No for the sheet update status.',
+                    confirmButtonColor: '#2563eb'
+                });
+                return;
+            }
+
+            // Success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Sheet Updated!',
+                text: 'Google sheet update status has been saved successfully',
+                confirmButtonColor: '#2563eb'
+            }).then(() => {
+                // Update the cell with a check mark
+                const sheetCell = document.querySelector(`[data-sheet-id="${visitor.visitor_id}"]`);
+                if (sheetCell) {
+                    sheetCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
+                }
             });
         }
     });

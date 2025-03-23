@@ -10,3 +10,6 @@ exports.editAccolades = (req, res) => {
     res.render('m-accolade/edit-accolades', { title: 'Edit Accolades' });
 };
 
+exports.requestedRequisitions = (req, res) => {
+    res.render('m-accolade/requested-requisitions', { title: 'Requested Requisitions' });
+};
