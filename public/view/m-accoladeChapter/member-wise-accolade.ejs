@@ -14,6 +14,35 @@
   color: #0056b3;
 }
 
+.accolade-link {
+  color: #e84e1a;
+  font-weight: 500;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.accolade-link:hover {
+  text-decoration: underline;
+}
+
+.accolade-badge {
+  background: linear-gradient(145deg, #6a5acd, #483d8b);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease-in-out;
+}
+
+.accolade-badge:hover {
+  transform: scale(1.1);
+}
+
     </style>
 
     <%- include('../partials/chapter-sidebar') %>
@@ -45,20 +74,19 @@
                 Member Wise Accolades
               </h1>
             </div>
-            <!-- <div class="btn-list">
-              <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                Total In Stock Accolades <br />
-                <span id="total-accolades-count"><b>0</b></span>
-              </button>
+            <div class="btn-list">
+              <a href="http://backend.bninewdelhi.com/api/exportMemberWiseAccolades"><button class="btn btn-danger btn-wave me-0">
+                <i class="ri-share-forward-line me-1"></i> Export Accolades Data
+              </button></a> 
               
-            </div> -->
+            </div>
           </div>
           <!-- Page Header Close -->
 
           <!-- Start::row-1 -->
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
-              <div class="card-title">All Accolades List</div>
+              <div class="card-title">All Member Wise Accolades List</div>
               <div class="d-flex">
               
                 <!-- Payment Method Filter -->
@@ -73,19 +101,26 @@
                     <!-- Items will be dynamically inserted here -->
                   </ul>
                 </div>
-              
-                <!-- Apply Filter Button -->
-                <!-- <button href=""
-                        id="apply-filters-btn"
-                        class="btn btn-sm btn-primary btn-wave waves-light">
-                  Apply Filter
-                </button> -->
-                <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+
+                <div style="margin-left: 1px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
                   Reset Filter
                 </button></div>
-                
-                
-                
+
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    id="searchMember"
+                    class="form-control"
+                    placeholder="Search Member.."
+                    aria-label="Search Member"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>  
               </div>
 
               <!-- Accolade Details Popup Modal -->

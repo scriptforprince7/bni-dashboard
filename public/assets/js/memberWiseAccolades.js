@@ -41,38 +41,51 @@ async function loadMembers() {
   renderTable(allMembers);
 }
 
-// Render table based on member data
-function renderTable(members) {
-  const tableBody = document.getElementById("chaptersTableBody");
-  tableBody.innerHTML = members
-    .map((member, index) => {
-      const memberName = `${member.member_first_name} ${member.member_last_name}`;
-      const memberAccolades = member.accolades_id
-        .map((id) => {
-          const accolade = allAccolades.find((a) => a.accolade_id === id);
-          return accolade
-            ? `<span class="accolade-link" data-member="${memberName}" data-accolade="${accolade.accolade_name}" data-date="2024-10-10">${accolade.accolade_name}</span>`
-            : `<span class="text-danger">Unknown Accolade</span>`;
-        })
-        .join(", ");
 
-      const statusBadge =
-        member.member_status === "active"
-          ? `<span class="badge bg-success">Active</span>`
-          : `<span class="badge bg-danger">Inactive</span>`;
 
-      return `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${memberName}</td>
-          <td>${memberAccolades || "No Accolades"}</td>
-          <td>${statusBadge}</td>
-        </tr>`;
-    })
-    .join("");
-
-  setupModalListener();
-}
+const renderTable = (members) => {
+    const tableBody = document.getElementById("chaptersTableBody");
+    tableBody.innerHTML = members
+      .map((member, index) => {
+        const memberName = `${member.member_first_name} ${member.member_last_name}`;
+        const accoladeCounts = {};
+  
+        member.accolades_id.forEach((id) => {
+          accoladeCounts[id] = (accoladeCounts[id] || 0) + 1;
+        });
+  
+        const memberAccolades = Object.entries(accoladeCounts)
+          .map(([id, count]) => {
+            const accolade = allAccolades.find((a) => a.accolade_id === Number(id));
+            return accolade
+              ? `<span class="accolade-link" data-member="${memberName}" data-accolade="${accolade.accolade_name}" data-date="2024-10-10">
+                  ${accolade.accolade_name}
+                  <span class="accolade-badge">x${count}</span>
+                </span>`
+              : `<span class="text-danger">Unknown Accolade</span>`;
+          })
+          .join("<br>");
+  
+        const statusBadge =
+          member.member_status === "active"
+            ? `<span class="badge bg-success">Active</span>`
+            : `<span class="badge bg-danger">Inactive</span>`;
+  
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${memberName}</td>
+            <td>${memberAccolades || "No Accolades"}</td>
+            <td>${statusBadge}</td>
+          </tr>`;
+      })
+      .join("");
+  
+    setupModalListener();
+  };
+  
+  
+  
 
 // Handle filter changes
 function setupFilterListener() {
@@ -143,6 +156,18 @@ function showAccoladePopup(target) {
   const accoladeModal = new bootstrap.Modal(document.getElementById("accoladeModal"));
   accoladeModal.show();
 }
+
+// Search members by name
+document.getElementById("searchMember").addEventListener("input", (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredMembers = allMembers.filter((member) => {
+      const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
+      return fullName.includes(searchTerm);
+    });
+  
+    renderTable(filteredMembers);
+  });
+  
 
 // Ensure accolades load first, then members
 async function loadEverything() {
