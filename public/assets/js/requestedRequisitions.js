@@ -58,119 +58,218 @@ function getRandomAccolades(count = 5) {
 
 // Add function to handle accolade click
 function handleAccoladeClick(accolade) {
-    // Get a random member from the demo data
-    const demoMember = {
-        member_first_name: "Raja",
-        member_last_name: "Shukla",
-        member_email_address: "rajashukla@outlook.com",
-        member_company_name: "NATIONAL MARKETING PROJECTS INC",
-        category_name: "IT"
+    // Demo data - this will be replaced with real data later
+    const requestDetails = {
+        accolade_name: accolade.accolade_name,
+        member_name: "Raja Shukla",
+        chapter_name: "BNI Amigos",
+        request_date: "2024-03-15",
+        reason: "Professional Achievement",
+        type: accolade.accolade_type,
+        chapter_comment: "Excellent performance in leadership role",
+        status: "Pending",
+        ro_comment: "Under review",
+        issued_date: "-",
+        given_date: "-",
+        requested_by: "Chapter President"
     };
 
     Swal.fire({
-        title: '<span style="color: #2563eb"><i class="ri-award-fill"></i> Accolade Request Review</span>',
+        title: '<span style="color: #2563eb"><i class="ri-file-list-3-line"></i> Accolade Request Details</span>',
         html: `
-            <div class="member-details" style="text-align: left; padding: 20px;">
-                <div class="detail-row" style="margin-bottom: 20px;">
-                    <i class="ri-user-fill" style="color: #2563eb"></i>
-                    <strong>Member Name:</strong> 
-                    <span style="color: #1e293b; font-size: 1.1em;">
-                        ${demoMember.member_first_name} ${demoMember.member_last_name}
-                    </span>
-                </div>
-                
-                <div class="detail-row" style="margin-bottom: 20px;">
-                    <i class="ri-building-fill" style="color: #2563eb"></i>
-                    <strong>Company:</strong> 
-                    <span style="color: #1e293b">${demoMember.member_company_name}</span>
-                </div>
-
-                <div class="detail-row" style="margin-bottom: 20px;">
-                    <i class="ri-mail-fill" style="color: #2563eb"></i>
-                    <strong>Email:</strong> 
-                    <span style="color: #1e293b">${demoMember.member_email_address}</span>
-                </div>
-
-                <div class="accolade-info" style="
-                    margin: 25px 0;
-                    padding: 15px;
-                    background: #f8fafc;
-                    border-radius: 8px;
-                    border-left: 4px solid #2563eb;
+            <div class="request-details-container" style="
+                max-height: 70vh;
+                overflow-y: auto;
+                padding: 20px;
+                background: #ffffff;
+                border-radius: 12px;
+            ">
+                <div class="details-grid" style="
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 16px;
+                    text-align: left;
                 ">
-                    <div style="margin-bottom: 10px;">
-                        <i class="ri-award-line" style="color: #2563eb"></i>
-                        <strong>Requested Accolade:</strong> 
-                        <span style="color: #1e293b">${accolade.accolade_name}</span>
+                    <!-- Accolade Name -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-award-line"></i> Accolade
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.accolade_name}
+                        </div>
                     </div>
-                    <div>
-                        <i class="ri-folder-info-line" style="color: #2563eb"></i>
-                        <strong>Category:</strong> 
-                        <span style="color: #1e293b">${demoMember.category_name}</span>
-                    </div>
-                </div>
 
-                <div class="approval-section" style="margin: 20px 0;">
-                    <label style="display: block; margin-bottom: 10px; color: #1e293b;">
-                        <i class="ri-checkbox-circle-line" style="color: #2563eb"></i>
-                        <strong>Approval Status:</strong>
-                    </label>
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="approval_status" value="approved">
-                            <span style="color: #059669">
-                                <i class="ri-checkbox-circle-fill"></i> Approve
-                            </span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="approval_status" value="rejected">
-                            <span style="color: #dc2626">
-                                <i class="ri-close-circle-fill"></i> Reject
-                            </span>
-                        </label>
+                    <!-- Member Name -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-user-line"></i> Member
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.member_name}
+                        </div>
                     </div>
-                </div>
 
-                <div class="comment-section">
-                    <label style="display: block; margin-bottom: 8px; color: #1e293b;">
-                        <i class="ri-chat-3-line" style="color: #2563eb"></i>
-                        <strong>Leave your comment:</strong>
-                    </label>
-                    <textarea id="accolade-comment" 
-                            class="form-control" 
-                            style="width: 100%; min-height: 80px; border-radius: 8px; padding: 10px;"
-                            placeholder="Enter your comment here..."></textarea>
+                    <!-- Chapter Name -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-building-line"></i> Chapter
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.chapter_name}
+                        </div>
+                    </div>
+
+                    <!-- Request Date -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-calendar-line"></i> Request Date
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.request_date}
+                        </div>
+                    </div>
+
+                    <!-- Reason -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-file-text-line"></i> Reason
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.reason}
+                        </div>
+                    </div>
+
+                    <!-- Type -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-price-tag-3-line"></i> Type
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.type}
+                        </div>
+                    </div>
+
+                    <!-- Chapter Comment -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                        grid-column: span 2;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-chat-1-line"></i> Chapter Comment
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.chapter_comment}
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-checkbox-circle-line"></i> Status
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            <span class="badge" style="
+                                background: #fef3c7;
+                                color: #92400e;
+                                padding: 4px 8px;
+                                border-radius: 9999px;
+                                font-size: 0.75rem;
+                            ">
+                                ${requestDetails.status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- RO Comment -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                        grid-column: span 2;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-chat-2-line"></i> RO Comment
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.ro_comment}
+                        </div>
+                    </div>
+
+                    <!-- Dates and Requested By -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-calendar-check-line"></i> Issued/Given Date
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.issued_date} / ${requestDetails.given_date}
+                        </div>
+                    </div>
+
+                    <!-- Requested By -->
+                    <div class="detail-item" style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                    ">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                            <i class="ri-user-star-line"></i> Requested By
+                        </div>
+                        <div style="color: #1e293b; font-weight: 500;">
+                            ${requestDetails.requested_by}
+                        </div>
+                    </div>
                 </div>
             </div>
         `,
-        showCancelButton: true,
-        confirmButtonText: '<i class="ri-check-line"></i> Submit Review',
-        cancelButtonText: '<i class="ri-close-line"></i> Cancel',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#dc2626',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const status = document.querySelector('input[name="approval_status"]:checked')?.value;
-            const comment = document.getElementById('accolade-comment').value;
-
-            if (!status) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Selection Required',
-                    text: 'Please select either Approve or Reject.',
-                    confirmButtonColor: '#2563eb'
-                });
-                return;
-            }
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Review Submitted!',
-                text: `Accolade has been ${status} successfully!`,
-                confirmButtonColor: '#2563eb'
-            });
-        }
+        width: '800px',
+        showCloseButton: true,
+        showConfirmButton: false
     });
 }
 
