@@ -320,19 +320,31 @@ async function showAccoladeDetails(totalAccolades) {
 function showApprovedMembers(approvedCount) {
     // Core members that should always be included
     const coreMembers = [
-        'Prince Sachdeva',
-        'Raja Shukla',
-        'Aditya Sachdeva'
+        {
+            name: 'Prince Sachdeva',
+            accolades: ['BNI Name Badge']
+        },
+        {
+            name: 'Raja Shukla',
+            accolades: ['BNI Name Badge']
+        },
+        {
+            name: 'Aditya Sachdeva',
+            accolades: ['Core Group Pin']
+        }
     ];
     
-    // Additional members to fill the count
+    // Additional members
     const additionalMembers = [
-        'Vikram Mehta',
-        'Rahul Sharma',
-        'Amit Kumar',
-        'Priya Patel',
-        'Rajesh Verma',
-        'Neha Singh'
+        {
+            name: 'Vikram Mehta',
+            accolades: ['BNI Name Badge']
+        },
+        {
+            name: 'Rahul Sharma',
+            accolades: ['Core Group Pin']
+        }
+        // ... other members
     ];
     
     // Get random additional members
@@ -346,29 +358,75 @@ function showApprovedMembers(approvedCount) {
     const membersHtml = approvedMembers.map(member => `
         <div class="member-item" style="
             display: flex;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
+            flex-direction: column;
+            padding: 16px;
+            margin-bottom: 15px;
             border-radius: 8px;
             background: rgba(34, 197, 94, 0.1);
             border-left: 4px solid #22c55e;
         ">
             <div style="
-                width: 35px;
-                height: 35px;
-                background: #22c55e;
-                border-radius: 50%;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                margin-right: 12px;
+                margin-bottom: 10px;
             ">
-                <i class="ri-user-smile-line" style="color: white; font-size: 1.2em;"></i>
+                <div style="
+                    width: 40px;
+                    height: 40px;
+                    background: #22c55e;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 12px;
+                ">
+                    <i class="ri-user-smile-line" style="color: white; font-size: 1.3em;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #065f46; font-size: 1.1em;">
+                        ${member.name}
+                    </div>
+                    <div style="font-size: 0.85em; color: #059669;">
+                        <i class="ri-checkbox-circle-line"></i> Approved
+                    </div>
+                </div>
             </div>
-            <div style="flex: 1;">
-                <div style="font-weight: 500; color: #065f46;">${member}</div>
-                <div style="font-size: 0.85em; color: #059669;">
-                    <i class="ri-checkbox-circle-line"></i> Approved
+            
+            <!-- Accolades Section -->
+            <div style="
+                margin-left: 52px;
+                padding: 10px;
+                background: white;
+                border-radius: 6px;
+            ">
+                <div style="
+                    font-size: 0.85em;
+                    color: #059669;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                ">
+                    <i class="ri-award-line"></i>
+                    Approved Accolades
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    ${member.accolades.map(accolade => `
+                        <span style="
+                            padding: 4px 8px;
+                            background: #f0fdf4;
+                            border: 1px solid #86efac;
+                            border-radius: 4px;
+                            font-size: 0.8em;
+                            color: #15803d;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            <i class="ri-medal-line"></i>
+                            ${accolade}
+                        </span>
+                    `).join('')}
                 </div>
             </div>
         </div>
@@ -377,11 +435,11 @@ function showApprovedMembers(approvedCount) {
     Swal.fire({
         title: '<span style="color: #22c55e;"><i class="ri-checkbox-circle-line"></i> Approved Accolades</span>',
         html: `
-            <div style="max-height: 400px; overflow-y: auto; padding: 10px;">
+            <div style="max-height: 500px; overflow-y: auto; padding: 10px;">
                 ${membersHtml}
             </div>
         `,
-        width: 500,
+        width: 600,
         showCloseButton: true,
         showConfirmButton: false,
         customClass: {
@@ -392,21 +450,33 @@ function showApprovedMembers(approvedCount) {
 }
 
 function showDeclinedMembers(declinedCount) {
-    // Core members that should always be included (but we'll mark them as declined)
+    // Core members that should always be included
     const coreMembers = [
-        'Prince Sachdeva',
-        'Raja Shukla',
-        'Aditya Sachdeva'
+        {
+            name: 'Prince Sachdeva',
+            accolades: ['Leadership Pin']
+        },
+        {
+            name: 'Raja Shukla',
+            accolades: ['Core Group Pin']
+        },
+        {
+            name: 'Aditya Sachdeva',
+            accolades: ['Membership Pin']
+        }
     ];
     
     // Additional members
     const additionalMembers = [
-        'Vikram Mehta',
-        'Rahul Sharma',
-        'Amit Kumar',
-        'Priya Patel',
-        'Rajesh Verma',
-        'Neha Singh'
+        {
+            name: 'Vikram Mehta',
+            accolades: ['BNI Name Badge']
+        },
+        {
+            name: 'Rahul Sharma',
+            accolades: ['Leadership Pin']
+        }
+        // ... other members
     ];
     
     // Get random additional members
@@ -420,29 +490,75 @@ function showDeclinedMembers(declinedCount) {
     const membersHtml = declinedMembers.map(member => `
         <div class="member-item" style="
             display: flex;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
+            flex-direction: column;
+            padding: 16px;
+            margin-bottom: 15px;
             border-radius: 8px;
             background: rgba(239, 68, 68, 0.1);
             border-left: 4px solid #ef4444;
         ">
             <div style="
-                width: 35px;
-                height: 35px;
-                background: #ef4444;
-                border-radius: 50%;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                margin-right: 12px;
+                margin-bottom: 10px;
             ">
-                <i class="ri-user-unfollow-line" style="color: white; font-size: 1.2em;"></i>
+                <div style="
+                    width: 40px;
+                    height: 40px;
+                    background: #ef4444;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-right: 12px;
+                ">
+                    <i class="ri-user-unfollow-line" style="color: white; font-size: 1.3em;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #991b1b; font-size: 1.1em;">
+                        ${member.name}
+                    </div>
+                    <div style="font-size: 0.85em; color: #dc2626;">
+                        <i class="ri-close-circle-line"></i> Declined
+                    </div>
+                </div>
             </div>
-            <div style="flex: 1;">
-                <div style="font-weight: 500; color: #991b1b;">${member}</div>
-                <div style="font-size: 0.85em; color: #dc2626;">
-                    <i class="ri-close-circle-line"></i> Declined
+            
+            <!-- Accolades Section -->
+            <div style="
+                margin-left: 52px;
+                padding: 10px;
+                background: white;
+                border-radius: 6px;
+            ">
+                <div style="
+                    font-size: 0.85em;
+                    color: #dc2626;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                ">
+                    <i class="ri-award-line"></i>
+                    Declined Accolades
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    ${member.accolades.map(accolade => `
+                        <span style="
+                            padding: 4px 8px;
+                            background: #fef2f2;
+                            border: 1px solid #fca5a5;
+                            border-radius: 4px;
+                            font-size: 0.8em;
+                            color: #b91c1c;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            <i class="ri-medal-line"></i>
+                            ${accolade}
+                        </span>
+                    `).join('')}
                 </div>
             </div>
         </div>
@@ -451,11 +567,11 @@ function showDeclinedMembers(declinedCount) {
     Swal.fire({
         title: '<span style="color: #dc2626;"><i class="ri-close-circle-line"></i> Declined Accolades</span>',
         html: `
-            <div style="max-height: 400px; overflow-y: auto; padding: 10px;"></div>
+            <div style="max-height: 500px; overflow-y: auto; padding: 10px;">
                 ${membersHtml}
             </div>
         `,
-        width: 500,
+        width: 600,
         showCloseButton: true,
         showConfirmButton: false,
         customClass: {
