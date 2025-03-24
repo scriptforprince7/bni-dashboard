@@ -6,15 +6,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         const userEmail = getUserEmail();
         const loginType = getUserLoginType();
         
-        console.log('User Email:', userEmail);
-        console.log('Login Type:', loginType);
+        console.log('👤 User Details:', {
+            userEmail,
+            loginType
+        });
 
-        let currentMemberEmail;
+        let currentMemberEmail, currentMemberId;
         
-        // Determine which member email to use
+        // Determine which member details to use
         if (loginType === 'ro_admin') {
             currentMemberEmail = localStorage.getItem('current_member_email');
-            console.log('RO Admin accessing member:', currentMemberEmail);
+            currentMemberId = localStorage.getItem('current_member_id');
+            console.log('🔄 RO Admin accessing member:', {
+                email: currentMemberEmail,
+                memberId: currentMemberId
+            });
         } else {
             currentMemberEmail = userEmail;
         }
@@ -32,18 +38,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         const accolades = await accoladesResponse.json();
         const members = await membersResponse.json();
         
-        console.log('Fetched Accolades:', accolades);
+        console.log('📚 All Accolades:', accolades);
+        console.log('👥 All Members:', members);
 
-        // Find the current member by email
-        const currentMember = members.find(member => 
-            member.member_email_address === currentMemberEmail
-        );
+        // Find the current member by email or id depending on login type
+        const currentMember = loginType === 'ro_admin' 
+            ? members.find(member => member.member_id === parseInt(currentMemberId))
+            : members.find(member => member.member_email_address === currentMemberEmail);
 
         if (!currentMember) {
             throw new Error('Member not found');
         }
 
-        console.log('Current Member:', currentMember);
+        console.log('🎯 Current Member Details:', {
+            memberId: currentMember.member_id,
+            name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
+            email: currentMember.member_email_address,
+            chapterId: currentMember.chapter_id,
+            existingAccolades: currentMember.accolades_id,
+            accessedBy: loginType
+        });
 
         const accoladeSelect = document.getElementById('region_status');
         accoladeSelect.innerHTML = '<option value="">Select</option>';
@@ -57,6 +71,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             )
             .sort((a, b) => a.accolade_name.localeCompare(b.accolade_name));
 
+        console.log('🏆 Available Accolades for Dropdown:', availableAccolades);
+
         availableAccolades.forEach(accolade => {
             const option = document.createElement('option');
             option.value = accolade.accolade_id;
@@ -67,19 +83,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Check for existing accolade on selection
         accoladeSelect.addEventListener('change', function() {
             const selectedAccoladeId = parseInt(this.value);
-            console.log('Selected Accolade ID:', selectedAccoladeId);
+            console.log('🎯 Selected Accolade ID:', selectedAccoladeId);
             
             if (!selectedAccoladeId) {
-                // Clear eligibility div if no selection
+                console.log('❌ No accolade selected');
                 document.getElementById('eligibilityContainer')?.remove();
                 return;
             }
 
             // Find the selected accolade
             const selectedAccolade = availableAccolades.find(a => a.accolade_id === selectedAccoladeId);
+            console.log('🏆 Selected Accolade Details:', selectedAccolade);
 
             if (currentMember.accolades_id.includes(selectedAccoladeId)) {
-                console.log('Accolade already assigned to member:', selectedAccoladeId);
+                console.log('⚠️ Accolade already assigned to member:', selectedAccoladeId);
                 
                 Swal.fire({
                     title: '<span style="color: #f59e0b">Accolade Already Assigned</span>',
@@ -105,17 +122,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                     cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Redirect to manage-memberAccolades page
                         window.location.href = '/macc/manage-memberAccolades';
                     } else {
                         this.value = ''; // Reset dropdown if user cancels
                     }
                 });
             } else {
-                // Remove existing eligibility container if any
+                // Show eligibility info
                 document.getElementById('eligibilityContainer')?.remove();
-
-                // Create new eligibility container
                 const eligibilityHtml = `
                     <div id="eligibilityContainer" style="
                         margin-top: 15px;
@@ -145,14 +159,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         </div>
                     </div>
                 `;
-
-                // Add the eligibility container after the dropdown
                 const dropdownContainer = document.querySelector('.col-xl-6');
                 dropdownContainer.insertAdjacentHTML('beforeend', eligibilityHtml);
             }
         });
 
-        // Handle form submission
+        // Update form submission handler to make API call
         const form = document.getElementById('addRegionForm');
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -161,39 +173,97 @@ document.addEventListener('DOMContentLoaded', async function() {
             const comment = document.getElementById('mission').value;
             const eligibilityChecked = document.getElementById('eligibilityCheck').checked;
 
-            console.log('Form Submission Data:', {
-                memberId: currentMember.member_id,
-                memberEmail: currentMemberEmail,
-                accoladeId: selectedAccoladeId,
-                comment: comment,
-                eligibilityChecked: eligibilityChecked,
-                requestedBy: loginType
-            });
-
+            // Validate required fields
             if (!selectedAccoladeId || !comment || !eligibilityChecked) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Please fill all required fields and confirm eligibility'
+                    title: 'Required Fields Missing',
+                    text: 'Please select an accolade, add a comment, and confirm eligibility.',
+                    confirmButtonColor: '#dc3545'
                 });
                 return;
             }
 
-            // Here you would make the API call to submit the requisition
-            Swal.fire({
-                icon: 'success',
-                title: 'Request Submitted',
-                text: 'Your accolade requisition has been submitted successfully'
-            }).then(() => {
-                // Redirect to manage-memberAccolades page after clicking OK
+            try {
+                showLoader();
+
+                // Log form data before API call
+                console.log('📝 Form Submission Data:', {
+                    memberId: currentMember.member_id,
+                    memberName: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
+                    memberEmail: currentMemberEmail,
+                    chapterId: currentMember.chapter_id,
+                    accoladeId: selectedAccoladeId,
+                    selectedAccoladeName: availableAccolades.find(a => a.accolade_id === parseInt(selectedAccoladeId))?.accolade_name,
+                    comment: comment,
+                    eligibilityChecked: eligibilityChecked,
+                    requestedBy: loginType,
+                    accessMethod: loginType === 'ro_admin' ? 'RO Admin Access' : 'Direct Member Access',
+                    timestamp: new Date().toISOString()
+                });
+
+                // Prepare request payload
+                const requestPayload = {
+                    member_id: currentMember.member_id,
+                    chapter_id: currentMember.chapter_id,
+                    accolade_id: parseInt(selectedAccoladeId),
+                    request_comment: comment,
+                    accolade_amount: null,
+                    order_id: null,
+                    requested_by: loginType
+                };
+
+                console.log('🚀 Sending API Request:', requestPayload);
+
+                // Make API call
+                const response = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestPayload)
+                });
+
+                const result = await response.json();
+                console.log('✅ API Response:', result);
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to submit requisition');
+                }
+
+                // Hide loader before showing success message
+                hideLoader();
+
+                // Show success message
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Request Submitted Successfully',
+                    text: 'Your accolade requisition has been submitted and is pending approval.',
+                    confirmButtonColor: '#28a745'
+                });
+
+                // Redirect to manage page
                 window.location.href = '/macc/manage-memberAccolades';
-            });
+
+            } catch (error) {
+                // Hide loader before showing error message
+                hideLoader();
+                
+                console.error('❌ Error submitting requisition:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Submission Failed',
+                    text: error.message || 'Failed to submit requisition. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
         });
 
         hideLoader();
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         hideLoader();
         Swal.fire({
             icon: 'error',

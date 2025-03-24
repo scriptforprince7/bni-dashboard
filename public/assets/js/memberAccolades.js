@@ -283,50 +283,149 @@ async function populateAccoladesDropdown() {
     }
 }
 
-// Add this new function to handle the request and pay action
+// Update the handleRequestAndPay function
 async function handleRequestAndPay(accoladeId) {
-    const { value: comment } = await Swal.fire({
-        title: 'Request Accolade',
-        html: `
-            <div style="text-align: left; margin-bottom: 15px;">
-                <p style="color: #4b5563; margin-bottom: 10px;">
-                    Please provide any additional comments or requirements for your request:
-                </p>
-            </div>
-        `,
-        input: 'textarea',
-        inputPlaceholder: 'Enter your comments here...',
-        inputAttributes: {
-            'aria-label': 'Comments',
-            'style': 'height: 120px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;'
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Pay Now',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#dc2626',
-        showCloseButton: true,
-        preConfirm: (comment) => {
-            if (!comment) {
-                Swal.showValidationMessage('Please enter a comment');
-            }
-            return comment;
+    try {
+        // Get current member details first
+        const userEmail = getUserEmail();
+        const loginType = getUserLoginType();
+        
+        let currentMemberEmail, currentMemberId;
+        
+        if (loginType === 'ro_admin') {
+            currentMemberEmail = localStorage.getItem('current_member_email');
+            currentMemberId = localStorage.getItem('current_member_id');
+            console.log('🔄 RO Admin requesting for member:', {
+                email: currentMemberEmail,
+                memberId: currentMemberId
+            });
+        } else {
+            currentMemberEmail = userEmail;
         }
-    });
 
-    if (comment) {
-        // Show success message
-        Swal.fire({
-            icon: 'success',
-            title: 'Request Submitted!',
-            text: 'Your accolade request has been submitted successfully.',
-            confirmButtonColor: '#2563eb'
+        // Fetch both member and accolade details
+        const [membersResponse, accoladesResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
+        ]);
+
+        const [members, accolades] = await Promise.all([
+            membersResponse.json(),
+            accoladesResponse.json()
+        ]);
+
+        // Find current member
+        const currentMember = loginType === 'ro_admin' 
+            ? members.find(member => member.member_id === parseInt(currentMemberId))
+            : members.find(member => member.member_email_address === currentMemberEmail);
+
+        if (!currentMember) {
+            throw new Error('Member not found');
+        }
+
+        // Find the selected accolade to get its price
+        const selectedAccolade = accolades.find(accolade => accolade.accolade_id === accoladeId);
+        if (!selectedAccolade) {
+            throw new Error('Accolade not found');
+        }
+
+        console.log('📊 Selected Accolade:', {
+            id: selectedAccolade.accolade_id,
+            name: selectedAccolade.accolade_name,
+            price: selectedAccolade.accolade_price
         });
 
-        // Here you can add the API call to submit the request
-        debugLog('Accolade request submitted:', {
-            accoladeId: accoladeId,
-            comment: comment
+        // Get comment from user via SweetAlert
+        const { value: comment } = await Swal.fire({
+            title: 'Request Accolade',
+            html: `
+                <div style="text-align: left; margin-bottom: 15px;">
+                    <p style="color: #4b5563; margin-bottom: 10px;">
+                        Please provide any additional comments or requirements for your request:
+                    </p>
+                </div>
+            `,
+            input: 'textarea',
+            inputPlaceholder: 'Enter your comments here...',
+            inputAttributes: {
+                'aria-label': 'Comments',
+                'style': 'height: 120px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Pay Now',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#dc2626',
+            showCloseButton: true,
+            preConfirm: (comment) => {
+                if (!comment) {
+                    Swal.showValidationMessage('Please enter a comment');
+                }
+                return comment;
+            }
+        });
+
+        if (comment) {
+            showLoader();
+
+            const orderId = 'order_103197982ufIUFWPZlZM3PoeAjqwDWECOlA';
+
+            // Prepare request data with accolade's actual price
+            const requestData = {
+                member_id: currentMember.member_id,
+                chapter_id: currentMember.chapter_id,
+                accolade_id: accoladeId,
+                request_comment: comment,
+                accolade_amount: selectedAccolade.accolade_price,
+                order_id: orderId
+            };
+
+            console.log('🚀 Sending API Request:', requestData);
+
+            // Make API call
+            const response = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+            console.log('✅ API Response:', result);
+
+            hideLoader();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to submit requisition');
+            }
+
+            // Show success message
+            await Swal.fire({
+                icon: 'success',
+                title: 'Request Submitted Successfully!',
+                html: `
+                    <div style="text-align: left">
+                        <p><strong>Amount:</strong> ₹${selectedAccolade.accolade_price}</p>
+                        <p><strong>Order ID:</strong> ${orderId}</p>
+                        <p><strong>Status:</strong> Request Submitted</p>
+                    </div>
+                `,
+                confirmButtonColor: '#2563eb'
+            });
+
+            // Refresh the page
+            window.location.reload();
+        }
+
+    } catch (error) {
+        hideLoader();
+        console.error('Error in handleRequestAndPay:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to process request',
+            confirmButtonColor: '#dc2626'
         });
     }
 }
@@ -438,6 +537,110 @@ async function showAccoladeDetails(accoladeId) {
     }
 }
 
+// Add this function to get pending requisitions count and details
+async function getPendingRequisitions() {
+    try {
+        // Get current member ID
+        const loginType = getUserLoginType();
+        let currentMemberId;
+        
+        if (loginType === 'ro_admin') {
+            currentMemberId = parseInt(localStorage.getItem('current_member_id'));
+        } else {
+            const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+            const members = await membersResponse.json();
+            const currentMember = members.find(member => member.member_email_address === getUserEmail());
+            currentMemberId = currentMember.member_id;
+        }
+
+        console.log('👤 Current Member ID:', currentMemberId);
+
+        // Fetch requisitions
+        const requisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+        const requisitions = await requisitionsResponse.json();
+
+        console.log('📝 All Requisitions:', requisitions);
+
+        // Filter requisitions for current member with pending status
+        const pendingRequisitions = requisitions.filter(req => 
+            req.member_id === currentMemberId && 
+            req.approve_status === 'pending'
+        );
+
+        console.log('⏳ Pending Requisitions:', pendingRequisitions);
+        console.log('📊 Pending Count:', pendingRequisitions.length);
+
+        // Update the count in UI - using the correct ID
+        const countElement = document.getElementById('pendingAccoladesCount');
+        if (countElement) {
+            countElement.innerHTML = `<b>${pendingRequisitions.length}</b>`;
+            console.log('🔄 Updated UI count to:', pendingRequisitions.length);
+        } else {
+            console.error('❌ Count element not found');
+        }
+
+        // Add click handler to the count button - using the correct ID
+        const countButton = document.getElementById('pendingAccoladesBtn');
+        if (countButton) {
+            countButton.onclick = async () => {
+                if (pendingRequisitions.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Pending Requisitions',
+                        text: 'You have no pending accolade requisitions.',
+                        confirmButtonColor: '#2563eb'
+                    });
+                    return;
+                }
+
+                // Fetch accolades data
+                const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+                const accolades = await accoladesResponse.json();
+
+                console.log('🏆 All Accolades:', accolades);
+
+                // Map pending requisitions to accolade names
+                const pendingDetails = pendingRequisitions.map(req => {
+                    const accolade = accolades.find(a => a.accolade_id === req.accolade_id);
+                    return {
+                        requestId: req.member_request_id,
+                        accoladeName: accolade ? accolade.accolade_name : 'Unknown Accolade',
+                        requestDate: new Date(req.requested_time_date).toLocaleDateString(),
+                        comment: req.request_comment
+                    };
+                });
+
+                console.log('📊 Pending Requisitions Details:', pendingDetails);
+
+                // Show details in SweetAlert
+                Swal.fire({
+                    title: 'Pending Accolade Requests',
+                    html: `
+                        <div style="text-align: left; max-height: 300px; overflow-y: auto;">
+                            ${pendingDetails.map(detail => `
+                                <div style="border-bottom: 1px solid #e5e7eb; padding: 10px 0;">
+                                    <p><strong>Accolade:</strong> ${detail.accoladeName}</p>
+                                    <p><strong>Request Date:</strong> ${detail.requestDate}</p>
+                                    <p><strong>Comment:</strong> ${detail.comment}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `,
+                    confirmButtonColor: '#2563eb',
+                    width: '600px'
+                });
+            };
+        }
+
+    } catch (error) {
+        console.error('❌ Error fetching pending requisitions:', error);
+        const countElement = document.getElementById('pendingAccoladesCount');
+        if (countElement) {
+            countElement.innerHTML = '<b>Error</b>';
+        }
+    }
+}
+
 // Initialize when document is ready
 document.addEventListener('DOMContentLoaded', () => {
     debugLog('Document ready, initializing...');
@@ -447,4 +650,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add filter button listeners
     document.getElementById('applyFilter').addEventListener('click', applyFilter);
     document.getElementById('resetFilter').addEventListener('click', resetFilter);
+    getPendingRequisitions();
 });
