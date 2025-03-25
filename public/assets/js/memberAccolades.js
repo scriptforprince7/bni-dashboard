@@ -372,6 +372,8 @@ async function handleRequestAndPay(accoladeId) {
                 accolade_id: parseInt(accoladeId),
                 request_comment: comment,
                 accolade_amount: parseFloat(selectedAccolade.accolade_price),
+                tax_amount: parseFloat((selectedAccolade.accolade_price * 0.18).toFixed(2)), // 18% tax
+                total_amount: parseFloat((selectedAccolade.accolade_price * 1.18).toFixed(2)), // Amount + tax
                 order_id: orderId,
                 
                 // Additional member details

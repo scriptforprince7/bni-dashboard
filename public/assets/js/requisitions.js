@@ -624,7 +624,7 @@ async function showRequisitionForm() {
                         <i class="ri-file-add-line"></i> New Requisition
                     </h3>
 
-                    <!-- Accolade Selection -->
+                    <!-- Accolade Selection with Checkboxes -->
                     <div class="form-group mb-4">
                         <label style="
                             display: block;
@@ -633,21 +633,44 @@ async function showRequisitionForm() {
                             font-size: 0.95em;
                             font-weight: 500;
                         ">
-                            <i class="ri-award-line me-1"></i> Select Accolade
+                            <i class="ri-award-line me-1"></i> Select Accolades
                         </label>
-                        <select id="accoladeSelect" class="form-select" style="
-                            width: 100%;
-                            padding: 10px 14px;
+                        <div class="accolade-checkbox-container" style="
+                            max-height: 200px;
+                            overflow-y: auto;
                             border: 1px solid #cbd5e1;
                             border-radius: 6px;
                             background-color: white;
-                            font-size: 1em;
+                            padding: 5px;
                         ">
-                            <option value="">Choose an accolade...</option>
                             ${accolades.map(a => `
-                                <option value="${a.accolade_id}">${a.accolade_name}</option>
+                                <div class="accolade-checkbox-item" style="
+                                    padding: 8px 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                    border-bottom: 1px solid #f1f5f9;
+                                ">
+                                    <input type="checkbox" 
+                                           id="accolade-${a.accolade_id}" 
+                                           value="${a.accolade_id}"
+                                           class="accolade-checkbox"
+                                           style="width: 16px; height: 16px;"
+                                    >
+                                    <label for="accolade-${a.accolade_id}" style="
+                                        margin: 0;
+                                        cursor: pointer;
+                                        flex: 1;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: space-between;
+                                    ">
+                                        ${a.accolade_name}
+                                        <span style="color: #64748b; font-size: 0.9em;">₹${a.accolade_price || 'N/A'}</span>
+                                    </label>
+                                </div>
                             `).join('')}
-                        </select>
+                        </div>
                     </div>
 
                     <!-- Multiple Member Selection with Checkboxes -->
@@ -833,33 +856,33 @@ async function showRequisitionForm() {
 
         // Function to add new assignment
         window.addAssignment = function() {
-            const accoladeSelect = document.getElementById('accoladeSelect');
+            const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
+                .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
             const commentInput = document.getElementById('commentInput');
             const selectedCheckboxes = document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked');
 
-            const accolade = accolades.find(a => a.accolade_id === parseInt(accoladeSelect.value));
-            const selectedMembers = Array.from(selectedCheckboxes).map(checkbox => 
-                members.find(m => m.member_id === parseInt(checkbox.value))
-            );
-
-            if (!accolade || selectedMembers.length === 0 || !commentInput.value.trim()) {
-                Swal.showValidationMessage('Please select an accolade, at least one member, and add a comment');
+            if (selectedAccolades.length === 0 || selectedCheckboxes.length === 0 || !commentInput.value.trim()) {
+                Swal.showValidationMessage('Please select at least one accolade, one member, and add a comment');
                 return;
             }
 
-            // Add an assignment for each selected member
-            selectedMembers.forEach(member => {
-                assignments.push({
-                    sno: currentSno++,
-                    accolade,
-                    member,
-                    comment: commentInput.value.trim()
+            // Add an assignment for each selected member and accolade combination
+            selectedCheckboxes.forEach(memberCheckbox => {
+                const member = members.find(m => m.member_id === parseInt(memberCheckbox.value));
+                selectedAccolades.forEach(accolade => {
+                    assignments.push({
+                        sno: currentSno++,
+                        accolade,
+                        member,
+                        comment: commentInput.value.trim()
+                    });
                 });
             });
 
             renderAssignments();
             
-            // Reset form (keep accolade selected)
+            // Reset form
+            document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
             selectedCheckboxes.forEach(checkbox => checkbox.checked = false);
             commentInput.value = '';
         };
