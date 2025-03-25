@@ -1,11 +1,10 @@
 const accoladesApiUrl = "https://bni-data-backend.onrender.com/api/accolades";
-const membersApiUrl = "https://backend.bninewdelhi.com/api/members";
 const chaptersApiUrl = "https://backend.bninewdelhi.com/api/chapters";
+const requisitionsApiUrl = "https://backend.bninewdelhi.com/api/getRequestedChapterRequisition";
 
-let allMembers = [];
-let allAccolades = [];
 let allChapters = [];
-let selectedAccolades = [];
+let allAccolades = [];
+let allRequisitions = [];
 
 // Function to show the loader
 function showLoader() {
@@ -17,37 +16,34 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-// Fetch all accolades and populate the filter dropdown
-async function loadAccolades() {
-  const response = await fetch(accoladesApiUrl);
-  allAccolades = await response.json();
+// Fetch all data
+async function loadData() {
+    try {
+        showLoader();
+        console.log('🚀 Starting data fetch...');
 
-  const filterDropdown = document.getElementById("accolades-filter");
-  filterDropdown.innerHTML = allAccolades
-    .map(
-      (accolade) => `
-      <li>
-        <label class="dropdown-item">
-          <input type="checkbox" value="${accolade.accolade_id}" /> ${accolade.accolade_name}
-        </label>
-      </li>`
-    )
-    .join("");
+        // Fetch all required data
+        const [requisitionsResponse, chaptersResponse, accoladesResponse] = await Promise.all([
+            fetch(requisitionsApiUrl),
+            fetch(chaptersApiUrl),
+            fetch(accoladesApiUrl)
+        ]);
 
-  setupFilterListener();
-}
+        allRequisitions = await requisitionsResponse.json();
+        allChapters = await chaptersResponse.json();
+        allAccolades = await accoladesResponse.json();
 
-// Fetch members data
-async function loadMembers() {
-  const response = await fetch(membersApiUrl);
-  allMembers = await response.json();
-  renderTable(allMembers);
-}
+        console.log('📝 All Requisitions:', allRequisitions);
+        console.log('📚 All Chapters:', allChapters);
+        console.log('🏆 All Accolades:', allAccolades);
 
-// Add function to fetch chapters
-async function loadChapters() {
-    const response = await fetch(chaptersApiUrl);
-    allChapters = await response.json();
+        renderTable();
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+    } finally {
+        hideLoader();
+    }
 }
 
 // Function to get random accolades
@@ -56,258 +52,260 @@ function getRandomAccolades(count = 5) {
     return shuffled.slice(0, count);
 }
 
-// Add function to handle accolade click
-function handleAccoladeClick(accolade) {
-    // Demo data - this will be replaced with real data later
-    const requestDetails = {
-        accolade_name: accolade.accolade_name,
-        member_name: "Raja Shukla",
-        chapter_name: "BNI Amigos",
-        request_date: "2024-03-15",
-        reason: "Professional Achievement",
-        type: accolade.accolade_type,
-        chapter_comment: "Excellent performance in leadership role",
-        status: "Pending",
-        ro_comment: "Under review",
-        issued_date: "-",
-        given_date: "-",
-        requested_by: "Chapter President"
-    };
+// Function to handle click on accolades count
+async function handleAccoladesClick(requisition) {
+    try {
+        console.log('📝 Processing requisition:', requisition);
+        console.log('🎯 Accolade IDs to fetch:', requisition.accolade_ids);
+        console.log('🏢 Chapter ID to match:', requisition.chapter_id);
 
-    Swal.fire({
-        title: '<span style="color: #2563eb"><i class="ri-file-list-3-line"></i> Accolade Request Details</span>',
-        html: `
-            <div class="request-details-container" style="
-                max-height: 70vh;
-                overflow-y: auto;
-                padding: 20px;
+        // Fetch both accolades and chapters data
+        const [accoladesResponse, chaptersResponse] = await Promise.all([
+            fetch('https://bni-data-backend.onrender.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/chapters')
+        ]);
+
+        const [allAccolades, allChapters] = await Promise.all([
+            accoladesResponse.json(),
+            chaptersResponse.json()
+        ]);
+
+        console.log('🏆 All Accolades from API:', allAccolades);
+        console.log('📚 All Chapters from API:', allChapters);
+
+        // Match chapter based on chapter_id
+        const chapter = allChapters.find(ch => ch.chapter_id === requisition.chapter_id);
+        console.log('🏢 Matched Chapter:', chapter);
+
+        // Match accolades based on accolade_ids
+        const matchedAccolades = requisition.accolade_ids
+            .map(id => allAccolades.find(acc => acc.accolade_id === id))
+            .filter(Boolean);
+
+        console.log('✨ Matched Accolades:', matchedAccolades);
+
+        const accoladesSectionsHtml = matchedAccolades.map((accolade, index) => {
+            // Define gradient colors based on accolade type
+            const headerGradient = accolade.accolade_type === 'Global' 
+                ? 'linear-gradient(145deg, #2563eb, #1e40af)' // Blue gradient for Global
+                : 'linear-gradient(145deg, #dc2626, #991b1b)'; // Red gradient for Regional
+
+            return `
+            <div class="accolade-section" style="
                 background: #ffffff;
                 border-radius: 12px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                border: 1px solid #e5e7eb;
             ">
-                <div class="details-grid" style="
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 16px;
-                    text-align: left;
+                <!-- Header with Accolade Name -->
+                <div style="
+                    background: ${headerGradient};
+                    padding: 15px;
+                    border-radius: 12px 12px 0 0;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 ">
-                    <!-- Accolade Name -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
+                    <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">
+                        <i class="ri-award-fill me-2"></i>${accolade.accolade_name}
+                    </div>
+                    <span style="
+                        background: ${accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
+                        padding: 4px 12px;
+                        border-radius: 9999px;
+                        font-size: 0.75rem;
+                        color: white;
+                        font-weight: 500;
                     ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-award-line"></i> Accolade
+                        ${accolade.accolade_type}
+                    </span>
+                </div>
+
+                <!-- Content -->
+                <div style="padding: 20px;">
+                    <!-- Details Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <!-- Chapter Name -->
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-building-line me-1"></i>Chapter
+                            </div>
+                            <div style="color: #1e293b; font-weight: 500;">
+                                ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
+                            </div>
                         </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.accolade_name}
+
+                        <!-- Member Name -->
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-user-line me-1"></i>Member
+                            </div>
+                            <div style="color: #1e293b; font-weight: 500;">
+                                ${requisition.member_name || 'N/A'}
+                            </div>
+                        </div>
+
+                        <!-- Accolade Type -->
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-price-tag-3-line me-1"></i>Type
+                            </div>
+                            <div style="color: #1e293b; font-weight: 500;">
+                                ${accolade.accolade_type}
+                            </div>
+                        </div>
+
+                        <!-- Chapter Comment -->
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-chat-1-line me-1"></i>Chapter Comment
+                            </div>
+                            <div style="color: #1e293b; font-weight: 500;">
+                                ${requisition.comment || 'No comment provided'}
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Member Name -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-user-line"></i> Member
+                    <!-- RO Comment Input -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 8px;">
+                            <i class="ri-chat-2-line me-1"></i>RO Comment
                         </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.member_name}
-                        </div>
+                        <textarea 
+                            class="form-control" 
+                            placeholder="Enter your comment here..."
+                            style="
+                                width: 100%;
+                                padding: 10px;
+                                border: 1px solid #e5e7eb;
+                                border-radius: 8px;
+                                resize: vertical;
+                                min-height: 80px;
+                            "
+                        >${requisition.ro_comment || ''}</textarea>
                     </div>
 
-                    <!-- Chapter Name -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
+                    <!-- Action Buttons -->
+                    <div style="
+                        display: flex;
+                        gap: 10px;
+                        justify-content: flex-end;
+                        margin-top: 15px;
                     ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-building-line"></i> Chapter
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.chapter_name}
-                        </div>
-                    </div>
-
-                    <!-- Request Date -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-calendar-line"></i> Request Date
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.request_date}
-                        </div>
-                    </div>
-
-                    <!-- Reason -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-file-text-line"></i> Reason
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.reason}
-                        </div>
-                    </div>
-
-                    <!-- Type -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-price-tag-3-line"></i> Type
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.type}
-                        </div>
-                    </div>
-
-                    <!-- Chapter Comment -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                        grid-column: span 2;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-chat-1-line"></i> Chapter Comment
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.chapter_comment}
-                        </div>
-                    </div>
-
-                    <!-- Status -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-checkbox-circle-line"></i> Status
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            <span class="badge" style="
-                                background: #fef3c7;
-                                color: #92400e;
-                                padding: 4px 8px;
-                                border-radius: 9999px;
-                                font-size: 0.75rem;
-                            ">
-                                ${requestDetails.status}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- RO Comment -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                        grid-column: span 2;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-chat-2-line"></i> RO Comment
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.ro_comment}
-                        </div>
-                    </div>
-
-                    <!-- Dates and Requested By -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-calendar-check-line"></i> Issued/Given Date
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.issued_date} / ${requestDetails.given_date}
-                        </div>
-                    </div>
-
-                    <!-- Requested By -->
-                    <div class="detail-item" style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                    ">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                            <i class="ri-user-star-line"></i> Requested By
-                        </div>
-                        <div style="color: #1e293b; font-weight: 500;">
-                            ${requestDetails.requested_by}
-                        </div>
+                        <button 
+                            class="btn-reject"
+                            onclick="handleReject(${index})"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                border: none;
+                                background: #fee2e2;
+                                color: #dc2626;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            "
+                        >
+                            <i class="ri-close-circle-line me-1"></i>Reject
+                        </button>
+                        <button 
+                            class="btn-approve"
+                            onclick="handleApprove(${index})"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                border: none;
+                                background: #dcfce7;
+                                color: #16a34a;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            "
+                        >
+                            <i class="ri-checkbox-circle-line me-1"></i>Approve
+                        </button>
                     </div>
                 </div>
             </div>
-        `,
-        width: '800px',
-        showCloseButton: true,
-        showConfirmButton: false
-    });
+        `}).join('');
+
+        Swal.fire({
+            title: '<span style="color: #2563eb"><i class="ri-file-list-3-line"></i> Accolade Request Details</span>',
+            html: `
+                <div class="request-details-container" style="
+                    max-height: 70vh;
+                    overflow-y: auto;
+                    padding: 20px;
+                ">
+                    ${accoladesSectionsHtml}
+                </div>
+            `,
+            width: '800px',
+            showCloseButton: true,
+            showConfirmButton: false
+        });
+
+    } catch (error) {
+        console.error('❌ Error in handleAccoladesClick:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load accolades details'
+        });
+    }
 }
 
-// Update the renderTable function to make accolades clickable
+// Placeholder functions for approve/reject actions
+function handleApprove(index) {
+    console.log('✅ Approved accolade at index:', index);
+    // Add your approve logic here
+}
+
+function handleReject(index) {
+    console.log('❌ Rejected accolade at index:', index);
+    // Add your reject logic here
+}
+
+// Update the renderTable function
 const renderTable = () => {
     const tableBody = document.getElementById("chaptersTableBody");
     
-    tableBody.innerHTML = allChapters
-        .map((chapter, index) => {
-            const randomAccolades = getRandomAccolades();
-            const accoladesHtml = randomAccolades
-                .map(accolade => `
-                    <div class="accolade-item" 
-                         onclick="handleAccoladeClick(${JSON.stringify(accolade).replace(/"/g, '&quot;')})"
-                         style="
-                            margin-bottom: 8px;
-                            padding: 8px;
-                            border-left: 3px solid #2563eb;
-                            background: linear-gradient(to right, #f8fafc, transparent);
-                            border-radius: 4px;
-                            transition: all 0.3s ease;
-                            cursor: pointer;
-                    ">
-                        <span class="accolade-badge" style="
-                            background: ${accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
-                            padding: 2px 8px;
-                            border-radius: 12px;
-                            font-size: 0.75rem;
-                            color: white;
-                            margin-right: 8px;
-                        ">
-                            ${accolade.accolade_type}
-                        </span>
-                        <span style="font-weight: 500; color: #1e293b;">
-                            ${accolade.accolade_name}
-                        </span>
-                    </div>
-                `).join('');
+    tableBody.innerHTML = allRequisitions
+        .map((req, index) => {
+            const chapter = allChapters.find(ch => ch.chapter_id === req.chapter_id);
+            
+            // Format the requested date
+            const requestDate = new Date(req.requested_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            console.log('📅 Formatting date for requisition:', {
+                originalDate: req.requested_date,
+                formattedDate: requestDate
+            });
 
             return `
                 <tr style="border-bottom: 1px solid #e5e7eb;">
@@ -315,25 +313,41 @@ const renderTable = () => {
                         ${index + 1}
                     </td>
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
-                        ${chapter.chapter_name}
+                        ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
                     </td>
                     <td style="padding: 16px;">
-                        <div class="accolades-container" style="
-                            max-width: 500px;
-                        ">
-                            ${accoladesHtml}
+                        <div class="accolades-container" style="max-width: 500px;">
+                            <div class="accolade-count" 
+                                 onclick='handleAccoladesClick(${JSON.stringify(req).replace(/"/g, '&quot;')})'
+                                 style="
+                                    display: inline-block;
+                                    padding: 8px 16px;
+                                    background: linear-gradient(to right, #f8fafc, transparent);
+                                    border-left: 3px solid #2563eb;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    transition: all 0.3s ease;
+                                 "
+                            >
+                                <span style="font-weight: 500; color: #1e293b;">
+                                    ${req.accolade_ids.length} Accolades Requested
+                                </span>
+                            </div>
                         </div>
+                    </td>
+                    <td style="font-weight: bold; color: #1e293b; padding: 16px;">
+                        ${requestDate}
                     </td>
                     <td style="font-weight: bold; padding: 16px;">
                         <span class="badge" style="
-                            background: #fef3c7;
-                            color: #92400e;
+                            background: ${req.request_status.toLowerCase() === 'open' ? '#dcfce7' : '#fee2e2'};
+                            color: ${req.request_status.toLowerCase() === 'open' ? '#16a34a' : '#dc2626'};
                             padding: 6px 12px;
                             border-radius: 9999px;
                             font-weight: 500;
                             font-size: 0.875rem;
                         ">
-                            Pending
+                            ${req.request_status.toLowerCase() === 'open' ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                 </tr>`;
@@ -341,103 +355,5 @@ const renderTable = () => {
         .join("");
 };
 
-// Handle filter changes
-function setupFilterListener() {
-  document.querySelectorAll("#accolades-filter input").forEach((checkbox) => {
-    checkbox.addEventListener("change", (e) => {
-      const accoladeId = Number(e.target.value);
-
-      if (e.target.checked) {
-        selectedAccolades.push(accoladeId);
-      } else {
-        selectedAccolades = selectedAccolades.filter((id) => id !== accoladeId);
-      }
-
-      filterMembers();
-    });
-  });
-}
-
-// Reset button functionality
-document.getElementById("reset-filters-btn").addEventListener("click", () => {
-    // Clear selected checkboxes
-    document.querySelectorAll("#accolades-filter input").forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-  
-    // Reset selected accolades
-    selectedAccolades = [];
-  
-    // Reload all members
-    renderTable();
-  });
-  
-
-// Filter members based on selected accolades
-function filterMembers() {
-  const filteredMembers = allMembers.filter((member) =>
-    selectedAccolades.every((accId) => member.accolades_id.includes(accId))
-  );
-
-  renderTable();
-}
-
-// Set up the modal listener to show accolade details
-function setupModalListener() {
-  document.querySelectorAll(".accolade-link").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
-      showAccoladePopup(e.target);
-    });
-  });
-}
-
-// Show Popup with Accolade Details
-function showAccoladePopup(target) {
-  const memberName = target.getAttribute("data-member");
-  const accoladeName = target.getAttribute("data-accolade");
-  const issueDate = target.getAttribute("data-date");
-
-  // Fill modal content
-  document.getElementById("modalTitle").textContent = `${memberName}'s Accolade`;
-  document.getElementById("modalBody").innerHTML = `
-    <p><strong>Member:</strong> ${memberName}</p>
-    <p><strong>Accolade:</strong> ${accoladeName}</p>
-    <p><strong>Issued Date:</strong> ${issueDate}</p>
-  `;
-
-  // Show the Bootstrap Modal
-  const accoladeModal = new bootstrap.Modal(document.getElementById("accoladeModal"));
-  accoladeModal.show();
-}
-
-// Search members by name
-document.getElementById("searchMember").addEventListener("input", (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredMembers = allMembers.filter((member) => {
-      const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
-      return fullName.includes(searchTerm);
-    });
-  
-    renderTable();
-  });
-  
-
-// Update loadEverything function
-async function loadEverything() {
-    try {
-        showLoader();
-        await Promise.all([
-            loadChapters(),
-            loadAccolades()
-        ]);
-        renderTable();
-    } catch (error) {
-        console.error("Error loading data:", error);
-    } finally {
-        hideLoader();
-    }
-}
-
-// Load everything
-loadEverything();
+// Initialize when document is ready
+document.addEventListener('DOMContentLoaded', loadData);

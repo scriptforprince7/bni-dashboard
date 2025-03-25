@@ -1,116 +1,122 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     
-    // Static data for demonstration
-    const requisitions = [
-        {
-            sno: 1,
-            date: '15 March 2024',
-            totalAccolades: 10,
-            approved: 5,
-            declined: 5,
-            pickupStatus: {
-                status: 'Picked Up',
-                date: '18 March 2024'
-            },
-            givenStatus: {
-                status: 'Given',
-                date: '20 March 2024'
-            }
-        },
-        {
-            sno: 2,
-            date: '22 March 2024',
-            totalAccolades: 7,
-            approved: 4,
-            declined: 3,
-            pickupStatus: {
-                status: 'Yet to be Picked',
-                date: null
-            },
-            givenStatus: {
-                status: 'Pending',
-                date: null
-            }
+    try {
+        console.log('🚀 Starting data fetch process...');
+        
+        // Step 1: Get user email
+        const userEmail = getUserEmail();
+        console.log('👤 User Email:', userEmail);
+        
+        // Step 2: Fetch chapter data and find matching chapter
+        const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+        const chapters = await chaptersResponse.json();
+        console.log('📚 All Chapters:', chapters);
+        
+        const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+        if (!userChapter) {
+            console.error('❌ No matching chapter found for email:', userEmail);
+            return;
         }
-    ];
+        console.log('🏢 User Chapter:', userChapter);
+        
+        // Step 3: Fetch chapter requisitions
+        const requisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const allRequisitions = await requisitionsResponse.json();
+        console.log('📝 All Requisitions:', allRequisitions);
+        
+        // Filter requisitions for user's chapter
+        const chapterRequisitions = allRequisitions.filter(req => req.chapter_id === userChapter.chapter_id);
+        console.log('🔍 Chapter Requisitions:', chapterRequisitions);
+        
+        // Step 4: Fetch accolades data
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+        const accolades = await accoladesResponse.json();
+        console.log('🏆 All Accolades:', accolades);
 
-    // Render the table with static data
-    const tableContent = requisitions.map(req => `
-        <tr class="align-middle">
-            <td class="fw-bold">${req.sno}</td>
-            
-            <td>
-                <span class="text-dark fw-semibold">${req.date}</span>
-            </td>
-            
-            <td>
-                <span class="badge bg-primary-transparent" 
-                      style="font-size: 0.9em; cursor: pointer;"
-                      onclick="showAccoladeDetails(${req.totalAccolades})">
-                    ${req.totalAccolades} Accolades
-                </span>
-            </td>
-            
-            <td>
-                <span class="badge bg-success-transparent" 
-                      style="font-size: 0.9em; cursor: pointer;"
-                      onclick="showApprovedMembers(${req.approved})">
-                    <i class="ri-checkbox-circle-line me-1"></i>
-                    ${req.approved}
-                </span>
-            </td>
-            
-            <td>
-                <span class="badge bg-danger-transparent" 
-                      style="font-size: 0.9em; cursor: pointer;"
-                      onclick="showDeclinedMembers(${req.declined})">
-                    <i class="ri-close-circle-line me-1"></i>
-                    ${req.declined}
-                </span>
-            </td>
-            
-            <td>
-                ${req.pickupStatus.status === 'Picked Up' 
-                    ? `<div class="d-flex flex-column" style="min-width: 80px;">
-                        <span class="badge bg-success-transparent mb-1" style="width: fit-content;">
-                            <i class="ri-checkbox-circle-line me-1"></i>
-                            ${req.pickupStatus.status}
-                        </span>
-                        <small class="text-muted">
-                            <i class="ri-calendar-line me-1"></i>
-                            ${req.pickupStatus.date}
-                        </small>
-                       </div>`
-                    : `<span class="badge bg-warning-transparent" style="width: fit-content;">
-                        <i class="ri-time-line me-1"></i>
-                        ${req.pickupStatus.status}
-                       </span>`
-                }
-            </td>
-            
-            <td>
-                ${req.givenStatus.status === 'Given' 
-                    ? `<div class="d-flex flex-column" style="min-width: 120px;">
-                        <span class="badge bg-success-transparent mb-1" style="width: fit-content;">
-                            <i class="ri-checkbox-circle-line me-1"></i>
-                            ${req.givenStatus.status}
-                        </span>
-                        <small class="text-muted">
-                            <i class="ri-calendar-line me-1"></i>
-                            ${req.givenStatus.date}
-                        </small>
-                       </div>`
-                    : `<span class="badge bg-warning-transparent" style="width: fit-content;">
-                        <i class="ri-time-line me-1"></i>
-                        ${req.givenStatus.status}
-                       </span>`
-                }
-            </td>
-        </tr>
-    `).join('');
+        // Render the table
+        const tableContent = chapterRequisitions.map(req => {
+            const formattedDate = new Date(req.requested_date).toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
 
-    tableBody.innerHTML = tableContent;
+            return `
+                <tr class="align-middle">
+                    <td class="fw-bold">${req.chapter_requisition_id}</td>
+                    
+                    <td>
+                        <span class="text-dark fw-semibold">${formattedDate}</span>
+                    </td>
+                    
+                    <td>
+                        <span class="badge bg-primary-transparent" 
+                              style="font-size: 0.9em; cursor: pointer;"
+                              onclick="showAccoladeDetails(${JSON.stringify(req.accolade_ids)})">
+                            ${req.accolade_ids.length} Accolades
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <span class="badge bg-success-transparent" 
+                              style="font-size: 0.9em; cursor: pointer;"
+                              onclick="showApprovedMembers(5)">
+                            <i class="ri-checkbox-circle-line me-1"></i>
+                            5
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <span class="badge bg-danger-transparent" 
+                              style="font-size: 0.9em; cursor: pointer;"
+                              onclick="showDeclinedMembers(3)">
+                            <i class="ri-close-circle-line me-1"></i>
+                            3
+                        </span>
+                    </td>
+                    
+                    <td>
+                        ${req.pickup_status 
+                            ? `<div class="d-flex flex-column" style="min-width: 80px;">
+                                <span class="badge bg-success-transparent mb-1" style="width: fit-content;">
+                                    <i class="ri-checkbox-circle-line me-1"></i>
+                                    Picked Up
+                                </span>
+                                <small class="text-muted">
+                                    <i class="ri-calendar-line me-1"></i>
+                                    ${req.pickup_date ? new Date(req.pickup_date).toLocaleDateString() : 'N/A'}
+                                </small>
+                               </div>`
+                            : `<span class="badge bg-warning-transparent" style="width: fit-content;">
+                                <i class="ri-time-line me-1"></i>
+                                Yet to be Picked
+                               </span>`
+                        }
+                    </td>
+                    
+                    <td>
+                        <span class="badge bg-warning-transparent" style="width: fit-content;">
+                            <i class="ri-time-line me-1"></i>
+                            N/A
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tableBody.innerHTML = tableContent;
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger">
+                    Error loading data. Please try again later.
+                </td>
+            </tr>
+        `;
+    }
 });
 
 // Add some custom styles
@@ -228,67 +234,58 @@ style.textContent = `
 
 document.head.appendChild(style);
 
-// Add this function to handle accolade click
-async function showAccoladeDetails(totalAccolades) {
+// Update showAccoladeDetails function
+async function showAccoladeDetails(accoladeIds) {
     try {
+        console.log('🎯 Showing accolade details for IDs:', accoladeIds);
+        
         const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
-        const accolades = await response.json();
+        const allAccolades = await response.json();
         
-        // Get random accolades based on total count
-        const randomAccolades = accolades
-            .sort(() => 0.5 - Math.random())
-            .slice(0, totalAccolades);
+        // Filter accolades based on IDs from requisition
+        const selectedAccolades = allAccolades.filter(accolade => 
+            accoladeIds.includes(accolade.accolade_id)
+        );
+        
+        console.log('📊 Selected Accolades:', selectedAccolades);
 
-        // Random member selection
-        const members = [
-            'Prince Sachdeva',
-            'Raja Shukla',
-            'Aditya Sachdeva',
-            'Vikram Mehta',
-            'Rahul Sharma'
-        ];
-        
-        const accoladesHtml = randomAccolades.map(accolade => {
-            const randomMember = members[Math.floor(Math.random() * members.length)];
-            return `
-                <div class="accolade-item" style="
-                    display: flex;
-                    align-items: center;
-                    padding: 12px;
-                    margin-bottom: 12px;
-                    border-radius: 8px;
-                    background: ${accolade.accolade_type === 'Global' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-                    border-left: 4px solid ${accolade.accolade_type === 'Global' ? '#2563eb' : '#dc2626'};
-                ">
-                    <div style="flex: 1;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                            <span class="badge" style="
-                                background: ${accolade.accolade_type === 'Global' ? '#2563eb' : '#dc2626'};
-                                color: white;
-                                padding: 4px 8px;
-                                border-radius: 4px;
-                                font-size: 0.75rem;
-                            ">${accolade.accolade_type}</span>
-                            <strong style="color: #1f2937;">${accolade.accolade_name}</strong>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <i class="ri-user-fill" style="color: #6b7280;"></i>
-                            <span style="color: #6b7280; font-size: 0.9em;">${randomMember}</span>
-                        </div>
+        const accoladesHtml = selectedAccolades.map(accolade => `
+            <div class="accolade-item" style="
+                display: flex;
+                align-items: center;
+                padding: 12px;
+                margin-bottom: 12px;
+                border-radius: 8px;
+                background: ${accolade.accolade_type === 'Global' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+                border-left: 4px solid ${accolade.accolade_type === 'Global' ? '#2563eb' : '#dc2626'};
+            ">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span class="badge" style="
+                            background: ${accolade.accolade_type === 'Global' ? '#2563eb' : '#dc2626'};
+                            color: white;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            font-size: 0.75rem;
+                        ">${accolade.accolade_type}</span>
+                        <strong style="color: #1f2937;">${accolade.accolade_name}</strong>
                     </div>
-                    <div style="
-                        padding: 8px 12px;
-                        background: white;
-                        border-radius: 6px;
-                        color: #374151;
-                        font-weight: 500;
-                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                    ">
-                        ₹${accolade.accolade_price || 'N/A'}
+                    <div style="color: #6b7280; font-size: 0.9em;">
+                        ${accolade.eligibility_and_condition}
                     </div>
                 </div>
-            `;
-        }).join('');
+                <div style="
+                    padding: 8px 12px;
+                    background: white;
+                    border-radius: 6px;
+                    color: #374151;
+                    font-weight: 500;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                ">
+                    ₹${accolade.accolade_price || 'N/A'}
+                </div>
+            </div>
+        `).join('');
 
         Swal.fire({
             title: '<span style="color: #2563eb;"><i class="ri-award-line"></i> Requested Accolades</span>',
@@ -307,7 +304,7 @@ async function showAccoladeDetails(totalAccolades) {
         });
 
     } catch (error) {
-        console.error('Error fetching accolades:', error);
+        console.error('❌ Error fetching accolades:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -800,13 +797,55 @@ async function showRequisitionForm() {
                 container: 'requisition-modal',
                 popup: 'requisition-popup'
             },
-            preConfirm: () => {
+            preConfirm: async () => {
                 // Check if there are any assignments
                 if (assignments.length === 0) {
                     Swal.showValidationMessage('Please add at least one assignment before submitting');
                     return false;
                 }
-                return true;
+
+                try {
+                    // Group assignments by member and accolade
+                    const uniqueMembers = [...new Set(assignments.map(a => a.member.member_id))];
+                    const uniqueAccolades = [...new Set(assignments.map(a => a.accolade.accolade_id))];
+                    
+                    // Prepare data for API
+                    const chapterRequisitionData = {
+                        member_ids: uniqueMembers,
+                        chapter_id: assignments[0].member.chapter_id,
+                        accolade_ids: uniqueAccolades,
+                        comment: assignments[0].comment,
+                        request_status: 'open',
+                        ro_comment: null,
+                        pickup_status: false,
+                        pickup_date: null
+                    };
+
+                    console.log('🚀 Sending Chapter Requisition Data:', chapterRequisitionData);
+
+                    // Make API call
+                    const response = await fetch('https://backend.bninewdelhi.com/api/chapter-requisition', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(chapterRequisitionData)
+                    });
+
+                    const result = await response.json();
+                    console.log('✅ API Response:', result);
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Failed to submit requisition');
+                    }
+
+                    return true;
+
+                } catch (error) {
+                    console.error('❌ Error:', error);
+                    Swal.showValidationMessage(`Submission failed: ${error.message}`);
+                    return false;
+                }
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -849,7 +888,7 @@ async function showRequisitionForm() {
                     }
                 }).then(() => {
                     // Optional: Refresh the page or update the table
-                    // window.location.reload();
+                    window.location.reload();
                 });
             }
         });
