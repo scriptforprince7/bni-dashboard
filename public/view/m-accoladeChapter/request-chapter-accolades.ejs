@@ -131,6 +131,30 @@
   #accoladeModal .modal-footer button:hover {
     background-color: #f232328b;
   }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+
+  .dropdown-item:hover {
+    background-color: #f8f9fa;
+  }
+
+  .bg-success {
+    background-color: #28a745 !important;
+  }
+
+  .bg-warning {
+    background-color: #ffc107 !important;
+  }
+
+  .bg-danger {
+    background-color: #dc3545 !important;
+  }
 </style>
 
     <%- include('../partials/chapter-sidebar') %>
@@ -154,12 +178,12 @@
                     >
                   </li>
                   <li class="breadcrumb-item Approved" aria-current="page">
-                    View All Accolades
+                    Chapter Wise Accolades
                   </li>
                 </ol>
               </nav>
               <h1 class="page-title fw-medium fs-18 mb-0">
-                Member Wise Accolades
+                Chapter Wise Accolades
               </h1>
             </div>
             <div class="btn-list">
@@ -178,6 +202,25 @@
               <div class="d-flex">
               
                 <!-- Payment Method Filter -->
+                <div class="dropdown me-2">
+                  <a href="javascript:void(0);"
+                     class="btn btn-sm btn-light text-muted dropdown-toggle"
+                     data-bs-toggle="dropdown"
+                     aria-expanded="true">
+                    <i class="ti ti-currency-rupee me-1"></i> Paid Requisitions
+                  </a>
+                  <ul class="dropdown-menu" id="paid-requisitions-filter" role="menu">
+                    <li>
+                      <a class="dropdown-item" href="javascript:void(0);" data-status="paid">
+                        <span class="badge bg-success me-2">✓</span>Payment Done 
+                      </a>
+                    </li>
+                   
+                    
+                  </ul>
+                </div>
+
+                <!-- Accolades Filter -->
                 <div class="dropdown me-2">
                   <a href="javascript:void(0);"
                      class="btn btn-sm btn-light text-muted dropdown-toggle"
@@ -237,12 +280,12 @@
                   <thead>
                     <tr>
                       <th scope="col">S.No.</th>
-                      <th scope="col">Chapter Name</th>
                       <th scope="col">Member Name</th>
                       <th scope="col">Accolade Name</th>
                       <th scope="col">Requested Date</th>
+                      <th scope="col">Request Comment</th>
+                      <th scope="col" id="paidAmountHeader" style="display: none;">Paid Amount</th>
                       <th scope="col">Approve Status</th>
-                      
                     </tr>
                   </thead>
                   

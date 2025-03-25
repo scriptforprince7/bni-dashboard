@@ -215,7 +215,7 @@ function populateAccoladesTable(accolades) {
                         background: linear-gradient(45deg, #2563eb, #1e40af);
                         color: white;
                         border: none;
-                        padding: 8px 16px;
+                        padding: 8px 16px;  
                         border-radius: 6px;
                         font-weight: 500;
                         transition: all 0.3s ease;
@@ -294,7 +294,7 @@ async function handleRequestAndPay(accoladeId) {
         
         if (loginType === 'ro_admin') {
             currentMemberEmail = localStorage.getItem('current_member_email');
-            currentMemberId = localStorage.getItem('current_member_id');
+            currentMemberId = parseInt(localStorage.getItem('current_member_id'));
             console.log('🔄 RO Admin requesting for member:', {
                 email: currentMemberEmail,
                 memberId: currentMemberId
@@ -316,7 +316,7 @@ async function handleRequestAndPay(accoladeId) {
 
         // Find current member
         const currentMember = loginType === 'ro_admin' 
-            ? members.find(member => member.member_id === parseInt(currentMemberId))
+            ? members.find(member => member.member_id === currentMemberId)
             : members.find(member => member.member_email_address === currentMemberEmail);
 
         if (!currentMember) {
@@ -324,16 +324,10 @@ async function handleRequestAndPay(accoladeId) {
         }
 
         // Find the selected accolade to get its price
-        const selectedAccolade = accolades.find(accolade => accolade.accolade_id === accoladeId);
+        const selectedAccolade = accolades.find(accolade => accolade.accolade_id === parseInt(accoladeId));
         if (!selectedAccolade) {
             throw new Error('Accolade not found');
         }
-
-        console.log('📊 Selected Accolade:', {
-            id: selectedAccolade.accolade_id,
-            name: selectedAccolade.accolade_name,
-            price: selectedAccolade.accolade_price
-        });
 
         // Get comment from user via SweetAlert
         const { value: comment } = await Swal.fire({
@@ -370,19 +364,30 @@ async function handleRequestAndPay(accoladeId) {
 
             const orderId = 'order_103197982ufIUFWPZlZM3PoeAjqwDWECOlA';
 
-            // Prepare request data with accolade's actual price
+            // Prepare request data with all required fields
             const requestData = {
-                member_id: currentMember.member_id,
-                chapter_id: currentMember.chapter_id,
-                accolade_id: accoladeId,
+                // Original fields
+                member_id: parseInt(currentMember.member_id),
+                chapter_id: parseInt(currentMember.chapter_id),
+                accolade_id: parseInt(accoladeId),
                 request_comment: comment,
-                accolade_amount: selectedAccolade.accolade_price,
-                order_id: orderId
+                accolade_amount: parseFloat(selectedAccolade.accolade_price),
+                order_id: orderId,
+                
+                // Additional member details
+                region_id: parseInt(currentMember.region_id),
+                member_name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
+                member_phone_number: currentMember.member_phone_number,
+                member_email_address: currentMember.member_email_address,
+                member_gst_number: currentMember.member_gst_number,
+                member_company_name: currentMember.member_company_name,
+                payment_note: 'member-requisition-payment'
             };
 
-            console.log('🚀 Sending API Request:', requestData);
+            console.log('🚀 Complete Request Data:', requestData);
 
-            // Make API call
+            // API call commented out as requested
+            /*
             const response = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
                 method: 'POST',
                 headers: {
@@ -390,32 +395,22 @@ async function handleRequestAndPay(accoladeId) {
                 },
                 body: JSON.stringify(requestData)
             });
-
-            const result = await response.json();
-            console.log('✅ API Response:', result);
+            */
 
             hideLoader();
 
-            if (!response.ok) {
-                throw new Error(result.message || 'Failed to submit requisition');
-            }
-
-            // Show success message
+            // Show success message (for testing)
             await Swal.fire({
                 icon: 'success',
-                title: 'Request Submitted Successfully!',
+                title: 'Test Mode',
                 html: `
                     <div style="text-align: left">
-                        <p><strong>Amount:</strong> ₹${selectedAccolade.accolade_price}</p>
-                        <p><strong>Order ID:</strong> ${orderId}</p>
-                        <p><strong>Status:</strong> Request Submitted</p>
+                        <p><strong>Data logged to console</strong></p>
+                        <p>Check browser console for complete request data</p>
                     </div>
                 `,
                 confirmButtonColor: '#2563eb'
             });
-
-            // Refresh the page
-            window.location.reload();
         }
 
     } catch (error) {
@@ -434,7 +429,7 @@ async function handleRequestAndPay(accoladeId) {
 async function showAccoladeDetails(accoladeId) {
     try {
         // Fetch accolades data
-        const response = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await response.json();
         
         // Find the matching accolade
@@ -594,7 +589,7 @@ async function getPendingRequisitions() {
                 }
 
                 // Fetch accolades data
-                const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+                const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
                 const accolades = await accoladesResponse.json();
 
                 console.log('🏆 All Accolades:', accolades);
