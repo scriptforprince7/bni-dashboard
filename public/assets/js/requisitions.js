@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <td>
                         <span class="badge bg-primary-transparent" 
                               style="font-size: 0.9em; cursor: pointer;"
-                              onclick="showAccoladeDetails(${JSON.stringify(req.accolade_ids)})">
+                              onclick="showAccoladeDetails(${JSON.stringify(req.accolade_ids)}, ${req.chapter_requisition_id})">
                             ${req.accolade_ids.length} Accolades
                         </span>
                     </td>
@@ -235,80 +235,212 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Update showAccoladeDetails function
-async function showAccoladeDetails(accoladeIds) {
+async function showAccoladeDetails(accoladeIds, requisitionId) {
     try {
-        console.log('🎯 Showing accolade details for IDs:', accoladeIds);
-        
-        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
-        const allAccolades = await response.json();
-        
-        // Filter accolades based on IDs from requisition
-        const selectedAccolades = allAccolades.filter(accolade => 
-            accoladeIds.includes(accolade.accolade_id)
-        );
-        
-        console.log('📊 Selected Accolades:', selectedAccolades);
+        // Add memberRequisitions to the parallel fetch
+        const [accoladesResponse, membersResponse, requisitionResponse, memberRequisitionsResponse] = await Promise.all([
+            fetch('https://bni-data-backend.onrender.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+        ]);
 
-        const accoladesHtml = selectedAccolades.map(accolade => `
-            <div class="accolade-item" style="
-                display: flex;
-                align-items: center;
-                padding: 12px;
-                margin-bottom: 12px;
-                border-radius: 8px;
-                background: ${accolade.accolade_type === 'Global' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
-                border-left: 4px solid ${accolade.accolade_type === 'Global' ? '#2563eb' : '#dc2626'};
+        const [allAccolades, allMembers, allRequisitions, memberRequisitions] = await Promise.all([
+            accoladesResponse.json(),
+            membersResponse.json(),
+            requisitionResponse.json(),
+            memberRequisitionsResponse.json()
+        ]);
+
+        console.log('💰 Member Requisitions:', memberRequisitions);
+
+        // Get the specific requisition to access comments
+        const requisition = allRequisitions.find(r => r.chapter_requisition_id === requisitionId);
+        console.log('📝 Requisition:', requisition);
+        
+        // Parse comments JSON
+        const commentsMap = requisition.comment ? JSON.parse(requisition.comment) : {};
+        console.log('💬 Comments Map:', commentsMap);
+
+        // Match accolades with members and their comments
+        const accoladeDetails = accoladeIds.map(accoladeId => {
+            const accolade = allAccolades.find(a => a.accolade_id === accoladeId);
+            const memberRequisition = memberRequisitions.find(mr => mr.accolade_id === accoladeId);
+            const isPaid = memberRequisition && memberRequisition.accolade_amount !== null && memberRequisition.order_id !== null;
+            
+            const assignedMembers = allMembers.filter(member => 
+                Object.keys(commentsMap).some(key => {
+                    const [memberId, accId] = key.split('_');
+                    return parseInt(memberId) === member.member_id && parseInt(accId) === accoladeId;
+                })
+            );
+
+            return {
+                accolade,
+                isPaid,
+                members: assignedMembers.map(member => ({
+                    ...member,
+                    comment: commentsMap[`${member.member_id}_${accoladeId}`] || ''
+                }))
+            };
+        });
+
+        const detailsHtml = accoladeDetails.map(detail => `
+            <div class="accolade-section" style="
+                background: white;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                border: 1px solid #e5e7eb;
             ">
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                        <span class="badge" style="
-                            background: ${accolade.accolade_type === 'Global' ? '#2563eb' : '#dc2626'};
-                            color: white;
-                            padding: 4px 8px;
-                            border-radius: 4px;
-                            font-size: 0.75rem;
-                        ">${accolade.accolade_type}</span>
-                        <strong style="color: #1f2937;">${accolade.accolade_name}</strong>
-                    </div>
-                    <div style="color: #6b7280; font-size: 0.9em;">
-                        ${accolade.eligibility_and_condition}
-                    </div>
-                </div>
+                <!-- Accolade Header -->
                 <div style="
-                    padding: 8px 12px;
-                    background: white;
-                    border-radius: 6px;
-                    color: #374151;
-                    font-weight: 500;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                    background: ${detail.accolade.accolade_type === 'Global' 
+                        ? 'linear-gradient(145deg, #2563eb, #1e40af)'
+                        : 'linear-gradient(145deg, #dc2626, #991b1b)'};
+                    padding: 15px;
+                    border-radius: 12px 12px 0 0;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 ">
-                    ₹${accolade.accolade_price || 'N/A'}
+                    <div style="color: white; font-size: 1.1rem; font-weight: 600;">
+                        <i class="ri-award-fill me-2"></i>${detail.accolade.accolade_name}
+                    </div>
+                    <span style="
+                        background: ${detail.accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
+                        padding: 4px 12px;
+                        border-radius: 9999px;
+                        font-size: 0.75rem;
+                        color: white;
+                        font-weight: 500;
+                    ">
+                        ${detail.accolade.accolade_type}
+                    </span>
+                </div>
+
+                <!-- Accolade Content -->
+                <div style="padding: 20px;">
+                    <div style="
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 15px;
+                        margin-bottom: 20px;
+                    ">
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-money-dollar-circle-line me-1"></i>Price
+                            </div>
+                            <div style="color: #1e293b; font-weight: 500;">
+                                ₹${detail.accolade.accolade_price || 'N/A'}
+                            </div>
+                        </div>
+
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid ${detail.isPaid ? '#059669' : '#6366f1'};
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-price-tag-3-line me-1"></i>Type
+                            </div>
+                            <div style="
+                                color: ${detail.isPaid ? '#059669' : '#6366f1'};
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                            ">
+                                <i class="ri-${detail.isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
+                                ${detail.isPaid ? 'Paid' : 'Free'}
+                            </div>
+                        </div>
+
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-file-text-line me-1"></i>Eligibility & Conditions
+                            </div>
+                            <div style="color: #1e293b;">
+                                ${detail.accolade.eligibility_and_condition || 'No eligibility conditions available'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assigned Members -->
+                    <div style="margin-top: 20px;">
+                        <h6 style="color: #475569; margin-bottom: 15px;">
+                            <i class="ri-team-line me-2"></i>Assigned Members
+                        </h6>
+                        ${detail.members.map(member => `
+                            <div style="
+                                padding: 15px;
+                                background: #f8fafc;
+                                border-radius: 8px;
+                                margin-bottom: 10px;
+                            ">
+                                <div style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                    margin-bottom: 10px;
+                                ">
+                                    <i class="ri-user-line" style="color: #64748b;"></i>
+                                    <span style="font-weight: 500; color: #1e293b;">
+                                        ${member.member_first_name} ${member.member_last_name}
+                                    </span>
+                                </div>
+                                <div style="
+                                    background: white;
+                                    padding: 10px;
+                                    border-radius: 6px;
+                                    border: 1px solid #e2e8f0;
+                                ">
+                                    <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                        <i class="ri-chat-1-line me-1"></i>Comment
+                                    </div>
+                                    <div style="color: #1e293b;">
+                                        ${member.comment || 'No comment provided'}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         `).join('');
 
         Swal.fire({
-            title: '<span style="color: #2563eb;"><i class="ri-award-line"></i> Requested Accolades</span>',
+            title: '<span style="color: #2563eb"><i class="ri-award-line"></i> Accolade Details</span>',
             html: `
-                <div style="max-height: 400px; overflow-y: auto; padding: 10px;">
-                    ${accoladesHtml}
+                <div style="max-height: 70vh; overflow-y: auto; padding: 20px;">
+                    ${detailsHtml}
                 </div>
             `,
-            width: 600,
+            width: '800px',
             showCloseButton: true,
             showConfirmButton: false,
             customClass: {
-                container: 'accolades-modal',
-                popup: 'accolades-popup',
+                popup: 'accolades-popup'
             }
         });
 
     } catch (error) {
-        console.error('❌ Error fetching accolades:', error);
+        console.error('❌ Error:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Failed to load accolades details'
+            text: 'Failed to load accolade details'
         });
     }
 }
@@ -720,28 +852,6 @@ async function showRequisitionForm() {
                         </div>
                     </div>
 
-                    <!-- Comment Field -->
-                    <div class="form-group mb-4">
-                        <label style="
-                            display: block;
-                            margin-bottom: 10px;
-                            color: #475569;
-                            font-size: 0.95em;
-                            font-weight: 500;
-                        ">
-                            <i class="ri-chat-1-line me-1"></i> Comment
-                        </label>
-                        <textarea id="commentInput" class="form-control" rows="4" style="
-                            width: 100%;
-                            padding: 10px 14px;
-                            border: 1px solid #cbd5e1;
-                            border-radius: 6px;
-                            resize: none;
-                            background-color: white;
-                            font-size: 1em;
-                        "></textarea>
-                    </div>
-
                     <!-- Updated Button Text -->
                     <button onclick="addAssignment()" class="btn btn-primary w-100" style="
                         background: #2563eb;
@@ -798,7 +908,6 @@ async function showRequisitionForm() {
                 popup: 'requisition-popup'
             },
             preConfirm: async () => {
-                // Check if there are any assignments
                 if (assignments.length === 0) {
                     Swal.showValidationMessage('Please add at least one assignment before submitting');
                     return false;
@@ -809,19 +918,31 @@ async function showRequisitionForm() {
                     const uniqueMembers = [...new Set(assignments.map(a => a.member.member_id))];
                     const uniqueAccolades = [...new Set(assignments.map(a => a.accolade.accolade_id))];
                     
-                    // Prepare data for API
+                    // Create comments object with proper structure
+                    const commentsObject = {};
+                    assignments.forEach(assignment => {
+                        const key = `${assignment.member.member_id}_${assignment.accolade.accolade_id}`;
+                        commentsObject[key] = assignment.comment || '';
+                    });
+
+                    console.log('📝 Comments Object:', commentsObject);
+                    
+                    // Convert to JSON string
+                    const commentsJSON = JSON.stringify(commentsObject);
+                    console.log('📝 Comments as JSON string:', commentsJSON);
+
                     const chapterRequisitionData = {
                         member_ids: uniqueMembers,
                         chapter_id: assignments[0].member.chapter_id,
                         accolade_ids: uniqueAccolades,
-                        comment: assignments[0].comment,
+                        comment: commentsJSON,
                         request_status: 'open',
                         ro_comment: null,
                         pickup_status: false,
                         pickup_date: null
                     };
 
-                    console.log('🚀 Sending Chapter Requisition Data:', chapterRequisitionData);
+                    console.log('🚀 Sending Data:', chapterRequisitionData);
 
                     // Make API call
                     const response = await fetch('https://backend.bninewdelhi.com/api/chapter-requisition', {
@@ -893,39 +1014,6 @@ async function showRequisitionForm() {
             }
         });
 
-        // Function to add new assignment
-        window.addAssignment = function() {
-            const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
-                .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
-            const commentInput = document.getElementById('commentInput');
-            const selectedCheckboxes = document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked');
-
-            if (selectedAccolades.length === 0 || selectedCheckboxes.length === 0 || !commentInput.value.trim()) {
-                Swal.showValidationMessage('Please select at least one accolade, one member, and add a comment');
-                return;
-            }
-
-            // Add an assignment for each selected member and accolade combination
-            selectedCheckboxes.forEach(memberCheckbox => {
-                const member = members.find(m => m.member_id === parseInt(memberCheckbox.value));
-                selectedAccolades.forEach(accolade => {
-                    assignments.push({
-                        sno: currentSno++,
-                        accolade,
-                        member,
-                        comment: commentInput.value.trim()
-                    });
-                });
-            });
-
-            renderAssignments();
-            
-            // Reset form
-            document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
-            selectedCheckboxes.forEach(checkbox => checkbox.checked = false);
-            commentInput.value = '';
-        };
-
         // Function to render assignments
         function renderAssignments() {
             const assignmentsList = document.getElementById('assignmentsList');
@@ -964,19 +1052,81 @@ async function showRequisitionForm() {
                         ${assignment.member.member_first_name} ${assignment.member.member_last_name}
                     </div>
                     
-                    <div style="
-                        color: #64748b;
-                        font-size: 0.9em;
-                        padding: 8px;
-                        background: #f1f5f9;
-                        border-radius: 4px;
-                    ">
-                        <i class="ri-chat-1-line me-1"></i>
-                        ${assignment.comment}
+                    <!-- Individual Comment Box -->
+                    <div style="margin-top: 12px;">
+                        <label style="
+                            display: block;
+                            margin-bottom: 6px;
+                            color: #64748b;
+                            font-size: 0.875rem;
+                        ">
+                            <i class="ri-chat-1-line me-1"></i>Add Comment
+                        </label>
+                        <textarea 
+                            class="individual-comment"
+                            data-sno="${assignment.sno}"
+                            data-member-id="${assignment.member.member_id}"
+                            data-accolade-id="${assignment.accolade.accolade_id}"
+                            placeholder="Add comment for this accolade..."
+                            style="
+                                width: 100%;
+                                padding: 8px 12px;
+                                border: 1px solid #e2e8f0;
+                                border-radius: 6px;
+                                resize: none;
+                                background-color: #f8fafc;
+                                font-size: 0.875rem;
+                                min-height: 60px;
+                                margin-bottom: 8px;
+                            "
+                        >${assignment.comment || ''}</textarea>
                     </div>
                 </div>
             `).join('');
+
+            // Add event listeners for comment changes
+            document.querySelectorAll('.individual-comment').forEach(textarea => {
+                textarea.addEventListener('change', (e) => {
+                    const sno = parseInt(e.target.dataset.sno);
+                    const assignment = assignments.find(a => a.sno === sno);
+                    if (assignment) {
+                        assignment.comment = e.target.value;
+                        console.log(`Updated comment for assignment ${sno}:`, assignment.comment);
+                    }
+                });
+            });
         }
+
+        // Update addAssignment function
+        window.addAssignment = function() {
+            const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
+                .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
+            const selectedCheckboxes = document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked');
+
+            if (selectedAccolades.length === 0 || selectedCheckboxes.length === 0) {
+                Swal.showValidationMessage('Please select at least one accolade and one member');
+                return;
+            }
+
+            // Add an assignment for each selected member and accolade combination
+            selectedCheckboxes.forEach(memberCheckbox => {
+                const member = members.find(m => m.member_id === parseInt(memberCheckbox.value));
+                selectedAccolades.forEach(accolade => {
+                    assignments.push({
+                        sno: currentSno++,
+                        accolade,
+                        member,
+                        comment: '' // Initialize empty comment
+                    });
+                });
+            });
+
+            renderAssignments();
+            
+            // Reset form
+            document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
+            selectedCheckboxes.forEach(checkbox => checkbox.checked = false);
+        };
 
     } catch (error) {
         console.error('Error:', error);
