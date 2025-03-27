@@ -56,41 +56,68 @@ function getRandomAccolades(count = 5) {
 async function handleAccoladesClick(requisition) {
     try {
         console.log('📝 Processing requisition:', requisition);
-        console.log('🎯 Accolade IDs to fetch:', requisition.accolade_ids);
-        console.log('🏢 Chapter ID to match:', requisition.chapter_id);
+        
+        // Parse comments JSON
+        let commentsMap = {};
+        try {
+            commentsMap = JSON.parse(requisition.comment);
+            console.log('💬 Comments Map:', commentsMap);
+        } catch (e) {
+            console.error('Error parsing comments:', e);
+        }
 
-        // Fetch both accolades and chapters data
-        const [accoladesResponse, chaptersResponse] = await Promise.all([
+        // Fetch all required data
+        const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse] = await Promise.all([
             fetch('https://bni-data-backend.onrender.com/api/accolades'),
-            fetch('https://backend.bninewdelhi.com/api/chapters')
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
         ]);
 
-        const [allAccolades, allChapters] = await Promise.all([
+        const [allAccolades, allChapters, allMembers, memberRequisitions] = await Promise.all([
             accoladesResponse.json(),
-            chaptersResponse.json()
+            chaptersResponse.json(),
+            membersResponse.json(),
+            memberRequisitionsResponse.json()
         ]);
 
-        console.log('🏆 All Accolades from API:', allAccolades);
-        console.log('📚 All Chapters from API:', allChapters);
+        console.log('💰 Member Requisitions:', memberRequisitions);
 
         // Match chapter based on chapter_id
         const chapter = allChapters.find(ch => ch.chapter_id === requisition.chapter_id);
-        console.log('🏢 Matched Chapter:', chapter);
+        
+        // Create combinations with comments and payment status
+        const combinations = [];
+        requisition.member_ids.forEach(memberId => {
+            const member = allMembers.find(m => m.member_id === memberId);
+            const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
+            
+            requisition.accolade_ids.forEach(accoladeId => {
+                const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
+                const commentKey = `${memberId}_${accoladeId}`;
+                const comment = commentsMap[commentKey] || '';
+                
+                // Check if accolade is paid
+                const memberRequisition = memberRequisitions.find(mr => 
+                    mr.accolade_id === accoladeId && 
+                    mr.order_id !== null && 
+                    mr.accolade_amount !== null
+                );
+                const isPaid = !!memberRequisition;
+                
+                console.log(`🔍 Checking payment status for accolade ${accoladeId}:`, { isPaid, memberRequisition });
+                
+                combinations.push({
+                    memberId,
+                    memberName,
+                    accolade,
+                    comment,
+                    isPaid
+                });
+            });
+        });
 
-        // Match accolades based on accolade_ids
-        const matchedAccolades = requisition.accolade_ids
-            .map(id => allAccolades.find(acc => acc.accolade_id === id))
-            .filter(Boolean);
-
-        console.log('✨ Matched Accolades:', matchedAccolades);
-
-        const accoladesSectionsHtml = matchedAccolades.map((accolade, index) => {
-            // Define gradient colors based on accolade type
-            const headerGradient = accolade.accolade_type === 'Global' 
-                ? 'linear-gradient(145deg, #2563eb, #1e40af)' // Blue gradient for Global
-                : 'linear-gradient(145deg, #dc2626, #991b1b)'; // Red gradient for Regional
-
-            return `
+        const accoladesSectionsHtml = combinations.map((combo, index) => `
             <div class="accolade-section" style="
                 background: #ffffff;
                 border-radius: 12px;
@@ -98,9 +125,11 @@ async function handleAccoladesClick(requisition) {
                 box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                 border: 1px solid #e5e7eb;
             ">
-                <!-- Header with Accolade Name -->
+                <!-- Header with Accolade and Member Name -->
                 <div style="
-                    background: ${headerGradient};
+                    background: ${combo.accolade.accolade_type === 'Global' 
+                        ? 'linear-gradient(145deg, #2563eb, #1e40af)' 
+                        : 'linear-gradient(145deg, #dc2626, #991b1b)'};
                     padding: 15px;
                     border-radius: 12px 12px 0 0;
                     display: flex;
@@ -108,24 +137,39 @@ async function handleAccoladesClick(requisition) {
                     align-items: center;
                 ">
                     <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">
-                        <i class="ri-award-fill me-2"></i>${accolade.accolade_name}
+                        <i class="ri-award-fill me-2"></i>${combo.accolade.accolade_name}
                     </div>
                     <span style="
-                        background: ${accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
+                        background: ${combo.accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
                         padding: 4px 12px;
                         border-radius: 9999px;
                         font-size: 0.75rem;
                         color: white;
                         font-weight: 500;
                     ">
-                        ${accolade.accolade_type}
+                        ${combo.accolade.accolade_type}
                     </span>
                 </div>
 
                 <!-- Content -->
                 <div style="padding: 20px;">
-                    <!-- Details Grid -->
+                    <!-- First Row: Member and Chapter -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <!-- Member Name -->
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-user-line me-1"></i>Member Name
+                            </div>
+                            <div style="color: #1e293b; font-weight: 500;">
+                                ${combo.memberName}
+                            </div>
+                        </div>
+
                         <!-- Chapter Name -->
                         <div style="
                             padding: 12px;
@@ -140,37 +184,10 @@ async function handleAccoladesClick(requisition) {
                                 ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Member Name -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-user-line me-1"></i>Member
-                            </div>
-                            <div style="color: #1e293b; font-weight: 500;">
-                                ${requisition.member_name || 'N/A'}
-                            </div>
-                        </div>
-
-                        <!-- Accolade Type -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-price-tag-3-line me-1"></i>Type
-                            </div>
-                            <div style="color: #1e293b; font-weight: 500;">
-                                ${accolade.accolade_type}
-                            </div>
-                        </div>
-
+                    <!-- Second Row: Chapter Comment and Accolade Type -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <!-- Chapter Comment -->
                         <div style="
                             padding: 12px;
@@ -181,9 +198,101 @@ async function handleAccoladesClick(requisition) {
                             <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
                                 <i class="ri-chat-1-line me-1"></i>Chapter Comment
                             </div>
-                            <div style="color: #1e293b; font-weight: 500;">
-                                ${requisition.comment || 'No comment provided'}
+                            <div style="color: #1e293b;">
+                                ${combo.comment || 'No comment provided'}
                             </div>
+                        </div>
+
+                        <!-- Accolade Type -->
+                        <div style="
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid ${combo.isPaid ? '#059669' : '#6366f1'};
+                        ">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-price-tag-3-line me-1"></i>Accolade Type
+                            </div>
+                            <div style="
+                                color: ${combo.isPaid ? '#059669' : '#6366f1'};
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                            ">
+                                <i class="ri-${combo.isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
+                                ${combo.isPaid ? 'Paid' : 'Free'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pickup Status and Date Section -->
+                    <div style="
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 8px;
+                        border-left: 4px solid #2563eb;
+                        margin-bottom: 20px;
+                    ">
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            margin-bottom: 10px;
+                        ">
+                            <div style="
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                            ">
+                                <input 
+                                    type="checkbox" 
+                                    id="pickupStatus_${index}"
+                                    class="pickup-checkbox"
+                                    style="
+                                        width: 16px;
+                                        height: 16px;
+                                        cursor: pointer;
+                                    "
+                                    onchange="togglePickupDate(${index})"
+                                >
+                                <label 
+                                    for="pickupStatus_${index}"
+                                    style="
+                                        color: #1e293b;
+                                        font-weight: 500;
+                                        cursor: pointer;
+                                    "
+                                >
+                                    <i class="ri-checkbox-circle-line me-1"></i>
+                                    Pickup Status
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Pickup Date Input (Hidden by default) -->
+                        <div 
+                            id="pickupDateContainer_${index}" 
+                            style="
+                                display: none;
+                                margin-top: 10px;
+                            "
+                        >
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                <i class="ri-calendar-line me-1"></i>Pickup Date
+                            </div>
+                            <input 
+                                type="date" 
+                                id="pickupDate_${index}"
+                                class="pickup-date"
+                                style="
+                                    width: 100%;
+                                    padding: 8px 12px;
+                                    border: 1px solid #e2e8f0;
+                                    border-radius: 6px;
+                                    color: #1e293b;
+                                "
+                            >
                         </div>
                     </div>
 
@@ -248,7 +357,7 @@ async function handleAccoladesClick(requisition) {
                     </div>
                 </div>
             </div>
-        `}).join('');
+        `).join('');
 
         Swal.fire({
             title: '<span style="color: #2563eb"><i class="ri-file-list-3-line"></i> Accolade Request Details</span>',
@@ -265,6 +374,18 @@ async function handleAccoladesClick(requisition) {
             showCloseButton: true,
             showConfirmButton: false
         });
+
+        // Add this function to handle checkbox changes
+        window.togglePickupDate = function(index) {
+            const checkbox = document.getElementById(`pickupStatus_${index}`);
+            const dateContainer = document.getElementById(`pickupDateContainer_${index}`);
+            
+            if (checkbox.checked) {
+                dateContainer.style.display = 'block';
+            } else {
+                dateContainer.style.display = 'none';
+            }
+        };
 
     } catch (error) {
         console.error('❌ Error in handleAccoladesClick:', error);
@@ -357,3 +478,26 @@ const renderTable = () => {
 
 // Initialize when document is ready
 document.addEventListener('DOMContentLoaded', loadData);
+
+// Add function to save pickup status and date
+async function savePickupStatus(index) {
+    const checkbox = document.getElementById(`pickupStatus_${index}`);
+    const dateInput = document.getElementById(`pickupDate_${index}`);
+    
+    if (checkbox.checked && !dateInput.value) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Warning',
+            text: 'Please select a pickup date'
+        });
+        return;
+    }
+
+    const pickupData = {
+        pickup_status: checkbox.checked,
+        pickup_date: checkbox.checked ? dateInput.value : null
+    };
+
+    console.log('📅 Pickup Data:', pickupData);
+    // Add your API call here to save the pickup status and date
+}

@@ -1,6 +1,7 @@
 // Debug flag
 
 // Function to show the loader
+
 function showLoader() {
     document.getElementById('loader').style.display = 'flex'; // Show loader
   }
@@ -84,6 +85,9 @@ function resetFilter() {
     populateAccoladesTable(memberOriginalAccolades); // Reset to member's original accolades
 }
 
+// At the top of your file, before any Cashfree usage
+
+
 async function fetchMemberData() {
     try {
         showLoader();
@@ -113,7 +117,7 @@ async function fetchMemberData() {
             hideLoader();
             return;
         }
-
+//again done
         console.log('Using member email:', member_email); // Debug log to confirm which email is being used
 
         // Fetch members data
@@ -283,9 +287,20 @@ async function populateAccoladesDropdown() {
     }
 }
 
-// Update the handleRequestAndPay function
+// Just load the SDK without credentials
+function loadCashfreeSDK() {
+    const script = document.createElement('script');
+    script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+    document.head.appendChild(script);
+}
+
+// Call this function immediately
+loadCashfreeSDK();
+
 async function handleRequestAndPay(accoladeId) {
     try {
+        showLoader();
+        
         // Get current member details first
         const userEmail = getUserEmail();
         const loginType = getUserLoginType();
@@ -360,68 +375,75 @@ async function handleRequestAndPay(accoladeId) {
         });
 
         if (comment) {
-            showLoader();
+            // Calculate amounts
+            const accoladeAmount = parseFloat(selectedAccolade.accolade_price);
+            const taxAmount = parseFloat((accoladeAmount * 0.18).toFixed(2));
+            const totalAmount = parseFloat((accoladeAmount * 1.18).toFixed(2));
 
-            const orderId = 'order_103197982ufIUFWPZlZM3PoeAjqwDWECOlA';
-
-            // Prepare request data with all required fields
-            const requestData = {
-                // Original fields
-                member_id: parseInt(currentMember.member_id),
-                chapter_id: parseInt(currentMember.chapter_id),
-                accolade_id: parseInt(accoladeId),
-                request_comment: comment,
-                accolade_amount: parseFloat(selectedAccolade.accolade_price),
-                tax_amount: parseFloat((selectedAccolade.accolade_price * 0.18).toFixed(2)), // 18% tax
-                total_amount: parseFloat((selectedAccolade.accolade_price * 1.18).toFixed(2)), // Amount + tax
-                order_id: orderId,
-                
-                // Additional member details
-                region_id: parseInt(currentMember.region_id),
-                member_name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
-                member_phone_number: currentMember.member_phone_number,
-                member_email_address: currentMember.member_email_address,
-                member_gst_number: currentMember.member_gst_number,
-                member_company_name: currentMember.member_company_name,
-                payment_note: 'member-requisition-payment'
+            // Keep your exact payment data structure
+            const paymentData = {
+                order_amount: Math.round(totalAmount).toString(),
+                order_note: "Accolade Payment",
+                order_currency: "INR",
+                customer_details: {
+                    customer_id: currentMember.member_id.toString(),
+                    customer_email: currentMember.member_email_address,
+                    customer_phone: currentMember.member_phone_number,
+                    customer_name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
+                    chapter_id: currentMember.chapter_id,
+                    region_id: currentMember.region_id,
+                    member_id: currentMember.member_id,
+                    payment_note: 'member-requisition-payment',
+                    payment_gateway_id: '1',
+                },
+                order_meta: {
+                    payment_note: 'member-requisition-payment'
+                },
+                tax: taxAmount,
+                memberData: {
+                    member_gst_number: currentMember.member_gst_number,
+                    member_company_name: currentMember.member_company_name
+                }
             };
 
-            console.log('🚀 Complete Request Data:', requestData);
+            console.log('💳 Payment Data:', paymentData);
 
-            // API call commented out as requested
-            /*
-            const response = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
+            // Generate session through your backend
+            const sessionResponse = await fetch('http://localhost:5000/api/generate-cashfree-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(paymentData)
             });
-            */
+
+            const sessionData = await sessionResponse.json();
+            console.log('🔑 Session Response:', sessionData);
+
+            if (!sessionData.payment_session_id) {
+                throw new Error('Invalid session response');
+            }
+
+            // Initialize Cashfree checkout without credentials
+            const cashfree = Cashfree({
+                mode: "production"
+            });
+
+            // Launch checkout
+            await cashfree.checkout({
+                paymentSessionId: sessionData.payment_session_id
+            });
 
             hideLoader();
-
-            // Show success message (for testing)
-            await Swal.fire({
-                icon: 'success',
-                title: 'Test Mode',
-                html: `
-                    <div style="text-align: left">
-                        <p><strong>Data logged to console</strong></p>
-                        <p>Check browser console for complete request data</p>
-                    </div>
-                `,
-                confirmButtonColor: '#2563eb'
-            });
         }
 
     } catch (error) {
         hideLoader();
-        console.error('Error in handleRequestAndPay:', error);
+        console.error('Payment Error:', error);
         Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: error.message || 'Failed to process request',
+            title: 'Payment Error',
+            text: error.message || 'Failed to process payment',
             confirmButtonColor: '#dc2626'
         });
     }
@@ -638,7 +660,7 @@ async function getPendingRequisitions() {
     }
 }
 
-// Initialize when document is ready
+// Move the Cashfree configuration inside DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     debugLog('Document ready, initializing...');
     fetchMemberData();
