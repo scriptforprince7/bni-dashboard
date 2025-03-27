@@ -299,52 +299,7 @@ loadCashfreeSDK();
 
 async function handleRequestAndPay(accoladeId) {
     try {
-        showLoader();
-        
-        // Get current member details first
-        const userEmail = getUserEmail();
-        const loginType = getUserLoginType();
-        
-        let currentMemberEmail, currentMemberId;
-        
-        if (loginType === 'ro_admin') {
-            currentMemberEmail = localStorage.getItem('current_member_email');
-            currentMemberId = parseInt(localStorage.getItem('current_member_id'));
-            console.log('🔄 RO Admin requesting for member:', {
-                email: currentMemberEmail,
-                memberId: currentMemberId
-            });
-        } else {
-            currentMemberEmail = userEmail;
-        }
-
-        // Fetch both member and accolade details
-        const [membersResponse, accoladesResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/members'),
-            fetch('https://backend.bninewdelhi.com/api/accolades')
-        ]);
-
-        const [members, accolades] = await Promise.all([
-            membersResponse.json(),
-            accoladesResponse.json()
-        ]);
-
-        // Find current member
-        const currentMember = loginType === 'ro_admin' 
-            ? members.find(member => member.member_id === currentMemberId)
-            : members.find(member => member.member_email_address === currentMemberEmail);
-
-        if (!currentMember) {
-            throw new Error('Member not found');
-        }
-
-        // Find the selected accolade to get its price
-        const selectedAccolade = accolades.find(accolade => accolade.accolade_id === parseInt(accoladeId));
-        if (!selectedAccolade) {
-            throw new Error('Accolade not found');
-        }
-
-        // Get comment from user via SweetAlert
+        // Show SweetAlert first before showing loader
         const { value: comment } = await Swal.fire({
             title: 'Request Accolade',
             html: `
@@ -375,12 +330,57 @@ async function handleRequestAndPay(accoladeId) {
         });
 
         if (comment) {
+            showLoader();
+            
+            // Get current member details first
+            const userEmail = getUserEmail();
+            const loginType = getUserLoginType();
+            
+            let currentMemberEmail, currentMemberId;
+            
+            if (loginType === 'ro_admin') {
+                currentMemberEmail = localStorage.getItem('current_member_email');
+                currentMemberId = parseInt(localStorage.getItem('current_member_id'));
+                console.log('🔄 RO Admin requesting for member:', {
+                    email: currentMemberEmail,
+                    memberId: currentMemberId
+                });
+            } else {
+                currentMemberEmail = userEmail;
+            }
+
+            // Fetch both member and accolade details
+            const [membersResponse, accoladesResponse] = await Promise.all([
+                fetch('https://backend.bninewdelhi.com/api/members'),
+                fetch('https://backend.bninewdelhi.com/api/accolades')
+            ]);
+
+            const [members, accolades] = await Promise.all([
+                membersResponse.json(),
+                accoladesResponse.json()
+            ]);
+
+            // Find current member
+            const currentMember = loginType === 'ro_admin' 
+                ? members.find(member => member.member_id === currentMemberId)
+                : members.find(member => member.member_email_address === currentMemberEmail);
+
+            if (!currentMember) {
+                throw new Error('Member not found');
+            }
+
+            // Find the selected accolade
+            const selectedAccolade = accolades.find(accolade => accolade.accolade_id === parseInt(accoladeId));
+            if (!selectedAccolade) {
+                throw new Error('Accolade not found');
+            }
+
             // Calculate amounts
             const accoladeAmount = parseFloat(selectedAccolade.accolade_price);
             const taxAmount = parseFloat((accoladeAmount * 0.18).toFixed(2));
             const totalAmount = parseFloat((accoladeAmount * 1.18).toFixed(2));
 
-            // Keep your exact payment data structure
+            // Prepare payment data
             const paymentData = {
                 order_amount: Math.round(totalAmount).toString(),
                 order_note: "Accolade Payment",
@@ -424,9 +424,9 @@ async function handleRequestAndPay(accoladeId) {
                 throw new Error('Invalid session response');
             }
 
-            // Initialize Cashfree checkout without credentials
+            // Initialize Cashfree checkout
             const cashfree = Cashfree({
-                mode: "production"
+                mode: "sandbox"
             });
 
             // Launch checkout
@@ -436,7 +436,6 @@ async function handleRequestAndPay(accoladeId) {
 
             hideLoader();
         }
-
     } catch (error) {
         hideLoader();
         console.error('Payment Error:', error);
