@@ -6,6 +6,11 @@ let allChapters = [];
 let allAccolades = [];
 let allRequisitions = [];
 
+// Add these variables at the top to store accumulated data
+let accumulatedApprovals = {};
+let accumulatedComments = {};
+let currentRequisition = null;
+
 // Function to show the loader
 function showLoader() {
     document.getElementById('loader').style.display = 'flex';
@@ -55,20 +60,28 @@ function getRandomAccolades(count = 5) {
 // Function to handle click on accolades count
 async function handleAccoladesClick(requisition) {
     try {
+        currentRequisition = requisition;
+        
         console.log('📝 Processing requisition:', requisition);
         
-        // Parse comments JSON
+        // Parse approve status and comments
+        let approveStatusMap = {};
         let commentsMap = {};
+        let roCommentsMap = {};
         try {
-            commentsMap = JSON.parse(requisition.comment);
+            approveStatusMap = JSON.parse(requisition.approve_status || '{}');
+            commentsMap = JSON.parse(requisition.comment || '{}');
+            roCommentsMap = JSON.parse(requisition.ro_comment || '{}');
+            console.log('👍 Approve Status Map:', approveStatusMap);
             console.log('💬 Comments Map:', commentsMap);
+            console.log('🗣️ RO Comments Map:', roCommentsMap);
         } catch (e) {
-            console.error('Error parsing comments:', e);
+            console.error('Error parsing data:', e);
         }
 
         // Fetch all required data
         const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse] = await Promise.all([
-            fetch('https://bni-data-backend.onrender.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
             fetch('https://backend.bninewdelhi.com/api/chapters'),
             fetch('https://backend.bninewdelhi.com/api/members'),
             fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
@@ -96,268 +109,295 @@ async function handleAccoladesClick(requisition) {
                 const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
                 const commentKey = `${memberId}_${accoladeId}`;
                 const comment = commentsMap[commentKey] || '';
+                const roComment = roCommentsMap[commentKey] || '';
                 
-                // Check if accolade is paid
-                const memberRequisition = memberRequisitions.find(mr => 
-                    mr.accolade_id === accoladeId && 
-                    mr.order_id !== null && 
-                    mr.accolade_amount !== null
-                );
-                const isPaid = !!memberRequisition;
-                
-                console.log(`🔍 Checking payment status for accolade ${accoladeId}:`, { isPaid, memberRequisition });
-                
+                console.log(`🔍 Processing combination for ${commentKey}:`, {
+                    memberName,
+                    accoladeName: accolade?.accolade_name,
+                    comment,
+                    roComment
+                });
+
                 combinations.push({
                     memberId,
                     memberName,
                     accolade,
                     comment,
-                    isPaid
+                    roComment
                 });
             });
         });
 
-        const accoladesSectionsHtml = combinations.map((combo, index) => `
-            <div class="accolade-section" style="
-                background: #ffffff;
-                border-radius: 12px;
-                margin-bottom: 20px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                border: 1px solid #e5e7eb;
-            ">
-                <!-- Header with Accolade and Member Name -->
-                <div style="
-                    background: ${combo.accolade.accolade_type === 'Global' 
-                        ? 'linear-gradient(145deg, #2563eb, #1e40af)' 
-                        : 'linear-gradient(145deg, #dc2626, #991b1b)'};
-                    padding: 15px;
-                    border-radius: 12px 12px 0 0;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+        const accoladesSectionsHtml = combinations.map((combo, index) => {
+            const key = `${combo.memberId}_${combo.accolade.accolade_id}`;
+            const currentStatus = approveStatusMap[key];
+            
+            console.log(`🔍 Processing combination ${key}:`, {
+                status: currentStatus,
+                memberName: combo.memberName,
+                accoladeName: combo.accolade.accolade_name
+            });
+
+            return `
+                <div class="accolade-section" style="
+                    background: #ffffff;
+                    border-radius: 12px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    border: 1px solid #e5e7eb;
                 ">
-                    <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">
-                        <i class="ri-award-fill me-2"></i>${combo.accolade.accolade_name}
-                    </div>
-                    <span style="
-                        background: ${combo.accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
-                        padding: 4px 12px;
-                        border-radius: 9999px;
-                        font-size: 0.75rem;
-                        color: white;
-                        font-weight: 500;
-                    ">
-                        ${combo.accolade.accolade_type}
-                    </span>
-                </div>
-
-                <!-- Content -->
-                <div style="padding: 20px;">
-                    <!-- First Row: Member and Chapter -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <!-- Member Name -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-user-line me-1"></i>Member Name
-                            </div>
-                            <div style="color: #1e293b; font-weight: 500;">
-                                ${combo.memberName}
-                            </div>
-                        </div>
-
-                        <!-- Chapter Name -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-building-line me-1"></i>Chapter
-                            </div>
-                            <div style="color: #1e293b; font-weight: 500;">
-                                ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Second Row: Chapter Comment and Accolade Type -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <!-- Chapter Comment -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-chat-1-line me-1"></i>Chapter Comment
-                            </div>
-                            <div style="color: #1e293b;">
-                                ${combo.comment || 'No comment provided'}
-                            </div>
-                        </div>
-
-                        <!-- Accolade Type -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid ${combo.isPaid ? '#059669' : '#6366f1'};
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-price-tag-3-line me-1"></i>Accolade Type
-                            </div>
-                            <div style="
-                                color: ${combo.isPaid ? '#059669' : '#6366f1'};
-                                font-weight: 500;
-                                display: flex;
-                                align-items: center;
-                                gap: 6px;
-                            ">
-                                <i class="ri-${combo.isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
-                                ${combo.isPaid ? 'Paid' : 'Free'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pickup Status and Date Section -->
+                    <!-- Header with Accolade and Member Name -->
                     <div style="
-                        padding: 12px;
-                        background: #f8fafc;
-                        border-radius: 8px;
-                        border-left: 4px solid #2563eb;
-                        margin-bottom: 20px;
+                        background: ${combo.accolade.accolade_type === 'Global' 
+                            ? 'linear-gradient(145deg, #2563eb, #1e40af)' 
+                            : 'linear-gradient(145deg, #dc2626, #991b1b)'};
+                        padding: 15px;
+                        border-radius: 12px 12px 0 0;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
                     ">
+                        <div style="color: #ffffff; font-size: 1.1rem; font-weight: 600;">
+                            <i class="ri-award-fill me-2"></i>${combo.accolade.accolade_name}
+                        </div>
+                        <span style="
+                            background: ${combo.accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
+                            padding: 4px 12px;
+                            border-radius: 9999px;
+                            font-size: 0.75rem;
+                            color: white;
+                            font-weight: 500;
+                        ">
+                            ${combo.accolade.accolade_type}
+                        </span>
+                    </div>
+
+                    <!-- Content -->
+                    <div style="padding: 20px;">
+                        <!-- First Row: Member and Chapter -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <!-- Member Name -->
+                            <div style="
+                                padding: 12px;
+                                background: #f8fafc;
+                                border-radius: 8px;
+                                border-left: 4px solid #2563eb;
+                            ">
+                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                    <i class="ri-user-line me-1"></i>Member Name
+                                </div>
+                                <div style="color: #1e293b; font-weight: 500;">
+                                    ${combo.memberName}
+                                </div>
+                            </div>
+
+                            <!-- Chapter Name -->
+                            <div style="
+                                padding: 12px;
+                                background: #f8fafc;
+                                border-radius: 8px;
+                                border-left: 4px solid #2563eb;
+                            ">
+                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                    <i class="ri-building-line me-1"></i>Chapter
+                                </div>
+                                <div style="color: #1e293b; font-weight: 500;">
+                                    ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Second Row: Chapter Comment and Accolade Type -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <!-- Chapter Comment -->
+                            <div style="
+                                padding: 12px;
+                                background: #f8fafc;
+                                border-radius: 8px;
+                                border-left: 4px solid #2563eb;
+                            ">
+                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                    <i class="ri-chat-1-line me-1"></i>Chapter Comment
+                                </div>
+                                <div style="color: #1e293b;">
+                                    ${combo.comment || 'No comment provided'}
+                                </div>
+                            </div>
+
+                            <!-- Accolade Type -->
+                            <div style="
+                                padding: 12px;
+                                background: #f8fafc;
+                                border-radius: 8px;
+                                border-left: 4px solid ${combo.roComment ? '#059669' : '#6366f1'};
+                            ">
+                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                    <i class="ri-price-tag-3-line me-1"></i>Accolade Type
+                                </div>
+                                <div style="
+                                    color: ${combo.roComment ? '#059669' : '#6366f1'};
+                                    font-weight: 500;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                ">
+                                    <i class="ri-${combo.roComment ? 'shopping-cart-2' : 'gift'}-line"></i>
+                                    ${combo.roComment ? 'Paid' : 'Free'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pickup Status and Date Section -->
                         <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 10px;
-                            margin-bottom: 10px;
+                            padding: 12px;
+                            background: #f8fafc;
+                            border-radius: 8px;
+                            border-left: 4px solid #2563eb;
+                            margin-bottom: 20px;
                         ">
                             <div style="
                                 display: flex;
                                 align-items: center;
-                                gap: 8px;
+                                gap: 10px;
+                                margin-bottom: 10px;
                             ">
-                                <input 
-                                    type="checkbox" 
-                                    id="pickupStatus_${index}"
-                                    class="pickup-checkbox"
-                                    style="
-                                        width: 16px;
-                                        height: 16px;
-                                        cursor: pointer;
-                                    "
-                                    onchange="togglePickupDate(${index})"
-                                >
-                                <label 
-                                    for="pickupStatus_${index}"
-                                    style="
-                                        color: #1e293b;
-                                        font-weight: 500;
-                                        cursor: pointer;
-                                    "
-                                >
-                                    <i class="ri-checkbox-circle-line me-1"></i>
-                                    Pickup Status
-                                </label>
+                                <div style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                ">
+                                    <input 
+                                        type="checkbox" 
+                                        id="pickupStatus_${index}"
+                                        class="pickup-checkbox"
+                                        style="
+                                            width: 16px;
+                                            height: 16px;
+                                            cursor: pointer;
+                                        "
+                                        onchange="togglePickupDate(${index})"
+                                    >
+                                    <label 
+                                        for="pickupStatus_${index}"
+                                        style="
+                                            color: #1e293b;
+                                            font-weight: 500;
+                                            cursor: pointer;
+                                        "
+                                    >
+                                        <i class="ri-checkbox-circle-line me-1"></i>
+                                        Pickup Status
+                                    </label>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Pickup Date Input (Hidden by default) -->
-                        <div 
-                            id="pickupDateContainer_${index}" 
-                            style="
-                                display: none;
-                                margin-top: 10px;
-                            "
-                        >
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-calendar-line me-1"></i>Pickup Date
-                            </div>
-                            <input 
-                                type="date" 
-                                id="pickupDate_${index}"
-                                class="pickup-date"
+                            <!-- Pickup Date Input (Hidden by default) -->
+                            <div 
+                                id="pickupDateContainer_${index}" 
                                 style="
-                                    width: 100%;
-                                    padding: 8px 12px;
-                                    border: 1px solid #e2e8f0;
-                                    border-radius: 6px;
-                                    color: #1e293b;
+                                    display: none;
+                                    margin-top: 10px;
                                 "
                             >
+                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                                    <i class="ri-calendar-line me-1"></i>Pickup Date
+                                </div>
+                                <input 
+                                    type="date" 
+                                    id="pickupDate_${index}"
+                                    class="pickup-date"
+                                    style="
+                                        width: 100%;
+                                        padding: 8px 12px;
+                                        border: 1px solid #e2e8f0;
+                                        border-radius: 6px;
+                                        color: #1e293b;
+                                    "
+                                >
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- RO Comment Input -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 8px;">
-                            <i class="ri-chat-2-line me-1"></i>RO Comment
+                        <!-- RO Comment Input -->
+                        <div style="margin-bottom: 20px;">
+                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 8px;">
+                                <i class="ri-chat-2-line me-1"></i>RO Comment
+                            </div>
+                            <textarea 
+                                class="form-control" 
+                                placeholder="Enter your comment here..."
+                                style="
+                                    width: 100%;
+                                    padding: 10px;
+                                    border: 1px solid #e5e7eb;
+                                    border-radius: 8px;
+                                    resize: vertical;
+                                    min-height: 80px;
+                                "
+                            >${combo.roComment}</textarea>
                         </div>
-                        <textarea 
-                            class="form-control" 
-                            placeholder="Enter your comment here..."
-                            style="
-                                width: 100%;
-                                padding: 10px;
-                                border: 1px solid #e5e7eb;
-                                border-radius: 8px;
-                                resize: vertical;
-                                min-height: 80px;
-                            "
-                        >${requisition.ro_comment || ''}</textarea>
-                    </div>
 
-                    <!-- Action Buttons -->
-                    <div style="
-                        display: flex;
-                        gap: 10px;
-                        justify-content: flex-end;
-                        margin-top: 15px;
-                    ">
-                        <button 
-                            class="btn-reject"
-                            onclick="handleReject(${index})"
-                            style="
-                                padding: 8px 16px;
-                                border-radius: 6px;
-                                border: none;
-                                background: #fee2e2;
-                                color: #dc2626;
-                                font-weight: 500;
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                            "
-                        >
-                            <i class="ri-close-circle-line me-1"></i>Reject
-                        </button>
-                        <button 
-                            class="btn-approve"
-                            onclick="handleApprove(${index})"
-                            style="
-                                padding: 8px 16px;
-                                border-radius: 6px;
-                                border: none;
-                                background: #dcfce7;
-                                color: #16a34a;
-                                font-weight: 500;
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                            "
-                        >
-                            <i class="ri-checkbox-circle-line me-1"></i>Approve
-                        </button>
+                        <!-- Action Buttons -->
+                        <div style="
+                            display: flex;
+                            gap: 10px;
+                            justify-content: flex-end;
+                            margin-top: 15px;
+                        ">
+                            <button 
+                                class="btn-reject"
+                                onclick="handleRequisitionAction({
+                                    requisitionId: ${requisition.chapter_requisition_id},
+                                    memberId: ${combo.memberId},
+                                    accoladeId: ${combo.accolade.accolade_id},
+                                    status: 'declined',
+                                    index: ${index}
+                                })"
+                                style="
+                                    padding: 8px 16px;
+                                    border-radius: 6px;
+                                    border: none;
+                                    background: ${currentStatus === 'declined' ? '#fecaca' : '#fee2e2'};
+                                    color: #dc2626;
+                                    font-weight: 500;
+                                    cursor: ${currentStatus === 'declined' ? 'not-allowed' : 'pointer'};
+                                    opacity: ${currentStatus === 'declined' ? '0.5' : '1'};
+                                    transition: all 0.3s ease;
+                                "
+                                ${currentStatus === 'declined' ? 'disabled' : ''}
+                            >
+                                <i class="ri-close-circle-line me-1"></i>
+                                ${currentStatus === 'declined' ? 'Rejected' : 'Reject'}
+                            </button>
+                            <button 
+                                class="btn-approve"
+                                onclick="handleRequisitionAction({
+                                    requisitionId: ${requisition.chapter_requisition_id},
+                                    memberId: ${combo.memberId},
+                                    accoladeId: ${combo.accolade.accolade_id},
+                                    status: 'approved',
+                                    index: ${index}
+                                })"
+                                style="
+                                    padding: 8px 16px;
+                                    border-radius: 6px;
+                                    border: none;
+                                    background: ${currentStatus === 'approved' ? '#bbf7d0' : '#dcfce7'};
+                                    color: #16a34a;
+                                    font-weight: 500;
+                                    cursor: ${currentStatus === 'approved' ? 'not-allowed' : 'pointer'};
+                                    opacity: ${currentStatus === 'approved' ? '0.5' : '1'};
+                                    transition: all 0.3s ease;
+                                "
+                                ${currentStatus === 'approved' ? 'disabled' : ''}
+                            >
+                                <i class="ri-checkbox-circle-line me-1"></i>
+                                ${currentStatus === 'approved' ? 'Approved' : 'Approve'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         Swal.fire({
             title: '<span style="color: #2563eb"><i class="ri-file-list-3-line"></i> Accolade Request Details</span>',
@@ -372,7 +412,8 @@ async function handleAccoladesClick(requisition) {
             `,
             width: '800px',
             showCloseButton: true,
-            showConfirmButton: false
+            showConfirmButton: false,
+            allowOutsideClick: false // Prevent closing on outside click
         });
 
         // Add this function to handle checkbox changes
@@ -397,16 +438,115 @@ async function handleAccoladesClick(requisition) {
     }
 }
 
-// Placeholder functions for approve/reject actions
-function handleApprove(index) {
-    console.log('✅ Approved accolade at index:', index);
-    // Add your approve logic here
+// Modified handleRequisitionAction function
+function handleRequisitionAction(data) {
+    try {
+        const actionData = typeof data === 'string' ? JSON.parse(data) : data;
+        const pickupCheckbox = document.querySelector(`#pickupStatus_${actionData.index}`);
+        const dateEl = document.querySelector(`#pickupDate_${actionData.index}`);
+        // Get the RO comment textarea instead of checkbox
+        const commentEl = document.querySelector(`#pickupStatus_${actionData.index}`).closest('.accolade-section').querySelector('textarea');
+        
+        const key = `${actionData.memberId}_${actionData.accoladeId}`;
+        
+        // Accumulate approvals and comments
+        accumulatedApprovals[key] = actionData.status;
+        accumulatedComments[key] = commentEl ? commentEl.value : ''; // Now this will get the actual comment
+
+        // Prepare the data object for API
+        const requestData = {
+            chapter_requisition_id: actionData.requisitionId,
+            approve_status: accumulatedApprovals,
+            ro_comment: accumulatedComments,
+            pickup_status: pickupCheckbox ? pickupCheckbox.checked : false,
+            pickup_date: dateEl ? dateEl.value : null
+        };
+
+        console.log('📦 Preparing API request data:', requestData);
+        console.log('💭 RO Comment for key', key, ':', commentEl ? commentEl.value : 'No comment');
+
+        // Make API call
+        fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            console.log('🔄 API Response Status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ API Response Data:', data);
+
+            // Show success toast
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: `${actionData.status === 'approved' ? 'Approved' : 'Rejected'} successfully`
+            });
+
+            // Log the accumulated data
+            console.log('📝 Current Accumulated Approvals:', accumulatedApprovals);
+            console.log('💬 Current Accumulated Comments:', accumulatedComments);
+            console.log('📅 Pickup Date:', dateEl ? dateEl.value : 'Not set');
+            console.log('✔️ Pickup Status:', pickupCheckbox ? pickupCheckbox.checked : false);
+
+        })
+        .catch(error => {
+            console.error('❌ API Error:', error);
+            
+            // Show error toast
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+
+            Toast.fire({
+                icon: 'error',
+                title: 'Failed to update requisition'
+            });
+        });
+
+    } catch (error) {
+        console.error('❌ Error in handleRequisitionAction:', error);
+        
+        // Show error toast
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+
+        Toast.fire({
+            icon: 'error',
+            title: 'Error processing request'
+        });
+    }
 }
 
-function handleReject(index) {
-    console.log('❌ Rejected accolade at index:', index);
-    // Add your reject logic here
-}
+// Only reset accumulated data when explicitly closing the modal
+document.addEventListener('DOMContentLoaded', () => {
+    // Add event listener for when SweetAlert closes
+    Swal.getContainer()?.addEventListener('click', (e) => {
+        if (e.target.classList.contains('swal2-close')) {
+            accumulatedApprovals = {};
+            accumulatedComments = {};
+            currentRequisition = null;
+        }
+    });
+});
 
 // Update the renderTable function
 const renderTable = () => {

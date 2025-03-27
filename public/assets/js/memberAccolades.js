@@ -219,7 +219,7 @@ function populateAccoladesTable(accolades) {
                         background: linear-gradient(45deg, #2563eb, #1e40af);
                         color: white;
                         border: none;
-                        padding: 8px 16px;  
+                        padding: 8px 16px;
                         border-radius: 6px;
                         font-weight: 500;
                         transition: all 0.3s ease;
@@ -287,15 +287,6 @@ async function populateAccoladesDropdown() {
     }
 }
 
-// Just load the SDK without credentials
-function loadCashfreeSDK() {
-    const script = document.createElement('script');
-    script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-    document.head.appendChild(script);
-}
-
-// Call this function immediately
-loadCashfreeSDK();
 
 async function handleRequestAndPay(accoladeId) {
     try {
@@ -329,113 +320,117 @@ async function handleRequestAndPay(accoladeId) {
             }
         });
 
-        if (comment) {
-            showLoader();
-            
-            // Get current member details first
-            const userEmail = getUserEmail();
-            const loginType = getUserLoginType();
-            
-            let currentMemberEmail, currentMemberId;
-            
-            if (loginType === 'ro_admin') {
-                currentMemberEmail = localStorage.getItem('current_member_email');
-                currentMemberId = parseInt(localStorage.getItem('current_member_id'));
-                console.log('🔄 RO Admin requesting for member:', {
-                    email: currentMemberEmail,
-                    memberId: currentMemberId
-                });
-            } else {
-                currentMemberEmail = userEmail;
+        if (!comment) return;
+
+        showLoader();
+
+        // Get current member details
+        const userEmail = getUserEmail();
+        const loginType = getUserLoginType();
+
+        let currentMemberEmail, currentMemberId;
+
+        if (loginType === 'ro_admin') {
+            currentMemberEmail = localStorage.getItem('current_member_email');
+            currentMemberId = parseInt(localStorage.getItem('current_member_id'));
+            console.log('🔄 RO Admin requesting for member:', {
+                email: currentMemberEmail,
+                memberId: currentMemberId
+            });
+        } else {
+            currentMemberEmail = userEmail;
+        }
+
+        // Fetch both member and accolade details
+        const [membersResponse, accoladesResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
+        ]);
+
+        const [members, accolades] = await Promise.all([
+            membersResponse.json(),
+            accoladesResponse.json()
+        ]);
+
+        // Find current member
+        const currentMember = loginType === 'ro_admin' 
+            ? members.find(member => member.member_id === currentMemberId)
+            : members.find(member => member.member_email_address === currentMemberEmail);
+
+        if (!currentMember) {
+            throw new Error('Member not found');
+        }
+
+        // Find the selected accolade
+        const selectedAccolade = accolades.find(accolade => accolade.accolade_id === parseInt(accoladeId));
+        if (!selectedAccolade) {
+            throw new Error('Accolade not found');
+        }
+
+        // Calculate amounts
+        const accoladeAmount = parseFloat(selectedAccolade.accolade_price);
+        const taxAmount = parseFloat((accoladeAmount * 0.18).toFixed(2));
+        const totalAmount = parseFloat((accoladeAmount * 1.18).toFixed(2));
+
+        // Prepare payment data
+        const paymentData = {
+            order_amount: Math.round(totalAmount).toString(),
+            order_note: "Accolade Payment",
+            order_currency: "INR",
+            customer_details: {
+                customer_id: currentMember.member_id.toString(),
+                customer_email: currentMember.member_email_address,
+                customer_phone: currentMember.member_phone_number,
+                customer_name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
+                chapter_id: currentMember.chapter_id,
+                region_id: currentMember.region_id,
+                member_id: currentMember.member_id,
+                payment_note: 'member-requisition-payment',
+                payment_gateway_id: '1',
+            },
+            order_meta: {
+                payment_note: 'member-requisition-payment'
+            },
+            tax: taxAmount,
+            memberData: {
+                member_gst_number: currentMember.member_gst_number,
+                member_company_name: currentMember.member_company_name
             }
+        };
 
-            // Fetch both member and accolade details
-            const [membersResponse, accoladesResponse] = await Promise.all([
-                fetch('https://backend.bninewdelhi.com/api/members'),
-                fetch('https://backend.bninewdelhi.com/api/accolades')
-            ]);
+        console.log('💳 Payment Data:', paymentData);
 
-            const [members, accolades] = await Promise.all([
-                membersResponse.json(),
-                accoladesResponse.json()
-            ]);
+        // Fetch payment session from backend
+        const sessionResponse = await fetch('https://backend.bninewdelhi.com/api/generate-cashfree-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paymentData)
+        });
 
-            // Find current member
-            const currentMember = loginType === 'ro_admin' 
-                ? members.find(member => member.member_id === currentMemberId)
-                : members.find(member => member.member_email_address === currentMemberEmail);
+        const sessionData = await sessionResponse.json();
+        console.log('🔑 Session Response:', sessionData);
 
-            if (!currentMember) {
-                throw new Error('Member not found');
-            }
+        if (!sessionData.payment_session_id) {
+            throw new Error('Invalid session response');
+        }
 
-            // Find the selected accolade
-            const selectedAccolade = accolades.find(accolade => accolade.accolade_id === parseInt(accoladeId));
-            if (!selectedAccolade) {
-                throw new Error('Accolade not found');
-            }
+        // Load Cashfree SDK and initialize payment
+        loadCashfreeSDK(() => {
+            console.log("✅ Cashfree SDK Loaded");
 
-            // Calculate amounts
-            const accoladeAmount = parseFloat(selectedAccolade.accolade_price);
-            const taxAmount = parseFloat((accoladeAmount * 0.18).toFixed(2));
-            const totalAmount = parseFloat((accoladeAmount * 1.18).toFixed(2));
-
-            // Prepare payment data
-            const paymentData = {
-                order_amount: Math.round(totalAmount).toString(),
-                order_note: "Accolade Payment",
-                order_currency: "INR",
-                customer_details: {
-                    customer_id: currentMember.member_id.toString(),
-                    customer_email: currentMember.member_email_address,
-                    customer_phone: currentMember.member_phone_number,
-                    customer_name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
-                    chapter_id: currentMember.chapter_id,
-                    region_id: currentMember.region_id,
-                    member_id: currentMember.member_id,
-                    payment_note: 'member-requisition-payment',
-                    payment_gateway_id: '1',
-                },
-                order_meta: {
-                    payment_note: 'member-requisition-payment'
-                },
-                tax: taxAmount,
-                memberData: {
-                    member_gst_number: currentMember.member_gst_number,
-                    member_company_name: currentMember.member_company_name
-                }
-            };
-
-            console.log('💳 Payment Data:', paymentData);
-
-            // Generate session through your backend
-            const sessionResponse = await fetch('http://localhost:5000/api/generate-cashfree-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(paymentData)
+            const cashfreeInstance = Cashfree({
+                mode: "production"
             });
 
-            const sessionData = await sessionResponse.json();
-            console.log('🔑 Session Response:', sessionData);
-
-            if (!sessionData.payment_session_id) {
-                throw new Error('Invalid session response');
-            }
-
-            // Initialize Cashfree checkout
-            const cashfree = Cashfree({
-                mode: "sandbox"
-            });
-
-            // Launch checkout
-            await cashfree.checkout({
+            cashfreeInstance.checkout({
                 paymentSessionId: sessionData.payment_session_id
             });
+        });
 
-            hideLoader();
-        }
+        hideLoader();
+
     } catch (error) {
         hideLoader();
         console.error('Payment Error:', error);
@@ -448,11 +443,25 @@ async function handleRequestAndPay(accoladeId) {
     }
 }
 
+// Function to load Cashfree SDK
+function loadCashfreeSDK(callback) {
+    if (document.querySelector('script[src="https://sdk.cashfree.com/js/v3/cashfree.js"]')) {
+        callback();
+        return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+    script.onload = callback;
+    document.head.appendChild(script);
+}
+
+
 // Add this new function to show accolade details
 async function showAccoladeDetails(accoladeId) {
     try {
         // Fetch accolades data
-        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
+        const response = await fetch('https://bni-data-backend.onrender.com/api/accolades');
         const accolades = await response.json();
         
         // Find the matching accolade
@@ -612,7 +621,7 @@ async function getPendingRequisitions() {
                 }
 
                 // Fetch accolades data
-                const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+                const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
                 const accolades = await accoladesResponse.json();
 
                 console.log('🏆 All Accolades:', accolades);
