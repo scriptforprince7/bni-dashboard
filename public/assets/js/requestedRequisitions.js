@@ -422,11 +422,6 @@ const renderTable = () => {
                 month: 'long',
                 day: 'numeric'
             });
-            
-            console.log('📅 Formatting date for requisition:', {
-                originalDate: req.requested_date,
-                formattedDate: requestDate
-            });
 
             return `
                 <tr style="border-bottom: 1px solid #e5e7eb;">
@@ -456,8 +451,70 @@ const renderTable = () => {
                             </div>
                         </div>
                     </td>
+                    <td style="padding: 16px;">
+                        <div class="comment-container" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        ">
+                            <div class="input-group" style="max-width: 250px;">
+                                <input 
+                                    type="text" 
+                                    class="form-control ro-comment"
+                                    placeholder="Add comment..."
+                                    style="
+                                        border: 1px solid #e5e7eb;
+                                        border-radius: 6px 0 0 6px;
+                                        padding: 8px 12px;
+                                        font-size: 0.875rem;
+                                        transition: all 0.3s ease;
+                                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                                    "
+                                >
+                                <button 
+                                    class="btn btn-success submit-comment"
+                                    style="
+                                        border-radius: 0 6px 6px 0;
+                                        padding: 8px 12px;
+                                        background: #16a34a;
+                                        border: none;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        transition: all 0.3s ease;
+                                    "
+                                >
+                                    <i class="ri-check-line" style="color: white;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         ${requestDate}
+                    </td>
+                    <td style="padding: 16px;">
+                        <button 
+                            class="pickup-status-btn"
+                            style="
+                                background: #dcfce7;
+                                color: #16a34a;
+                                border: none;
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                            "
+                            onmouseover="this.style.transform='translateY(-1px)'"
+                            onmouseout="this.style.transform='translateY(0)'"
+                        >
+                            <i class="ri-checkbox-circle-line"></i>
+                            Ready to Pickup
+                        </button>
                     </td>
                     <td style="font-weight: bold; padding: 16px;">
                         <span class="badge" style="
@@ -474,6 +531,42 @@ const renderTable = () => {
                 </tr>`;
         })
         .join("");
+
+    // Add event listeners for comment submission
+    document.querySelectorAll('.submit-comment').forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            const input = btn.previousElementSibling;
+            const comment = input.value.trim();
+            if (comment) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Comment Saved',
+                    text: 'Your comment has been saved successfully',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                input.value = '';
+            }
+        });
+    });
+
+    // Add event listeners for pickup status buttons
+    document.querySelectorAll('.pickup-status-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const currentStatus = btn.getAttribute('data-status') || 'not-ready';
+            if (currentStatus === 'not-ready') {
+                btn.style.background = '#dcfce7';
+                btn.style.color = '#16a34a';
+                btn.innerHTML = '<i class="ri-checkbox-circle-line"></i> Ready to Pickup';
+                btn.setAttribute('data-status', 'ready');
+            } else {
+                btn.style.background = '#f3f4f6';
+                btn.style.color = '#4b5563';
+                btn.innerHTML = '<i class="ri-time-line"></i> Not Ready';
+                btn.setAttribute('data-status', 'not-ready');
+            }
+        });
+    });
 };
 
 // Initialize when document is ready
