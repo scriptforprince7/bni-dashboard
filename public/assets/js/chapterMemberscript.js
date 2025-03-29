@@ -517,7 +517,7 @@ function displayMembers(members) {
                             onerror="console.log('Image failed to load, using default avatar for:', '${fullName}'); this.src='https://cdn-icons-png.flaticon.com/512/194/194828.png';"
                         />
                     </span>
-                    <a href="/cm/viewchaptermember/?member_id=${member.member_id}">${fullName}</a>
+                    <a href="#" onclick="handleMemberClick('${member.member_email_address}', '${member.member_id}')">${fullName}</a>
                 </div>
             </td>
             <td style="border: 1px solid grey;">
@@ -755,6 +755,16 @@ function formatDate(dateString) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+}
+
+// Add this new function to handle member clicks
+function handleMemberClick(memberEmail, memberId) {
+    // Store member details in localStorage
+    localStorage.setItem('current_member_email', memberEmail);
+    localStorage.setItem('current_member_id', memberId);
+    
+    // Redirect to member dashboard
+    window.location.href = `/d/member-dashboard/?member_id=${memberId}`;
 }
 
 

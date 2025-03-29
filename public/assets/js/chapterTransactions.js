@@ -1,96 +1,159 @@
-// Function to show the loader
+// Global variables
+let transactions = [];
+let chapterOrders = [];
+
+// Function to show/hide loader
 function showLoader() {
-    document.getElementById('loader').style.display = 'flex'; // Show loader
-  }
-  
-  // Function to hide the loader
-  function hideLoader() {
-    document.getElementById('loader').style.display = 'none'; // Hide loader
-  }
-  
-  const monthsDropdown = document.getElementById("month-filter");
-  const paymentStatusDropdown = document.getElementById("payment-status-filter");
-  const paymentTypeDropdown = document.getElementById("payment-type-filter");
-  const paymentMethodDropdown = document.getElementById("payment-method-filter");
-  
-  // Add this after your existing variable declarations
-  const searchInput = document.getElementById('searchChapterInput');
-  console.log('Search input initialized:', searchInput);
-  
-  // Populate a dropdown with options
-  const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
-    // Clear the dropdown
-    dropdown.innerHTML = '';
-  
-    // Add a default option
-    dropdown.innerHTML += `
-      <li>
-        <a class="dropdown-item" href="javascript:void(0);" data-value="">
-          ${defaultText}
-        </a>
-      </li>
-    `;
-  
-    // Add options dynamically
-    data.forEach(item => {
-      dropdown.innerHTML += `
+    document.getElementById('loader').style.display = 'flex';
+}
+
+function hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
+
+// Get dropdown elements
+const monthsDropdown = document.getElementById("month-filter");
+const paymentStatusDropdown = document.getElementById("payment-status-filter");
+const paymentTypeDropdown = document.getElementById("payment-type-filter");
+const paymentMethodDropdown = document.getElementById("payment-method-filter");
+
+// Add this after your existing variable declarations
+const searchInput = document.getElementById('searchChapterInput');
+console.log('Search input initialized:', searchInput);
+
+// Initialize filter data
+const months = [
+    { value: '01', text: 'January' },
+    { value: '02', text: 'February' },
+    { value: '03', text: 'March' },
+    { value: '04', text: 'April' },
+    { value: '05', text: 'May' },
+    { value: '06', text: 'June' },
+    { value: '07', text: 'July' },
+    { value: '08', text: 'August' },
+    { value: '09', text: 'September' },
+    { value: '10', text: 'October' },
+    { value: '11', text: 'November' },
+    { value: '12', text: 'December' }
+];
+
+const paymentTypes = [
+    { value: 'visitor-payment', text: 'Visitor Payment' },
+    { value: 'membership-payment', text: 'Membership Payment' }
+];
+
+const paymentStatuses = [
+    { value: 'SUCCESS', text: 'Success' },
+    { value: 'FAILED', text: 'Failed' },
+    { value: 'PENDING', text: 'Pending' }
+];
+
+const paymentMethods = [
+    { value: 'upi', text: 'UPI' },
+    { value: 'card', text: 'Card' },
+    { value: 'netbanking', text: 'Net Banking' },
+    { value: 'wallet', text: 'Wallet' }
+];
+
+// Function to populate dropdown with checkboxes
+const populateDropdown = (dropdown, data, valueField, textField, defaultText) => {
+    dropdown.innerHTML = `
         <li>
-          <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
-            ${item[textField]}
-          </a>
+            <a class="dropdown-item" href="javascript:void(0);" data-value="">
+                <input type="checkbox" class="select-all-checkbox me-2">
+                ${defaultText}
+            </a>
         </li>
-      `;
+    `;
+
+    data.forEach(item => {
+        dropdown.innerHTML += `
+            <li>
+                <a class="dropdown-item" href="javascript:void(0);" data-value="${item[valueField]}">
+                    <input type="checkbox" class="month-checkbox me-2">
+                    ${item[textField]}
+                </a>
+            </li>
+        `;
     });
-  
-      // Attach event listeners
-      attachDropdownListeners(dropdown);
-    };
-  
-    const attachDropdownListeners = (dropdown) => {
-      // Find the dropdown toggle specific to the current dropdown
-      const dropdownToggle = dropdown.closest('.dropdown').querySelector('.dropdown-toggle');
-    
-      dropdown.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', () => {
-          // Remove 'active' class from all items in the dropdown
-          dropdown.querySelectorAll('.dropdown-item.active').forEach(activeItem => {
-            activeItem.classList.remove('active');
-          });
-    
-          // Add 'active' class to the selected item
-          item.classList.add('active');
-    
-          // Get the selected value and text
-          const selectedValue = item.getAttribute('data-value');
-          const selectedText = item.textContent.trim();
-    
-          // Update the specific dropdown's toggle label
-          if (dropdownToggle) {
-            dropdownToggle.textContent = selectedText;
-          }
-    
-          console.log(`Selected Value from ${dropdown.id}:`, selectedValue);
+
+    attachDropdownListeners(dropdown);
+};
+
+// Updated dropdown listeners with checkbox support
+const attachDropdownListeners = (dropdown) => {
+    const dropdownToggle = dropdown.closest('.dropdown').querySelector('.dropdown-toggle');
+    const selectAllCheckbox = dropdown.querySelector('.select-all-checkbox');
+    const monthCheckboxes = dropdown.querySelectorAll('.month-checkbox');
+
+    // Handle "Select All" checkbox
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+            e.stopPropagation();
+            monthCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            updateDropdownText(dropdown, dropdownToggle);
         });
-      });
-    };
-  
-  (async function fetchTransactions() {
+    }
+
+    // Handle individual month checkboxes
+    monthCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation();
+            updateDropdownText(dropdown, dropdownToggle);
+            
+            // Update "Select All" checkbox
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = Array.from(monthCheckboxes)
+                    .every(cb => cb.checked);
+            }
+        });
+    });
+
+    // Prevent dropdown from closing when clicking checkboxes
+    dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    });
+};
+
+// Function to update dropdown text based on selections
+function updateDropdownText(dropdown, dropdownToggle) {
+    const checkedBoxes = dropdown.querySelectorAll('.month-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+        dropdownToggle.textContent = 'All Months';
+    } else if (checkedBoxes.length === 12) {
+        dropdownToggle.textContent = 'All Months';
+    } else {
+        const selectedMonths = Array.from(checkedBoxes).map(cb => 
+            cb.closest('.dropdown-item').textContent.trim()
+        );
+        dropdownToggle.textContent = selectedMonths.join(', ');
+    }
+}
+
+// Populate dropdowns when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    populateDropdown(monthsDropdown, months, 'value', 'text', 'All Months');
+    populateDropdown(paymentTypeDropdown, paymentTypes, 'value', 'text', 'All Payment Types');
+    populateDropdown(paymentStatusDropdown, paymentStatuses, 'value', 'text', 'All Statuses');
+    populateDropdown(paymentMethodDropdown, paymentMethods, 'value', 'text', 'All Methods');
+    
+    // Initialize by fetching data
+    fetchTransactions();
+});
+
+// Main fetch function
+async function fetchTransactions() {
     try {
         showLoader();
         
-        // Get login type first
         const loginType = getUserLoginType();
-        console.log('👤 User Login Type:', loginType);
-
-        // Get the appropriate email based on login type
-        let userEmail;
-        if (loginType === 'ro_admin') {
-            userEmail = localStorage.getItem('current_chapter_email');
-            console.log('🔍 RO Admin accessing chapter email:', userEmail);
-        } else {
-            userEmail = getUserEmail();
-            console.log('🔍 Chapter User Email:', userEmail);
-        }
+        let userEmail = loginType === 'ro_admin' ? 
+            localStorage.getItem('current_chapter_email') : 
+            getUserEmail();
 
         if (!userEmail) {
             console.error('❌ No valid email found');
@@ -98,102 +161,36 @@ function showLoader() {
             return;
         }
 
-        // First fetch chapters to get chapter_id
-        console.log('📊 Fetching chapters data...');
+        // Fetch chapters to get chapter_id
         const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         
-        // Find matching chapter based on email
         const matchingChapter = chapters.find(chapter => chapter.email_id === userEmail);
         if (!matchingChapter) {
-            console.error('❌ No matching chapter found for email:', userEmail);
+            console.error('❌ No matching chapter found');
             hideLoader();
             return;
         }
-        
-        const chapterId = matchingChapter.chapter_id;
-        console.log('✅ Found matching chapter:', {
-            chapter_name: matchingChapter.chapter_name,
-            chapter_id: chapterId
-        });
 
-        // Fetch all required data in parallel
-        const [ordersResponse, transactionsResponse, universalLinksResponse] = await Promise.all([
+        // Fetch orders and transactions
+        const [ordersResponse, transactionsResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/allOrders'),
-            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-            fetch('https://backend.bninewdelhi.com/api/universalLinks')
+            fetch('https://backend.bninewdelhi.com/api/allTransactions')
         ]);
 
-        const orders = await ordersResponse.json();
-        const transactions = await transactionsResponse.json();
-        const universalLinks = await universalLinksResponse.json();
+        const allOrders = await ordersResponse.json();
+        const allTransactions = await transactionsResponse.json();
 
-        // Filter orders by chapter_id
-        const chapterOrders = orders.filter(order => order.chapter_id === chapterId);
-        console.log(`📦 Found ${chapterOrders.length} orders for chapter ID ${chapterId}`);
-
-        // Get order IDs for this chapter
+        // Filter for chapter
+        chapterOrders = allOrders.filter(order => order.chapter_id === matchingChapter.chapter_id);
         const chapterOrderIds = chapterOrders.map(order => order.order_id);
-        console.log('🔑 Order IDs for this chapter:', chapterOrderIds);
-
-        // Filter transactions
-        const filteredTransactions = transactions.filter(transaction => 
+        
+        transactions = allTransactions.filter(transaction => 
             chapterOrderIds.includes(transaction.order_id)
         );
 
-        console.log(`💰 Found ${filteredTransactions.length} transactions for this chapter`);
-
-        // Update the transactions table
-        const transactionsBody = document.querySelector('.member-all-transactions');
-        if (!transactionsBody) {
-            console.error('❌ Could not find transactions table body');
-            return;
-        }
-
-        transactionsBody.innerHTML = ''; // Clear existing rows
-
-        // Populate table with filtered transactions
-        filteredTransactions.forEach((transaction, index) => {
-            const order = chapterOrders.find(order => order.order_id === transaction.order_id);
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${new Date(transaction.payment_time).toLocaleDateString('en-IN')}</td>
-                <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br>
-                    <a href="/minv/view-memberInvoice?order_id=${transaction.order_id}" 
-                       class="fw-medium text-success">View</a></td>
-                <td>${getPaymentMethodDisplay(transaction.payment_method)}</td>
-                <td><em>${transaction.order_id}</em></td>
-                <td><b><em>${transaction.cf_payment_id}</em></b></td>
-                <td><span class="badge ${
-                    transaction.payment_status === "SUCCESS" ? "bg-success" : "bg-danger"
-                }">${transaction.payment_status.toLowerCase()}</span></td>
-                <td><b><em>${getDisplayName(order)}</em></b></td>
-                <td><b><em>${order ? order.payment_note : 'Unknown'}</em></b></td>
-            `;
-            
-            transactionsBody.appendChild(row);
-        });
-
-        // Calculate and update totals
-        const totalAmount = filteredTransactions.reduce(
-            (sum, transaction) => sum + parseFloat(transaction.payment_amount || 0),
-            0
-        );
-
-        const successPaymentsAmount = filteredTransactions
-            .filter(transaction => transaction.payment_status === "SUCCESS")
-            .reduce((sum, transaction) => sum + parseFloat(transaction.payment_amount || 0), 0);
-
-        const pendingPaymentsAmount = filteredTransactions
-            .filter(transaction => transaction.payment_status !== "SUCCESS")
-            .reduce((sum, transaction) => sum + parseFloat(transaction.payment_amount || 0), 0);
-
-        // Update the totals display
-        document.getElementById('total_transactions_amount').textContent = `₹${totalAmount.toFixed(2)}`;
-        document.getElementById('success_payments').textContent = `₹${successPaymentsAmount.toFixed(2)}`;
-        document.getElementById('pending_payments').textContent = `₹${pendingPaymentsAmount.toFixed(2)}`;
+        console.log('Loaded transactions:', transactions.length);
+        updateTransactionsDisplay(transactions);
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -201,9 +198,114 @@ function showLoader() {
     } finally {
         hideLoader();
     }
-})();
+}
 
-// Helper function for payment method display
+// Update the apply filters button handler
+document.getElementById('apply-filters-btn').addEventListener('click', () => {
+    const selectedMonths = Array.from(monthsDropdown.querySelectorAll('.month-checkbox:checked'))
+        .map(checkbox => checkbox.closest('.dropdown-item').getAttribute('data-value'));
+    const selectedType = paymentTypeDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
+    const selectedStatus = paymentStatusDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
+    const selectedMethod = paymentMethodDropdown.querySelector('.dropdown-item.active')?.getAttribute('data-value');
+
+    const filteredTransactions = transactions.filter(transaction => {
+        const order = chapterOrders.find(order => order.order_id === transaction.order_id);
+        
+        // Month filter (now handles multiple selections)
+        if (selectedMonths.length > 0) {
+            const transactionMonth = (new Date(transaction.payment_time).getMonth() + 1)
+                .toString().padStart(2, '0');
+            if (!selectedMonths.includes(transactionMonth)) return false;
+        }
+
+        // Rest of your existing filters
+        if (selectedType && order) {
+            if (order.payment_note !== selectedType) return false;
+        }
+
+        if (selectedStatus) {
+            if (transaction.payment_status !== selectedStatus) return false;
+        }
+
+        if (selectedMethod && transaction.payment_method) {
+            if (!transaction.payment_method[selectedMethod]) return false;
+        }
+
+        return true;
+    });
+
+    updateTransactionsDisplay(filteredTransactions);
+});
+
+// Update reset filters to handle checkboxes
+document.getElementById('reset-filters-btn').addEventListener('click', () => {
+    // Reset checkboxes in month dropdown
+    monthsDropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+
+    // Reset other dropdowns
+    [paymentTypeDropdown, paymentStatusDropdown, paymentMethodDropdown].forEach(dropdown => {
+        const dropdownToggle = dropdown.closest('.dropdown').querySelector('.dropdown-toggle');
+        dropdown.querySelectorAll('.dropdown-item.active').forEach(item => item.classList.remove('active'));
+        dropdownToggle.textContent = dropdownToggle.getAttribute('data-original-text') || 'All';
+    });
+
+    updateTransactionsDisplay(transactions);
+});
+
+// Function to update transactions display
+function updateTransactionsDisplay(transactionsToShow) {
+    const transactionsBody = document.querySelector('.member-all-transactions');
+    transactionsBody.innerHTML = '';
+
+    transactionsToShow.forEach((transaction, index) => {
+        const order = chapterOrders.find(order => order.order_id === transaction.order_id);
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${new Date(transaction.payment_time).toLocaleDateString('en-IN')}</td>
+            <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br>
+                <a href="/minv/view-memberInvoice?order_id=${transaction.order_id}" 
+                   class="fw-medium text-success">View</a></td>
+            <td>${getPaymentMethodDisplay(transaction.payment_method)}</td>
+            <td><em>${transaction.order_id}</em></td>
+            <td><b><em>${transaction.cf_payment_id}</em></b></td>
+            <td><span class="badge ${
+                transaction.payment_status === "SUCCESS" ? "bg-success" : "bg-danger"
+            }">${transaction.payment_status.toLowerCase()}</span></td>
+            <td><b><em>${getDisplayName(order)}</em></b></td>
+            <td><b><em>${order ? order.payment_note : 'Unknown'}</em></b></td>
+        `;
+        
+        transactionsBody.appendChild(row);
+    });
+
+    updateTotals(transactionsToShow);
+}
+
+// Function to update totals
+function updateTotals(transactionsToShow) {
+    const totalAmount = transactionsToShow.reduce(
+        (sum, transaction) => sum + parseFloat(transaction.payment_amount || 0),
+        0
+    );
+
+    const successPayments = transactionsToShow
+        .filter(transaction => transaction.payment_status === "SUCCESS")
+        .reduce((sum, transaction) => sum + parseFloat(transaction.payment_amount || 0), 0);
+
+    const pendingPayments = transactionsToShow
+        .filter(transaction => transaction.payment_status !== "SUCCESS")
+        .reduce((sum, transaction) => sum + parseFloat(transaction.payment_amount || 0), 0);
+
+    document.getElementById('total_transactions_amount').textContent = `₹${totalAmount.toFixed(2)}`;
+    document.getElementById('success_payments').textContent = `₹${successPayments.toFixed(2)}`;
+    document.getElementById('pending_payments').textContent = `₹${pendingPayments.toFixed(2)}`;
+}
+
+// Keep your existing helper functions
 function getPaymentMethodDisplay(paymentMethod) {
     if (!paymentMethod) return "N/A";
     
@@ -219,11 +321,10 @@ function getPaymentMethodDisplay(paymentMethod) {
     return "Other";
 }
 
-// Helper function to get the correct name based on payment note
-const getDisplayName = (order) => {
-  if (order?.payment_note === 'visitor-payment') {
-    return order.visitor_name || 'Unknown Visitor';
-  }
-  return order?.member_name || 'Unknown';
-};
+function getDisplayName(order) {
+    if (order?.payment_note === 'visitor-payment') {
+        return order.visitor_name || 'Unknown Visitor';
+    }
+    return order?.member_name || 'Unknown';
+}
   

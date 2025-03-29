@@ -116,14 +116,36 @@ const populateMonthDropdown = () => {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-  monthsDropdown.innerHTML = ""; // Clear existing options
-  months.forEach((month, index) => {
-    monthsDropdown.innerHTML += `<li>
-      <a class="dropdown-item" href="javascript:void(0);" data-value="${index + 1}">
-        ${month}
+  monthsDropdown.innerHTML = `
+    <li>
+      <a class="dropdown-item" href="javascript:void(0);" data-value="">
+        <input type="checkbox" class="select-all me-2"> Select All
       </a>
-    </li>`;
+    </li>
+  `; 
+  months.forEach((month, index) => {
+    monthsDropdown.innerHTML += `
+      <li>
+        <a class="dropdown-item" href="javascript:void(0);" data-value="${index + 1}">
+          <input type="checkbox" class="month-checkbox me-2"> ${month}
+        </a>
+      </li>`;
   });
+
+  // Prevent dropdown from closing when clicking checkboxes
+  monthsDropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(e.target.classList.contains('select-all')) {
+        // Handle "Select All" checkbox
+        const checked = e.target.checked;
+        monthsDropdown.querySelectorAll('.month-checkbox').forEach(cb => {
+          cb.checked = checked;
+        });
+      }
+    });
+  });
+
   // Attach listeners after populating
   attachDropdownListeners(monthsDropdown);
 };

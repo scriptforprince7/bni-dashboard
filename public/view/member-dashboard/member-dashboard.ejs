@@ -115,7 +115,7 @@
                       const loginType = getUserLoginType();
                       let memberEmail;
                       
-                      if (loginType === 'ro_admin') {
+                      if (loginType === 'ro_admin' || loginType === 'chapter') {
                         // For RO Admin, get the current member email from localStorage
                         memberEmail = localStorage.getItem('current_member_email');
                         console.log('Using member email for RO Admin:', memberEmail);
@@ -247,7 +247,7 @@
                           const loginType = getUserLoginType();
                           let memberEmail;
                           
-                          if (loginType === 'ro_admin') {
+                          if (loginType === 'ro_admin' || loginType === 'chapter') {
                             // For RO Admin, get the current member email from localStorage
                             memberEmail = localStorage.getItem('current_member_email');
                             console.log('Using member email for RO Admin:', memberEmail);
@@ -334,7 +334,7 @@
                   let member_id;
                   let member_email;
               
-                  if (loginType === 'ro_admin') {
+                  if (loginType === 'ro_admin' || loginType === 'chapter') {
                     // For RO Admin, get the current member email and ID from localStorage
                     member_id = localStorage.getItem('current_member_id');
                     member_email = localStorage.getItem('current_member_email');
@@ -5300,7 +5300,7 @@
       const loginType = getUserLoginType();
       let userEmail;
       
-      if (loginType === 'ro_admin') {
+      if (loginType === 'ro_admin' || loginType === 'chapter') {
         // For RO Admin, get the current member email from localStorage
         userEmail = localStorage.getItem('current_member_email');
         console.log('Using member email for RO Admin:', userEmail);

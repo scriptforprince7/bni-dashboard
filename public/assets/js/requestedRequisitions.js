@@ -11,6 +11,9 @@ let accumulatedApprovals = {};
 let accumulatedComments = {};
 let currentRequisition = null;
 
+// Add at the top with other global variables
+let memberRequisitions = [];
+
 // Function to show the loader
 function showLoader() {
     document.getElementById('loader').style.display = 'flex';
@@ -28,24 +31,32 @@ async function loadData() {
         console.log('🚀 Starting data fetch...');
 
         // Fetch all required data
-        const [requisitionsResponse, chaptersResponse, accoladesResponse] = await Promise.all([
+        const [requisitionsResponse, chaptersResponse, accoladesResponse, memberRequisitionsResponse] = await Promise.all([
             fetch(requisitionsApiUrl),
             fetch(chaptersApiUrl),
-            fetch(accoladesApiUrl)
+            fetch(accoladesApiUrl),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
         ]);
 
         allRequisitions = await requisitionsResponse.json();
         allChapters = await chaptersResponse.json();
         allAccolades = await accoladesResponse.json();
+        memberRequisitions = await memberRequisitionsResponse.json();
 
         console.log('📝 All Requisitions:', allRequisitions);
         console.log('📚 All Chapters:', allChapters);
         console.log('🏆 All Accolades:', allAccolades);
+        console.log('💼 Member Requisitions:', memberRequisitions);
 
         renderTable();
 
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error in loadData:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load data'
+        });
     } finally {
         hideLoader();
     }
@@ -55,6 +66,19 @@ async function loadData() {
 function getRandomAccolades(count = 5) {
     const shuffled = [...allAccolades].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
+}
+
+// Function to check accolade paid status
+function checkAccoladePaidStatus(memberRequisitions, memberId, chapterId, accoladeId) {
+    const matchingRequisition = memberRequisitions.find(req => 
+        req.member_id === memberId && 
+        req.chapter_id === chapterId && 
+        req.accolade_id === accoladeId
+    );
+
+    return matchingRequisition && 
+           matchingRequisition.order_id !== null && 
+           matchingRequisition.accolade_amount !== null;
 }
 
 // Function to handle click on accolades count
@@ -129,6 +153,14 @@ async function handleAccoladesClick(requisition) {
         });
 
         const accoladesSectionsHtml = combinations.map((combo, index) => {
+            // Check paid status for this combination
+            const isPaid = checkAccoladePaidStatus(
+                memberRequisitions, 
+                combo.memberId, 
+                requisition.chapter_id, 
+                combo.accolade.accolade_id
+            );
+
             const key = `${combo.memberId}_${combo.accolade.accolade_id}`;
             const currentStatus = approveStatusMap[key];
             
@@ -229,20 +261,20 @@ async function handleAccoladesClick(requisition) {
                                 padding: 12px;
                                 background: #f8fafc;
                                 border-radius: 8px;
-                                border-left: 4px solid ${combo.roComment ? '#059669' : '#6366f1'};
+                                border-left: 4px solid ${isPaid ? '#059669' : '#6366f1'};
                             ">
                                 <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
                                     <i class="ri-price-tag-3-line me-1"></i>Accolade Type
                                 </div>
                                 <div style="
-                                    color: ${combo.roComment ? '#059669' : '#6366f1'};
+                                    color: ${isPaid ? '#059669' : '#6366f1'};
                                     font-weight: 500;
                                     display: flex;
                                     align-items: center;
                                     gap: 6px;
                                 ">
-                                    <i class="ri-${combo.roComment ? 'shopping-cart-2' : 'gift'}-line"></i>
-                                    ${combo.roComment ? 'Paid' : 'Free'}
+                                    <i class="ri-${isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
+                                    ${isPaid ? 'Paid' : 'Free'}
                                 </div>
                             </div>
                         </div>
@@ -438,100 +470,144 @@ async function handleAccoladesClick(requisition) {
     }
 }
 
-// Modified handleRequisitionAction function
-function handleRequisitionAction(data) {
+// Function to handle requisition action
+async function handleRequisitionAction(data) {
     try {
         const actionData = typeof data === 'string' ? JSON.parse(data) : data;
-        const pickupCheckbox = document.querySelector(`#pickupStatus_${actionData.index}`);
-        const dateEl = document.querySelector(`#pickupDate_${actionData.index}`);
-        // Get the RO comment textarea instead of checkbox
-        const commentEl = document.querySelector(`#pickupStatus_${actionData.index}`).closest('.accolade-section').querySelector('textarea');
-        
+        console.log('🎯 Action Data:', actionData);
+
         const key = `${actionData.memberId}_${actionData.accoladeId}`;
+        // Get the comment from the textarea in the current accolade section
+        const commentEl = document.querySelector(`.accolade-section textarea`);
+        const roComment = commentEl ? commentEl.value : '';
+        
+        console.log('📝 Captured RO Comment:', roComment);
         
         // Accumulate approvals and comments
         accumulatedApprovals[key] = actionData.status;
-        accumulatedComments[key] = commentEl ? commentEl.value : ''; // Now this will get the actual comment
+        accumulatedComments[key] = roComment; // Store the actual comment
 
-        // Prepare the data object for API
-        const requestData = {
+        // Check if any accolade is approved to set pickup status
+    const isAnyApproved = Object.values(accumulatedApprovals).includes('approved');
+    
+    console.log('🔍 Checking approvals:', {
+        accumulatedApprovals,
+        isAnyApproved
+    });
+
+
+        // Check if this is a paid accolade
+        const isPaidAccolade = memberRequisitions.some(req => 
+            req.member_id === actionData.memberId && 
+            req.chapter_id === currentRequisition.chapter_id && 
+            req.accolade_id === actionData.accoladeId &&
+            req.order_id !== null && 
+            req.accolade_amount !== null
+        );
+
+        console.log('💰 Is Paid Accolade:', isPaidAccolade);
+
+        // First update chapter requisition
+        const chapterRequestData = {
             chapter_requisition_id: actionData.requisitionId,
             approve_status: accumulatedApprovals,
             ro_comment: accumulatedComments,
-            pickup_status: pickupCheckbox ? pickupCheckbox.checked : false,
-            pickup_date: dateEl ? dateEl.value : null
+            pickup_status: isAnyApproved, // Set to true if any accolade is approved,
+            pickup_date: null
         };
 
-        console.log('📦 Preparing API request data:', requestData);
-        console.log('💭 RO Comment for key', key, ':', commentEl ? commentEl.value : 'No comment');
+        console.log('📦 Chapter Request Data:', chapterRequestData);
 
-        // Make API call
-        fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
-        })
-        .then(response => {
-            console.log('🔄 API Response Status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('✅ API Response Data:', data);
-
-            // Show success toast
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 1500,
-                timerProgressBar: true
+        try {
+            // Update chapter requisition
+            const chapterResponse = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(chapterRequestData)
             });
 
-            Toast.fire({
+            if (!chapterResponse.ok) {
+                throw new Error('Chapter requisition update failed');
+            }
+
+            // If it's a paid accolade, update member requisition
+            if (isPaidAccolade) {
+                console.log('🔄 Updating member requisition for paid accolade');
+                
+                // Find the correct member requisition record
+                const memberReq = memberRequisitions.find(req => 
+                    req.member_id === actionData.memberId && 
+                    req.chapter_id === currentRequisition.chapter_id && 
+                    req.accolade_id === actionData.accoladeId
+                );
+
+                if (!memberReq) {
+                    throw new Error('Member requisition record not found');
+                }
+
+                // Prepare member request data based on action (approve/reject)
+                const memberRequestData = {
+                    member_request_id: memberReq.member_request_id,
+                    member_id: actionData.memberId,
+                    chapter_id: currentRequisition.chapter_id,
+                    accolade_id: actionData.accoladeId,
+                    approve_status: actionData.status === 'approved' ? 'approved' : 'rejected',
+                    response_comment: roComment,
+                    request_status: actionData.status === 'approved' ? 'closed' : 'open',
+                    approved_date: actionData.status === 'approved' ? new Date().toISOString() : null // Set to null if rejected
+                };
+
+                console.log('📝 Member Request Data:', memberRequestData, {
+                    action: actionData.status,
+                    isRejection: actionData.status === 'declined'
+                });
+
+                const memberResponse = await fetch('http://localhost:5000/api/updateMemberRequisition', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(memberRequestData)
+                });
+
+                if (!memberResponse.ok) {
+                    throw new Error('Member requisition update failed');
+                }
+
+                console.log('✅ Member requisition updated:', {
+                    status: actionData.status,
+                    newRequestStatus: memberRequestData.request_status
+                });
+            }
+
+            // Show success message
+            Swal.fire({
                 icon: 'success',
-                title: `${actionData.status === 'approved' ? 'Approved' : 'Rejected'} successfully`
+                title: 'Success!',
+                text: `Requisition ${actionData.status} successfully${isPaidAccolade ? ' and member record updated' : ''}`,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                loadData(); // Refresh the data
             });
 
-            // Log the accumulated data
-            console.log('📝 Current Accumulated Approvals:', accumulatedApprovals);
-            console.log('💬 Current Accumulated Comments:', accumulatedComments);
-            console.log('📅 Pickup Date:', dateEl ? dateEl.value : 'Not set');
-            console.log('✔️ Pickup Status:', pickupCheckbox ? pickupCheckbox.checked : false);
-
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('❌ API Error:', error);
-            
-            // Show error toast
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-
-            Toast.fire({
+            Swal.fire({
                 icon: 'error',
-                title: 'Failed to update requisition'
+                title: 'Error',
+                text: 'Failed to update requisition: ' + error.message
             });
-        });
+        }
 
     } catch (error) {
         console.error('❌ Error in handleRequisitionAction:', error);
-        
-        // Show error toast
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000
-        });
-
-        Toast.fire({
+        Swal.fire({
             icon: 'error',
-            title: 'Error processing request'
+            title: 'Error',
+            text: 'An unexpected error occured while updating the requisition'
         });
     }
 }
@@ -562,7 +638,15 @@ const renderTable = () => {
                 month: 'long',
                 day: 'numeric'
             });
+            const slabWiseComment = req.slab_wise_comment || 'No comment provided';
+            
 
+            // Determine button style and text based on pickup_status
+            const isReadyToPickup = req.pickup_status;
+            const pickupButtonStyle = isReadyToPickup ? '#dcfce7' : '#fee2e2';
+            const pickupButtonColor = isReadyToPickup ? '#16a34a' : '#dc2626';
+            const pickupButtonText = isReadyToPickup ? 'Ready to Pickup' : 'Not Ready to Pickup';
+            const pickupButtonIcon = isReadyToPickup ? 'ri-checkbox-circle-line' : 'ri-time-line';
             return `
                 <tr style="border-bottom: 1px solid #e5e7eb;">
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
@@ -602,13 +686,17 @@ const renderTable = () => {
                                     type="text" 
                                     class="form-control ro-comment"
                                     placeholder="Add comment..."
+                                    value="${slabWiseComment}"
                                     style="
-                                        border: 1px solid #e5e7eb;
+                                       border: 1px solid #e5e7eb;
                                         border-radius: 6px 0 0 6px;
                                         padding: 8px 12px;
                                         font-size: 0.875rem;
                                         transition: all 0.3s ease;
                                         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                        color: ${slabWiseComment === 'No comment provided' ? '#9ca3af' : '#1e293b'};
+                                        font-style: ${slabWiseComment === 'No comment provided' ? 'italic' : 'normal'};
                                     "
                                 >
                                 <button 
@@ -636,8 +724,8 @@ const renderTable = () => {
                         <button 
                             class="pickup-status-btn"
                             style="
-                                background: #dcfce7;
-                                color: #16a34a;
+                                background: ${pickupButtonStyle};
+                                color: ${pickupButtonColor};
                                 border: none;
                                 padding: 8px 16px;
                                 border-radius: 6px;
@@ -651,9 +739,10 @@ const renderTable = () => {
                             "
                             onmouseover="this.style.transform='translateY(-1px)'"
                             onmouseout="this.style.transform='translateY(0)'"
+                            onclick="handlePickupConfirmation(${req.chapter_requisition_id}, ${isReadyToPickup})"
                         >
-                            <i class="ri-checkbox-circle-line"></i>
-                            Ready to Pickup
+                            <i class="${pickupButtonIcon}"></i>
+                            ${pickupButtonText}
                         </button>
                     </td>
                     <td style="font-weight: bold; padding: 16px;">
@@ -677,15 +766,11 @@ const renderTable = () => {
         btn.addEventListener('click', () => {
             const input = btn.previousElementSibling;
             const comment = input.value.trim();
+            const requisitionId = parseInt(btn.closest('tr').querySelector('td:first-child').textContent);
+            
             if (comment) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Comment Saved',
-                    text: 'Your comment has been saved successfully',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-                input.value = '';
+                handleCommentSubmit(requisitionId, comment);
+                input.value = ''; // Clear input after submission
             }
         });
     });
@@ -733,4 +818,95 @@ async function savePickupStatus(index) {
 
     console.log('📅 Pickup Data:', pickupData);
     // Add your API call here to save the pickup status and date
+}
+
+// Modify the comment submission part
+function handleCommentSubmit(requisitionId, commentText) {
+    try {
+        // Prepare the data object for API
+        const requestData = {
+            chapter_requisition_id: requisitionId,
+            slab_wise_comment: commentText,  // Add the comment to slab_wise_comment field
+            approve_status: accumulatedApprovals,
+            ro_comment: accumulatedComments,
+            pickup_status: false,
+            pickup_date: null
+        };
+
+        console.log('📦 Preparing comment submission:', requestData);
+
+        // Make API call
+        fetch('http://localhost:5000/api/updateChapterRequisition', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            console.log('🔄 API Response Status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ Comment submitted successfully:', data);
+
+            // Show success toast
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Comment saved successfully'
+            });
+        })
+        .catch(error => {
+            console.error('❌ API Error:', error);
+            
+            // Show error toast
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+
+            Toast.fire({
+                icon: 'error',
+                title: 'Failed to save comment'
+            });
+        });
+
+    } catch (error) {
+        console.error('❌ Error in handleCommentSubmit:', error);
+    }
+}
+
+// Function to handle pickup confirmation
+function handlePickupConfirmation(chapterRequisitionId, isReadyToPickup) {
+    if (isReadyToPickup) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "It is ready to be picked up!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, notify chapter!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show success message
+                Swal.fire(
+                    'Notified!',
+                    'The chapter will be notified about the pickup.',
+                    'success'
+                );
+                // Here you can add any additional logic, like an API call to notify the chapter
+            }
+        });
+    }
 }

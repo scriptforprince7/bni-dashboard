@@ -180,7 +180,8 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
         chapter_id: current_User.chapter_id,
         credit_amount: creditAmount,
         credit_date: creditDate,
-        credit_type: creditType
+        credit_type: creditType,
+        credit_note: document.querySelector('#credit_note').value.trim()
     };
 
     console.log('Sending data:', data);

@@ -400,34 +400,58 @@ async function handleRequestAndPay(accoladeId) {
 
         console.log('💳 Payment Data:', paymentData);
 
-        // Fetch payment session from backend
-        const sessionResponse = await fetch('https://backend.bninewdelhi.com/api/generate-cashfree-session', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(paymentData)
-        });
 
-        const sessionData = await sessionResponse.json();
-        console.log('🔑 Session Response:', sessionData);
-
-        if (!sessionData.payment_session_id) {
-            throw new Error('Invalid session response');
+        try {
+            // Fetch payment session from backend
+            const sessionResponse = await fetch('http://localhost:5000/api/generate-cashfree-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(paymentData)
+            });
+        
+            const sessionData = await sessionResponse.json();
+            console.log('🔑 Session Response:', sessionData);
+        
+            if (!sessionData.payment_session_id) {
+                throw new Error('Invalid session response');
+            }
+        
+            // Load Cashfree SDK and initialize payment
+            loadCashfreeSDK(() => {
+                console.log("✅ Cashfree SDK Loaded");
+        
+                const cashfreeInstance = Cashfree({
+                    mode: "sandbox"
+                });
+        
+                cashfreeInstance.checkout({
+                    paymentSessionId: sessionData.payment_session_id,
+                    redirectTarget: "_self",  // Ensures redirection occurs
+                    returnUrl: `http://localhost:5000/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
+                }).then((result) => {
+                    if (result.error) {
+                        console.error("❌ Payment error:", result.error);
+                        alert(result.error.error);
+                    }
+        
+                    if (result.redirect) {
+                        console.log("🔄 Redirecting to payment page...");
+                    }
+        
+                    if (result.paymentDetails) {
+                        console.log("✅ Payment completed:", result.paymentDetails.paymentMessage);
+                        window.location.href = `/macc/manage-memberAccolades`; // Fallback navigation if returnUrl fails
+                    }
+                });
+            });
+        } catch (error) {
+            console.error("❌ Error during payment:", error);
+            alert("Something went wrong. Please try again.");
         }
 
-        // Load Cashfree SDK and initialize payment
-        loadCashfreeSDK(() => {
-            console.log("✅ Cashfree SDK Loaded");
-
-            const cashfreeInstance = Cashfree({
-                mode: "production"
-            });
-
-            cashfreeInstance.checkout({
-                paymentSessionId: sessionData.payment_session_id
-            });
-        });
+        
 
         hideLoader();
 
