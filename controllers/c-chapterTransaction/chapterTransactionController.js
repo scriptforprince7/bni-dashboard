@@ -10,3 +10,7 @@ exports.chapterGenerateInvoice = (req, res) => {
     res.render('m-transactions/chapterGenerateInvoice', { title: 'Chapter Generate Invoice' });
 };
 
+exports.newMemberPayment = (req, res) => {
+    res.render('m-transactions/chapter-new-member-payment', { title: 'New Member Payment' });
+};
+
