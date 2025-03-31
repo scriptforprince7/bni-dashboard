@@ -565,7 +565,7 @@ function hideLoader() {
   };
 
   // Update populateTrainingsTable to handle empty state
-  const populateTrainingsTable = (trainings) => {
+  const populateTrainingsTable = async (trainings) => {
       const tableBody = document.getElementById('training-body');
       const totalTrainingsElement = document.getElementById('total_registered_trainings');
       
@@ -583,30 +583,69 @@ function hideLoader() {
           totalTrainingsElement.innerHTML = trainings.length;
       }
 
-      trainings.forEach((training, index) => {
-          const row = document.createElement('tr');
-          const getStatusBgClass = (status) => {
-              switch (status) {
-                  case 'Scheduled': return 'btn btn-warning btn-sm';
-                  case 'Cancelled': return 'btn btn-danger btn-sm';
-                  case 'Postponed': return 'btn btn-info btn-sm';
-                  case 'Completed': return 'btn btn-success btn-sm';
-                  default: return 'btn btn-secondary btn-sm';
-              }
-          };
+      try {
+          // Fetch hotels data once
+          const hotelsResponse = await fetch('https://backend.bninewdelhi.com/api/gethotels');
+          const hotels = await hotelsResponse.json();
 
-          row.innerHTML = `
-              <td>${index + 1}</td>
-              <td><b>${training.training_name || 'N/A'}</b></td>
-              <td><b>${training.training_venue || 'N/A'}</b></td>
-              <td>${training.training_date || 'N/A'}</td>
-              <td><b>₹ ${training.training_price || 'N/A'}</b></td>
-              <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
-              <td><button class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</button></td>
-          `;
+          trainings.forEach((training, index) => {
+              const row = document.createElement('tr');
+              const getStatusBgClass = (status) => {
+                  switch (status) {
+                      case 'Scheduled': return 'btn btn-warning btn-sm';
+                      case 'Cancelled': return 'btn btn-danger btn-sm';
+                      case 'Postponed': return 'btn btn-info btn-sm';
+                      case 'Completed': return 'btn btn-success btn-sm';
+                      default: return 'btn btn-secondary btn-sm';
+                  }
+              };
 
-          tableBody.appendChild(row);
-      });
+              // Find matching hotel
+              const hotel = hotels.find(h => h.hotel_id.toString() === training.training_venue?.toString());
+              const venueDisplay = hotel ? 
+                  `${hotel.hotel_name}, ${hotel.hotel_address.split(',')[0]}` : 
+                  'N/A';
+
+              row.innerHTML = `
+                  <td>${index + 1}</td>
+                  <td><b>${training.training_name || 'N/A'}</b></td>
+                  <td><b>${venueDisplay}</b></td>
+                  <td>${training.training_date || 'N/A'}</td>
+                  <td><b>₹ ${training.training_price || 'N/A'}</b></td>
+                  <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
+                  <td><button class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</button></td>
+              `;
+
+              tableBody.appendChild(row);
+          });
+      } catch (error) {
+          console.error('Error fetching hotels:', error);
+          // Still populate table even if hotels fetch fails
+          trainings.forEach((training, index) => {
+              const row = document.createElement('tr');
+              const getStatusBgClass = (status) => {
+                  switch (status) {
+                      case 'Scheduled': return 'btn btn-warning btn-sm';
+                      case 'Cancelled': return 'btn btn-danger btn-sm';
+                      case 'Postponed': return 'btn btn-info btn-sm';
+                      case 'Completed': return 'btn btn-success btn-sm';
+                      default: return 'btn btn-secondary btn-sm';
+                  }
+              };
+
+              row.innerHTML = `
+                  <td>${index + 1}</td>
+                  <td><b>${training.training_name || 'N/A'}</b></td>
+                  <td><b>N/A</b></td>
+                  <td>${training.training_date || 'N/A'}</td>
+                  <td><b>₹ ${training.training_price || 'N/A'}</b></td>
+                  <td><b>${training.training_date ? training.training_date.split('T')[0] : 'N/A'}</b></td>
+                  <td><button class="${getStatusBgClass(training.training_status)}">${training.training_status || 'N/A'}</button></td>
+              `;
+
+              tableBody.appendChild(row);
+          });
+      }
   };
 
   // Update fetchAttendedTrainings function

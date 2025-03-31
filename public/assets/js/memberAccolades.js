@@ -403,7 +403,7 @@ async function handleRequestAndPay(accoladeId) {
 
         try {
             // Fetch payment session from backend
-            const sessionResponse = await fetch('http://localhost:5000/api/generate-cashfree-session', {
+            const sessionResponse = await fetch('https://backend.bninewdelhi.com/api/generate-cashfree-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -429,7 +429,7 @@ async function handleRequestAndPay(accoladeId) {
                 cashfreeInstance.checkout({
                     paymentSessionId: sessionData.payment_session_id,
                     redirectTarget: "_self",  // Ensures redirection occurs
-                    returnUrl: `http://localhost:5000/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
+                    returnUrl: `https://backend.bninewdelhi.com/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
                 }).then((result) => {
                     if (result.error) {
                         console.error("❌ Payment error:", result.error);

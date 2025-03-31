@@ -306,6 +306,127 @@ function handleInductionKitApply(visitor) {
     });
 }
 
+// Add this function to handle email sending
+async function handleSendEmail(visitor) {
+    const button = event.currentTarget;
+    const originalContent = button.innerHTML;
+    
+    try {
+        button.disabled = true;
+        button.classList.add('btn-disabled');
+        button.innerHTML = `
+            <span class="btn-text">Sending...</span>
+            <i class="ri-loader-4-line animate-spin"></i>
+        `;
+
+        const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+        
+        const response = await fetch('https://backend.bninewdelhi.com/api/send-visitor-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                visitor_email: visitor.visitor_email,
+                visitor_name: visitor.visitor_name,
+                chapter_name: chapter?.chapter_name || 'New Delhi'
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: `Welcome email sent successfully to ${visitor.visitor_name}`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } else {
+            throw new Error(data.message);
+        }
+
+    } catch (error) {
+        console.error('❌ Error sending welcome email:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to send welcome email. Please try again.',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    } finally {
+        button.disabled = false;
+        button.classList.remove('btn-disabled');
+        button.innerHTML = originalContent;
+    }
+}
+
+async function handleSendVPEmail(visitor) {
+    const button = event.currentTarget;
+    const originalContent = button.innerHTML;
+    
+    try {
+        button.disabled = true;
+        button.classList.add('btn-disabled');
+        button.innerHTML = `
+            <span class="btn-text">Sending...</span>
+            <i class="ri-loader-4-line animate-spin"></i>
+        `;
+
+        const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+        
+        const response = await fetch('https://backend.bninewdelhi.com/api/send-vp-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                visitor_email: visitor.visitor_email,
+                visitor_name: visitor.visitor_name,
+                chapter_name: chapter?.chapter_name || 'New Delhi'
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: `VP email sent successfully for ${visitor.visitor_name}`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } else {
+            throw new Error(data.message);
+        }
+
+    } catch (error) {
+        console.error('❌ Error sending VP email:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to send VP email. Please try again.',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000
+        });
+    } finally {
+        button.disabled = false;
+        button.classList.remove('btn-disabled');
+        button.innerHTML = originalContent;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -794,12 +915,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${await getStatusIcon(visitor.member_application_form, 'member_application', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
                         <td class="text-center">
-                            <button class="send-mail-btn">
-                                Send Mail <i class="ri-mail-send-line"></i>
+                             <button class="send-vp-mail-btn" onclick="handleSendVPEmail(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                Send VP Mail <i class="ri-mail-send-line"></i>
                             </button>
                         </td>
                         <td class="text-center">
-                            <button class="send-mail-btn">
+                            <button class="send-mail-btn" onclick="handleSendEmail(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
                                 Send Mail <i class="ri-mail-send-line"></i>
                             </button>
                         </td>
@@ -880,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// Add CSS for the View link styling
+// Add CSS for the View link styling and maintain existing styles
 const style = document.createElement('style');
 style.textContent = `
     .view-sheet-link {
@@ -889,26 +1010,27 @@ style.textContent = `
         font-size: 0.875rem;
         cursor: pointer;
     }
-`;
-document.head.appendChild(style);
 
-// Update the existing style declaration instead of creating a new one
-document.head.querySelector('style').textContent += `
-    .mail-sent-btn {
-        background-color: rgba(37, 99, 235, 0.1);
-        color: #2563eb;
-        border: none;
-        padding: 4px 12px;
+    .doc-preview {
+        width: 40px;
+        height: 40px;
         border-radius: 4px;
-        font-size: 12px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        cursor: default;
+        object-fit: cover;
+        cursor: pointer;
+        border: 1px solid #e5e7eb;
     }
 
-    .mail-sent-btn i {
-        font-size: 14px;
+    .doc-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .doc-actions {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: flex;
+        gap: 4px;
     }
 
     .upload-btn {
@@ -929,56 +1051,81 @@ document.head.querySelector('style').textContent += `
         background-color: #e5e7eb;
     }
 
-    .doc-preview {
-        width: 40px;
-        height: 40px;
-        border-radius: 4px;
-        object-fit: cover;
-        cursor: pointer;
-        border: 1px solid #e5e7eb;
-    }
-
+    /* New Button Styles */
     .send-mail-btn {
-        background-color: rgba(34, 197, 94, 0.1);  // Light green with opacity
-        color: #16a34a;                            // Green text
-        border: none;                              // No border at all
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 12px;
+        background: linear-gradient(145deg, #16a34a 0%, #15803d 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .send-mail-btn:hover {
-        background-color: rgba(34, 197, 94, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(145deg, #15803d 0%, #166534 100%);
+    }
+
+    .send-mail-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .send-mail-btn i {
-        font-size: 14px;
+        font-size: 16px;
     }
 
-    .apply-kit-btn {
-        background-color: #2563eb;
+    .send-vp-mail-btn {
+        background: linear-gradient(145deg, #2563eb 0%, #1d4ed8 100%);
         color: white;
         border: none;
-        padding: 4px 12px;
-        border-radius: 4px;
-        font-size: 12px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .apply-kit-btn:hover {
-        background-color: #1d4ed8;
+    .send-vp-mail-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(145deg, #1d4ed8 0%, #1e40af 100%);
     }
 
-    .apply-kit-btn i {
-        font-size: 14px;
+    .send-vp-mail-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .send-vp-mail-btn i {
+        font-size: 16px;
+    }
+
+    .btn-disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .animate-spin {
+        animation: spin 1s linear infinite;
     }
 `;
+
+document.head.appendChild(style);

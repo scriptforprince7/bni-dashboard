@@ -14,6 +14,20 @@ let currentRequisition = null;
 // Add at the top with other global variables
 let memberRequisitions = [];
 
+// Add sorting state variables at the top
+let currentSort = {
+    column: 'chapter_requisition_id',
+    direction: 'desc'
+};
+
+// Add these variables at the top with your existing variables
+let filteredRequisitions = [];
+let activeFilters = {
+    chapter: 'all',
+    month: 'all',
+    accolade: 'all'
+};
+
 // Function to show the loader
 function showLoader() {
     document.getElementById('loader').style.display = 'flex';
@@ -30,24 +44,23 @@ async function loadData() {
         showLoader();
         console.log('🚀 Starting data fetch...');
 
-        // Fetch all required data
-        const [requisitionsResponse, chaptersResponse, accoladesResponse, memberRequisitionsResponse] = await Promise.all([
+        // Fetch all required data including accolades
+        const [requisitionsResponse, chaptersResponse, accoladesResponse] = await Promise.all([
             fetch(requisitionsApiUrl),
             fetch(chaptersApiUrl),
-            fetch(accoladesApiUrl),
-            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+            fetch('https://backend.bninewdelhi.com/api/accolades')  // Add accolades API
         ]);
 
         allRequisitions = await requisitionsResponse.json();
         allChapters = await chaptersResponse.json();
         allAccolades = await accoladesResponse.json();
-        memberRequisitions = await memberRequisitionsResponse.json();
+        filteredRequisitions = [...allRequisitions];
 
         console.log('📝 All Requisitions:', allRequisitions);
         console.log('📚 All Chapters:', allChapters);
         console.log('🏆 All Accolades:', allAccolades);
-        console.log('💼 Member Requisitions:', memberRequisitions);
 
+        initializeFilters();
         renderTable();
 
     } catch (error) {
@@ -512,7 +525,7 @@ async function handleRequisitionAction(data) {
             chapter_requisition_id: actionData.requisitionId,
             approve_status: accumulatedApprovals,
             ro_comment: accumulatedComments,
-            pickup_status: isAnyApproved, // Set to true if any accolade is approved,
+            // pickup_status: isAnyApproved, // Set to true if any accolade is approved,
             pickup_date: null
         };
 
@@ -520,7 +533,7 @@ async function handleRequisitionAction(data) {
 
         try {
             // Update chapter requisition
-            const chapterResponse = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+            const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -564,7 +577,7 @@ async function handleRequisitionAction(data) {
                     isRejection: actionData.status === 'declined'
                 });
 
-                const memberResponse = await fetch('http://localhost:5000/api/updateMemberRequisition', {
+                const memberResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -628,7 +641,54 @@ document.addEventListener('DOMContentLoaded', () => {
 const renderTable = () => {
     const tableBody = document.getElementById("chaptersTableBody");
     
-    tableBody.innerHTML = allRequisitions
+    if (filteredRequisitions.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="ri-filter-off-line mb-2" style="font-size: 2rem; color: #dc2626;"></i>
+                        <p class="mb-0 text-muted">No entries match the applied filters</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // First update the table headers with sort icons
+    const tableHeaders = document.querySelector('thead tr');
+    tableHeaders.innerHTML = `
+        <th scope="col" onclick="sortTable('chapter_requisition_id')" style="cursor: pointer">
+            S.No. <i class="ri-arrow-${currentSort.column === 'chapter_requisition_id' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('chapter_name')" style="cursor: pointer">
+            Chapter Name <i class="ri-arrow-${currentSort.column === 'chapter_name' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('accolades')" style="cursor: pointer">
+            Accolades Requested <i class="ri-arrow-${currentSort.column === 'accolades' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('comment')" style="cursor: pointer">
+            Comment <i class="ri-arrow-${currentSort.column === 'comment' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('date')" style="cursor: pointer">
+            Requested date <i class="ri-arrow-${currentSort.column === 'date' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('pickup_status')" style="cursor: pointer">
+            Pickup Status <i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('status')" style="cursor: pointer">
+            Status <i class="ri-arrow-${currentSort.column === 'status' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+    `;
+
+    tableBody.innerHTML = filteredRequisitions
         .map((req, index) => {
             const chapter = allChapters.find(ch => ch.chapter_id === req.chapter_id);
             
@@ -737,8 +797,6 @@ const renderTable = () => {
                                 transition: all 0.3s ease;
                                 box-shadow: 0 1px 2px rgba(0,0,0,0.05);
                             "
-                            onmouseover="this.style.transform='translateY(-1px)'"
-                            onmouseout="this.style.transform='translateY(0)'"
                             onclick="handlePickupConfirmation(${req.chapter_requisition_id}, ${isReadyToPickup})"
                         >
                             <i class="${pickupButtonIcon}"></i>
@@ -836,7 +894,7 @@ function handleCommentSubmit(requisitionId, commentText) {
         console.log('📦 Preparing comment submission:', requestData);
 
         // Make API call
-        fetch('http://localhost:5000/api/updateChapterRequisition', {
+        fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -886,27 +944,295 @@ function handleCommentSubmit(requisitionId, commentText) {
     }
 }
 
-// Function to handle pickup confirmation
-function handlePickupConfirmation(chapterRequisitionId, isReadyToPickup) {
-    if (isReadyToPickup) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "It is ready to be picked up!",
-            icon: 'warning',
+// Add this function to handle pickup confirmation
+async function handlePickupConfirmation(requisitionId, currentStatus) {
+    try {
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            title: 'Confirm Pickup Status',
+            text: currentStatus ? 
+                  'Are you sure you want to mark this as not picked up?' : 
+                  'Are you sure you want to mark this as picked up?',
+            icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, notify chapter!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Show success message
-                Swal.fire(
-                    'Notified!',
-                    'The chapter will be notified about the pickup.',
-                    'success'
-                );
-                // Here you can add any additional logic, like an API call to notify the chapter
+            confirmButtonText: currentStatus ? 'Yes, mark as not picked up' : 'Yes, mark as picked up',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#dc2626'
+        });
+
+        if (result.isConfirmed) {
+            // Prepare the update data
+            const updateData = {
+                chapter_requisition_id: requisitionId,
+                pickup_status: !currentStatus,
+                pickup_date: !currentStatus ? new Date().toISOString() : null,
+                // Keep existing approvals and comments
+                approve_status: accumulatedApprovals,
+                ro_comment: accumulatedComments
+            };
+
+            // Make API call to update pickup status
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update pickup status');
             }
+
+            // Show success message
+            await Swal.fire({
+                title: 'Success!',
+                text: currentStatus ? 
+                      'Requisition marked as not picked up.' : 
+                      'Requisition marked as picked up.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Refresh the data to show updated status
+            loadData();
+
+        }
+    } catch (error) {
+        console.error('Error updating pickup status:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to update pickup status.',
+            icon: 'error'
         });
     }
+}
+
+// Add sorting function
+function sortTable(column) {
+    // Toggle sort direction if clicking the same column
+    if (currentSort.column === column) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.column = column;
+        currentSort.direction = 'asc';
+    }
+
+    // Sort the allRequisitions array
+    filteredRequisitions.sort((a, b) => {
+        let compareA, compareB;
+
+        switch(column) {
+            case 'chapter_requisition_id':
+                compareA = a.chapter_requisition_id;
+                compareB = b.chapter_requisition_id;
+                break;
+            case 'chapter_name':
+                const chapterA = allChapters.find(ch => ch.chapter_id === a.chapter_id);
+                const chapterB = allChapters.find(ch => ch.chapter_id === b.chapter_id);
+                compareA = chapterA ? chapterA.chapter_name : '';
+                compareB = chapterB ? chapterB.chapter_name : '';
+                break;
+            case 'accolades':
+                compareA = a.accolade_ids.length;
+                compareB = b.accolade_ids.length;
+                break;
+            case 'comment':
+                compareA = a.slab_wise_comment || '';
+                compareB = b.slab_wise_comment || '';
+                break;
+            case 'date':
+                compareA = new Date(a.requested_date);
+                compareB = new Date(b.requested_date);
+                break;
+            case 'pickup_status':
+                compareA = a.pickup_status ? 1 : 0;
+                compareB = b.pickup_status ? 1 : 0;
+                break;
+            case 'status':
+                compareA = a.request_status;
+                compareB = b.request_status;
+                break;
+            default:
+                return 0;
+        }
+
+        // Handle the sort direction
+        const sortOrder = currentSort.direction === 'asc' ? 1 : -1;
+        
+        if (compareA < compareB) return -1 * sortOrder;
+        if (compareA > compareB) return 1 * sortOrder;
+        return 0;
+    });
+
+    // Re-render the table with sorted data
+    renderTable();
+}
+
+// Add some CSS for the sort icons
+const style = document.createElement('style');
+style.textContent = `
+    th {
+        position: relative;
+        padding-right: 10px !important;
+    }
+    th i {
+        position: absolute;
+        // right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        color: #666;
+    }
+    th:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    th:hover i {
+        color: #000;
+    }
+`;
+document.head.appendChild(style);
+
+// Add this new function to initialize filters
+function initializeFilters() {
+    // Initialize accolades filter
+    const accoladesFilter = document.getElementById('accolades-filter');
+    const uniqueAccoladeIds = [...new Set(allRequisitions.flatMap(req => req.accolade_ids))];
+    
+    console.log('🎯 Unique Accolade IDs:', uniqueAccoladeIds);
+
+    accoladesFilter.innerHTML = `
+        <li><a class="dropdown-item" href="javascript:void(0);" data-accolade="all">
+            <i class="ti ti-award me-1"></i>All Accolades
+        </a></li>
+        ${uniqueAccoladeIds.map(accoladeId => {
+            const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
+            return accolade ? `
+                <li><a class="dropdown-item" href="javascript:void(0);" data-accolade="${accoladeId}">
+                    <i class="ti ti-award me-1"></i>${accolade.accolade_name}
+                </a></li>
+            ` : '';
+        }).join('')}
+    `;
+
+    // Add event listeners for accolades filter
+    document.querySelectorAll('#accolades-filter .dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const accoladeId = this.getAttribute('data-accolade');
+            activeFilters.accolade = accoladeId;
+            console.log('🎯 Selected Accolade:', accoladeId);
+            applyFilters();
+            
+            // Update button text
+            const buttonText = accoladeId === 'all' ? 'Accolades' : 
+                allAccolades.find(acc => acc.accolade_id === parseInt(accoladeId))?.accolade_name;
+            this.closest('.dropdown').querySelector('.dropdown-toggle').innerHTML = 
+                `<i class="ti ti-award me-1"></i> ${buttonText}`;
+        });
+    });
+
+    // Initialize chapters filter
+    const chaptersFilter = document.getElementById('chapters-filter');
+    const uniqueChapters = [...new Set(allRequisitions.map(req => req.chapter_id))];
+    
+    chaptersFilter.innerHTML = `
+        <li><a class="dropdown-item" href="javascript:void(0);" data-chapter="all">
+            <i class="ti ti-building me-1"></i>All Chapters
+        </a></li>
+        ${uniqueChapters.map(chapterId => {
+            const chapter = allChapters.find(ch => ch.chapter_id === chapterId);
+            return chapter ? `
+                <li><a class="dropdown-item" href="javascript:void(0);" data-chapter="${chapterId}">
+                    <i class="ti ti-building me-1"></i>${chapter.chapter_name}
+                </a></li>
+            ` : '';
+        }).join('')}
+    `;
+
+    // Add event listeners for chapter filter
+    document.querySelectorAll('#chapters-filter .dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const chapterId = this.getAttribute('data-chapter');
+            activeFilters.chapter = chapterId;
+            applyFilters();
+            
+            // Update button text
+            const buttonText = chapterId === 'all' ? 'Chapters' : 
+                allChapters.find(ch => ch.chapter_id === parseInt(chapterId))?.chapter_name;
+            this.closest('.dropdown').querySelector('.dropdown-toggle').innerHTML = 
+                `<i class="ti ti-building me-1"></i> ${buttonText}`;
+        });
+    });
+
+    // Add event listeners for month filter
+    document.querySelectorAll('#month-filter .dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const month = this.getAttribute('data-month');
+            activeFilters.month = month;
+            applyFilters();
+            
+            // Update button text
+            const monthNames = ['All Months', 'January', 'February', 'March', 'April', 'May', 'June', 
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            const buttonText = month === 'all' ? 'Month' : monthNames[parseInt(month)];
+            this.closest('.dropdown').querySelector('.dropdown-toggle').innerHTML = 
+                `<i class="ti ti-calendar me-1"></i> ${buttonText}`;
+        });
+    });
+
+    // Reset filters button
+    document.getElementById('reset-filters-btn').addEventListener('click', function() {
+        console.log('🔄 Resetting all filters');
+        
+        activeFilters = {
+            chapter: 'all',
+            month: 'all',
+            accolade: 'all'
+        };
+
+        // Reset all dropdown texts
+        document.querySelector('#accolades-filter').closest('.dropdown')
+            .querySelector('.dropdown-toggle').innerHTML = '<i class="ti ti-award me-1"></i> Accolades';
+        document.querySelector('#chapters-filter').closest('.dropdown')
+            .querySelector('.dropdown-toggle').innerHTML = '<i class="ti ti-building me-1"></i> Chapters';
+        document.querySelector('#month-filter').closest('.dropdown')
+            .querySelector('.dropdown-toggle').innerHTML = '<i class="ti ti-calendar me-1"></i> Month';
+
+        filteredRequisitions = [...allRequisitions];
+        renderTable();
+    });
+}
+
+// Add this function to apply filters
+function applyFilters() {
+    console.log('🔍 Applying filters:', activeFilters);
+    
+    filteredRequisitions = [...allRequisitions];
+
+    if (activeFilters.accolade !== 'all') {
+        filteredRequisitions = filteredRequisitions.filter(req => 
+            req.accolade_ids.includes(parseInt(activeFilters.accolade))
+        );
+        console.log('🏆 Filtered by accolade:', filteredRequisitions.length, 'results');
+    }
+
+    if (activeFilters.chapter !== 'all') {
+        filteredRequisitions = filteredRequisitions.filter(req => 
+            req.chapter_id === parseInt(activeFilters.chapter)
+        );
+        console.log('🏢 Filtered by chapter:', filteredRequisitions.length, 'results');
+    }
+
+    if (activeFilters.month !== 'all') {
+        filteredRequisitions = filteredRequisitions.filter(req => {
+            const reqDate = new Date(req.requested_date);
+            return (reqDate.getMonth() + 1) === parseInt(activeFilters.month);
+        });
+        console.log('📅 Filtered by month:', filteredRequisitions.length, 'results');
+    }
+
+    console.log('✨ Final filtered results:', filteredRequisitions);
+    renderTable();
 }

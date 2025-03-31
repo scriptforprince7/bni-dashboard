@@ -91,14 +91,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                     <td>
                         ${req.pickup_status 
                             ? `<div class="d-flex flex-column" style="min-width: 80px;">
-                                <span class="badge bg-success-transparent mb-1" style="width: fit-content;">
-                                    <i class="ri-checkbox-circle-line me-1"></i>
-                                    Picked Up
+                                <span class="badge ${req.pickup_date ? 'bg-success-transparent' : 'bg-primary-transparent'} mb-1" 
+                                      style="width: fit-content; cursor: pointer;"
+                                      onclick="handlePickupDateUpdate(${req.chapter_requisition_id}, '${req.pickup_date || ''}')">
+                                    <i class="${req.pickup_date ? 'ri-checkbox-circle-line' : 'ri-calendar-check-line'} me-1"></i>
+                                    ${req.pickup_date ? 'Picked Up' : 'Ready to Pick Up'}
                                 </span>
-                                <small class="text-muted">
-                                    <i class="ri-calendar-line me-1"></i>
-                                    ${req.pickup_date ? new Date(req.pickup_date).toLocaleDateString() : 'N/A'}
-                                </small>
+                                ${req.pickup_date && req.pickup_date !== 'null' && req.pickup_date !== null
+                                    ? `<small class="text-muted">
+                                        <i class="ri-calendar-line me-1"></i>
+                                        ${new Date(req.pickup_date).toLocaleDateString()}
+                                       </small>`
+                                    : ''
+                                }
                                </div>`
                             : `<span class="badge bg-warning-transparent" style="width: fit-content;">
                                 <i class="ri-time-line me-1"></i>
@@ -879,7 +884,7 @@ async function showRequisitionForm() {
                         pickup_date: null
                     };
 
-                    const response = await fetch('http://localhost:5000/api/chapter-requisition', {
+                    const response = await fetch('https://backend.bninewdelhi.com/api/chapter-requisition', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1086,3 +1091,73 @@ const successStyles = `
 `;
 
 style.textContent += successStyles;
+
+// Add this function to handle date selection
+async function handlePickupDateUpdate(requisitionId, currentDate) {
+    const { value: pickupDate } = await Swal.fire({
+        title: 'Select Pickup Date',
+        html: `
+            <div class="p-4" style="background: #f8fafc; border-radius: 12px;">
+                <div class="mb-3">
+                    <i class="ri-calendar-2-line text-primary" style="font-size: 2rem;"></i>
+                </div>
+                <p class="mb-4" style="color: #475569;">Please select the date when the accolades will be picked up.</p>
+                <input type="date" 
+                       id="pickup-date" 
+                       class="swal2-input" 
+                       value="${currentDate ? currentDate.split('T')[0] : ''}"
+                       style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Confirm Date',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#16a34a',
+        cancelButtonColor: '#dc2626',
+        preConfirm: () => {
+            const date = document.getElementById('pickup-date').value;
+            if (!date) {
+                Swal.showValidationMessage('Please select a date');
+                return false;
+            }
+            return date;
+        }
+    });
+
+    if (pickupDate) {
+        try {
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chapter_requisition_id: requisitionId,
+                    pickup_status: true,
+                    pickup_date: pickupDate
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to update pickup date');
+
+            // Show success message
+            await Swal.fire({
+                icon: 'success',
+                title: 'Pickup Date Updated!',
+                text: 'The pickup date has been successfully scheduled.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Refresh the data
+            location.reload();
+        } catch (error) {
+            console.error('Error updating pickup date:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Failed to update pickup date. Please try again.'
+            });
+        }
+    }
+}

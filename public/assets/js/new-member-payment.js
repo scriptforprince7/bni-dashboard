@@ -178,7 +178,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             'member_application_form'
         ];
 
-        // Only return 'completed' if ALL forms are true
         return requiredForms.every(form => visitor[form] === true) ? 'completed' : 'pending';
     };
   
@@ -218,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ).toLocaleDateString("en-GB");
         const formattedAmount = `+ ₹${transactionAmount.toLocaleString("en-IN")}`;
   
-        // Find matching visitor
+        // Find matching visitor and check form status
         const visitor = visitors.find(v => v.order_id === order.order_id);
         const formStatus = getFormStatus(visitor);
   
@@ -276,33 +275,37 @@ document.addEventListener("DOMContentLoaded", async () => {
                   <td class="irn"><em>Not Applicable</em></td>
                   <td class="qrcode"><em>Not Applicable</em></td>
                   <td class="generate-invoice-btn">Not Applicable</td>
-                  <td class="joining-form-column">
-        <div style="display: grid; grid-template-columns: auto 20px; gap: 5px; align-items: start;">
-            <div style="display: flex; flex-direction: column; gap: 9px;">
-                <span onclick="showJoiningFormStatus('completed')" 
-                      style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer; 
-                      ${formStatus !== 'completed' ? 'opacity: 0.5;' : ''}">
-                    Completed
-                </span>
-                <span onclick="showJoiningFormStatus('pending')" 
-                      style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;
-                      ${formStatus !== 'pending' ? 'opacity: 0.5;' : ''}">
-                    Pending
-                </span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
-                <i class="ri-checkbox-circle-line" style="color: ${formStatus === 'completed' ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
-                <i class="ri-checkbox-circle-line" style="color: ${formStatus === 'pending' ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
-            </div>
-        </div>
-    </td>
-    <td class="induction-status">
-        ${formStatus === 'completed' ? `
-            <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
-                <i class="ri-checkbox-circle-line me-1"></i>Induct Member
-            </button>
-        ` : ''}
-    </td>
+                  <td class="joining-form-column" data-order-id="${order.order_id}">
+                      <div style="display: grid; grid-template-columns: auto 20px; gap: 5px; align-items: start;">
+                          <div style="display: flex; flex-direction: column; gap: 9px;">
+                              ${formStatus === 'completed' ? `
+                                  <span onclick="showJoiningFormStatus('completed', '${order.order_id}')" 
+                                        style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">
+                                      Completed
+                                  </span>
+                              ` : `
+                                  <span onclick="showJoiningFormStatus('pending', '${order.order_id}')" 
+                                        style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">
+                                      Pending
+                                  </span>
+                              `}
+                          </div>
+                          <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                              <i class="ri-checkbox-circle-line" style="color: ${formStatus === 'completed' ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
+                          </div>
+                      </div>
+                  </td>
+                  <td class="induction-status">
+                      ${formStatus === 'completed' ? `
+                          <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
+                              <i class="ri-checkbox-circle-line me-1"></i>Induct Member
+                          </button>
+                      ` : `
+                          <button class="btn btn-sm btn-secondary btn-wave waves-light" disabled>
+                              <i class="ri-time-line me-1"></i>Forms Pending
+                          </button>
+                      `}
+                  </td>
               `;
   
         tableBody.appendChild(row);
@@ -652,6 +655,46 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.log('🏁 Application initialization completed');
       hideLoader();
     }
+
+    // Check form status for all rows on page load
+    const rows = document.querySelectorAll('.joining-form-column');
+    for (const row of rows) {
+        const orderId = row.getAttribute('data-order-id');
+        if (!orderId) continue;
+
+        const formStatus = await checkVisitorFormStatus(orderId);
+        
+        if (formStatus) {
+            // Update the joining form column
+            row.innerHTML = `
+                <div style="display: grid; grid-template-columns: auto 20px; gap: 5px; align-items: start;">
+                    <div style="display: flex; flex-direction: column; gap: 9px;">
+                        <span onclick="showJoiningFormStatus('${formStatus.isComplete ? 'completed' : 'pending'}', '${orderId}')" 
+                              style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">
+                            ${formStatus.isComplete ? 'Completed' : 'Pending'}
+                        </span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                        <i class="ri-checkbox-circle-line" style="color: ${formStatus.isComplete ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
+                    </div>
+                </div>
+            `;
+
+            // Update the induction button
+            const inductionCell = row.closest('tr').querySelector('.induction-status');
+            if (inductionCell) {
+                inductionCell.innerHTML = formStatus.isComplete ? `
+                    <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
+                        <i class="ri-checkbox-circle-line me-1"></i>Induct Member
+                    </button>
+                ` : `
+                    <button class="btn btn-sm btn-secondary btn-wave waves-light" disabled>
+                        <i class="ri-time-line me-1"></i>Forms Pending
+                    </button>
+                `;
+            }
+        }
+    }
   });
   
   
@@ -680,61 +723,211 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Append the style to the head of the document
   document.head.appendChild(style);
 
-// Add this function outside the row.innerHTML
-function showJoiningFormStatus(status) {
-    let title = `<div style="font-size: 28px; font-weight: 600;">${status.charAt(0).toUpperCase() + status.slice(1)}</div>`; 
+// Function to check form status for a visitor
+async function checkVisitorFormStatus(orderId) {
+    console.log('🔍 Checking form status for order:', orderId);
     
-    const formList = `
+    try {
+        // First get the order details
+        const orderResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+        const orders = await orderResponse.json();
+        
+        console.log('📦 Found orders:', orders.length);
+        
+        // Find the specific order
+        const order = orders.find(o => o.order_id === orderId);
+        if (!order) {
+            console.log('❌ No order found for ID:', orderId);
+            return null;
+        }
+        
+        console.log('📄 Order details:', order);
+        
+        // Check if it's a new member payment
+        if (order.payment_note !== "New Member Payment") {
+            console.log('⚠️ Not a new member payment');
+            return null;
+        }
+
+        // Get visitor details either by visitor_id or order_id
+        const visitorsResponse = await fetch("https://backend.bninewdelhi.com/api/getallvisitors");
+        const visitors = await visitorsResponse.json();
+        
+        console.log('👥 Total visitors:', visitors.length);
+        
+        let visitor;
+        if (order.visitor_id) {
+            visitor = visitors.find(v => v.visitor_id === order.visitor_id);
+            console.log('🎯 Found visitor by visitor_id:', order.visitor_id);
+        } else {
+            visitor = visitors.find(v => v.order_id === orderId);
+            console.log('🎯 Found visitor by order_id:', orderId);
+        }
+
+        if (!visitor) {
+            console.log('❌ No visitor found');
+            return null;
+        }
+
+        console.log('📋 Visitor form status:', visitor);
+
+        return {
+            isComplete: visitor.visitor_form && 
+                       visitor.eoi_form && 
+                       visitor.new_member_form && 
+                       visitor.interview_sheet && 
+                       visitor.commitment_sheet && 
+                       visitor.inclusion_exclusion_sheet && 
+                       visitor.member_application_form,
+            forms: {
+                visitor_form: visitor.visitor_form,
+                eoi_form: visitor.eoi_form,
+                new_member_form: visitor.new_member_form,
+                interview_sheet: visitor.interview_sheet,
+                commitment_sheet: visitor.commitment_sheet,
+                inclusion_exclusion_sheet: visitor.inclusion_exclusion_sheet,
+                member_application_form: visitor.member_application_form
+            }
+        };
+    } catch (error) {
+        console.error('❌ Error checking visitor status:', error);
+        return null;
+    }
+}
+
+// Update the joining form column generation
+const generateJoiningFormColumn = (transaction, formStatus) => {
+    const allFormsComplete = formStatus?.isComplete;
+    
+    return `
+        <td class="joining-form-column" data-order-id="${transaction.order_id}">
+            <div style="display: grid; grid-template-columns: auto 20px; gap: 5px; align-items: start;">
+                <div style="display: flex; flex-direction: column; gap: 9px;">
+                    ${allFormsComplete ? `
+                        <span onclick="showJoiningFormStatus('completed', '${transaction.order_id}')" 
+                              style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">
+                            Completed
+                        </span>
+                    ` : `
+                        <span style="color: #ccc; text-decoration: underline; font-size: 13px; cursor: not-allowed; opacity: 0.5;">
+                            Completed
+                        </span>
+                        <span onclick="showJoiningFormStatus('pending', '${transaction.order_id}')" 
+                              style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">
+                            Pending
+                        </span>
+                    `}
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                    <i class="ri-checkbox-circle-line" style="color: ${allFormsComplete ? '#28a745' : '#ccc'}; font-size: 16px;"></i>
+                    ${!allFormsComplete ? `
+                        <i class="ri-checkbox-circle-line" style="color: #dc3545; font-size: 16px;"></i>
+                    ` : ''}
+                </div>
+            </div>
+        </td>
+    `;
+};
+
+// Update the showJoiningFormStatus function
+async function showJoiningFormStatus(status, orderId) {
+    console.log('📊 Showing form status:', status, 'for order:', orderId);
+    
+    const formStatus = await checkVisitorFormStatus(orderId);
+    console.log('📋 Form status result:', formStatus);
+
+    let formList = `
         <div style="text-align: left; margin-top: 15px;">
             <ul style="list-style: none; padding: 0;">
-                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="https://bninewdelhi.com/eoi-form" target="_blank" style="color: inherit; text-decoration: none;">EOI Form</a>
-                    </div>
-                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                </li>
-                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="#" onclick="showPDF('/assets/pdf/commitment (1).pdf')" style="color: inherit; text-decoration: none;">Commitment Sheet</a>
-                    </div>
-                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                </li>
-                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="https://bninewdelhi.com/member-application" target="_blank" style="color: inherit; text-decoration: none;">Member Application Form</a>
-                    </div>
-                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                </li>
-                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="#" onclick="showPDF('/assets/pdf/inesheet.pdf')" style="color: inherit; text-decoration: none;">Inclusion & Exclusion Form</a>
-                    </div>
-                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                </li>
-                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="https://bninewdelhi.com/" target="_blank" style="color: inherit; text-decoration: none;">ID Proof</a>
-                    </div>
-                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                </li>
-                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
-                        <a href="#" onclick="showPDF('/assets/pdf/interview.pdf')" style="color: inherit; text-decoration: none;">Interview Sheet</a>
-                    </div>
-                    <i class="ri-close-circle-line" style="color: #dc3545; font-size: 16px;"></i>
-                </li>
-            </ul>
-        </div>
     `;
 
+    if (formStatus) {
+        const forms = [
+            { name: 'EOI Form', key: 'eoi_form', link: 'https://bninewdelhi.com/eoi-form' },
+            { name: 'Commitment Sheet', key: 'commitment_sheet', link: '#', onclick: "showPDF('/assets/pdf/commitment (1).pdf')" },
+            { name: 'Member Application Form', key: 'member_application_form', link: 'https://bninewdelhi.com/member-application' },
+            { name: 'Inclusion & Exclusion Form', key: 'inclusion_exclusion_sheet', link: '#', onclick: "showPDF('/assets/pdf/inesheet.pdf')" },
+            { name: 'Interview Sheet', key: 'interview_sheet', link: '#', onclick: "showPDF('/assets/pdf/interview.pdf')" },
+            { name: 'Visitor Form', key: 'visitor_form', link: '#' }
+        ];
+
+        const completedForms = forms.filter(form => formStatus.forms[form.key]).length;
+        const totalForms = forms.length;
+
+        formList += `
+            <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                <strong>Progress:</strong> ${completedForms}/${totalForms} forms completed
+                <div class="progress" style="height: 10px; margin-top: 8px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: ${(completedForms/totalForms)*100}%">
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Rest of the form list generation
+        forms.forEach(form => {
+            const isComplete = formStatus.forms[form.key];
+            const icon = isComplete ? 'ri-checkbox-circle-line' : 'ri-close-circle-line';
+            const color = isComplete ? '#28a745' : '#dc3545';
+            const opacity = isComplete ? '1' : '0.7';
+            
+            formList += `
+                <li style="margin: 10px 0; padding: 8px; border-radius: 4px; background: #f8f9fa; 
+                          display: flex; justify-content: space-between; align-items: center; opacity: ${opacity};">
+                    <div>
+                        <i class="ri-file-list-line" style="margin-right: 8px; color: #0d6efd;"></i>
+                        <a href="${form.link}" ${form.onclick ? `onclick="${form.onclick}"` : 'target="_blank"'} 
+                           style="color: inherit; text-decoration: none;">
+                            ${form.name}
+                        </a>
+                    </div>
+                    <i class="${icon}" style="color: ${color}; font-size: 16px;"></i>
+                </li>
+            `;
+        });
+
+        // After showing the SweetAlert, update the joining form column if all forms are complete
+        if (formStatus.isComplete) {
+            const joiningFormColumn = document.querySelector(`[data-order-id="${orderId}"]`);
+            if (joiningFormColumn) {
+                joiningFormColumn.innerHTML = `
+                    <div style="display: grid; grid-template-columns: auto 20px; gap: 5px; align-items: start;">
+                        <div style="display: flex; flex-direction: column; gap: 9px;">
+                            <span onclick="showJoiningFormStatus('completed', '${orderId}')" 
+                                  style="color: #0d6efd; text-decoration: underline; font-size: 13px; cursor: pointer;">
+                                Completed
+                            </span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 5px; align-items: center;">
+                            <i class="ri-checkbox-circle-line" style="color: #28a745; font-size: 16px;"></i>
+                        </div>
+                    </div>
+                `;
+
+                // Also update the induction button
+                const inductionCell = joiningFormColumn.closest('tr').querySelector('.induction-status');
+                if (inductionCell) {
+                    inductionCell.innerHTML = `
+                        <button class="btn btn-sm btn-success btn-wave waves-light induct-member-btn">
+                            <i class="ri-checkbox-circle-line me-1"></i>Induct Member
+                        </button>
+                    `;
+                }
+            }
+        }
+    }
+
+    formList += `</ul></div>`;
+
+    // Show the SweetAlert
     Swal.fire({
-        title: title,
+        title: `<div style="font-size: 28px; font-weight: 600;">
+            Form Status
+            ${formStatus?.isComplete ? 
+                '<i class="ri-checkbox-circle-line" style="color: #28a745; margin-left: 10px;"></i>' : 
+                '<i class="ri-time-line" style="color: #dc3545; margin-left: 10px;"></i>'}
+        </div>`,
         html: formList,
         showCancelButton: false,
         confirmButtonText: "Close",

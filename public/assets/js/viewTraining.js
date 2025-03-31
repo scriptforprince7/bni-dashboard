@@ -522,6 +522,28 @@ updateRegistrationCount();
     
       if (target.classList.contains("mark_attendence")) {
         try {
+          // Get the training_id from URL params
+          const urlParams = new URLSearchParams(window.location.search);
+          const currentTrainingId = urlParams.get('training_id');
+
+          // First check training status from API
+          const trainingResponse = await fetch('https://backend.bninewdelhi.com/api/alltrainings');
+          const trainings = await trainingResponse.json();
+          
+          // Find current training
+          const currentTraining = trainings.find(t => t.training_id.toString() === currentTrainingId);
+          
+          if (currentTraining && currentTraining.training_status === "Completed") {
+              console.log("❌ Training already completed - Cannot mark attendance");
+              Swal.fire({
+                  title: "Cannot Mark Attendance",
+                  text: "This training has already been completed.",
+                  icon: "error",
+                  confirmButtonText: "OK"
+              });
+              return;
+          }
+
           // Get the training date from the input field
           const trainingDateStr = document.getElementById('training_date').value;
           const trainingDate = new Date(trainingDateStr);
@@ -536,14 +558,14 @@ updateRegistrationCount();
 
           // Check if dates match
           if (formattedTrainingDate !== formattedCurrentDate) {
-            console.log("❌ Date mismatch - Cannot mark attendance");
-            Swal.fire({
-              title: "Cannot Mark Attendance",
-              text: "Attendance can only be marked on the day of training.",
-              icon: "error",
-              confirmButtonText: "OK"
-            });
-            return;
+              console.log("❌ Date mismatch - Cannot mark attendance");
+              Swal.fire({
+                  title: "Cannot Mark Attendance",
+                  text: "Attendance can only be marked on the day of training.",
+                  icon: "error",
+                  confirmButtonText: "OK"
+              });
+              return;
           }
 
           console.log("✅ Date matched - Proceeding with attendance marking");

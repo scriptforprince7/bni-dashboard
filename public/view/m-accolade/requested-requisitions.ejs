@@ -89,22 +89,66 @@
               <div class="card-title">All Chapter Wise Accolades List</div>
               <div class="d-flex">
               
-                <!-- Payment Method Filter -->
-                <div class="dropdown me-2">
-                  <a href="javascript:void(0);"
-                     class="btn btn-sm btn-light text-muted dropdown-toggle"
-                     data-bs-toggle="dropdown"
-                     aria-expanded="true">
-                    <i class="ti ti-sort-descending-2 me-1"></i> Accolades
-                  </a>
-                  <ul class="dropdown-menu" id="accolades-filter" role="menu">
-                    <!-- Items will be dynamically inserted here -->
-                  </ul>
-                </div>
+                <!-- Filter Section -->
+                <div class="d-flex gap-2">
+                    <!-- Accolades Filter -->
+                    <div class="dropdown me-2">
+                        <a href="javascript:void(0);"
+                           class="btn btn-sm btn-light text-muted dropdown-toggle"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="true">
+                            <i class="ti ti-award me-1"></i> Accolades
+                        </a>
+                        <ul class="dropdown-menu" id="accolades-filter" role="menu">
+                            <!-- Items will be dynamically inserted here -->
+                        </ul>
+                    </div>
 
-                <div style="margin-left: 1px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
-                  Reset Filter
-                </button></div>
+                    <!-- Chapters Filter -->
+                    <div class="dropdown me-2">
+                        <a href="javascript:void(0);"
+                           class="btn btn-sm btn-light text-muted dropdown-toggle"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="true">
+                            <i class="ti ti-building me-1"></i> Chapters
+                        </a>
+                        <ul class="dropdown-menu" id="chapters-filter" role="menu">
+                            <!-- Items will be dynamically inserted here -->
+                        </ul>
+                    </div>
+
+                    <!-- Month Filter -->
+                    <div class="dropdown me-2">
+                        <a href="javascript:void(0);"
+                           class="btn btn-sm btn-light text-muted dropdown-toggle"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="true">
+                            <i class="ti ti-calendar me-1"></i> Month
+                        </a>
+                        <ul class="dropdown-menu" id="month-filter" role="menu">
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="all">All Months</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="1">January</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="2">February</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="3">March</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="4">April</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="5">May</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="6">June</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="7">July</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="8">August</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="9">September</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="10">October</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="11">November</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0);" data-month="12">December</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Reset Filters Button -->
+                    <div style="margin-left: 1px;">
+                        <button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+                            <i class="ti ti-refresh me-1"></i> Reset Filter
+                        </button>
+                    </div>
+                </div>
 
                 <div class="custom-form-group flex-grow-1">
                   <input
