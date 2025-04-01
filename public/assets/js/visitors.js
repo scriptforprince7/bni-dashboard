@@ -88,32 +88,61 @@ function showInductionConfirmation(visitor) {
             popup: 'induction-popup',
             content: 'induction-content'
         }
-    }).then((result) => {
+    }).then(async (result) => {
         if (result.isConfirmed) {
-            // Log visitor data in a simplified format
-            console.log('📋 Inducting Visitor:', {
-                name: visitor.visitor_name,
-                company: visitor.visitor_company_name,
-                gst_no: visitor.visitor_gst,
-                phone: visitor.visitor_phone,
-                visit_date: formatDate(visitor.visited_date),
-                invited_by: visitor.invited_by_name,
-                region: region?.region_name,
-                chapter: chapter?.chapter_name,
-                region_id: visitor.region_id,
-                chapter_id: visitor.chapter_id,
-                visitor_form: visitor.visitor_form,
-                eoi_form: visitor.eoi_form,
-                new_member_form: visitor.new_member_form,
-                visitor_id: visitor.visitor_id
-            });
+            try {
+                console.log('🔄 Processing Induction for visitor:', visitor);
 
-            Swal.fire({
-                title: 'Success!',
-                text: 'Visitor has been inducted successfully.',
-                icon: 'success',
-                confirmButtonColor: '#2563eb'
-            });
+                // Make API call to update induction status
+                const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        visitor_id: visitor.visitor_id,
+                        induction_status: true
+                    })
+                });
+
+                console.log('📡 API Response Status:', response.status);
+                const data = await response.json();
+                console.log('📦 API Response Data:', data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to update induction status');
+                }
+
+                // Update UI
+                const inductionCell = document.querySelector(`[data-induction-id="${visitor.visitor_id}"]`);
+                if (inductionCell) {
+                    inductionCell.innerHTML = `
+                        <div class="approved-kit-status" style="display: inline-flex; align-items: center; gap: 5px;">
+                            <i class="ri-checkbox-circle-fill text-success" 
+                               style="font-size: 1.5em; filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));"></i>
+                            <span class="text-success fw-bold" 
+                                  style="text-shadow: 0 0 2px rgba(34, 197, 94, 0.3);">
+                                Inducted
+                            </span>
+                        </div>
+                    `;
+                }
+
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Visitor has been inducted successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#2563eb'
+                });
+
+            } catch (error) {
+                console.error('❌ Error inducting visitor:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'Failed to induct visitor. Please try again.'
+                });
+            }
         }
     });
 }
@@ -687,14 +716,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     visitor.commitment_sheet && 
                                     visitor.inclusion_exclusion_sheet;
                     
-                    return isReady 
-                        ? visitor.induction_kit_status 
-                            ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
-                            : `<button class="btn btn-primary btn-sm approve-kit-btn" 
-                                       onclick="handleInductionKitApprove(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                                 Approve Induction Kit <i class="ti ti-check"></i>
-                               </button>`
-                        : `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
+                    if (!isReady) {
+                        return `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
+                    }
+
+                    if (visitor.approve_induction_kit) {
+                        return `
+                            <button class="btn btn-success btn-sm" disabled 
+                                    style="opacity: 0.7; cursor: not-allowed; filter: blur(0.3px); transition: all 0.3s ease;">
+                                <i class="ri-checkbox-circle-line me-1"></i> Induction Kit Approved
+                            </button>
+                        `;
+                    }
+
+                    return `
+                        <button class="btn btn-primary btn-sm approve-kit-btn" 
+                                onclick="handleInductionKitApprove(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                            Approve Induction Kit <i class="ti ti-check"></i>
+                        </button>
+                    `;
                 }
 
                 // Add these new cells before the induction kit status cell
@@ -721,14 +761,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center">${await getStatusIcon(visitor.member_application_form, 'member_application', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
                         <td class="text-center">
-                            <button class="mail-sent-btn">
-                                Mail Sent <i class="ri-check-line"></i>
-                            </button>
+                            ${visitor.vp_mail ? 
+                                `<button class="mail-sent-btn">
+                                    Mail Sent <i class="ri-check-line"></i>
+                                </button>` : 
+                                `<button class="mail-not-sent-btn">
+                                    Mail Not Sent <i class="ri-close-line"></i>
+                                </button>`
+                            }
                         </td>
                         <td class="text-center">
-                            <button class="mail-sent-btn">
-                                Mail Sent <i class="ri-check-line"></i>
-                            </button>
+                            ${visitor.welcome_mail ? 
+                                `<button class="mail-sent-btn">
+                                    Mail Sent <i class="ri-check-line"></i>
+                                </button>` : 
+                                `<button class="mail-not-sent-btn">
+                                    Mail Not Sent <i class="ri-close-line"></i>
+                                </button>`
+                            }
                         </td>
                         <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
                         <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
@@ -758,9 +808,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                             )}
                         </td>
                         <td class="text-center" data-entry-id="${visitor.visitor_id}">
-                            ${visitor.visitor_entry_status 
-                                ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
-                                : isReadyForInduction
+                            ${visitor.visitor_entry_excel 
+                                ? `<button class="btn btn-success btn-sm" disabled style="opacity: 0.7; cursor: not-allowed;">
+                                    <i class="ri-checkbox-circle-line"></i> Entry Updated
+                                   </button>`
+                                : isReadyForInduction && visitor.chapter_apply_kit === 'pending'
                                     ? `<button class="btn btn-primary btn-sm" onclick="handleVisitorEntry(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
                                          <i class="ri-user-add-line"></i> Update Entry
                                        </button>`
@@ -768,9 +820,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                             }
                         </td>
                         <td class="text-center" data-sheet-id="${visitor.visitor_id}">
-                            ${visitor.google_sheet_status 
-                                ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
-                                : isReadyForInduction
+                            ${visitor.google_updation_sheet 
+                                ? `<button class="btn btn-success btn-sm" disabled style="opacity: 0.7; cursor: not-allowed;">
+                                    <i class="ri-checkbox-circle-line"></i> Sheet Updated
+                                   </button>`
+                                : isReadyForInduction && visitor.chapter_apply_kit === 'pending'
                                     ? `<button class="btn btn-primary btn-sm" onclick="handleGoogleSheet(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
                                          <i class="ri-google-line"></i> Update Sheet
                                        </button>`
@@ -780,7 +834,22 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <td class="text-center" data-visitor-id="${visitor.visitor_id}">
                             ${createInductionKitStatus(visitor)}
                         </td>
-                        <td class="text-center">${createInductionStatus(visitor)}</td>
+                        <td class="text-center" data-induction-id="${visitor.visitor_id}">
+                            ${visitor.induction_status 
+                                ? `<div class="approved-kit-status" style="display: inline-flex; align-items: center; gap: 5px;">
+                                       <i class="ri-checkbox-circle-fill text-success" 
+                                          style="font-size: 1.5em; filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));"></i>
+                                       <span class="text-success fw-bold" 
+                                             style="text-shadow: 0 0 2px rgba(34, 197, 94, 0.3);">
+                                           Inducted
+                                       </span>
+                                   </div>`
+                                : `<button class="btn btn-primary btn-sm" 
+                                           onclick="showInductionConfirmation(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                       Induct Member <i class="ti ti-check"></i>
+                                   </button>`
+                            }
+                        </td>
                     </tr>
                 `;
             }));
@@ -817,6 +886,23 @@ document.head.appendChild(style);
 
 // Update the existing style declaration instead of creating a new one
 document.head.querySelector('style').textContent += `
+    .mail-not-sent-btn {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: none;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        cursor: default;
+    }
+
+    .mail-not-sent-btn i {
+        font-size: 14px;
+    }
+
     .mail-sent-btn {
         background-color: rgba(37, 99, 235, 0.1);
         color: #2563eb;
@@ -991,200 +1077,177 @@ function previewDocument(src, title) {
 }
 
 // Add this function to handle the approval process
-function handleInductionKitApprove(visitor) {
-    Swal.fire({
-        title: 'Approve Induction Kit?',
-        html: `
-            <div style="text-align: left; padding: 10px;">
-                <p><strong>Visitor Name:</strong> ${visitor.visitor_name}</p>
-                <p><strong>Company:</strong> ${visitor.visitor_company_name || 'N/A'}</p>
-                <p><strong>Phone:</strong> ${visitor.visitor_phone}</p>
-            </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, Approve Kit',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#dc2626'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({
-                title: 'Success!',
-                text: 'Induction Kit has been approved successfully',
-                icon: 'success',
-                confirmButtonColor: '#2563eb'
-            }).then(() => {
-                const kitCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
-                if (kitCell) {
-                    kitCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
-                }
-            });
+async function handleInductionKitApprove(visitor) {
+    try {
+        console.log('🔄 Processing Induction Kit Approval:', visitor);
+
+        // Make API call to update visitor
+        const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                visitor_id: visitor.visitor_id,
+                approve_induction_kit: true,
+                chapter_apply_kit: 'approved'
+            })
+        });
+
+        console.log('📡 API Response Status:', response.status);
+        const data = await response.json();
+        console.log('📦 API Response Data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to approve induction kit');
         }
-    });
+
+        // Update UI
+        const approveCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
+        if (approveCell) {
+            approveCell.innerHTML = `
+                <button class="btn btn-success btn-sm" disabled 
+                        style="opacity: 0.7; cursor: not-allowed; filter: blur(0.3px); transition: all 0.3s ease;">
+                    <i class="ri-checkbox-circle-line me-1"></i> Induction Kit Approved
+                </button>
+            `;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Induction Kit has been approved successfully.'
+        });
+
+    } catch (error) {
+        console.error('❌ Error approving induction kit:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || 'Failed to approve induction kit'
+        });
+    }
 }
 
-// Add these functions for handling Visitor Entry and Google Sheet updates
-function handleVisitorEntry(visitor) {
-    Swal.fire({
-        title: '<span style="color: #2563eb"><i class="ri-user-add-fill"></i> Visitor Entry Confirmation</span>',
-        html: `
-            <div class="entry-details" style="text-align: left; padding: 20px;">
-                <div class="detail-row" style="margin-bottom: 15px;">
-                    <i class="ri-user-fill" style="color: #2563eb"></i>
-                    <strong>Visitor:</strong> ${visitor.visitor_name}
-                </div>
-                
-                <div class="question-box" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
-                    <p style="color: #1e293b; margin-bottom: 15px;">
-                        <i class="ri-question-fill" style="color: #2563eb"></i>
-                        Have you entered this visitor in the Visitor's Entry?
-                    </p>
-                    <div class="radio-group" style="display: flex; gap: 20px;">
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="entry_status" value="yes">
-                            <span style="color: #059669"><i class="ri-checkbox-circle-fill"></i> Yes</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="entry_status" value="no">
-                            <span style="color: #dc2626"><i class="ri-close-circle-fill"></i> No</span>
-                        </label>
-                    </div>
-                </div>
+// Add these functions to handle the updates
+async function handleVisitorEntry(visitor) {
+    try {
+        console.log('🔄 Processing Visitor Entry Update:', visitor);
 
-                <div class="comment-box" style="margin-top: 20px;">
-                    <label style="display: block; margin-bottom: 8px; color: #1e293b;">
-                        <i class="ri-chat-3-fill" style="color: #2563eb"></i>
-                        Leave your comment:
-                    </label>
-                    <textarea id="visitor-entry-comment" 
-                            class="form-control" 
-                            style="width: 100%; min-height: 80px; border-radius: 8px; padding: 10px;"
-                            placeholder="Enter your comment here..."></textarea>
-                </div>
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '<i class="ri-check-line"></i> Confirm Entry',
-        cancelButtonText: '<i class="ri-close-line"></i> Cancel',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#dc2626',
-        reverseButtons: true,
-        customClass: {
-            container: 'entry-modal',
-            popup: 'entry-popup',
-            content: 'entry-content'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const entryStatus = document.querySelector('input[name="entry_status"]:checked')?.value;
-            const comment = document.getElementById('visitor-entry-comment').value;
-
-            if (!entryStatus) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Selection Required',
-                    text: 'Please select Yes or No for the entry status.',
-                    confirmButtonColor: '#2563eb'
-                });
-                return;
-            }
-
-            // Success message
+        // Check if chapter_apply_kit is pending
+        if (visitor.chapter_apply_kit !== 'pending') {
+            console.log('⚠️ Cannot update: chapter_apply_kit is not pending');
             Swal.fire({
-                icon: 'success',
-                title: 'Entry Updated!',
-                text: 'Visitor entry status has been updated successfully',
-                confirmButtonColor: '#2563eb'
-            }).then(() => {
-                // Update the cell with a check mark
-                const entryCell = document.querySelector(`[data-entry-id="${visitor.visitor_id}"]`);
-                if (entryCell) {
-                    entryCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
-                }
+                icon: 'warning',
+                title: 'Action Not Allowed',
+                text: 'Please wait for the Chapter to apply for Induction Kit first.'
             });
+            return;
         }
-    });
+
+        // Make API call to update visitor
+        const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                visitor_id: visitor.visitor_id,
+                visitor_entry_excel: true
+            })
+        });
+
+        console.log('📡 API Response Status:', response.status);
+        const data = await response.json();
+        console.log('📦 API Response Data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to update visitor entry');
+        }
+
+        // Update UI
+        const entryCell = document.querySelector(`[data-entry-id="${visitor.visitor_id}"]`);
+        if (entryCell) {
+            entryCell.innerHTML = `
+                <button class="btn btn-success btn-sm" disabled style="opacity: 0.7; cursor: not-allowed;">
+                    <i class="ri-checkbox-circle-line"></i> Entry Updated
+                </button>
+            `;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Visitor entry has been updated successfully.'
+        });
+
+    } catch (error) {
+        console.error('❌ Error updating visitor entry:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || 'Failed to update visitor entry'
+        });
+    }
 }
 
-function handleGoogleSheet(visitor) {
-    Swal.fire({
-        title: '<span style="color: #2563eb"><i class="ri-google-fill"></i> Google Sheet Update</span>',
-        html: `
-            <div class="sheet-details" style="text-align: left; padding: 20px;">
-                <div class="detail-row" style="margin-bottom: 15px;">
-                    <i class="ri-user-fill" style="color: #2563eb"></i>
-                    <strong>Visitor:</strong> ${visitor.visitor_name}
-                </div>
-                
-                <div class="question-box" style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px;">
-                    <p style="color: #1e293b; margin-bottom: 15px;">
-                        <i class="ri-question-fill" style="color: #2563eb"></i>
-                        Have you updated the Google Sheet with visitor's information?
-                    </p>
-                    <div class="radio-group" style="display: flex; gap: 20px;">
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="sheet_status" value="yes">
-                            <span style="color: #059669"><i class="ri-checkbox-circle-fill"></i> Yes</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="radio" name="sheet_status" value="no">
-                            <span style="color: #dc2626"><i class="ri-close-circle-fill"></i> No</span>
-                        </label>
-                    </div>
-                </div>
+async function handleGoogleSheet(visitor) {
+    try {
+        console.log('🔄 Processing Google Sheet Update:', visitor);
 
-                <div class="comment-box" style="margin-top: 20px;">
-                    <label style="display: block; margin-bottom: 8px; color: #1e293b;">
-                        <i class="ri-chat-3-fill" style="color: #2563eb"></i>
-                        Leave your comment:
-                    </label>
-                    <textarea id="google-sheet-comment" 
-                            class="form-control" 
-                            style="width: 100%; min-height: 80px; border-radius: 8px; padding: 10px;"
-                            placeholder="Enter your comment here..."></textarea>
-                </div>
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '<i class="ri-check-line"></i> Confirm Update',
-        cancelButtonText: '<i class="ri-close-line"></i> Cancel',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#dc2626',
-        reverseButtons: true,
-        customClass: {
-            container: 'sheet-modal',
-            popup: 'sheet-popup',
-            content: 'sheet-content'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const sheetStatus = document.querySelector('input[name="sheet_status"]:checked')?.value;
-            const comment = document.getElementById('google-sheet-comment').value;
-
-            if (!sheetStatus) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Selection Required',
-                    text: 'Please select Yes or No for the sheet update status.',
-                    confirmButtonColor: '#2563eb'
-                });
-                return;
-            }
-
-            // Success message
+        // Check if chapter_apply_kit is pending
+        if (visitor.chapter_apply_kit !== 'pending') {
+            console.log('⚠️ Cannot update: chapter_apply_kit is not pending');
             Swal.fire({
-                icon: 'success',
-                title: 'Sheet Updated!',
-                text: 'Google sheet update status has been saved successfully',
-                confirmButtonColor: '#2563eb'
-            }).then(() => {
-                // Update the cell with a check mark
-                const sheetCell = document.querySelector(`[data-sheet-id="${visitor.visitor_id}"]`);
-                if (sheetCell) {
-                    sheetCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
-                }
+                icon: 'warning',
+                title: 'Action Not Allowed',
+                text: 'Please wait for the Chapter to apply for Induction Kit first.'
             });
+            return;
         }
-    });
+
+        // Make API call to update visitor
+        const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                visitor_id: visitor.visitor_id,
+                google_updation_sheet: true
+            })
+        });
+
+        console.log('📡 API Response Status:', response.status);
+        const data = await response.json();
+        console.log('📦 API Response Data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to update Google Sheet status');
+        }
+
+        // Update UI
+        const sheetCell = document.querySelector(`[data-sheet-id="${visitor.visitor_id}"]`);
+        if (sheetCell) {
+            sheetCell.innerHTML = `
+                <button class="btn btn-success btn-sm" disabled style="opacity: 0.7; cursor: not-allowed;">
+                    <i class="ri-checkbox-circle-line"></i> Sheet Updated
+                </button>
+            `;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Google Sheet has been updated successfully.'
+        });
+
+    } catch (error) {
+        console.error('❌ Error updating Google Sheet status:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || 'Failed to update Google Sheet status'
+        });
+    }
 }

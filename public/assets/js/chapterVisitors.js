@@ -271,39 +271,89 @@ function getInductionStatus(visitor) {
 }
 
 // Add this function to handle induction kit application
-function handleInductionKitApply(visitor) {
-    Swal.fire({
-        title: 'Apply Induction Kit?',
-        html: `
-            <div style="text-align: left; padding: 10px;">
-                <p><strong>Visitor Name:</strong> ${visitor.visitor_name}</p>
-                <p><strong>Company:</strong> ${visitor.visitor_company_name || 'N/A'}</p>
-                <p><strong>Phone:</strong> ${visitor.visitor_phone}</p>
-            </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, Apply Kit',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#dc2626'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show success message
-            Swal.fire({
-                title: 'Success!',
-                text: 'Induction Kit has been applied successfully',
-                icon: 'success',
-                confirmButtonColor: '#2563eb'
-            }).then(() => {
-                // Update the button to show tick mark
-                const kitCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
-                if (kitCell) {
-                    kitCell.innerHTML = `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`;
-                }
-            });
+async function handleInductionKitApply(visitor) {
+    try {
+        // Log the visitor data to verify what we're sending
+        console.log('Sending visitor data:', visitor);
+
+        // Make the API call to update the chapter_apply_kit status
+        const response = await fetch(`https://backend.bninewdelhi.com/api/update-visitor`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                visitor_id: visitor.visitor_id, // Changed from visitor.visitor_id to visitor.id
+                chapter_apply_kit: 'pending',
+                // visitor_entry_excel: visitor.visitor_entry_excel || null,
+                // google_updation_sheet: visitor.google_updation_sheet || null,
+                // approve_induction_kit: visitor.approve_induction_kit || null,
+                // induction_status: visitor.induction_status || null
+            })
+        });
+
+        // Log the response for debugging
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to apply for Induction Kit');
         }
-    });
+
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Induction Kit application is now pending.'
+        });
+
+        // Update the UI
+        const kitCell = document.querySelector(`[data-visitor-id="${visitor.id}"]`);
+        if (kitCell) {
+            kitCell.innerHTML = `<span class="badge bg-warning">Pending</span>`;
+        }
+
+        // Optionally refresh the data
+        // window.location.reload();
+
+    } catch (error) {
+        console.error('Error details:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Failed to apply for Induction Kit. Please try again.'
+        });
+    }
+}
+
+// Update the button rendering logic
+function createInductionKitDisplay(visitor, isReadyForInduction) {
+    if (!isReadyForInduction) {
+        return `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
+    }
+
+    if (visitor.chapter_apply_kit === 'pending') {
+        return `<span class="badge bg-warning">Pending</span>`;
+    }
+
+    if (visitor.chapter_apply_kit === 'approved') {
+        return `
+            <div class="approved-kit-status" style="display: inline-flex; align-items: center; gap: 5px;">
+                <i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em; filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));"></i>
+                <span class="text-success fw-bold" style="text-shadow: 0 0 2px rgba(34, 197, 94, 0.3);">
+                    Induction Kit Approved
+                </span>
+            </div>
+        `;
+    }
+
+    return `
+        <button class="btn btn-primary btn-sm apply-kit-btn" 
+                onclick="handleInductionKitApply(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+            Apply Induction Kit <i class="ti ti-box"></i>
+        </button>
+    `;
 }
 
 // Add this function to handle email sending
@@ -575,11 +625,24 @@ document.addEventListener('DOMContentLoaded', async function() {
         function createInductionStatus(visitor) {
             const isReady = getInductionStatus(visitor);
             
+            if (visitor.induction_status === true) {
+                return `
+                    <div class="approved-kit-status" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em; filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));"></i>
+                        <span class="text-success fw-bold" style="text-shadow: 0 0 2px rgba(34, 197, 94, 0.3);">
+                            Inducted
+                        </span>
+                    </div>
+                `;
+            }
+            
             if (isReady) {
                 return `
-                    <button class="btn btn-success btn-sm induct-btn" onclick="showInductionConfirmation(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                        Induct Member <i class="ti ti-check" style="font-size: 12px;"></i>
-                    </button>
+                    <div class="pending-induction" style="display: inline-flex; align-items: center; gap: 5px;">
+                        <span class="badge bg-warning" style="font-size: 0.9em; padding: 8px 12px;">
+                            <i class="ri-time-line me-1"></i> To be Inducted
+                        </span>
+                    </div>
                 `;
             } else {
                 return '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
@@ -891,14 +954,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 // Update the inductionKitDisplay
                 const isReadyForInduction = getInductionStatus(visitor);
-                const inductionKitDisplay = isReadyForInduction 
-                    ? visitor.induction_kit_status 
-                        ? `<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>`
-                        : `<button class="btn btn-primary btn-sm apply-kit-btn" 
-                                    onclick="handleInductionKitApply(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                             Apply Induction Kit <i class="ti ti-box"></i>
-                           </button>`
-                    : `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
+                const inductionKitDisplay = createInductionKitDisplay(visitor, isReadyForInduction);
 
                 return `
                     <tr>
@@ -1125,6 +1181,29 @@ style.textContent = `
 
     .animate-spin {
         animation: spin 1s linear infinite;
+    }
+
+    .approved-kit-status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(34, 197, 94, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .pending-induction {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .pending-induction .badge {
+        background-color: #fbbf24 !important;
+        color: #92400e !important;
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-2px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 `;
 
