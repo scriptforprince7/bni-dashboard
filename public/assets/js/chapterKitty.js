@@ -340,11 +340,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const memberCount = chapterMembersWithBalance.length;
     // console.log("chapter member",chapterMembersWithBalance);
 
-    // chapterMembersWithBalance.forEach(member => {
-    //     const balance = parseFloat(member.meeting_opening_balance) || 0;
-    //     console.log(`💰 Member ${member.member_first_name}: Balance = ${balance}`);
-    //     // pendingAmount += balance;
-    // });
     const bankOrderResponse = await fetch(
       "https://backend.bninewdelhi.com/api/getbankOrder"
     );
@@ -363,6 +358,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       totalLatePayment += parseFloat(order.no_of_late_payment);
       if (order.amount_to_pay >= 0) {
         pendingAmount += parseFloat(order.amount_to_pay);
+        // console.log("print to be show", totalWriteoffAmount);
+        // console.log("pending amount to be show", pendingAmount);
+        pendingAmount -= totalWriteoffAmount;
       } else {
         pendingAmount += 0;
       }
@@ -381,8 +379,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       // You can add more processing logic here as needed
     });
 
-    // console.log('💎 Total Pending Amount:', pendingAmount);
-    // document.querySelector('#totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
 
     // Continue with existing code
     const expenseResponse = await fetch(
@@ -424,16 +420,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     console.log("Total Credit Amount:", totalCreditAmount);
 
-    // const bankOrderResponse = await fetch('https://backend.bninewdelhi.com/api/getbankOrder');
-    // const bankOrders = await bankOrderResponse.json();
-    // console.log('Bank Orders Data:', bankOrders);
-    // const filteredBankOrders = bankOrders.filter(order => order.chapter_id === chapterId);
-    // console.log('Filtered Bank Orders for Chapter ID:', chapterId, filteredBankOrders);
-    // let totalLatePayment = 0;
-    // filteredBankOrders.forEach(order => {
-    //     totalLatePayment += parseFloat(order.no_of_late_payment);
-    // });
-    // console.log('Total Late Payment:', totalLatePayment);
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
@@ -444,29 +430,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       (payment) => payment.chapter_id === chapterId
     );
 
-    // document.getElementById('totalKittyExpense').textContent = indianCurrencyFormatter.format(pendingAmount);
     if (!chapterKittyPayment) {
       console.error("Kitty bill not found for chapter ID:", chapterId);
-      // document.getElementById('totalKittyDetails').textContent = 'No Bill Raised for this Quarter';
-      // document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
-
-      // document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
-
-      // // document.getElementById('totalKittyExpense').textContent = 'N/A';
-      // document.querySelector('#total_expense_amount').textContent = indianCurrencyFormatter.format(total_paid_expense);
-      // document.querySelector('#total_pexpense_amount').textContent = indianCurrencyFormatter.format(total_pending_expense);
-      // // console.log(indianCurrencyFormatter.format(total_paid_expense),indianCurrencyFormatter.format(available_fund));
-
-      // document.querySelector('#total_credit_amount').textContent = indianCurrencyFormatter.format(totalCreditAmount);
-      // document.querySelector('#no_of_late_payment').textContent = totalLatePayment;
-
-      // const tableBody = document.getElementById('paymentsTableBody');
-      // const row = document.createElement('tr');
-      // row.innerHTML = `
-      //     <td colspan="11" style="text-align: center;"><b>No Bill Raised yet.</b></td>
-      // `;
-      // tableBody.appendChild(row);
-      // return;
 
       // here new changes
       if (memberCount === 0) {
@@ -478,9 +443,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           "No Bill Raised for this Quarter";
         document.getElementById("totalKittyAmountReceived").textContent = "N/A";
         document.querySelector(".member_count").textContent = memberCount;
-        // document.querySelector('.description').textContent= description;
-        // document.querySelector('.bill_type').textContent = bill_type;
-        // document.querySelector('.total_weeks').textContent= `${total_weeks}`;
         document.querySelector("#total_available_amount").textContent =
           indianCurrencyFormatter.format(
             parseFloat(available_fund) - parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal)
@@ -581,9 +543,6 @@ document.addEventListener("DOMContentLoaded", async function () {
           let ReceivedAmount = 0;
           let MiscellaneousAmount = 0;
 
-          // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
-          // const pendingBalances = await pendingBalanceResponse.json();
-
           chapterOrders.forEach(async (order) => {
             // Find matching transaction
             const transaction = allTransactions.find(
@@ -614,12 +573,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.log("current member id:", currentChapterMember.member_id);
             console.log("current chapter id:", currentChapterMember.chapter_id);
 
-            // Filter and sort pending balances
-            // const filteredPendingBalances = pendingBalances
-            //   .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
-            //   .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
-
-            //   console.log("filtererdPending data:",filteredPendingBalances);
 
             // Use the latest pending balance
             let payamount;
@@ -895,13 +848,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.log("current member id:", currentChapterMember.member_id);
       console.log("current chapter id:", currentChapterMember.chapter_id);
 
-      // Filter and sort pending balances
-      // const filteredPendingBalances = pendingBalances
-      //   .filter(balance => balance.member_id === currentChapterMember.member_id && balance.chapter_id === currentChapterMember.chapter_id)
-      //   .sort((a, b) => new Date(b.date_of_update) - new Date(a.date_of_update));
-
-      //   console.log("filtererdPending data:",filteredPendingBalances);
-
       // Use the latest pending balance
       let payamount;
       if (transaction.length > 0) {
@@ -979,9 +925,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const totalKittyAmountReceived = ReceivedAmount;
     const totalPendingMiscellaneousAmount = MiscellaneousAmount;
 
-    // Step 7: Calculate total kitty amount pending
-    // const totalKittyAmountPending = totalAmountRaised - totalKittyAmountReceived;
-    // console.log('Total Kitty Amount Pending:', totalKittyAmountPending);
 
     // Step 8: Format values in Indian currency format
     const formattedBillAmount = indianCurrencyFormatter.format(amountWithGst);

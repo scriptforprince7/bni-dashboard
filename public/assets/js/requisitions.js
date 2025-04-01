@@ -649,11 +649,9 @@ async function showRequisitionForm() {
         const members = await membersResponse.json();
         const requisitions = await requisitionsResponse.json();
 
-        // Filter paid requisitions for current chapter and not approved
-        const paidRequisitions = requisitions.filter(req => 
+        // Filter requisitions for current chapter and not approved
+        const allRequisitions = requisitions.filter(req => 
             req.chapter_id === currentChapter.chapter_id && 
-            req.order_id !== null && 
-            req.accolade_amount !== null &&
             req.approve_status !== 'approved'
         );
 
@@ -756,7 +754,7 @@ async function showRequisitionForm() {
                     </div>
                 </div>
 
-                <!-- Payment Status Section -->
+                <!-- Requisitions Section -->
                 <div class="payment-status-section" style="
                     padding: 20px;
                     background: #f8fafc;
@@ -764,15 +762,8 @@ async function showRequisitionForm() {
                     border: 1px solid #e2e8f0;
                     margin-top: 20px;
                 ">
-                    <h3 style="
-                        font-size: 1.2em;
-                        color: #334155;
-                        margin-bottom: 15px;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    ">
-                        <i class="ri-money-dollar-circle-line"></i> Paid Requisitions
+                    <h3 style="font-size: 1.2em; color: #334155; margin-bottom: 15px;">
+                        <i class="ri-money-dollar-circle-line"></i> Available Requisitions
                     </h3>
                     
                     <div class="payment-grid" style="
@@ -782,12 +773,13 @@ async function showRequisitionForm() {
                         max-height: 200px;
                         overflow-y: auto;
                     ">
-                        ${paidRequisitions.map(req => {
+                        ${allRequisitions.map(req => {
                             const member = members.find(m => m.member_id === req.member_id);
                             const accolade = accolades.find(a => a.accolade_id === req.accolade_id);
                             
-                            // Skip if accolade is not found or requisition is approved
                             if (!accolade) return '';
+                            
+                            const isPaid = req.order_id !== null && req.accolade_amount !== null;
                             
                             return `
                                 <div class="payment-item" style="
@@ -816,11 +808,12 @@ async function showRequisitionForm() {
                                             align-items: center;
                                             margin-top: 4px;
                                         ">
-                                            <span style="color: #059669; font-weight: 500;">
-                                                ₹${req.accolade_amount}
+                                            <span style="color: ${isPaid ? '#059669' : '#0284c7'}; font-weight: 500;">
+                                                ${isPaid ? `₹${req.accolade_amount}` : 'Free'}
                                             </span>
-                                            <span class="badge bg-success-transparent" style="font-size: 0.8em;">
-                                                Paid
+                                            <span class="badge ${isPaid ? 'bg-success-transparent' : 'bg-info-transparent'}" 
+                                                  style="font-size: 0.8em;">
+                                                ${isPaid ? 'Paid' : 'No Payment Required'}
                                             </span>
                                         </div>
                                     </div>
@@ -850,8 +843,8 @@ async function showRequisitionForm() {
         Swal.fire({
             title: 'New Requisition',
             html: formHtml,
-            width: '90%', // Made wider
-            height: '90vh', // Made taller
+            width: '90%',
+            height: '90vh',
             showCloseButton: true,
             showConfirmButton: true,
             confirmButtonText: 'Submit Requisition',
@@ -863,7 +856,6 @@ async function showRequisitionForm() {
                 }
 
                 try {
-                    // Your existing submission logic
                     const uniqueMembers = [...new Set(assignments.map(a => a.member.member_id))];
                     const uniqueAccolades = [...new Set(assignments.map(a => a.accolade.accolade_id))];
                     
@@ -912,8 +904,72 @@ async function showRequisitionForm() {
             }
         });
 
-        // Add these functions inside showRequisitionForm after the Swal.fire()
+        // Add assignment handling function
+        window.addAssignment = function() {
+            // Get selections from top dropdowns (Method 1)
+            const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
+                .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
+            const selectedMembers = Array.from(document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked'))
+                .map(checkbox => members.find(m => m.member_id === parseInt(checkbox.value)));
 
+            // Get selections from requisitions (Method 2)
+            const selectedItems = Array.from(document.querySelectorAll('.payment-item input[type="checkbox"]:checked'))
+                .map(checkbox => {
+                    const requisitionId = parseInt(checkbox.dataset.requisitionId);
+                    const requisition = allRequisitions.find(r => r.member_request_id === requisitionId);
+                    return {
+                        accolade: accolades.find(a => a.accolade_id === requisition.accolade_id),
+                        member: members.find(m => m.member_id === requisition.member_id)
+                    };
+                });
+
+            // Handle Method 1: Regular selection
+            if (selectedAccolades.length > 0) {
+                if (selectedMembers.length === 0) {
+                    Swal.showValidationMessage('Please select at least one member');
+                    return;
+                }
+                
+                selectedMembers.forEach(member => {
+                    selectedAccolades.forEach(accolade => {
+                        assignments.push({
+                            sno: currentSno++,
+                            accolade,
+                            member,
+                            comment: ''
+                        });
+                    });
+                });
+            }
+
+            // Handle Method 2: Requisition selection
+            selectedItems.forEach(({ accolade, member }) => {
+                if (accolade && member) {
+                    assignments.push({
+                        sno: currentSno++,
+                        accolade,
+                        member,
+                        comment: ''
+                    });
+                }
+            });
+
+            // Validate if any assignments were added
+            if (selectedAccolades.length === 0 && selectedItems.length === 0) {
+                Swal.showValidationMessage('Please select either accolades or requisitions');
+                return;
+            }
+
+            // Render assignments and reset checkboxes
+            renderAssignments();
+            document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
+            document.querySelectorAll('.member-checkbox-container input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+            document.querySelectorAll('.payment-item input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+
+            console.log('✅ Added new assignments:', assignments);
+        };
+
+        // Add render assignments function
         window.renderAssignments = function() {
             const assignmentsList = document.getElementById('assignmentsList');
             assignmentsList.innerHTML = assignments.map(assignment => `
@@ -991,72 +1047,6 @@ async function showRequisitionForm() {
                     }
                 });
             });
-        };
-
-        window.addAssignment = function() {
-            // Get selections from top dropdowns (Method 1)
-            const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
-                .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
-            const selectedMembers = Array.from(document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked'))
-                .map(checkbox => members.find(m => m.member_id === parseInt(checkbox.value)));
-
-            // Get selections from paid requisitions (Method 2)
-            const selectedPaidItems = Array.from(document.querySelectorAll('.payment-item input[type="checkbox"]:checked'))
-                .map(checkbox => {
-                    const requisitionId = parseInt(checkbox.dataset.requisitionId);
-                    const requisition = paidRequisitions.find(r => r.member_request_id === requisitionId);
-                    return {
-                        accolade: accolades.find(a => a.accolade_id === requisition.accolade_id),
-                        member: members.find(m => m.member_id === requisition.member_id)
-                    };
-                });
-
-            // Handle Method 1: Regular selection
-            if (selectedAccolades.length > 0) {
-                if (selectedMembers.length === 0) {
-                    Swal.showValidationMessage('Please select at least one member');
-                    return;
-                }
-                
-                selectedMembers.forEach(member => {
-                    selectedAccolades.forEach(accolade => {
-                        assignments.push({
-                            sno: currentSno++,
-                            accolade,
-                            member,
-                            comment: ''
-                        });
-                    });
-                });
-            }
-
-            // Handle Method 2: Paid requisitions selection
-            selectedPaidItems.forEach(({ accolade, member }) => {
-                if (accolade && member) {
-                    assignments.push({
-                        sno: currentSno++,
-                        accolade,
-                        member,
-                        comment: ''
-                    });
-                }
-            });
-
-            // Validate if any assignments were added
-            if (selectedAccolades.length === 0 && selectedPaidItems.length === 0) {
-                Swal.showValidationMessage('Please select either accolades or paid requisitions');
-                return;
-            }
-
-            // Render the updated assignments
-            renderAssignments();
-            
-            // Reset all checkboxes
-            document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
-            document.querySelectorAll('.member-checkbox-container input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-            document.querySelectorAll('.payment-item input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-
-            console.log('✅ Added new assignments:', assignments);
         };
 
     } catch (error) {
