@@ -6,27 +6,27 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
-const memberApiUrl= 'https://backend.bninewdelhi.com/api/members';
+const chaptersApiUrl = 'http://localhost:5000/api/chapters'; 
+const memberApiUrl= 'http://localhost:5000/api/members';
 let creditType;
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('=== Chapter Give Credit Loading Process Started ===');
+    // console.log('=== Chapter Give Credit Loading Process Started ===');
     try {
         // Step 1: Get logged-in chapter email based on login type
         const loginType = getUserLoginType();
-        console.log('Current login type:', loginType);
+        // console.log('Current login type:', loginType);
         
         let chapterEmail;
         if (loginType === 'ro_admin') {
-            console.log('RO Admin detected, checking localStorage...');
+            // console.log('RO Admin detected, checking localStorage...');
             chapterEmail = localStorage.getItem('current_chapter_email');
             const chapterId = localStorage.getItem('current_chapter_id');
             
-            console.log('RO Admin - Checking stored data:', {
-                storedEmail: chapterEmail,
-                storedId: chapterId,
-                allLocalStorage: { ...localStorage }
-            });
+            // console.log('RO Admin - Checking stored data:', {
+            //     storedEmail: chapterEmail,
+            //     storedId: chapterId,
+            //     allLocalStorage: { ...localStorage }
+            // });
             
             if (!chapterEmail || !chapterId) {
                 console.error('Missing required data in localStorage:', {
@@ -35,18 +35,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
                 return;
             }
-            console.log('RO Admin data verified successfully');
+            // console.log('RO Admin data verified successfully');
         } else {
-            console.log('Regular chapter login detected');
+            // console.log('Regular chapter login detected');
             chapterEmail = getUserEmail();
-            console.log('Chapter user email from token:', chapterEmail);
+            // console.log('Chapter user email from token:', chapterEmail);
         }
 
         // Step 2: Fetch writeoff data
-        console.log('Fetching existing writeoff data...');
-        const writeoffResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff');
+        // console.log('Fetching existing writeoff data...');
+        const writeoffResponse = await fetch('http://localhost:5000/api/getAllMemberWriteOff');
         const writeoffData = await writeoffResponse.json();
-        console.log('Writeoff data received:', writeoffData);
+        // console.log('Writeoff data received:', writeoffData);
 
         if (!Array.isArray(writeoffData)) {
             console.error('Writeoff data is not an array:', writeoffData);
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Step 3: Continue with existing flow
-        console.log('Fetching chapters data...');
+        // console.log('Fetching chapters data...');
         const response = await fetch(chaptersApiUrl);
         if (!response.ok) throw new Error('Network response was not ok');
         const chapters = await response.json();
@@ -64,19 +64,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Chapter not found for email:', chapterEmail);
             return;
         }
-        console.log('Current chapter:', current_User);
+        // console.log('Current chapter:', current_User);
 
         // Step 4: Fetch members
-        console.log('Fetching members data...');
+        // console.log('Fetching members data...');
         const MembersResponse = await fetch(memberApiUrl);
         if (!MembersResponse.ok) throw new Error('Network response was not ok');
         const Members = await MembersResponse.json();
         const filteredMembers = Members.filter(member => member.chapter_id === current_User.chapter_id);
-        console.log('Filtered members:', filteredMembers.length);
+        // console.log('Filtered members:', filteredMembers.length);
 
         const tableBody = document.getElementById('chaptersTableBody');
         if (filteredMembers.length > 0) {
-            console.log('Creating table rows...');
+            // console.log('Creating table rows...');
             tableBody.innerHTML = ''; // Clear existing content
 
             // Check if all members are written off
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Auto-check "Select All" if all members are written off
             const selectAllCheckbox = document.getElementById('selectAllCheckbox');
             if (allMembersWrittenOff) {
-                console.log('All members written off, checking select all');
+                // console.log('All members written off, checking select all');
                 selectAllCheckbox.checked = true;
                 selectAllCheckbox.disabled = true;
             }
@@ -154,11 +154,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                 statusCell.style.fontWeight = 'bold';
                 row.appendChild(statusCell);
 
-                // Late Payment cell - always showing dash
-                const latePaymentCell = document.createElement('td');
-                latePaymentCell.textContent = '-';
-                latePaymentCell.style.fontWeight = 'bold';
-                row.appendChild(latePaymentCell);
+                const member_permanent_id = member.member_id;
+const getBankOrderApi = 'http://localhost:5000/api/getBankOrder';
+
+// Late Payment cell
+const latePaymentCell = document.createElement('td');
+latePaymentCell.textContent = '-';
+latePaymentCell.style.fontWeight = 'bold';
+row.appendChild(latePaymentCell);
+
+// Total pending amount
+const totalPendingAmount = document.createElement('td');
+totalPendingAmount.textContent = '-';
+totalPendingAmount.style.fontWeight = 'bold';
+row.appendChild(totalPendingAmount);
+
+// Fetch data from the API and update the cells
+fetch(getBankOrderApi)
+    .then(response => response.json())
+    .then(data => {
+        // Find the member data in the API response
+        const memberData = data.find(item => item.member_id === member_permanent_id);
+
+        if (memberData) {
+            latePaymentCell.textContent = memberData.no_of_late_payment || '0';
+            totalPendingAmount.textContent = memberData.amount_to_pay || '-';
+        }
+    })
+    .catch(error => {
+        console.error("Error fetching bank order data:", error);
+    });
 
                 tableBody.appendChild(row);
             });
@@ -180,13 +205,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Add click handler for Rightoff Member button
         document.querySelector('.add_bill').addEventListener('click', async () => {
-            console.log('=== Member Rightoff Process Started ===');
-            
+            // console.log('=== Member Write-off Process Started ===');
+        
             try {
-                // Check if all checkboxes are disabled (all members written off)
                 const allCheckboxes = document.querySelectorAll('#chaptersTableBody input[type="checkbox"]');
                 const allDisabled = Array.from(allCheckboxes).every(checkbox => checkbox.disabled);
-
+        
                 if (allDisabled) {
                     Swal.fire({
                         icon: 'info',
@@ -196,14 +220,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     return;
                 }
-
-                // Get selected members that aren't already written off
+        
                 const selectedMembers = Array.from(
                     document.querySelectorAll('#chaptersTableBody input[type="checkbox"]:checked:not([disabled])')
                 ).map(checkbox => checkbox.value);
-                
+        
                 console.log('Selected member IDs:', selectedMembers);
-
+        
                 if (selectedMembers.length === 0) {
                     Swal.fire({
                         icon: 'warning',
@@ -213,11 +236,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     return;
                 }
-
-                // Get rightoff date
+        
                 const rightoffDate = document.querySelector('#region_name').value.trim();
-                console.log('Rightoff date:', rightoffDate);
+                console.log('Write-off date:', rightoffDate);
 
+                const rightoffComment = document.querySelector('#writeoff_comment').value.trim();
+                console.log('Write-off comment:', rightoffComment);
+        
                 if (!rightoffDate) {
                     Swal.fire({
                         icon: 'warning',
@@ -227,29 +252,66 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     return;
                 }
+        
+                // Fetch bank order details
+const getBankOrderApi = 'http://localhost:5000/api/getBankOrder';
+const bankOrderResponse = await fetch(getBankOrderApi);
+const bankOrderData = await bankOrderResponse.json();
 
-                // Prepare data for API
+console.log("Bank Order Data:", bankOrderData); // Debugging
+
+// Prepare members data with payment details
+let totalLatePayments = 0;
+let totalPendingAmount = 0;
+
+const membersData = selectedMembers.map(memberId => {
+    console.log("Processing Member ID:", memberId); // Debugging
+
+    const memberData = bankOrderData.find(item => Number(item.member_id) === Number(memberId)) || {};
+    console.log("Found Member Data:", memberData); // Debugging
+
+    const latePayments = memberData.no_of_late_payment || 0;
+    const pendingAmount = memberData.amount_to_pay || 0;
+
+    // Accumulate totals
+    totalLatePayments += latePayments;
+    totalPendingAmount += pendingAmount;
+
+    return {
+        member_id: memberId,
+        no_of_late_payment: latePayments,
+        total_pending_amount: pendingAmount
+    };
+});
+
+console.log("Final Members Data:", membersData);
+console.log("Total Late Payments:", totalLatePayments);
+console.log("Total Pending Amount:", totalPendingAmount);
+
+        
                 const data = {
-                    member_id: selectedMembers,
+                    members: membersData, // Send array of member objects
                     chapter_id: current_User.chapter_id,
                     rightoff_date: rightoffDate,
-                    total_pending_amount: 500 // Default amount as requested
+                    rightoff_comment: rightoffComment,
+                    no_of_late_payment: totalLatePayments,
+                    total_pending_amount: totalPendingAmount
                 };
-
+        
                 console.log('Sending data to API:', data);
-
+        
                 showLoader();
-                const response = await fetch('https://backend.bninewdelhi.com/api/addMemberWriteOff', {
+                const response = await fetch('http://localhost:5000/api/addMemberWriteOff', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data),
                 });
-
+        
                 const result = await response.json();
                 console.log('API Response:', result);
-
+        
                 if (response.ok) {
                     Swal.fire({
                         icon: 'success',
@@ -258,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         confirmButtonColor: '#28a745'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            location.reload(); // Reload page after confirmation
+                            location.reload();
                         }
                     });
                 } else {
@@ -269,9 +331,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         confirmButtonColor: '#dc3545'
                     });
                 }
-
+        
             } catch (error) {
-                console.error('Error in rightoff process:', error);
+                console.error('Error in write-off process:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -280,9 +342,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             } finally {
                 hideLoader();
-                console.log('=== Member Rightoff Process Completed ===');
+                // console.log('=== Member Write-off Process Completed ===');
             }
         });
+        
+        
 
     } catch (error) {
         console.error('ERROR in Chapter Give Credit:', error);
@@ -292,7 +356,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             type: error.name
         });
     }
-    console.log('=== Chapter Give Credit Loading Process Completed ===');
+    // console.log('=== Chapter Give Credit Loading Process Completed ===');
 });
 
 // Add select all checkbox functionality
