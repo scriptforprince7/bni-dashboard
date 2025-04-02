@@ -423,7 +423,7 @@ async function handleRequestAndPay(accoladeId) {
                 console.log("✅ Cashfree SDK Loaded");
         
                 const cashfreeInstance = Cashfree({
-                    mode: "sandbox"
+                    mode: "production"
                 });
         
                 cashfreeInstance.checkout({

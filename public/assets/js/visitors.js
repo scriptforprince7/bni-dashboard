@@ -844,10 +844,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                            Inducted
                                        </span>
                                    </div>`
-                                : `<button class="btn btn-primary btn-sm" 
-                                           onclick="showInductionConfirmation(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                                       Induct Member <i class="ti ti-check"></i>
-                                   </button>`
+                                : createInductionStatus(visitor)
                             }
                         </td>
                     </tr>
