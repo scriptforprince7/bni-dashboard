@@ -4,18 +4,38 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         console.log('🚀 Starting data fetch process...');
         
-        // Step 1: Get user email
-        const userEmail = getUserEmail();
-        console.log('👤 User Email:', userEmail);
-        
-        // Step 2: Fetch chapter data and find matching chapter
-        const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
-        const chapters = await chaptersResponse.json();
-        console.log('📚 All Chapters:', chapters);
-        
-        const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+        // Step 1: Get user type and chapter info
+        const loginType = getUserLoginType();
+        let userEmail, userChapter;
+
+        if (loginType === 'ro_admin') {
+            // For RO admin, get chapter info from localStorage
+            const currentChapterEmail = localStorage.getItem('current_chapter_email');
+            const currentChapterId = localStorage.getItem('current_chapter_id');
+            
+            console.log('👤 RO Admin accessing chapter:', { currentChapterEmail, currentChapterId });
+            
+            // Step 2: Fetch chapter data to get full chapter details
+            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chapters = await chaptersResponse.json();
+            console.log('📚 All Chapters:', chapters);
+            
+            userChapter = chapters.find(chapter => chapter.chapter_id === parseInt(currentChapterId));
+        } else {
+            // For regular users, use email-based lookup
+            userEmail = getUserEmail();
+            console.log('👤 User Email:', userEmail);
+            
+            // Step 2: Fetch chapter data and find matching chapter
+            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chapters = await chaptersResponse.json();
+            console.log('📚 All Chapters:', chapters);
+            
+            userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+        }
+
         if (!userChapter) {
-            console.error('❌ No matching chapter found for email:', userEmail);
+            console.error('❌ No matching chapter found:', loginType === 'ro_admin' ? 'Chapter ID not found' : 'Email not found');
             return;
         }
         console.log('🏢 User Chapter:', userChapter);
