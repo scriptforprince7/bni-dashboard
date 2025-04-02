@@ -387,9 +387,11 @@ async function handleRequestAndPay(accoladeId) {
                 member_id: currentMember.member_id,
                 payment_note: 'member-requisition-payment',
                 payment_gateway_id: '1',
+                accolade_id: accoladeId,
             },
             order_meta: {
-                payment_note: 'member-requisition-payment'
+                payment_note: 'member-requisition-payment',
+                accolade_id: accoladeId // Also add here for reference
             },
             tax: taxAmount,
             memberData: {
@@ -398,7 +400,7 @@ async function handleRequestAndPay(accoladeId) {
             }
         };
 
-        console.log('💳 Payment Data:', paymentData);
+        console.log('💳 Payment Data with Accolade:', paymentData);
 
 
         try {
@@ -430,19 +432,59 @@ async function handleRequestAndPay(accoladeId) {
                     paymentSessionId: sessionData.payment_session_id,
                     redirectTarget: "_self",  // Ensures redirection occurs
                     returnUrl: `https://backend.bninewdelhi.com/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
-                }).then((result) => {
+                }).then(async (result) => {
+                    if (result.paymentDetails) {
+                        console.log("✅ Payment completed:", result.paymentDetails);
+                        
+                        try {
+                            // Create member requisition after successful payment
+                            const requisitionData = {
+                                member_id: currentMember.member_id,
+                                chapter_id: currentMember.chapter_id,
+                                accolade_id: accoladeId,
+                                request_comment: comment, // From the earlier SweetAlert input
+                                accolade_amount: accoladeAmount,
+                                order_id: sessionData.order_id // From the payment session
+                            };
+
+                            console.log('📝 Creating member requisition:', requisitionData);
+
+                            const requisitionResponse = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(requisitionData)
+                            });
+
+                            const requisitionResult = await requisitionResponse.json();
+                            console.log('✅ Requisition created:', requisitionResult);
+
+                            if (!requisitionResponse.ok) {
+                                throw new Error(requisitionResult.message || 'Failed to create requisition');
+                            }
+
+                            // Success - redirect to manage accolades page
+                            window.location.href = `/macc/manage-memberAccolades`;
+                        } catch (error) {
+                            console.error('❌ Error creating requisition:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Payment successful but failed to create requisition. Please contact support.',
+                                confirmButtonColor: '#dc2626'
+                            });
+                        }
+                    }
+
                     if (result.error) {
                         console.error("❌ Payment error:", result.error);
-                        alert(result.error.error);
-                    }
-        
-                    if (result.redirect) {
-                        console.log("🔄 Redirecting to payment page...");
-                    }
-        
-                    if (result.paymentDetails) {
-                        console.log("✅ Payment completed:", result.paymentDetails.paymentMessage);
-                        window.location.href = `/macc/manage-memberAccolades`; // Fallback navigation if returnUrl fails
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Failed',
+                            text: result.error.message || 'Payment processing failed',
+                            confirmButtonColor: '#dc2626'
+                        });
                     }
                 });
             });
