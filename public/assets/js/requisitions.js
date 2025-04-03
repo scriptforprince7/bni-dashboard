@@ -112,8 +112,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         ${req.pickup_status 
                             ? `<div class="d-flex flex-column" style="min-width: 80px;">
                                 <span class="badge ${req.pickup_date ? 'bg-success-transparent' : 'bg-primary-transparent'} mb-1" 
-                                      style="width: fit-content; cursor: pointer;"
-                                      onclick="handlePickupDateUpdate(${req.chapter_requisition_id}, '${req.pickup_date || ''}')">
+                                      style="width: fit-content; ${req.pickup_date ? '' : 'cursor: pointer;'}"
+                                      ${req.pickup_date ? '' : `onclick="handlePickupDateUpdate(${req.chapter_requisition_id}, '${req.pickup_date || ''}')"` }>
                                     <i class="${req.pickup_date ? 'ri-checkbox-circle-line' : 'ri-calendar-check-line'} me-1"></i>
                                     ${req.pickup_date ? 'Picked Up' : 'Ready to Pick Up'}
                                 </span>
@@ -133,10 +133,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     </td>
                     
                     <td>
-                        <span class="badge bg-warning-transparent" style="width: fit-content;">
-                            <i class="ri-time-line me-1"></i>
-                            N/A
-                        </span>
+                        <button 
+                            class="btn btn-info btn-sm"
+                            onclick="showGivenStatusModal(${req.chapter_requisition_id})"
+                        >
+                            <i class="ri-gift-line me-1"></i>
+                            Given Status
+                        </button>
                     </td>
                 </tr>
             `;
@@ -1169,5 +1172,252 @@ async function handlePickupDateUpdate(requisitionId, currentDate) {
                 text: 'Failed to update pickup date. Please try again.'
             });
         }
+    }
+}
+
+// Add this function to handle given status click
+async function showGivenStatusModal(requisitionId) {
+    try {
+        console.log('🎯 Fetching given status details for requisition:', requisitionId);
+        
+        // Fetch all required data
+        const [requisitionResponse, membersResponse, accoladesResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
+        ]);
+
+        const [requisitions, members, accolades] = await Promise.all([
+            requisitionResponse.json(),
+            membersResponse.json(),
+            accoladesResponse.json()
+        ]);
+
+        // Find the specific requisition
+        const requisition = requisitions.find(req => req.chapter_requisition_id === parseInt(requisitionId));
+        console.log('📝 Found requisition:', requisition);
+
+        if (!requisition) {
+            throw new Error('Requisition not found');
+        }
+
+        // Parse approve status and given status
+        const approveStatus = JSON.parse(requisition.approve_status || '{}');
+        const givenStatus = JSON.parse(requisition.given_status || '{}');
+        console.log('✅ Approve status:', approveStatus);
+        console.log('📦 Given status:', givenStatus);
+
+        // Get approved combinations
+        const approvedCombinations = Object.entries(approveStatus)
+            .filter(([key, status]) => status === 'approved')
+            .map(([key]) => {
+                const [memberId, accoladeId] = key.split('_').map(Number);
+                const member = members.find(m => m.member_id === memberId);
+                const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                const givenData = givenStatus[key] || null;
+                
+                return {
+                    key,
+                    memberId,
+                    accoladeId,
+                    memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
+                    accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`,
+                    accoladePrice: accolade?.accolade_price || 'Free',
+                    isGiven: givenData ? true : false,
+                    givenDate: givenData?.date || null
+                };
+            });
+
+        console.log('✨ Approved combinations:', approvedCombinations);
+
+        // Show in SweetAlert
+        const modalContent = `
+            <div class="given-status-container" style="max-height: 70vh; overflow-y: auto;">
+                ${approvedCombinations.map(combo => `
+                    <div class="accolade-item" style="
+                        background: white;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        border-radius: 10px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <h4 style="margin: 0; color: #2563eb; font-size: 16px;">${combo.memberName}</h4>
+                                <p style="margin: 5px 0; color: #64748b;">${combo.accoladeName}</p>
+                            </div>
+                            <span class="badge ${combo.accoladePrice === 'Free' ? 'bg-info-transparent' : 'bg-success-transparent'}">
+                                ${combo.accoladePrice === 'Free' ? 'Free' : `₹${combo.accoladePrice}`}
+                            </span>
+                        </div>
+                        
+                        ${combo.isGiven ? `
+                            <div class="text-success" style="display: flex; align-items: center; gap: 8px;">
+                                <i class="ri-checkbox-circle-fill"></i>
+                                Given on ${new Date(combo.givenDate).toLocaleDateString()}
+                            </div>
+                        ` : `
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="date" 
+                                    class="form-control" 
+                                    style="width: 150px;"
+                                    id="date_${combo.key}"
+                                >
+                                <button class="btn btn-primary btn-sm" 
+                                    onclick="markAsGiven('${requisitionId}', '${combo.key}')">
+                                    Mark as Given
+                                </button>
+                            </div>
+                        `}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        await Swal.fire({
+            title: 'Accolade Distribution Status',
+            html: modalContent,
+            width: '600px',
+            showConfirmButton: false,
+            showCloseButton: true
+        });
+
+        // Refresh the data after closing the modal
+        window.location.reload();
+
+    } catch (error) {
+        console.error('❌ Error showing given status:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load given status details'
+        });
+    }
+}
+
+// Function to mark item as given
+async function markAsGiven(requisitionId, combinationKey) {
+    try {
+        const dateInput = document.getElementById(`date_${combinationKey}`);
+        const givenDate = dateInput.value;
+
+        if (!givenDate) {
+            Swal.showValidationMessage('Please select a date');
+            return;
+        }
+
+        // Parse the combination key to get member_id and accolade_id
+        const [memberId, accoladeId] = combinationKey.split('_').map(Number);
+        console.log('🔍 Parsed combination:', { memberId, accoladeId });
+
+        // First, fetch the chapter requisition to get chapter_id
+        const [chapterReqResponse, memberReqResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+        ]);
+
+        const [chapterRequisitions, memberRequisitions] = await Promise.all([
+            chapterReqResponse.json(),
+            memberReqResponse.json()
+        ]);
+
+        const chapterRequisition = chapterRequisitions.find(req => 
+            req.chapter_requisition_id === parseInt(requisitionId)
+        );
+
+        if (!chapterRequisition) {
+            throw new Error('Chapter requisition not found');
+        }
+
+        const chapterId = chapterRequisition.chapter_id;
+        console.log('📋 Found chapter ID:', chapterId);
+
+        // Find the corresponding member requisition
+        const memberRequisition = memberRequisitions.find(req => 
+            req.member_id === memberId && 
+            req.chapter_id === chapterId && 
+            req.accolade_id === accoladeId
+        );
+
+        if (!memberRequisition) {
+            throw new Error('Member requisition not found');
+        }
+
+        console.log('📋 Found member requisition:', memberRequisition);
+
+        // Update chapter requisition given status
+        const givenStatus = {
+            [combinationKey]: {
+                status: 'given',
+                date: givenDate
+            }
+        };
+
+        // Make both updates in parallel
+        const [chapterUpdate, memberUpdate] = await Promise.all([
+            // Update chapter requisition
+            fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chapter_requisition_id: requisitionId,
+                    given_status: givenStatus
+                })
+            }),
+
+            // Update member requisition
+            fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    member_request_id: memberRequisition.member_request_id,
+                    member_id: memberId,
+                    chapter_id: chapterId,
+                    accolade_id: accoladeId,
+                    given_status: true,
+                    given_date: givenDate
+                })
+            })
+        ]);
+
+        // Check responses
+        const [chapterResponse, memberResponse] = await Promise.all([
+            chapterUpdate.json(),
+            memberUpdate.json()
+        ]);
+
+        if (!chapterUpdate.ok || !memberUpdate.ok) {
+            console.error('Chapter update response:', chapterResponse);
+            console.error('Member update response:', memberResponse);
+            throw new Error('Failed to update one or more statuses');
+        }
+
+        console.log('✅ Successfully updated both requisitions:', {
+            chapter: chapterResponse,
+            member: memberResponse
+        });
+
+        // Refresh the modal
+        showGivenStatusModal(requisitionId);
+
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Status updated successfully in both chapter and member records',
+            timer: 2000
+        });
+
+    } catch (error) {
+        console.error('❌ Error marking as given:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update status: ' + error.message
+        });
     }
 }

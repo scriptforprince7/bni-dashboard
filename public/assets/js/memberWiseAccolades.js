@@ -3,6 +3,7 @@ const membersApiUrl = "https://backend.bninewdelhi.com/api/members";
 let allMembers = [];
 let allAccolades = [];
 let selectedAccolades = [];
+let currentChapterId = null;
 
 // Function to show the loader
 function showLoader() {
@@ -34,50 +35,135 @@ async function loadAccolades() {
   setupFilterListener();
 }
 
-// Fetch members data
-async function loadMembers() {
-  const response = await fetch(membersApiUrl);
-  allMembers = await response.json();
-  renderTable(allMembers);
+// Add new function to get chapter details
+async function getCurrentChapterDetails() {
+    try {
+        const loginType = getUserLoginType();
+        console.log('👤 Login type:', loginType);
+
+        let chapterEmail, chapterId;
+
+        if (loginType === 'ro_admin') {
+            // For RO admin, get from localStorage
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            chapterId = localStorage.getItem('current_chapter_id');
+            console.log('🔐 RO Admin - Chapter details from localStorage:', {
+                chapterEmail,
+                chapterId
+            });
+
+            if (chapterId) {
+                return {
+                    chapter_id: parseInt(chapterId),
+                    email_id: chapterEmail
+                };
+            }
+        } else {
+            // For chapter login, get from token
+            chapterEmail = getUserEmail();
+            console.log('🔑 Chapter email from token:', chapterEmail);
+
+            const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+            const chapters = await response.json();
+            console.log('📚 All chapters:', chapters);
+
+            const currentChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+            console.log('🎯 Matched chapter:', currentChapter);
+
+            if (currentChapter) {
+                return currentChapter;
+            }
+        }
+
+        console.error('❌ No chapter found');
+        return null;
+
+    } catch (error) {
+        console.error('❌ Error fetching chapter details:', error);
+        return null;
+    }
 }
 
-// Update the renderTable function to show count and clickable popup
+// Modify loadMembers function
+async function loadMembers() {
+    try {
+        showLoader();
+
+        // First get chapter details
+        const chapterDetails = await getCurrentChapterDetails();
+        if (!chapterDetails) {
+            throw new Error('Unable to determine current chapter');
+        }
+
+        currentChapterId = chapterDetails.chapter_id;
+        console.log('📍 Current chapter ID:', currentChapterId);
+
+        // Fetch all members
+        const response = await fetch(membersApiUrl);
+        const allMembersData = await response.json();
+        console.log('👥 All members:', allMembersData);
+
+        // Filter members by chapter_id
+        allMembers = allMembersData.filter(member => member.chapter_id === currentChapterId);
+        console.log('👥 Filtered members for chapter:', allMembers);
+
+        renderTable(allMembers);
+    } catch (error) {
+        console.error('❌ Error in loadMembers:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load members data'
+        });
+    } finally {
+        hideLoader();
+    }
+}
+
+// Update renderTable function to include chapter info in logs
 const renderTable = (members) => {
-  const tableBody = document.getElementById("chaptersTableBody");
-  tableBody.innerHTML = members
-    .map((member, index) => {
-      const memberName = `${member.member_first_name} ${member.member_last_name}`;
-      const accoladeDetails = member.accolades_id.map(id => {
-        const accolade = allAccolades.find(a => a.accolade_id === Number(id));
-        return accolade ? { name: accolade.accolade_name, date: accolade.accolade_publish_date || 'Unknown Date' } : null;
-      }).filter(Boolean);
-      
-      const accoladeCount = accoladeDetails.length;
-      const accoladeInfo = accoladeDetails.map(acc => `<li>${acc.name} (Issued: ${acc.date})</li>`).join('');
+    console.log(`🎨 Rendering table for chapter ${currentChapterId} with ${members.length} members`);
+    
+    const tableBody = document.getElementById("chaptersTableBody");
+    tableBody.innerHTML = members
+        .map((member, index) => {
+            console.log(`📊 Processing member ${member.member_first_name} with ${member.accolades_id.length} accolades`);
+            
+            const memberName = `${member.member_first_name} ${member.member_last_name}`;
+            const accoladeDetails = member.accolades_id.map(id => {
+                const accolade = allAccolades.find(a => a.accolade_id === Number(id));
+                return accolade ? { 
+                    name: accolade.accolade_name, 
+                    date: accolade.accolade_publish_date || 'Unknown Date' 
+                } : null;
+            }).filter(Boolean);
+            
+            console.log(`🏆 Accolades for ${memberName}:`, accoladeDetails);
 
-      const statusBadge =
-        member.member_status === "active"
-          ? `<span class="badge bg-success">Active</span>`
-          : `<span class="badge bg-danger">Inactive</span>`;
+            const accoladeCount = accoladeDetails.length;
+            const accoladeInfo = accoladeDetails.map(acc => `<li>${acc.name} (Issued: ${acc.date})</li>`).join('');
 
-      return `
-        <tr>
-          <td>${index + 1}</td>
-          <td><b>${memberName}</b></td>
-          <td>
-            <span class="accolade-count" data-member="${memberName}" data-info="${accoladeInfo}">
-              ${accoladeCount} Accolade(s)
-            </span>
-          </td>
-          <td>${statusBadge}</td>
-        </tr>`;
-    })
-    .join("");
+            const statusBadge =
+                member.member_status === "active"
+                    ? `<span class="badge bg-success">Active</span>`
+                    : `<span class="badge bg-danger">Inactive</span>`;
 
-  setupModalListener();
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><b>${memberName}</b></td>
+                    <td>
+                        <span class="accolade-count" data-member="${memberName}" data-info="${accoladeInfo}">
+                            ${accoladeCount} Accolade(s)
+                        </span>
+                    </td>
+                    <td>${statusBadge}</td>
+                </tr>`;
+        })
+        .join("");
+
+    setupModalListener();
 };
-
-
 
 function setupModalListener() {
   document.querySelectorAll(".accolade-count").forEach((count) => {
@@ -97,20 +183,12 @@ function setupModalListener() {
   });
 }
 
-
-
-
-
 function showAccoladePopup(details) {
   document.getElementById("modalTitle").textContent = "Accolades Details";
   document.getElementById("modalBody").innerHTML = `<p>${details}</p>`;
   const accoladeModal = new bootstrap.Modal(document.getElementById("accoladeModal"));
   accoladeModal.show();
 }
-
-  
-  
-  
 
 // Handle filter changes
 function setupFilterListener() {
@@ -152,8 +230,6 @@ function filterMembers() {
 
   renderTable(filteredMembers.length ? filteredMembers : allMembers);
 }
-
-
 
 // Show Popup with Accolade Details
 function showAccoladePopup(target) {
@@ -199,5 +275,8 @@ async function loadEverything() {
     }
   }
 
-// Load everything
-loadEverything();
+// Update the initial load
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Initializing memberWiseAccolades.js');
+    loadEverything();
+});

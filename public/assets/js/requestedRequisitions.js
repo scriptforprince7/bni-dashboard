@@ -292,76 +292,7 @@ async function handleAccoladesClick(requisition) {
                             </div>
                         </div>
 
-                        <!-- Pickup Status and Date Section -->
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                            margin-bottom: 20px;
-                        ">
-                            <div style="
-                                display: flex;
-                                align-items: center;
-                                gap: 10px;
-                                margin-bottom: 10px;
-                            ">
-                                <div style="
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 8px;
-                                ">
-                                    <input 
-                                        type="checkbox" 
-                                        id="pickupStatus_${index}"
-                                        class="pickup-checkbox"
-                                        style="
-                                            width: 16px;
-                                            height: 16px;
-                                            cursor: pointer;
-                                        "
-                                        onchange="togglePickupDate(${index})"
-                                    >
-                                    <label 
-                                        for="pickupStatus_${index}"
-                                        style="
-                                            color: #1e293b;
-                                            font-weight: 500;
-                                            cursor: pointer;
-                                        "
-                                    >
-                                        <i class="ri-checkbox-circle-line me-1"></i>
-                                        Pickup Status
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Pickup Date Input (Hidden by default) -->
-                            <div 
-                                id="pickupDateContainer_${index}" 
-                                style="
-                                    display: none;
-                                    margin-top: 10px;
-                                "
-                            >
-                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                    <i class="ri-calendar-line me-1"></i>Pickup Date
-                                </div>
-                                <input 
-                                    type="date" 
-                                    id="pickupDate_${index}"
-                                    class="pickup-date"
-                                    style="
-                                        width: 100%;
-                                        padding: 8px 12px;
-                                        border: 1px solid #e2e8f0;
-                                        border-radius: 6px;
-                                        color: #1e293b;
-                                    "
-                                >
-                            </div>
-                        </div>
-
+                        
                         <!-- RO Comment Input -->
                         <div style="margin-bottom: 20px;">
                             <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 8px;">
@@ -1006,7 +937,7 @@ async function handlePickupConfirmation(requisitionId, currentStatus) {
             const updateData = {
                 chapter_requisition_id: requisitionId,
                 pickup_status: !currentStatus,
-                pickup_date: !currentStatus ? new Date().toISOString() : null,
+                // pickup_date: !currentStatus ? new Date().toISOString() : null,
                 // Keep existing approvals and comments
                 approve_status: accumulatedApprovals,
                 ro_comment: accumulatedComments
