@@ -21,6 +21,8 @@ function hideLoader() {
 let totalcreditamount = 0;
 let membersData = [];
 let chaptersData = []; // Added to store chapters data
+let selectedRegionId = null;
+let selectedChapterId = null;
 
 // Function to fetch member data
 async function fetchMembersData() {
@@ -43,39 +45,86 @@ async function fetchChaptersData() {
     }
 }
 
+// Add event listeners for filters
+function setupFilterListeners() {
+    // Region filter click handler
+    document.getElementById('regionFilter').addEventListener('click', async (e) => {
+        if (e.target.classList.contains('dropdown-item')) {
+            selectedRegionId = parseInt(e.target.dataset.regionId);
+            console.log('🌍 Selected Region ID:', selectedRegionId);
+            await fetchAndFilterData();
+        }
+    });
+
+    // Chapter filter click handler
+    document.getElementById('chapterFilter').addEventListener('click', async (e) => {
+        if (e.target.classList.contains('dropdown-item')) {
+            selectedChapterId = parseInt(e.target.dataset.chapterId);
+            console.log('🏢 Selected Chapter ID:', selectedChapterId);
+            await fetchAndFilterData();
+        }
+    });
+
+    // Reset filters
+    document.getElementById('reset-filters-btn').addEventListener('click', async () => {
+        console.log('🔄 Resetting filters');
+        selectedRegionId = null;
+        selectedChapterId = null;
+        await fetchAndFilterData();
+    });
+}
+
 async function fetchAndFilterData() {
     try {
         showLoader();
-        await Promise.all([fetchMembersData(), fetchChaptersData()]); // Fetch both data in parallel
+        await Promise.all([fetchMembersData(), fetchChaptersData()]);
 
-        // Fetch credit data
         const response = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
-        const data = await response.json();
-        console.log("📊 All credit data:", data);
-        
-        // Clear existing table content
+        const creditData = await response.json();
+        console.log("📊 All credit data:", creditData);
+
+        // Apply filters
+        let filteredData = creditData;
+
+        if (selectedRegionId) {
+            console.log('🔍 Filtering by Region ID:', selectedRegionId);
+            // Filter chapters by selected region
+            const chaptersInRegion = chaptersData.filter(ch => ch.region_id === selectedRegionId);
+            console.log('📍 Chapters in selected region:', chaptersInRegion);
+
+            // Filter credit data for chapters in selected region
+            filteredData = filteredData.filter(credit => 
+                chaptersInRegion.some(ch => ch.chapter_id === credit.chapter_id)
+            );
+            console.log('🎯 Data after region filter:', filteredData);
+        }
+
+        if (selectedChapterId) {
+            console.log('🔍 Filtering by Chapter ID:', selectedChapterId);
+            // Filter credit data for selected chapter
+            filteredData = filteredData.filter(credit => credit.chapter_id === selectedChapterId);
+            console.log('🎯 Data after chapter filter:', filteredData);
+        }
+
+        // Group filtered data
+        const groupedData = filteredData.reduce((acc, curr) => {
+            const key = `${curr.credit_date}_${curr.credit_type}`;
+            if (!acc[key]) {
+                acc[key] = [];
+            }
+            acc[key].push(curr);
+            return acc;
+        }, {});
+
+        console.log("🔍 Grouped filtered data:", groupedData);
+
+        // Update table
         const tableBody = document.getElementById('chaptersTableBody');
-        console.log("🎯 Table Body Element:", tableBody);
-        
         if (tableBody) {
             tableBody.innerHTML = '';
-            
             let index = 0;
             totalcreditamount = 0;
 
-            // Group data by credit_date and credit_type
-            const groupedData = data.reduce((acc, curr) => {
-                const key = `${curr.credit_date}_${curr.credit_type}`;
-                if (!acc[key]) {
-                    acc[key] = [];
-                }
-                acc[key].push(curr);
-                return acc;
-            }, {});
-
-            console.log("🔍 Grouped credit data:", groupedData);
-
-            // Process each group
             Object.values(groupedData).forEach(entries => {
                 if (entries.length > 0) {
                     const entry = entries[0];
@@ -83,10 +132,9 @@ async function fetchAndFilterData() {
                     totalcreditamount += totalCreditAmount;
                     index += 1;
 
-                    // Find chapter name
                     const chapter = chaptersData.find(ch => ch.chapter_id === entry.chapter_id);
                     const chapterName = chapter ? chapter.chapter_name : 'Unknown Chapter';
-                    console.log(`🏢 Found chapter for ID ${entry.chapter_id}:`, chapterName);
+                    console.log(`🏢 Displaying chapter: ${chapterName} (ID: ${entry.chapter_id})`);
 
                     const row = document.createElement('tr');
                     const formattedDate = new Date(entry.credit_date).toLocaleDateString('en-US');
@@ -106,23 +154,20 @@ async function fetchAndFilterData() {
                         <td><b>${totalCreditAmount}</b></td>
                         <td><b>${getUserEmail().split('@')[0]}</b></td>
                     `;
-                    console.log('✅ Created row:', row);
                     tableBody.appendChild(row);
                 }
             });
 
-            // Update total credit amount display
+            // Update total
             const totalElement = document.getElementById('total_credit_amount');
             if (totalElement) {
                 totalElement.textContent = totalcreditamount;
-                console.log('💰 Total credit amount:', totalcreditamount);
+                console.log('💰 Updated total credit amount:', totalcreditamount);
             }
-        } else {
-            console.error("❌ Table body element not found");
         }
 
     } catch (error) {
-        console.error("❌ Error fetching data:", error);
+        console.error("❌ Error in fetchAndFilterData:", error);
     } finally {
         hideLoader();
     }
@@ -147,6 +192,58 @@ function viewMembers(memberIds) {
     });
 }
 
-// Initialize the data fetch
-fetchAndFilterData();
+// Function to populate region and chapter filters
+async function populateFilters() {
+    try {
+        console.log('🔄 Starting to populate filters...');
+
+        // Fetch regions and chapters in parallel
+        const [regionsResponse, chaptersResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters')
+        ]);
+
+        const regions = await regionsResponse.json();
+        const chapters = await chaptersResponse.json();
+
+        console.log('📍 Fetched Regions:', regions);
+        console.log('🏢 Fetched Chapters:', chapters);
+
+        // Populate Region Filter
+        const regionFilter = document.getElementById('regionFilter');
+        if (regionFilter) {
+            regionFilter.innerHTML = regions.map(region => `
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-region-id="${region.region_id}">
+                        ${region.region_name}
+                    </a>
+                </li>
+            `).join('');
+            console.log('✅ Populated Region Filter');
+        }
+
+        // Populate Chapter Filter
+        const chapterFilter = document.getElementById('chapterFilter');
+        if (chapterFilter) {
+            chapterFilter.innerHTML = chapters.map(chapter => `
+                <li>
+                    <a class="dropdown-item" href="javascript:void(0);" data-chapter-id="${chapter.chapter_id}">
+                        ${chapter.chapter_name}
+                    </a>
+                </li>
+            `).join('');
+            console.log('✅ Populated Chapter Filter');
+        }
+
+    } catch (error) {
+        console.error('❌ Error populating filters:', error);
+    }
+}
+
+// Initialize filters when document loads
+document.addEventListener('DOMContentLoaded', () => {
+    setupFilterListeners();
+    populateFilters();
+    fetchAndFilterData();
+});
 

@@ -1,40 +1,36 @@
 // API URL to fetch accolades data
 const accoladesApiUrl = 'https://backend.bninewdelhi.com/api/accolades';
 const searchInput = document.getElementById('searchAccolades');
-
-// DOM element to populate the accolades table
 const accoladesTableBody = document.querySelector('table tbody');
+
+let currentSortColumn = null;
+let isAscending = true;
+let accoladesData = []; // Store the original data
 
 // Function to show the loader
 function showLoader() {
-    document.getElementById('loader').style.display = 'flex'; // Show loader
-  }
-  
-  // Function to hide the loader
-  function hideLoader() {
-    document.getElementById('loader').style.display = 'none'; // Hide loader
-  }
+    document.getElementById('loader').style.display = 'flex';
+}
+
+// Function to hide the loader
+function hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+}
 
 // Function to update the total accolades count
 function updateTotalAccoladesCount(accolades) {
     try {
-        // Calculate total stock by summing up stock_available values
         const totalStock = accolades.reduce((sum, accolade) => {
-            // Convert stock_available to number and add to sum
             const stockValue = parseInt(accolade.stock_available) || 0;
             return sum + stockValue;
         }, 0);
 
-        // Update the UI with total stock
         const countElement = document.getElementById('total-accolades-count');
         if (countElement) {
             countElement.innerHTML = `<b>${totalStock}</b>`;
         }
-
-        console.log('Total stock available:', totalStock);
     } catch (error) {
         console.error('Error calculating total stock:', error);
-        // Set to 0 if there's an error
         const countElement = document.getElementById('total-accolades-count');
         if (countElement) {
             countElement.innerHTML = '<b>0</b>';
@@ -42,24 +38,8 @@ function updateTotalAccoladesCount(accolades) {
     }
 }
 
-// Function to fetch and display accolades
-async function fetchAndDisplayAccolades() {
-  try {
-    showLoader();
-
-    // Fetch accolades data from the API
-    const response = await fetch(accoladesApiUrl);
-    if (!response.ok) throw new Error('Error fetching accolades data');
-
-    const accolades = await response.json();
-
-    // Update the total count
-    updateTotalAccoladesCount(accolades);
-
-    // Clear the table body
-    accoladesTableBody.innerHTML = '';
-
-    // Check if there are no accolades
+// Function to display accolades
+function displayAccolades(accolades) {
     if (!accolades || accolades.length === 0) {
         accoladesTableBody.innerHTML = `
             <tr>
@@ -73,117 +53,200 @@ async function fetchAndDisplayAccolades() {
         return;
     }
 
-    // Loop through accolades and populate the table
+    accoladesTableBody.innerHTML = '';
     accolades.forEach((accolade, index) => {
-      const stockStatus = accolade.stock_available > 0 ? 'In Stock' : 'Out Of Stock';
-      const stockStatusClass = accolade.stock_available > 0 ? 'bg-success-transparent' : 'bg-danger-transparent';
-      
-      // Check availability and status
-      const availabilityStatus = accolade.accolade_availability === 'available' ? 'Available' : 'Not Available';
-      const availabilityClass = accolade.accolade_availability === 'available' ? 'bg-success-transparent' : 'bg-danger-transparent';
-      
-      const activeStatus = accolade.accolade_status === 'active' ? 'Active' : 'Inactive';
-      const activeClass = accolade.accolade_status === 'active' ? 'bg-success-transparent' : 'bg-danger-transparent';
+        const stockStatus = accolade.stock_available > 0 ? 'In Stock' : 'Out Of Stock';
+        const stockStatusClass = accolade.stock_available > 0 ? 'bg-success-transparent' : 'bg-danger-transparent';
+        
+        const availabilityStatus = accolade.accolade_availability === 'available' ? 'Available' : 'Not Available';
+        const availabilityClass = accolade.accolade_availability === 'available' ? 'bg-success-transparent' : 'bg-danger-transparent';
+        
+        const activeStatus = accolade.accolade_status === 'active' ? 'Active' : 'Inactive';
+        const activeClass = accolade.accolade_status === 'active' ? 'bg-success-transparent' : 'bg-danger-transparent';
 
-      accoladesTableBody.innerHTML += `
-        <tr class="order-list">
-          <td>${index + 1}</td>
-          <td>
-            <div class="d-flex align-items-center">
-              <div class="ms-2">
-                <p class="fw-semibold mb-0 d-flex align-items-center">
-                  <a href="#">${accolade.accolade_name}</a>
-                </p>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="d-flex align-items-center">
-              <div class="ms-2">
-                <p class="fw-semibold mb-0 d-flex align-items-center">
-                  <a href="#">${accolade.accolade_published_by || 'N/A'}</a>
-                </p>
-              </div>
-            </div>
-          </td>
-          <td class="text-center">${accolade.stock_available}</td>
-          <td class="fw-semibold">${new Date(accolade.accolade_publish_date).toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }) || 'N/A'}</td>
-          <td>
-            <div class="d-flex align-items-center">
-              <div class="ms-2">
-                <p class="fw-semibold mb-0 d-flex align-items-center">
-                  <a href="#">${accolade.item_type || 'N/A'}</a>
-                </p>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="d-flex align-items-center">
-              <div class="ms-2">
-                <p class="fw-semibold mb-0 d-flex align-items-center">
-                  <a href="#">${accolade.accolade_type || 'N/A'}</a>
-                </p>
-              </div>
-            </div>
-          </td>
-          <td>
-            <span class="badge ${availabilityClass}">${availabilityStatus}</span>
-          </td>
-          <td>
-            <span class="badge ${activeClass}">${activeStatus}</span>
-          </td>
-          <td>
-            <span class="badge bg-primary text-light" style="cursor:pointer; color:white;">
-              <a href="/acc/edit-accolades/?accolade_id=${accolade.accolade_id}" style="color:white">Edit</a>
-            </span>
-            <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-accolade-id="${accolade.accolade_id}">
-              Delete
-            </span>
-          </td>
-        </tr>
-      `;
+        const row = `
+            <tr class="order-list">
+                <td>${index + 1}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="ms-2">
+                            <p class="fw-semibold mb-0 d-flex align-items-center">
+                                <a href="#">${accolade.accolade_name}</a>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="ms-2">
+                            <p class="fw-semibold mb-0 d-flex align-items-center">
+                                <a href="#">${accolade.accolade_published_by || 'N/A'}</a>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">${accolade.stock_available}</td>
+                <td class="fw-semibold">${new Date(accolade.accolade_publish_date).toLocaleDateString('en-US', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                }) || 'N/A'}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="ms-2">
+                            <p class="fw-semibold mb-0 d-flex align-items-center">
+                                <a href="#">${accolade.item_type || 'N/A'}</a>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="ms-2">
+                            <p class="fw-semibold mb-0 d-flex align-items-center">
+                                <a href="#">${accolade.accolade_type || 'N/A'}</a>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge ${availabilityClass}">${availabilityStatus}</span>
+                </td>
+                <td>
+                    <span class="badge ${activeClass}">${activeStatus}</span>
+                </td>
+                <td>
+                    <span class="badge bg-primary text-light" style="cursor:pointer; color:white;">
+                        <a href="/acc/edit-accolades/?accolade_id=${accolade.accolade_id}" style="color:white">Edit</a>
+                    </span>
+                    <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-accolade-id="${accolade.accolade_id}">
+                        Delete
+                    </span>
+                </td>
+            </tr>
+        `;
+        accoladesTableBody.innerHTML += row;
     });
-  } catch (error) {
-    console.error('Error fetching accolades data:', error);
-    accoladesTableBody.innerHTML = `
-      <tr>
-        <td colspan="10" class="text-center text-danger">Error fetching accolades data.</td>
-      </tr>
-    `;
-  } finally {
-    hideLoader();
-  }
+
+    updateTotalAccoladesCount(accolades);
 }
 
+// Function to fetch and display accolades
+async function fetchAndDisplayAccolades() {
+    try {
+        showLoader();
+        const response = await fetch(accoladesApiUrl);
+        if (!response.ok) throw new Error('Error fetching accolades data');
 
+        accoladesData = await response.json();
+        displayAccolades(accoladesData);
+    } catch (error) {
+        console.error('Error fetching accolades data:', error);
+        accoladesTableBody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center text-danger">Error fetching accolades data.</td>
+            </tr>
+        `;
+    } finally {
+        hideLoader();
+    }
+}
+
+// Function to sort accolades
+function sortAccolades(column) {
+    console.log('🔄 Sorting by:', column);
+
+    if (currentSortColumn === column) {
+        isAscending = !isAscending;
+    } else {
+        currentSortColumn = column;
+        isAscending = true;
+    }
+
+    document.querySelectorAll('.sort-icon').forEach(icon => {
+        icon.classList.remove('asc');
+        if (icon.dataset.sort === column && !isAscending) {
+            icon.classList.add('asc');
+        }
+    });
+
+    accoladesData.sort((a, b) => {
+        let compareA, compareB;
+
+        switch (column) {
+            case 'name':
+                compareA = a.accolade_name?.toLowerCase() || '';
+                compareB = b.accolade_name?.toLowerCase() || '';
+                break;
+            case 'publisher':
+                compareA = a.accolade_published_by?.toLowerCase() || '';
+                compareB = b.accolade_published_by?.toLowerCase() || '';
+                break;
+            case 'stock':
+                compareA = parseInt(a.stock_available) || 0;
+                compareB = parseInt(b.stock_available) || 0;
+                break;
+            case 'date':
+                compareA = new Date(a.accolade_publish_date).getTime();
+                compareB = new Date(b.accolade_publish_date).getTime();
+                break;
+            case 'itemType':
+                compareA = a.item_type?.toLowerCase() || '';
+                compareB = b.item_type?.toLowerCase() || '';
+                break;
+            case 'accoladeType':
+                compareA = a.accolade_type?.toLowerCase() || '';
+                compareB = b.accolade_type?.toLowerCase() || '';
+                break;
+            case 'availability':
+                compareA = a.accolade_availability?.toLowerCase() || '';
+                compareB = b.accolade_availability?.toLowerCase() || '';
+                break;
+            case 'status':
+                compareA = a.accolade_status?.toLowerCase() || '';
+                compareB = b.accolade_status?.toLowerCase() || '';
+                break;
+            default:
+                return 0;
+        }
+
+        if (isAscending) {
+            return compareA > compareB ? 1 : -1;
+        } else {
+            return compareA < compareB ? 1 : -1;
+        }
+    });
+
+    console.log(`📊 Sorted data (${isAscending ? 'ascending' : 'descending'})`, accoladesData);
+    displayAccolades(accoladesData);
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize sorting
+    document.querySelectorAll('.sort-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => {
+            const column = e.target.dataset.sort;
+            sortAccolades(column);
+        });
+    });
+
+    // Initialize search
+    searchInput.addEventListener('input', filterAccolades);
+
+    // Initial load
+    fetchAndDisplayAccolades();
+});
 
 // Function to filter accolades based on search query
 function filterAccolades() {
-    const query = searchInput.value.toLowerCase(); // Get the search query in lowercase
-    const rows = accoladesTableBody.querySelectorAll('tr'); // Select all rows in the table
-  
-    rows.forEach((row) => {
-      const accoladeName = row.querySelector('td:nth-child(2) a')?.textContent.toLowerCase(); // Get the accolade name text
-      const publishedBy = row.querySelector('td:nth-child(3) a')?.textContent.toLowerCase(); // Get the published by text
-  
-      // Check if either accolade name or published by matches the search query
-      if (accoladeName?.includes(query) || publishedBy?.includes(query)) {
-        row.style.display = ''; // Show the row if it matches
-      } else {
-        row.style.display = 'none'; // Hide the row if it doesn't match
-      }
-    });
-  }
-
-  searchInput.addEventListener('input', filterAccolades);
-
-// Call the function on page load
-window.addEventListener('load', fetchAndDisplayAccolades);
-
+    const query = searchInput.value.toLowerCase();
+    const filteredAccolades = accoladesData.filter(accolade => 
+        accolade.accolade_name?.toLowerCase().includes(query) ||
+        accolade.accolade_published_by?.toLowerCase().includes(query)
+    );
+    displayAccolades(filteredAccolades);
+}
 
 const deleteAccolade = async (accolade_id) => {
   // Show confirmation using SweetAlert

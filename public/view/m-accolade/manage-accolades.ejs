@@ -85,16 +85,42 @@
                 >
                   <thead>
                     <tr>
-                      <th scope="col">S.No.</th>
-                      <th scope="col">Accolades Name</th>
-                      <th scope="col">Published by</th>
-                    
-                      <th scope="col">Stock Available</th>
-                      <th scope="col">Stock In Date</th>
-                      <th scope="col">Item Type</th>
-                      <th scope="col">Accolade Type</th>
-                      <th scope="col">Availability</th>
-                      <th scope="col">Status</th>
+                      <th scope="col">
+                        S.No.
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="index"></i>
+                      </th>
+                      <th scope="col">
+                        Accolades Name
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="name"></i>
+                      </th>
+                      <th scope="col">
+                        Published by
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="publisher"></i>
+                      </th>
+                      <th scope="col">
+                        Stock Available
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="stock"></i>
+                      </th>
+                      <th scope="col">
+                        Stock In Date
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="date"></i>
+                      </th>
+                      <th scope="col">
+                        Item Type
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="itemType"></i>
+                      </th>
+                      <th scope="col">
+                        Accolade Type
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="accoladeType"></i>
+                      </th>
+                      <th scope="col">
+                        Availability
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="availability"></i>
+                      </th>
+                      <th scope="col">
+                        Status
+                        <i class="ti ti-arrows-sort sort-icon" data-sort="status"></i>
+                      </th>
                       <th scope="col">Actions</th>
                     </tr>
                   </thead>
@@ -136,3 +162,21 @@
       
 
       <%- include('../partials/footer') %> 
+
+<style>
+    .sort-icon {
+        cursor: pointer;
+        margin-left: 5px;
+        font-size: 14px;
+        color: #6c757d;
+        transition: transform 0.2s ease;
+    }
+    
+    .sort-icon:hover {
+        color: #000;
+    }
+    
+    .sort-icon.asc {
+        transform: rotate(180deg);
+    }
+</style> 
