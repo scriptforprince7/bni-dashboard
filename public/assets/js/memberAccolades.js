@@ -30,6 +30,17 @@ function formatMonthYear(date) {
     return `${d.toLocaleString('default', { month: 'short' })}-${d.getFullYear()}`;
 }
 
+// Function to format date as MM/DD/YYYY
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+}
+
 // Function to populate month filter
 function populateMonthFilter(memberAccolades) {
     const monthSet = new Set();
@@ -107,9 +118,7 @@ async function fetchMemberData() {
         // Only get email from token if not found in localStorage and not ro_admin
         if (!member_email && loginType !== 'ro_admin') {
             member_email = getUserEmail();
-            console.log('Retrieved from token:', {
-                member_email: member_email
-            });
+            console.log('Retrieved from token:', { member_email });
         }
 
         if (!member_email) {
@@ -117,55 +126,79 @@ async function fetchMemberData() {
             hideLoader();
             return;
         }
-//again done
-        console.log('Using member email:', member_email); // Debug log to confirm which email is being used
 
-        // Fetch members data
-        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
-        const membersData = await membersResponse.json();
-        debugLog('Members data fetched:', membersData);
+        // Fetch all required data in parallel
+        const [membersResponse, accoladesResponse, requisitionsResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+        ]);
+
+        const [membersData, accoladesData, requisitionsData] = await Promise.all([
+            membersResponse.json(),
+            accoladesResponse.json(),
+            requisitionsResponse.json()
+        ]);
+
+        console.log('📊 Fetched Data:', {
+            members: membersData.length,
+            accolades: accoladesData.length,
+            requisitions: requisitionsData.length
+        });
 
         // Find logged in member
         const loggedInMember = membersData.find(member => member.member_email_address === member_email);
-        debugLog('Logged in member:', loggedInMember);
+        console.log('👤 Logged in member:', loggedInMember);
 
         if (!loggedInMember) {
             throw new Error('Member not found');
         }
 
-        // Log accolades array from member
-        debugLog('Member accolades IDs:', loggedInMember.accolades_id);
-
-        // Get accolades data
-        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
-        const accoladesData = await accoladesResponse.json();
-        debugLog('All accolades data fetched:', accoladesData);
-
-        // Map all accolades IDs to their full data
+        // Map accolades with requisition data
         const memberAccolades = [];
-        loggedInMember.accolades_id.forEach(id => {
-            debugLog(`Looking for accolade with ID: ${id}`);
+        for (const id of loggedInMember.accolades_id) {
             const matchingAccolade = accoladesData.find(accolade => accolade.accolade_id === id);
             if (matchingAccolade) {
-                debugLog(`Found matching accolade:`, matchingAccolade);
+                // Initialize dates with '-'
+                matchingAccolade.accolade_publish_date = '-';
+                matchingAccolade.accolade_given_date = '-';
+
+                // Find matching requisition
+                const requisition = requisitionsData.find(req => 
+                    req.member_id === loggedInMember.member_id && 
+                    req.accolade_id === id
+                );
+                
+                console.log(`🔍 Checking requisition for accolade ${id}:`, requisition);
+
+                if (requisition) {
+                    // Add issued date if approved
+                    if (requisition.approved_date) {
+                        matchingAccolade.accolade_publish_date = formatDate(requisition.approved_date);
+                        console.log(`📅 Found issue date for accolade ${id}:`, matchingAccolade.accolade_publish_date);
+                    }
+
+                    // Add given date if closed and given
+                    if ( requisition.given_status === true) {
+                        matchingAccolade.accolade_given_date = formatDate(requisition.given_date);
+                        console.log(`🎁 Found given date for accolade ${id}:`, matchingAccolade.accolade_given_date);
+                    }
+                }
+
                 memberAccolades.push(matchingAccolade);
+                console.log(`✅ Added accolade ${id} with dates:`, matchingAccolade);
             }
-        });
+        }
 
-        debugLog(`Total accolades found: ${memberAccolades.length}`, memberAccolades);
+        console.log(`📚 Total accolades processed: ${memberAccolades.length}`, memberAccolades);
 
-        // After you've mapped the member's accolades
-        memberOriginalAccolades = memberAccolades; // Store only the member's accolades
-        
-        // Populate month filter with member's accolades only
+        // Store and populate
+        memberOriginalAccolades = memberAccolades;
         populateMonthFilter(memberAccolades);
-        
-        // Populate table
         populateAccoladesTable(memberAccolades);
 
     } catch (error) {
-        console.error('Error:', error);
-        debugLog('Error occurred:', error);
+        console.error('❌ Error:', error);
     } finally {
         hideLoader();
     }

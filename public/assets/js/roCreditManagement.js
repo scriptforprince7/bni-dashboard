@@ -20,6 +20,7 @@ function hideLoader() {
 
 let totalcreditamount = 0;
 let membersData = [];
+let chaptersData = []; // Added to store chapters data
 
 // Function to fetch member data
 async function fetchMembersData() {
@@ -31,10 +32,21 @@ async function fetchMembersData() {
     }
 }
 
+// Added new function to fetch chapters data
+async function fetchChaptersData() {
+    try {
+        const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+        chaptersData = await response.json();
+        console.log("📚 Fetched chapters data:", chaptersData);
+    } catch (error) {
+        console.error("❌ Error fetching chapters data:", error);
+    }
+}
+
 async function fetchAndFilterData() {
     try {
         showLoader();
-        await fetchMembersData();
+        await Promise.all([fetchMembersData(), fetchChaptersData()]); // Fetch both data in parallel
 
         // Fetch credit data
         const response = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
@@ -71,12 +83,18 @@ async function fetchAndFilterData() {
                     totalcreditamount += totalCreditAmount;
                     index += 1;
 
+                    // Find chapter name
+                    const chapter = chaptersData.find(ch => ch.chapter_id === entry.chapter_id);
+                    const chapterName = chapter ? chapter.chapter_name : 'Unknown Chapter';
+                    console.log(`🏢 Found chapter for ID ${entry.chapter_id}:`, chapterName);
+
                     const row = document.createElement('tr');
                     const formattedDate = new Date(entry.credit_date).toLocaleDateString('en-US');
                     row.innerHTML = `
                         <td><b>${index}</b></td>
                         <td><b>${formattedDate}</b></td>
-                        <td><b>${entry.credit_type}</b></td>
+                        <td><b>${entry.credit_type}</b></td>    
+                        <td><b>${chapterName}</b></td>
                         <td><b>
                             ${entries.length}
                             <button onclick="viewMembers(${JSON.stringify(entries.map(e => e.member_id))})" style="border:none;background:none;">

@@ -9,5 +9,6 @@ router.get('/credit-management', kittyController.creditManagement);
 router.get('/give-credit', kittyController.giveCredit);
 router.get('/member-write-off', kittyController.memberWriteOff);
 router.get('/member-wise-kitty', kittyController.memberWiseKitty);
+router.get('/member-write-off-management', kittyController.memberWriteOffManagement);
 
 module.exports = router;
