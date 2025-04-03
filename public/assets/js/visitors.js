@@ -414,10 +414,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         const getInductionStatus = (visitor) => {
             console.log('🔍 Checking induction status for visitor:', visitor);
             
-            // Parse verification JSON
             let verificationData = {};
             try {
-                verificationData = JSON.parse(visitor.verification || '{}');
+                // Remove extra quotes if they exist and parse
+                const cleanVerification = visitor.verification.replace(/^"/, '').replace(/"$/, '');
+                verificationData = JSON.parse(cleanVerification);
                 console.log('📋 Parsed verification data:', verificationData);
             } catch (error) {
                 console.error('❌ Error parsing verification data:', error);
@@ -438,7 +439,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Document verifications
                 aadhar_verified: verificationData.aadharcard === "true",
                 pan_verified: verificationData.pancard === "true",
-                gst_verified: verificationData.gst === "true"
+                gst_verified: verificationData.gstcertificate === "true"
             };
 
             console.log('✅ Checking conditions:', conditions);
@@ -705,7 +706,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
 
-        // Update renderVisitors function
+        // Define the simplified condition for showing buttons
+        const showUpdateButtons = (visitor) => {
+            return visitor.new_member_form && visitor.visitor_form && visitor.eoi_form;
+        };
+
+        // Function to render visitors
         async function renderVisitors(visitorsToShow) {
             // First filter visitors to only include those with completed payments
             const paidVisitors = await Promise.all(
@@ -864,7 +870,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     return `
                         <button class="btn btn-primary btn-sm approve-kit-btn" 
                                 onclick="handleInductionKitApprove(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                            Approve Induction Kit <i class="ti ti-check"></i>
+                            Yet to be applied
                         </button>
                     `;
                 }
@@ -947,7 +953,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 ? `<button class="btn btn-success btn-sm" disabled style="opacity: 0.7; cursor: not-allowed;">
                                     <i class="ri-checkbox-circle-line"></i> Entry Updated
                                    </button>`
-                                : isReadyForInduction && visitor.chapter_apply_kit === 'pending'
+                                : showUpdateButtons(visitor)
                                     ? `<button class="btn btn-primary btn-sm" onclick="handleVisitorEntry(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
                                          <i class="ri-user-add-line"></i> Update Entry
                                        </button>`
@@ -959,7 +965,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 ? `<button class="btn btn-success btn-sm" disabled style="opacity: 0.7; cursor: not-allowed;">
                                     <i class="ri-checkbox-circle-line"></i> Sheet Updated
                                    </button>`
-                                : isReadyForInduction && visitor.chapter_apply_kit === 'pending'
+                                : showUpdateButtons(visitor)
                                     ? `<button class="btn btn-primary btn-sm" onclick="handleGoogleSheet(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
                                          <i class="ri-google-line"></i> Update Sheet
                                        </button>`
@@ -1266,17 +1272,6 @@ async function handleVisitorEntry(visitor) {
     try {
         console.log('🔄 Processing Visitor Entry Update:', visitor);
 
-        // Check if chapter_apply_kit is pending
-        if (visitor.chapter_apply_kit !== 'pending') {
-            console.log('⚠️ Cannot update: chapter_apply_kit is not pending');
-            Swal.fire({
-                icon: 'warning',
-                title: 'Action Not Allowed',
-                text: 'Please wait for the Chapter to apply for Induction Kit first.'
-            });
-            return;
-        }
-
         // Make API call to update visitor
         const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
             method: 'PUT',
@@ -1326,17 +1321,6 @@ async function handleVisitorEntry(visitor) {
 async function handleGoogleSheet(visitor) {
     try {
         console.log('🔄 Processing Google Sheet Update:', visitor);
-
-        // Check if chapter_apply_kit is pending
-        if (visitor.chapter_apply_kit !== 'pending') {
-            console.log('⚠️ Cannot update: chapter_apply_kit is not pending');
-            Swal.fire({
-                icon: 'warning',
-                title: 'Action Not Allowed',
-                text: 'Please wait for the Chapter to apply for Induction Kit first.'
-            });
-            return;
-        }
 
         // Make API call to update visitor
         const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
