@@ -687,10 +687,10 @@ async function getPendingRequisitions() {
 
         console.log('📝 All Requisitions:', requisitions);
 
-        // Filter requisitions for current member with pending status
+        // Filter requisitions - only change this part
         const pendingRequisitions = requisitions.filter(req => 
             req.member_id === currentMemberId && 
-            req.approve_status === 'pending'
+            !(req.given_status === true && req.given_date)  // New condition
         );
 
         console.log('⏳ Pending Requisitions:', pendingRequisitions);
@@ -705,7 +705,7 @@ async function getPendingRequisitions() {
             console.error('❌ Count element not found');
         }
 
-        // Add click handler to the count button - using the correct ID
+        // Keep existing click handler for the modal
         const countButton = document.getElementById('pendingAccoladesBtn');
         if (countButton) {
             countButton.onclick = async () => {
@@ -719,7 +719,7 @@ async function getPendingRequisitions() {
                     return;
                 }
 
-                // Fetch accolades data
+                // Fetch accolades data for the modal
                 const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
                 const accolades = await accoladesResponse.json();
 
