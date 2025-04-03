@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interview Sheet</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * {
             margin: 0;
@@ -453,8 +454,11 @@
                 <button type="button" class="btn" onclick="window.location.href='/t/manage-visitors'">
                     Back
                 </button>
-                <button type="button" class="btn" onclick="window.print()">
-                    Print
+                <button type="button" class="btn" onclick="handleVerifyDetails()" style="background: #16a34a;">
+                    Verify Details
+                </button>
+                <button type="button" class="btn download" onclick="handlePrint()">
+                    Print / Download
                 </button>
             </div>
         </form>
@@ -595,6 +599,72 @@
                 `;
             }
         });
+
+        async function handleVerifyDetails() {
+            try {
+                console.log('�� Starting Interview Sheet verification process');
+                
+                // Get visitor_id from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const visitorId = urlParams.get('visitor_id');
+                console.log('📝 Visitor ID:', visitorId);
+
+                const result = await Swal.fire({
+                    title: 'Verify Details',
+                    text: 'Are you sure you want to verify the details in this form?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#dc2626',
+                    confirmButtonText: 'Yes, verify it!',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    // Make API call to update verification status
+                    console.log('🔄 Making API call to update verification status');
+                    
+                    const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            visitor_id: parseInt(visitorId),
+                            verification: {
+                                interview_sheet: "true"
+                            }
+                        })
+                    });
+
+                    console.log('📡 API Response Status:', response.status);
+                    const data = await response.json();
+                    console.log('📦 API Response Data:', data);
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to verify Interview Sheet');
+                    }
+
+                    // Show success message
+                    await Swal.fire({
+                        title: 'Verified!',
+                        text: 'Form details have been verified successfully.',
+                        icon: 'success',
+                        confirmButtonColor: '#16a34a'
+                    });
+
+                    // Redirect to manage-visitors page
+                    window.location.href = '/t/manage-visitors';
+                }
+            } catch (error) {
+                console.error('❌ Error verifying Interview Sheet:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'Failed to verify Interview Sheet. Please try again.'
+                });
+            }
+        }
     </script>
 </body>
 </html>

@@ -303,7 +303,75 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Only add View link for specified types when status is true
             if (status && type && visitor) {
                 let pageUrl;
+                let verificationStatus = false;
+
+                // Debug log for incoming data
+                console.log('🔍 Processing visitor:', visitor);
+                console.log('📋 Form type:', type);
+                console.log('📊 Verification data:', visitor.verification);
+
+                // Check verification status based on form type
+                if (visitor.verification) {
+                    try {
+                        const verificationData = typeof visitor.verification === 'string' 
+                            ? JSON.parse(visitor.verification) 
+                            : visitor.verification;
+                        
+                        console.log('✅ Parsed verification data:', verificationData);
+
+                        switch(type) {
+                            case 'eoi':
+                                verificationStatus = verificationData.eoi_form === "true";
+                                break;
+                            case 'member_application':
+                                verificationStatus = verificationData.member_application === "true";
+                                break;
+                            case 'interview':
+                                verificationStatus = verificationData.interview_sheet === "true";
+                                break;
+                            case 'commitment':
+                                verificationStatus = verificationData.commitment_sheet === "true";
+                                break;
+                            case 'inclusion':
+                                verificationStatus = verificationData.inclusion_exclusion_sheet === "true";
+                                break;
+                        }
+                        console.log('🎯 Verification status:', verificationStatus);
+                    } catch (error) {
+                        console.error('❌ Error parsing verification data:', error);
+                    }
+                }
+
                 switch(type) {
+                    case 'visitor':
+                        pageUrl = '/t/visitorForm';
+                        return `
+                            ${icon}<br>
+                            <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
+                               target="_blank" 
+                               class="view-sheet-link fw-medium text-success text-decoration-underline">
+                               View
+                            </a>
+                        `;
+                    case 'payment':
+                        // Only show view link if payment is completed
+                        const isPaid = await checkMembershipPayment(visitor.visitor_id);
+                        if (!isPaid) return icon;
+                        pageUrl = '/t/newmemberReceipt';
+                        return `
+                            ${icon}<br>
+                            <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
+                               target="_blank" 
+                               class="view-sheet-link fw-medium text-success text-decoration-underline">
+                               View
+                            </a>
+                        `;
+                    case 'eoi':
+                        pageUrl = '/t/eoi-form';
+                        break;
+                    case 'member_application':
+                        pageUrl = '/t/memberApplication';
+                        break;
                     case 'interview':
                         pageUrl = '/t/interview';
                         break;
@@ -313,22 +381,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     case 'inclusion':
                         pageUrl = '/t/inclusion';
                         break;
-                    case 'eoi':
-                        pageUrl = '/t/eoi-form';
-                        break;
-                    case 'visitor':
-                        pageUrl = '/t/visitorForm';
-                        break;
-                    case 'member_application':  // Add new case for member application
-                        pageUrl = '/t/memberApplication';
-                        break;
-                    case 'payment':
-                        // Only show view link if payment is completed
-                        const isPaid = await checkMembershipPayment(visitor.visitor_id);
-                        if (!isPaid) return icon;
-                        pageUrl = '/t/newmemberReceipt';
-                        break;
                 }
+
+                // For all other form types, show verification badge
+                console.log('🎨 Rendering with verification status:', verificationStatus);
                 return `
                     ${icon}<br>
                     <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
@@ -336,6 +392,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                        class="view-sheet-link fw-medium text-success text-decoration-underline">
                        View
                     </a>
+                    <div class="verification-badge" style="
+                        margin-top: 5px;
+                        padding: 2px 8px;
+                        background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                        color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                        border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        display: inline-block;
+                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                        ${verificationStatus ? 'Verified' : 'Not Verified'}
+                    </div>
                 `;
             }
             return icon;
@@ -343,14 +412,42 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Add function to check induction status
         const getInductionStatus = (visitor) => {
-            // Return true only if all seven forms are completed
-            return visitor.visitor_form && 
-                   visitor.eoi_form && 
-                   visitor.member_application_form &&  // Add member_application check
-                   visitor.new_member_form && 
-                   visitor.interview_sheet && 
-                   visitor.commitment_sheet && 
-                   visitor.inclusion_exclusion_sheet;
+            console.log('🔍 Checking induction status for visitor:', visitor);
+            
+            // Parse verification JSON
+            let verificationData = {};
+            try {
+                verificationData = JSON.parse(visitor.verification || '{}');
+                console.log('📋 Parsed verification data:', verificationData);
+            } catch (error) {
+                console.error('❌ Error parsing verification data:', error);
+                return false;
+            }
+
+            // Check all required conditions
+            const conditions = {
+                // Form completions
+                visitor_form: visitor.visitor_form,  // Added visitor form check
+                eoi_form: visitor.eoi_form && verificationData.eoi_form === "true",
+                member_application: visitor.member_application_form && verificationData.member_application === "true",
+                interview_sheet: visitor.interview_sheet && verificationData.interview_sheet === "true",
+                commitment_sheet: visitor.commitment_sheet && verificationData.commitment_sheet === "true",
+                inclusion_exclusion_sheet: visitor.inclusion_exclusion_sheet && verificationData.inclusion_exclusion_sheet === "true",
+                new_member_form: visitor.new_member_form,
+                
+                // Document verifications
+                aadhar_verified: verificationData.aadharcard === "true",
+                pan_verified: verificationData.pancard === "true",
+                gst_verified: verificationData.gst === "true"
+            };
+
+            console.log('✅ Checking conditions:', conditions);
+
+            // Return true only if all conditions are met
+            const isReady = Object.values(conditions).every(condition => condition === true);
+            console.log('🎯 Final induction status:', isReady);
+            
+            return isReady;
         };
 
         // Function to create induction status button/icon
@@ -642,14 +739,40 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log("📑 Member application data:", memberApplication);
                 
                 // Document display helper function
-                const createDocumentDisplay = (imgPath, docNumber, docType) => {
-                    console.log(`🖼️ Creating ${docType} display:`, { imgPath, docNumber });
+                const createDocumentDisplay = (imgPath, docNumber, docType, visitorId) => {
+                    console.log(`🖼️ Creating ${docType} display:`, { imgPath, docNumber, visitorId });
+                    
+                    // Parse verification status from visitor data
+                    let verificationStatus = false;
+                    try {
+                        const verificationData = JSON.parse(visitor.verification || '{}');
+                        const verificationKey = docType.toLowerCase().replace(/\s+/g, '_');
+                        verificationStatus = verificationData[verificationKey] === "true";
+                        console.log(`📋 Verification status for ${docType}:`, verificationStatus);
+                    } catch (error) {
+                        console.error('❌ Error parsing verification data:', error);
+                    }
                     
                     if (!imgPath) {
                         console.log(`⚠️ No ${docType} image found`);
                         return `
                             <div class="doc-container">
                                 <div class="no-doc">No ${docType} Found</div>
+                                <div class="verification-badge" style="
+                                    margin-top: 5px;
+                                    padding: 2px 8px;
+                                    background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                                    color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                                    border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                                    border-radius: 12px;
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    display: inline-block;
+                                    cursor: pointer;
+                                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);"
+                                    onclick="handleDocVerification('${docType}', event, ${visitorId})">
+                                    ${verificationStatus ? 'Verified' : 'Not Verified'}
+                                </div>
                             </div>`;
                     }
 
@@ -658,18 +781,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                                       docType === 'panCard' ? 'panCards' : 
                                       'gstCertificates';
                       
-                    const fullImageUrl = `https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}`;
-                    console.log(`🔗 Full image URL for ${docType}:`, fullImageUrl);
-                    
                     return `
                         <div class="doc-container">
-                            <img src="${fullImageUrl}" 
-                                 class="doc-preview" 
-                                 onclick="previewDocument(this.src, '${docType}')" 
-                                 alt="${docType} Preview"
-                                 onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
-                            />
+                            <a href="https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}" target="_blank">
+                                <img src="https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}" alt="${docType}" style="max-width: 100px;">
+                            </a>
                             <div class="doc-number">${docNumber || 'N/A'}</div>
+                            <div class="verification-badge" style="
+                                margin-top: 5px;
+                                padding: 2px 8px;
+                                background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                                color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                                border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                                border-radius: 12px;
+                                font-size: 11px;
+                                font-weight: 600;
+                                display: inline-block;
+                                cursor: pointer;
+                                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);"
+                                onclick="handleDocVerification('${docType}', event, ${visitorId})">
+                                ${verificationStatus ? 'Verified' : 'Not Verified'}
+                            </div>
                         </div>`;
                 };
 
@@ -790,21 +922,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                             ${createDocumentDisplay(
                                 memberApplication?.aadhar_card_img,
                                 memberApplication?.aadhar_card_number,
-                                'aadharCard'
+                                'aadharCard',
+                                visitor.visitor_id
                             )}
                         </td>
                         <td class="text-center">
                             ${createDocumentDisplay(
                                 memberApplication?.pan_card_img,
                                 memberApplication?.pan_card_number,
-                                'panCard'
+                                'panCard',
+                                visitor.visitor_id
                             )}
                         </td>
                         <td class="text-center">
                             ${createDocumentDisplay(
                                 memberApplication?.gst_certificate,
                                 visitor.visitor_gst,
-                                'gstCertificate'
+                                'gstCertificate',
+                                visitor.visitor_id
                             )}
                         </td>
                         <td class="text-center" data-entry-id="${visitor.visitor_id}">
@@ -1245,6 +1380,86 @@ async function handleGoogleSheet(visitor) {
             icon: 'error',
             title: 'Error!',
             text: error.message || 'Failed to update Google Sheet status'
+        });
+    }
+}
+
+// Add the verification handler function
+async function handleDocVerification(docType, event, visitorId) {
+    try {
+        console.log('🔄 Starting document verification process');
+        console.log('📄 Document Type:', docType);
+        console.log('👤 Visitor ID:', visitorId);
+
+        const result = await Swal.fire({
+            title: `Verify ${docType}`,
+            text: `Are you sure you want to verify this ${docType}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#dc2626',
+            confirmButtonText: 'Yes, verify it!',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (result.isConfirmed) {
+            console.log('✅ User confirmed verification');
+            
+            // Prepare verification object based on document type
+            const verificationKey = docType.toLowerCase().replace(/\s+/g, '_');
+            const verificationData = {
+                [verificationKey]: "true"
+            };
+            
+            console.log('📤 Making API call with data:', {
+                visitor_id: visitorId,
+                verification: verificationData
+            });
+
+            // Make API call to update verification status
+            const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    visitor_id: parseInt(visitorId),
+                    verification: verificationData
+                })
+            });
+
+            console.log('📡 API Response Status:', response.status);
+            const data = await response.json();
+            console.log('📦 API Response Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.error || `Failed to verify ${docType}`);
+            }
+
+            // Show success message
+            await Swal.fire({
+                title: 'Verified!',
+                text: `${docType} has been verified successfully.`,
+                icon: 'success',
+                confirmButtonColor: '#16a34a'
+            });
+
+            // Update the badge UI
+            console.log('🎨 Updating badge UI');
+            const badge = event.target;
+            badge.style.backgroundColor = '#dcfce7';
+            badge.style.color = '#16a34a';
+            badge.style.borderColor = '#86efac';
+            badge.textContent = 'Verified';
+            
+            console.log('✨ Document verification process completed successfully');
+        }
+    } catch (error) {
+        console.error('❌ Error in document verification:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || `Failed to verify ${docType}. Please try again.`
         });
     }
 }

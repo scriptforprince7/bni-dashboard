@@ -70,8 +70,12 @@ function displayAccolades(accolades) {
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="ms-2">
-                            <p class="fw-semibold mb-0 d-flex align-items-center">
+                            <p class="fw-semibold mb-0 d-flex align-items-center gap-2">
                                 <a href="#">${accolade.accolade_name}</a>
+                                <span class="badge rounded-pill ${accolade.accolade_type?.toLowerCase() === 'global' ? 'bg-primary-transparent' : 'bg-danger-transparent'}" 
+                                      style="font-size: 11px; padding: 4px 8px; border-radius: 12px;">
+                                    ${accolade.accolade_type || 'N/A'}
+                                </span>
                             </p>
                         </div>
                     </div>
@@ -96,15 +100,6 @@ function displayAccolades(accolades) {
                         <div class="ms-2">
                             <p class="fw-semibold mb-0 d-flex align-items-center">
                                 <a href="#">${accolade.item_type || 'N/A'}</a>
-                            </p>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="ms-2">
-                            <p class="fw-semibold mb-0 d-flex align-items-center">
-                                <a href="#">${accolade.accolade_type || 'N/A'}</a>
                             </p>
                         </div>
                     </div>
