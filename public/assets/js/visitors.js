@@ -869,7 +869,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                     return `
                         <button class="btn btn-primary btn-sm approve-kit-btn" 
-                                onclick="handleInductionKitApprove(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                >
                             Yet to be applied
                         </button>
                     `;
