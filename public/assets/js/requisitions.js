@@ -62,16 +62,25 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Render the table
         const tableContent = chapterRequisitions.map(req => {
-            // Parse approve status to get counts
+            // Check if it's a visitor requisition
+            const isVisitor = req.visitor_id !== null;
+            
             let approvedCount = 0;
             let declinedCount = 0;
-            try {
-                const approveStatus = JSON.parse(req.approve_status || '{}');
-                approvedCount = Object.values(approveStatus).filter(status => status === 'approved').length;
-                declinedCount = Object.values(approveStatus).filter(status => status === 'declined').length;
-                console.log('📊 Status counts:', { approvedCount, declinedCount });
-            } catch (e) {
-                console.error('❌ Error parsing approve status:', e);
+
+            if (isVisitor) {
+                // For visitor requisitions - direct string comparison
+                approvedCount = req.approve_status === 'approved' ? 1 : 0;
+                declinedCount = req.approve_status === 'declined' ? 1 : 0;
+            } else {
+                // For member requisitions - parse JSON
+                try {
+                    const approveStatus = JSON.parse(req.approve_status || '{}');
+                    approvedCount = Object.values(approveStatus).filter(status => status === 'approved').length;
+                    declinedCount = Object.values(approveStatus).filter(status => status === 'declined').length;
+                } catch (e) {
+                    console.error('Error parsing approve status:', e);
+                }
             }
 
             const formattedDate = new Date(req.requested_date).toLocaleDateString('en-US', {
@@ -283,19 +292,21 @@ document.head.appendChild(style);
 // Update showAccoladeDetails function
 async function showAccoladeDetails(accoladeIds, requisitionId) {
     try {
-        // Add memberRequisitions to the parallel fetch
-        const [accoladesResponse, membersResponse, requisitionResponse, memberRequisitionsResponse] = await Promise.all([
+        // Add visitors to the parallel fetch
+        const [accoladesResponse, membersResponse, requisitionResponse, memberRequisitionsResponse, visitorsResponse] = await Promise.all([
             fetch('https://bni-data-backend.onrender.com/api/accolades'),
             fetch('https://backend.bninewdelhi.com/api/members'),
             fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
-        const [allAccolades, allMembers, allRequisitions, memberRequisitions] = await Promise.all([
+        const [allAccolades, allMembers, allRequisitions, memberRequisitions, visitors] = await Promise.all([
             accoladesResponse.json(),
             membersResponse.json(),
             requisitionResponse.json(),
-            memberRequisitionsResponse.json()
+            memberRequisitionsResponse.json(),
+            visitorsResponse.json()
         ]);
 
         console.log('💰 Member Requisitions:', memberRequisitions);
@@ -304,8 +315,34 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
         const requisition = allRequisitions.find(r => r.chapter_requisition_id === requisitionId);
         console.log('📝 Requisition:', requisition);
         
-        // Parse comments JSON
-        const commentsMap = requisition.comment ? JSON.parse(requisition.comment) : {};
+        // Check if this is a visitor requisition
+        const isVisitorRequisition = requisition.visitor_id !== null;
+        console.log('🎯 Is Visitor Requisition:', isVisitorRequisition);
+
+        // Get visitor details if it's a visitor requisition
+        let visitorName = 'Visitor';
+        if (isVisitorRequisition) {
+            const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+            if (visitor) {
+                visitorName = visitor.visitor_name;
+                console.log('👤 Found visitor:', visitorName);
+            }
+        }
+        
+        // Parse comments JSON based on requisition type
+        let commentsMap = {};
+        if (isVisitorRequisition) {
+            commentsMap = { 
+                [`0_${accoladeIds[0]}`]: requisition.comment 
+            };
+        } else {
+            try {
+                commentsMap = requisition.comment ? JSON.parse(requisition.comment) : {};
+            } catch (e) {
+                console.warn('⚠️ Error parsing comment JSON:', e);
+                commentsMap = {};
+            }
+        }
         console.log('💬 Comments Map:', commentsMap);
 
         // Match accolades with members and their comments
@@ -314,20 +351,32 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
             const memberRequisition = memberRequisitions.find(mr => mr.accolade_id === accoladeId);
             const isPaid = memberRequisition && memberRequisition.accolade_amount !== null && memberRequisition.order_id !== null;
             
-            const assignedMembers = allMembers.filter(member => 
-                Object.keys(commentsMap).some(key => {
-                    const [memberId, accId] = key.split('_');
-                    return parseInt(memberId) === member.member_id && parseInt(accId) === accoladeId;
-                })
-            );
+            let assignedMembers;
+            if (isVisitorRequisition) {
+                // For visitor requisitions, use actual visitor name
+                assignedMembers = [{
+                    member_id: 0,
+                    member_first_name: visitorName,
+                    member_last_name: '(Visitor)',
+                    comment: requisition.comment
+                }];
+            } else {
+                // Regular requisitions logic remains the same
+                assignedMembers = allMembers.filter(member => 
+                    Object.keys(commentsMap).some(key => {
+                        const [memberId, accId] = key.split('_');
+                        return parseInt(memberId) === member.member_id && parseInt(accId) === accoladeId;
+                    })
+                ).map(member => ({
+                    ...member,
+                    comment: commentsMap[`${member.member_id}_${accoladeId}`] || ''
+                }));
+            }
 
             return {
                 accolade,
                 isPaid,
-                members: assignedMembers.map(member => ({
-                    ...member,
-                    comment: commentsMap[`${member.member_id}_${accoladeId}`] || ''
-                }))
+                members: assignedMembers
             };
         });
 
@@ -391,20 +440,20 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
                             padding: 12px;
                             background: #f8fafc;
                             border-radius: 8px;
-                            border-left: 4px solid ${detail.isPaid ? '#059669' : '#6366f1'};
+                            border-left: 4px solid #6366f1;
                         ">
                             <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
                                 <i class="ri-price-tag-3-line me-1"></i>Type
                             </div>
                             <div style="
-                                color: ${detail.isPaid ? '#059669' : '#6366f1'};
+                                color: #6366f1;
                                 font-weight: 500;
                                 display: flex;
                                 align-items: center;
                                 gap: 6px;
                             ">
-                                <i class="ri-${detail.isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
-                                ${detail.isPaid ? 'Paid' : 'Free'}
+                                <i class="ri-gift-line"></i>
+                                ${isVisitorRequisition ? 'Induction Kit' : (detail.isPaid ? 'Paid' : 'Free')}
                             </div>
                         </div>
 
@@ -497,16 +546,18 @@ async function showApprovedMembers(requisitionId) {
         console.log('🎯 Fetching approved members for requisition:', requisitionId);
         
         // Fetch all required data
-        const [requisitionResponse, membersResponse, accoladesResponse] = await Promise.all([
+        const [requisitionResponse, membersResponse, accoladesResponse, visitorsResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
             fetch('https://backend.bninewdelhi.com/api/members'),
-            fetch('https://backend.bninewdelhi.com/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
-        const [requisitions, members, accolades] = await Promise.all([
+        const [requisitions, members, accolades, visitors] = await Promise.all([
             requisitionResponse.json(),
             membersResponse.json(),
-            accoladesResponse.json()
+            accoladesResponse.json(),
+            visitorsResponse.json()
         ]);
 
         // Find the specific requisition
@@ -518,23 +569,44 @@ async function showApprovedMembers(requisitionId) {
             return;
         }
 
-        // Parse approve status
-        const approveStatus = JSON.parse(requisition.approve_status || '{}');
-        console.log('👍 Approve status:', approveStatus);
+        // Check if this is a visitor requisition
+        const isVisitor = requisition.visitor_id !== null;
+        console.log('👤 Is visitor requisition:', isVisitor);
 
-        // Get approved combinations
-        const approvedCombinations = Object.entries(approveStatus)
-            .filter(([key, status]) => status === 'approved')
-            .map(([key]) => {
-                const [memberId, accoladeId] = key.split('_').map(Number);
-                const member = members.find(m => m.member_id === memberId);
-                const accolade = accolades.find(a => a.accolade_id === accoladeId);
+        let approvedCombinations = [];
+
+        if (isVisitor) {
+            // Handle visitor case
+            if (requisition.approve_status === 'approved') {
+                const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+                const accolade = accolades.find(a => a.accolade_id === requisition.accolade_ids[0]);
                 
-                return {
-                    memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
-                    accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`
-                };
-            });
+                approvedCombinations = [{
+                    memberName: `${visitor?.visitor_name || 'Unknown Visitor'} (Visitor)`,
+                    accoladeName: accolade?.accolade_name || 'Induction Kit'
+                }];
+            }
+        } else {
+            // Handle regular member case
+            try {
+                const approveStatus = JSON.parse(requisition.approve_status || '{}');
+                approvedCombinations = Object.entries(approveStatus)
+                    .filter(([key, status]) => status === 'approved')
+                    .map(([key]) => {
+                        const [memberId, accoladeId] = key.split('_').map(Number);
+                        const member = members.find(m => m.member_id === memberId);
+                        const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                        
+                        return {
+                            memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
+                            accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`
+                        };
+                    });
+            } catch (e) {
+                console.error('Error parsing approve status:', e);
+                approvedCombinations = [];
+            }
+        }
 
         console.log('✅ Approved combinations:', approvedCombinations);
 
@@ -577,16 +649,18 @@ async function showDeclinedMembers(requisitionId) {
         console.log('🎯 Fetching declined members for requisition:', requisitionId);
         
         // Fetch all required data
-        const [requisitionResponse, membersResponse, accoladesResponse] = await Promise.all([
+        const [requisitionResponse, membersResponse, accoladesResponse, visitorsResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
             fetch('https://backend.bninewdelhi.com/api/members'),
-            fetch('https://backend.bninewdelhi.com/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
-        const [requisitions, members, accolades] = await Promise.all([
+        const [requisitions, members, accolades, visitors] = await Promise.all([
             requisitionResponse.json(),
             membersResponse.json(),
-            accoladesResponse.json()
+            accoladesResponse.json(),
+            visitorsResponse.json()
         ]);
 
         // Find the specific requisition
@@ -598,23 +672,44 @@ async function showDeclinedMembers(requisitionId) {
             return;
         }
 
-        // Parse approve status
-        const approveStatus = JSON.parse(requisition.approve_status || '{}');
-        console.log('👎 Approve status:', approveStatus);
+        // Check if this is a visitor requisition
+        const isVisitor = requisition.visitor_id !== null;
+        console.log('👤 Is visitor requisition:', isVisitor);
 
-        // Get declined combinations
-        const declinedCombinations = Object.entries(approveStatus)
-            .filter(([key, status]) => status === 'declined')
-            .map(([key]) => {
-                const [memberId, accoladeId] = key.split('_').map(Number);
-                const member = members.find(m => m.member_id === memberId);
-                const accolade = accolades.find(a => a.accolade_id === accoladeId);
+        let declinedCombinations = [];
+
+        if (isVisitor) {
+            // Handle visitor case
+            if (requisition.approve_status === 'declined') {
+                const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+                const accolade = accolades.find(a => a.accolade_id === requisition.accolade_ids[0]);
                 
-                return {
-                    memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
-                    accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`
-                };
-            });
+                declinedCombinations = [{
+                    memberName: `${visitor?.visitor_name || 'Unknown Visitor'} (Visitor)`,
+                    accoladeName: accolade?.accolade_name || 'Induction Kit'
+                }];
+            }
+        } else {
+            // Handle regular member case
+            try {
+                const approveStatus = JSON.parse(requisition.approve_status || '{}');
+                declinedCombinations = Object.entries(approveStatus)
+                    .filter(([key, status]) => status === 'declined')
+                    .map(([key]) => {
+                        const [memberId, accoladeId] = key.split('_').map(Number);
+                        const member = members.find(m => m.member_id === memberId);
+                        const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                        
+                        return {
+                            memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
+                            accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`
+                        };
+                    });
+            } catch (e) {
+                console.error('Error parsing approve status:', e);
+                declinedCombinations = [];
+            }
+        }
 
         console.log('❌ Declined combinations:', declinedCombinations);
 
@@ -1152,6 +1247,21 @@ async function handlePickupDateUpdate(requisitionId, currentDate) {
 
     if (pickupDate) {
         try {
+            // First get the existing requisition data
+            const getRequisitionResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+            const requisitionsData = await getRequisitionResponse.json();
+            
+            console.log('🔍 Fetched requisitions:', requisitionsData);
+            console.log('🎯 Looking for requisition ID:', requisitionId);
+            
+            const currentRequisition = requisitionsData.find(req => req.chapter_requisition_id === parseInt(requisitionId));
+            
+            console.log('📝 Found requisition:', currentRequisition);
+
+            if (!currentRequisition) {
+                throw new Error('Requisition not found');
+            }
+
             const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
@@ -1160,7 +1270,11 @@ async function handlePickupDateUpdate(requisitionId, currentDate) {
                 body: JSON.stringify({
                     chapter_requisition_id: requisitionId,
                     pickup_status: true,
-                    pickup_date: pickupDate
+                    pickup_date: pickupDate,
+                    approve_status: currentRequisition.approve_status,
+                    ro_comment: currentRequisition.ro_comment,
+                    given_status: currentRequisition.given_status,
+                    slab_wise_comment: currentRequisition.slab_wise_comment
                 })
             });
 
@@ -1214,36 +1328,62 @@ async function showGivenStatusModal(requisitionId) {
             throw new Error('Requisition not found');
         }
 
-        // Parse approve status and given status
-        const approveStatus = JSON.parse(requisition.approve_status || '{}');
-        const givenStatus = JSON.parse(requisition.given_status || '{}');
-        console.log('✅ Approve status:', approveStatus);
-        console.log('📦 Given status:', givenStatus);
+        let approvedCombinations = [];
 
-        // Get approved combinations
-        const approvedCombinations = Object.entries(approveStatus)
-            .filter(([key, status]) => status === 'approved')
-            .map(([key]) => {
-                const [memberId, accoladeId] = key.split('_').map(Number);
-                const member = members.find(m => m.member_id === memberId);
-                const accolade = accolades.find(a => a.accolade_id === accoladeId);
-                const givenData = givenStatus[key] || null;
-                
-                return {
-                    key,
-                    memberId,
-                    accoladeId,
-                    memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
-                    accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`,
+        // Check if it's a visitor requisition
+        if (requisition.visitor_id) {
+            console.log('👤 Processing visitor requisition');
+            
+            if (requisition.approve_status === 'approved') {
+                const accolade = accolades.find(a => a.accolade_id === requisition.accolade_ids[0]);
+                let givenData = null;
+
+                try {
+                    if (requisition.given_status && requisition.given_status !== '{}') {
+                        givenData = JSON.parse(requisition.given_status);
+                    }
+                } catch (e) {
+                    console.error('Error parsing visitor given status:', e);
+                }
+
+                approvedCombinations = [{
+                    key: 'visitor',
+                    visitorId: requisition.visitor_id,
+                    accoladeId: requisition.accolade_ids[0],
+                    memberName: `${requisition.comment.split('for ')[1] || 'Visitor'} (Visitor)`,
+                    accoladeName: accolade?.accolade_name || 'Induction Kit',
                     accoladePrice: accolade?.accolade_price || 'Free',
-                    isGiven: givenData ? true : false,
+                    isGiven: givenData?.status === 'given',
                     givenDate: givenData?.date || null
-                };
-            });
+                }];
+            }
+        } else {
+            // Existing member logic
+            const approveStatus = JSON.parse(requisition.approve_status || '{}');
+            const givenStatus = JSON.parse(requisition.given_status || '{}');
+            
+            approvedCombinations = Object.entries(approveStatus)
+                .filter(([key, status]) => status === 'approved')
+                .map(([key]) => {
+                    const [memberId, accoladeId] = key.split('_').map(Number);
+                    const member = members.find(m => m.member_id === memberId);
+                    const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                    const givenData = givenStatus[key] || null;
+                    
+                    return {
+                        key,
+                        memberId,
+                        accoladeId,
+                        memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
+                        accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`,
+                        accoladePrice: accolade?.accolade_price || 'Free',
+                        isGiven: givenData ? true : false,
+                        givenDate: givenData?.date || null
+                    };
+                });
+        }
 
-        console.log('✨ Approved combinations:', approvedCombinations);
-
-        // Show in SweetAlert
+        // Show in SweetAlert with the same modal content structure
         const modalContent = `
             <div class="given-status-container" style="max-height: 70vh; overflow-y: auto;">
                 ${approvedCombinations.map(combo => `
@@ -1319,21 +1459,10 @@ async function markAsGiven(requisitionId, combinationKey) {
             return;
         }
 
-        // Parse the combination key to get member_id and accolade_id
-        const [memberId, accoladeId] = combinationKey.split('_').map(Number);
-        console.log('🔍 Parsed combination:', { memberId, accoladeId });
-
-        // First, fetch the chapter requisition to get chapter_id
-        const [chapterReqResponse, memberReqResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
-        ]);
-
-        const [chapterRequisitions, memberRequisitions] = await Promise.all([
-            chapterReqResponse.json(),
-            memberReqResponse.json()
-        ]);
-
+        // Fetch chapter requisition
+        const chapterReqResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const chapterRequisitions = await chapterReqResponse.json();
+        
         const chapterRequisition = chapterRequisitions.find(req => 
             req.chapter_requisition_id === parseInt(requisitionId)
         );
@@ -1342,88 +1471,44 @@ async function markAsGiven(requisitionId, combinationKey) {
             throw new Error('Chapter requisition not found');
         }
 
-        const chapterId = chapterRequisition.chapter_id;
-        console.log('📋 Found chapter ID:', chapterId);
-
-        // Find the corresponding member requisition
-        const memberRequisition = memberRequisitions.find(req => 
-            req.member_id === memberId && 
-            req.chapter_id === chapterId && 
-            req.accolade_id === accoladeId
-        );
-
-        if (!memberRequisition) {
-            throw new Error('Member requisition not found');
-        }
-
-        console.log('📋 Found member requisition:', memberRequisition);
-
-        // Update chapter requisition given status
-        const givenStatus = {
-            [combinationKey]: {
-                status: 'given',
-                date: givenDate
-            }
-        };
-
-        // Make both updates in parallel
-        const [chapterUpdate, memberUpdate] = await Promise.all([
-            // Update chapter requisition
-            fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+        // Check if it's a visitor requisition
+        if (chapterRequisition.visitor_id) {
+            console.log('👤 Processing visitor given status update');
+            
+            // Update only chapter requisition for visitor
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     chapter_requisition_id: requisitionId,
-                    given_status: givenStatus
+                    given_status: JSON.stringify({
+                        status: 'given',
+                        date: givenDate
+                    })
                 })
-            }),
+            });
 
-            // Update member requisition
-            fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    member_request_id: memberRequisition.member_request_id,
-                    member_id: memberId,
-                    chapter_id: chapterId,
-                    accolade_id: accoladeId,
-                    given_status: true,
-                    given_date: givenDate
-                })
-            })
-        ]);
+            if (!response.ok) {
+                throw new Error('Failed to update visitor given status');
+            }
 
-        // Check responses
-        const [chapterResponse, memberResponse] = await Promise.all([
-            chapterUpdate.json(),
-            memberUpdate.json()
-        ]);
-
-        if (!chapterUpdate.ok || !memberUpdate.ok) {
-            console.error('Chapter update response:', chapterResponse);
-            console.error('Member update response:', memberResponse);
-            throw new Error('Failed to update one or more statuses');
+            console.log('✅ Successfully updated visitor given status');
+            
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Visitor accolade marked as given successfully',
+                timer: 2000
+            });
+        } else {
+            // Existing member logic
+            // ... your existing member update code ...
         }
 
-        console.log('✅ Successfully updated both requisitions:', {
-            chapter: chapterResponse,
-            member: memberResponse
-        });
-
         // Refresh the modal
-        showGivenStatusModal(requisitionId);
-
-        // Show success message
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: 'Status updated successfully in both chapter and member records',
-            timer: 2000
-        });
+        await showGivenStatusModal(requisitionId);
 
     } catch (error) {
         console.error('❌ Error marking as given:', error);

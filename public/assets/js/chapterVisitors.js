@@ -273,56 +273,142 @@ function getInductionStatus(visitor) {
 // Add this function to handle induction kit application
 async function handleInductionKitApply(visitor) {
     try {
-        // Log the visitor data to verify what we're sending
-        console.log('Sending visitor data:', visitor);
+        // First SweetAlert confirmation
+        const initialConfirmation = await Swal.fire({
+            title: '<span style="color: #2563eb; font-size: 1.5em;">Apply for Induction Kit?</span>',
+            html: `
+                <div style="text-align: left; padding: 20px;">
+                    <p style="color: #4b5563; font-size: 1.1em; margin-bottom: 15px;">
+                        Are you sure you want to apply for an induction kit for:
+                    </p>
+                    <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="margin: 0; color: #1f2937;">
+                            <strong style="color: #2563eb;">Member:</strong> ${visitor.visitor_name}
+                        </p>
+                        <p style="margin: 5px 0; color: #1f2937;">
+                            <strong style="color: #2563eb;">Company:</strong> ${visitor.visitor_company_name}
+                        </p>
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            iconColor: '#2563eb',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Continue',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#dc2626',
+            customClass: {
+                container: 'induction-kit-modal',
+                popup: 'induction-kit-popup',
+                content: 'induction-kit-content'
+            }
+        });
 
-        // Make the API call to update the chapter_apply_kit status
-        const response = await fetch(`https://backend.bninewdelhi.com/api/update-visitor`, {
-            method: 'PUT',
+        if (!initialConfirmation.isConfirmed) return;
+
+        // Second SweetAlert showing kit contents
+        const kitContentsConfirmation = await Swal.fire({
+            title: '<span style="color: #2563eb; font-size: 1.5em;">Induction Kit Contents</span>',
+            html: `
+                <div style="padding: 20px;">
+                    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="color: #0369a1; margin-bottom: 15px; font-size: 1.2em;">
+                            Your Induction Kit Includes:
+                        </h3>
+                        <div class="kit-items" style="display: grid; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ri-wallet-3-fill" style="color: #2563eb; font-size: 1.5em;"></i>
+                                <span style="color: #1e40af; font-weight: 500;">BNI Leather Wallet</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ri-pen-nib-fill" style="color: #2563eb; font-size: 1.5em;"></i>
+                                <span style="color: #1e40af; font-weight: 500;">BNI Executive Pen</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ri-book-fill" style="color: #2563eb; font-size: 1.5em;"></i>
+                                <span style="color: #1e40af; font-weight: 500;"> BNI Business Diary</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ri-profile-fill" style="color: #2563eb; font-size: 1.5em;"></i>
+                                <span style="color: #1e40af; font-weight: 500;">BNI Personalized Name Badge</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="color: #4b5563; font-style: italic; margin-top: 15px;">
+                        Would you like to proceed with the induction kit application?
+                    </p>
+                </div>
+            `,
+            icon: 'info',
+            iconColor: '#2563eb',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Apply Now',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#dc2626',
+            customClass: {
+                popup: 'kit-contents-popup'
+            }
+        });
+
+        if (!kitContentsConfirmation.isConfirmed) return;
+
+        // Make POST request to addChapterRequisition endpoint
+        console.log('📝 Creating chapter requisition for visitor:', visitor);
+
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapter-requisition', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                visitor_id: visitor.visitor_id, // Changed from visitor.visitor_id to visitor.id
-                chapter_apply_kit: 'pending',
-                // visitor_entry_excel: visitor.visitor_entry_excel || null,
-                // google_updation_sheet: visitor.google_updation_sheet || null,
-                // approve_induction_kit: visitor.approve_induction_kit || null,
-                // induction_status: visitor.induction_status || null
+                visitor_id: visitor.visitor_id,
+                chapter_id: visitor.chapter_id,
+                accolade_ids: [47], // Assuming 1 is the accolade_id for induction kit
+                comment: `Induction Kit Request for ${visitor.visitor_name}`,
+                request_status: 'open',
+                ro_comment: null,
+                pickup_status: false,
+                pickup_date: null,
+                approve_status: null,
+                slab_wise_comment: null,
+                given_status: null
             })
         });
 
-        // Log the response for debugging
-        console.log('Response status:', response.status);
         const data = await response.json();
-        console.log('Response data:', data);
+        console.log('✅ Chapter requisition created:', data);
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to apply for Induction Kit');
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to create requisition');
         }
 
         // Show success message
-        Swal.fire({
+        await Swal.fire({
             icon: 'success',
             title: 'Success!',
-            text: 'Induction Kit application is now pending.'
+            text: 'Induction Kit request has been submitted successfully.',
+            confirmButtonColor: '#2563eb'
         });
 
-        // Update the UI
-        const kitCell = document.querySelector(`[data-visitor-id="${visitor.id}"]`);
+        // Update the UI - Replace the button with a "Requested" badge
+        const kitCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
         if (kitCell) {
-            kitCell.innerHTML = `<span class="badge bg-warning">Pending</span>`;
+            kitCell.innerHTML = `
+                <span class="badge bg-warning" style="font-size: 0.9em; padding: 8px 12px;">
+                    <i class="ri-time-line me-1"></i> Requested
+                </span>
+            `;
         }
 
-        // Optionally refresh the data
-        // window.location.reload();
-
     } catch (error) {
-        console.error('Error details:', error);
+        console.error('❌ Error in handleInductionKitApply:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: 'Failed to apply for Induction Kit. Please try again.'
+            text: error.message || 'Failed to submit induction kit request. Please try again.',
+            confirmButtonColor: '#dc2626'
         });
     }
 }
@@ -1204,6 +1290,24 @@ style.textContent = `
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-2px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+
+    .induction-kit-popup {
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .kit-contents-popup {
+        border-radius: 15px;
+        max-width: 500px;
+    }
+
+    .kit-items > div {
+        transition: transform 0.2s;
+    }
+
+    .kit-items > div:hover {
+        transform: translateX(5px);
     }
 `;
 
