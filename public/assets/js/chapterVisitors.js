@@ -630,6 +630,30 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     try {
         showLoader();
+        console.log('------------------------------------------------------');
+        console.log('🚀 Starting Chapter Visitors Fetch Process');
+
+        // First try to get user email
+        const userEmail = getUserEmail();
+        const loginType = getUserLoginType();
+        console.log('👤 User Details:', { email: userEmail, loginType: loginType });
+
+        // Initialize variables for chapter identification
+        let chapterEmail, chapterId;
+
+        if (userEmail) {
+            chapterEmail = userEmail;
+            console.log('📧 Using user email:', chapterEmail);
+        } else if (loginType === 'ro_admin') {
+            // For RO admin, get chapter details from localStorage
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            chapterId = localStorage.getItem('current_chapter_id');
+            console.log('🔐 RO Admin chapter details:', { chapterEmail, chapterId });
+        }
+
+        if (!chapterEmail && !chapterId) {
+            throw new Error('No valid chapter identification found');
+        }
 
         // Fetch all required data
         const [visitorsResponse, regionsResponse, chaptersResponse] = await Promise.all([
@@ -638,15 +662,23 @@ document.addEventListener('DOMContentLoaded', async function() {
             fetch('https://backend.bninewdelhi.com/api/chapters')
         ]);
 
-        const visitors = await visitorsResponse.json();
+        const allVisitors = await visitorsResponse.json();
         regions = await regionsResponse.json();
         chapters = await chaptersResponse.json();
 
-        console.log('Fetched Data:', {
-            visitors: visitors,
-            regions: regions,
-            chapters: chapters
+        // Filter visitors based on chapter
+        const visitors = allVisitors.filter(visitor => {
+            if (chapterId) {
+                return visitor.chapter_id === parseInt(chapterId);
+            } else {
+                const chapter = chapters.find(c => c.email_id === chapterEmail);
+                return visitor.chapter_id === chapter?.chapter_id;
+            }
         });
+
+        console.log('------------------------------------------------------');
+        console.log('✅ Filtered chapter visitors:', visitors);
+        console.log(`📊 Total visitors for chapter: ${visitors.length}`);
 
         // Function to format date
         const formatDate = (dateString) => {
