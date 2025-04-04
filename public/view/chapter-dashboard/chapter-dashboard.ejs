@@ -7,12 +7,6 @@
   // Get login type from token
   const userType = getUserLoginType();
   console.log('Current User Type:', userType);
-
-
-  const loginChapter = getUserEmail();
-  console.log('current email id', loginChapter);
-
-
   
   // Prepare button HTML
 
@@ -2875,7 +2869,7 @@
                 
                 <!-- <div class="col-xxl-4 col-xl-6">
                   <div class="card custom-card overflow-hidden">
-                    <div class="card-header pb-0 justify-content-between">
+                    <div class="card-header justify-content-between">
                       <div class="card-title">Order Statistics</div>
                       <div class="dropdown">
                         <a
@@ -4010,26 +4004,65 @@
       <script>
       async function fetchTransactions() {
           try {
-              // Fetch orders first
-              const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
-              const orders = await ordersResponse.json();
+              console.log('------------------------------------------------------');
+              console.log('🚀 Starting Transactions Fetch Process');
 
-              // Fetch transactions
-              const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+              // Get chapter email and find corresponding chapter_id
+              const userEmail = getUserEmail();
+              const loginType = getUserLoginType();
+              console.log('👤 User Details:', { email: userEmail, loginType: loginType });
+
+              // Initialize chapterEmail variable
+              let chapterEmail = userEmail;
+
+              // If ro_admin, get chapter email from localStorage
+              if (loginType === 'ro_admin') {
+                  chapterEmail = localStorage.getItem('current_chapter_email');
+                  console.log('🔐 RO Admin using chapter email:', chapterEmail);
+              }
+
+              // Fetch chapters to get chapter_id
+              const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+              const chapters = await chaptersResponse.json();
+              
+              // Find chapter by email
+              const userChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+              console.log('🏢 Found chapter:', userChapter);
+
+              if (!userChapter) {
+                  throw new Error('Chapter not found');
+              }
+
+              // Fetch orders and transactions
+              const [ordersResponse, transactionsResponse] = await Promise.all([
+                  fetch('https://backend.bninewdelhi.com/api/allOrders'),
+                  fetch('https://backend.bninewdelhi.com/api/allTransactions')
+              ]);
+
+              const orders = await ordersResponse.json();
               const transactions = await transactionsResponse.json();
+
+              // Filter orders by chapter_id
+              const chapterOrders = orders.filter(order => order.chapter_id === userChapter.chapter_id);
+              console.log('📦 Chapter orders:', chapterOrders);
 
               // Get table body element
               const tableBody = document.getElementById('transactionsTableBody');
               tableBody.innerHTML = ''; // Clear existing content
 
-              // Process and display the latest 5 transactions
-              const latestTransactions = transactions
+              // Filter and display the latest 5 transactions for this chapter
+              const chapterTransactions = transactions
+                  .filter(transaction => {
+                      const order = chapterOrders.find(o => o.order_id === transaction.order_id);
+                      return order !== undefined;
+                  })
                   .sort((a, b) => new Date(b.payment_time) - new Date(a.payment_time))
                   .slice(0, 5);
 
-              latestTransactions.forEach(transaction => {
-                  // Find corresponding order
-                  const order = orders.find(o => o.order_id === transaction.order_id);
+              console.log('💰 Filtered chapter transactions:', chapterTransactions);
+
+              chapterTransactions.forEach(transaction => {
+                  const order = chapterOrders.find(o => o.order_id === transaction.order_id);
                   const memberName = order ? order.member_name || 'Unknown Member' : 'Unknown Member';
 
                   const row = `
@@ -4049,8 +4082,13 @@
                   `;
                   tableBody.innerHTML += row;
               });
+
+              console.log('------------------------------------------------------');
+              console.log('✅ Transaction display complete');
+
           } catch (error) {
-              console.error('Error fetching transaction data:', error);
+              console.error('------------------------------------------------------');
+              console.error('❌ Error fetching transaction data:', error);
           }
       }
 
