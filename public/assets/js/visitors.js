@@ -869,7 +869,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                     return `
                         <button class="btn btn-primary btn-sm approve-kit-btn" 
-                                >
+                                onclick="handleInductionKitApproval(${visitor.visitor_id}, ${visitor.chapter_id})"
+                                type="button">
                             Yet to be applied
                         </button>
                     `;
@@ -1215,35 +1216,62 @@ function previewDocument(src, title) {
 }
 
 // Add this function to handle the approval process
-async function handleInductionKitApprove(visitor) {
-    try {
-        console.log('🔄 Processing Induction Kit Approval:', visitor);
+async function handleInductionKitApproval(visitorId, chapterId) {
+    console.log('------------------------------------------------------');
+    console.log('🚀 Starting Induction Kit Approval Process');
+    console.log('Visitor ID:', visitorId);
+    console.log('Chapter ID:', chapterId);
 
-        // Make API call to update visitor
-        const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+    try {
+        // Fetch chapter requisitions
+        const response = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const requisitions = await response.json();
+        console.log('------------------------------------------------------');
+        console.log('📦 All Requisitions:', requisitions);
+
+        // Find matching requisition
+        const requisition = requisitions.find(req => 
+            req.visitor_id === visitorId && 
+            req.chapter_id === chapterId
+        );
+        console.log('------------------------------------------------------');
+        console.log('🔍 Found Requisition:', requisition);
+
+        if (!requisition) {
+            throw new Error('No requisition found for this visitor');
+        }
+
+        if (requisition.approve_status !== 'approved') {
+            throw new Error('Requisition not yet approved');
+        }
+
+        console.log('------------------------------------------------------');
+        console.log('✅ Requisition is approved, updating visitor status');
+
+        // Update visitor status
+        const updateResponse = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                visitor_id: visitor.visitor_id,
+                visitor_id: visitorId,
                 approve_induction_kit: true,
                 chapter_apply_kit: 'approved'
             })
         });
 
-        console.log('📡 API Response Status:', response.status);
-        const data = await response.json();
-        console.log('📦 API Response Data:', data);
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to approve induction kit');
+        if (!updateResponse.ok) {
+            throw new Error('Failed to update visitor status');
         }
 
+        console.log('------------------------------------------------------');
+        console.log('✨ Visitor status updated successfully');
+
         // Update UI
-        const approveCell = document.querySelector(`[data-visitor-id="${visitor.visitor_id}"]`);
-        if (approveCell) {
-            approveCell.innerHTML = `
+        const buttonElement = document.querySelector(`[data-visitor-id="${visitorId}"]`);
+        if (buttonElement) {
+            buttonElement.innerHTML = `
                 <button class="btn btn-success btn-sm" disabled 
                         style="opacity: 0.7; cursor: not-allowed; filter: blur(0.3px); transition: all 0.3s ease;">
                     <i class="ri-checkbox-circle-line me-1"></i> Induction Kit Approved
@@ -1258,11 +1286,12 @@ async function handleInductionKitApprove(visitor) {
         });
 
     } catch (error) {
-        console.error('❌ Error approving induction kit:', error);
+        console.error('------------------------------------------------------');
+        console.error('❌ Error:', error.message);
         Swal.fire({
             icon: 'error',
             title: 'Error!',
-            text: error.message || 'Failed to approve induction kit'
+            text: error.message
         });
     }
 }

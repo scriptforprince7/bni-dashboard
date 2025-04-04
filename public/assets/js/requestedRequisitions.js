@@ -101,37 +101,45 @@ async function handleAccoladesClick(requisition) {
         
         console.log('📝 Processing requisition:', requisition);
         
-        // Parse approve status and comments
+        // Parse approve status and comments only if not a visitor request
         let approveStatusMap = {};
         let commentsMap = {};
-        let roCommentsMap = {};
-        try {
-            approveStatusMap = JSON.parse(requisition.approve_status || '{}');
-            commentsMap = JSON.parse(requisition.comment || '{}');
-            roCommentsMap = JSON.parse(requisition.ro_comment || '{}');
-            console.log('👍 Approve Status Map:', approveStatusMap);
-            console.log('💬 Comments Map:', commentsMap);
-            console.log('🗣️ RO Comments Map:', roCommentsMap);
-        } catch (e) {
-            console.error('Error parsing data:', e);
+        let roCommentsMap = '';  // Changed to string for visitor case
+        
+        const isVisitor = requisition.member_ids.includes(0);
+        
+        if (!isVisitor) {
+            try {
+                approveStatusMap = JSON.parse(requisition.approve_status || '{}');
+                commentsMap = JSON.parse(requisition.comment || '{}');
+                roCommentsMap = JSON.parse(requisition.ro_comment || '{}');
+            } catch (e) {
+                console.error('Error parsing data:', e);
+            }
+        } else {
+            // For visitor, use direct values
+            approveStatusMap = requisition.approve_status || '';
+            commentsMap = requisition.comment || '';
+            roCommentsMap = requisition.ro_comment || '';  // Direct string value for visitor
+            console.log('👤 Visitor RO Comment:', roCommentsMap);
         }
 
-        // Fetch all required data
-        const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse] = await Promise.all([
+        // Fetch all required data including visitors
+        const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse, visitorsResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/accolades'),
             fetch('https://backend.bninewdelhi.com/api/chapters'),
             fetch('https://backend.bninewdelhi.com/api/members'),
-            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
-        const [allAccolades, allChapters, allMembers, memberRequisitions] = await Promise.all([
+        const [allAccolades, allChapters, allMembers, memberRequisitions, visitors] = await Promise.all([
             accoladesResponse.json(),
             chaptersResponse.json(),
             membersResponse.json(),
-            memberRequisitionsResponse.json()
+            memberRequisitionsResponse.json(),
+            visitorsResponse.json()
         ]);
-
-        console.log('💰 Member Requisitions:', memberRequisitions);
 
         // Match chapter based on chapter_id
         const chapter = allChapters.find(ch => ch.chapter_id === requisition.chapter_id);
@@ -139,33 +147,42 @@ async function handleAccoladesClick(requisition) {
         // Create combinations with comments and payment status
         const combinations = [];
         requisition.member_ids.forEach(memberId => {
-            const member = allMembers.find(m => m.member_id === memberId);
-            const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
+            let memberName;
+            let isVisitor = false;
+
+            if (memberId === 0) {
+                // This is a visitor case
+                isVisitor = true;
+                const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+                memberName = visitor ? `${visitor.visitor_name} (Visitor)` : 'Unknown Visitor';
+                console.log('👤 Found visitor:', memberName);
+            } else {
+                // Regular member case
+                const member = allMembers.find(m => m.member_id === memberId);
+                memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
+            }
             
             requisition.accolade_ids.forEach(accoladeId => {
                 const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
                 const commentKey = `${memberId}_${accoladeId}`;
                 const comment = commentsMap[commentKey] || '';
                 const roComment = roCommentsMap[commentKey] || '';
-                
-                console.log(`🔍 Processing combination for ${commentKey}:`, {
-                    memberName,
-                    accoladeName: accolade?.accolade_name,
-                    comment,
-                    roComment
-                });
 
                 combinations.push({
                     memberId,
                     memberName,
                     accolade,
                     comment,
-                    roComment
+                    roComment,
+                    isVisitor
                 });
             });
         });
 
         const accoladesSectionsHtml = combinations.map((combo, index) => {
+            const currentStatus = isVisitor ? approveStatusMap : approveStatusMap[`${combo.memberId}_${combo.accolade.accolade_id}`];
+            const currentRoComment = isVisitor ? roCommentsMap : (roCommentsMap[`${combo.memberId}_${combo.accolade.accolade_id}`] || '');
+            
             // Check paid status for this combination
             const isPaid = checkAccoladePaidStatus(
                 memberRequisitions, 
@@ -174,14 +191,50 @@ async function handleAccoladesClick(requisition) {
                 combo.accolade.accolade_id
             );
 
-            const key = `${combo.memberId}_${combo.accolade.accolade_id}`;
-            const currentStatus = approveStatusMap[key];
-            
-            console.log(`🔍 Processing combination ${key}:`, {
-                status: currentStatus,
-                memberName: combo.memberName,
-                accoladeName: combo.accolade.accolade_name
-            });
+            // Modify the Accolade Type section based on isVisitor
+            const accoladeTypeHtml = combo.isVisitor ? `
+                <div style="
+                    padding: 12px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                    border-left: 4px solid #6366f1;
+                ">
+                    <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                        <i class="ri-price-tag-3-line me-1"></i>Accolade Type
+                    </div>
+                    <div style="
+                        color: #6366f1;
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="ri-gift-line"></i>
+                        Induction Kit
+                    </div>
+                </div>
+            ` : `
+                <div style="
+                    padding: 12px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                    border-left: 4px solid ${isPaid ? '#059669' : '#6366f1'};
+                ">
+                    <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
+                        <i class="ri-price-tag-3-line me-1"></i>Accolade Type
+                    </div>
+                    <div style="
+                        color: ${isPaid ? '#059669' : '#6366f1'};
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                    ">
+                        <i class="ri-${isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
+                        ${isPaid ? 'Paid' : 'Free'}
+                    </div>
+                </div>
+            `;
 
             return `
                 <div class="accolade-section" style="
@@ -229,7 +282,7 @@ async function handleAccoladesClick(requisition) {
                                 border-left: 4px solid #2563eb;
                             ">
                                 <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                    <i class="ri-user-line me-1"></i>Member Name
+                                    <i class="ri-user-line me-1"></i>${combo.isVisitor ? 'Visitor Name' : 'Member Name'}
                                 </div>
                                 <div style="color: #1e293b; font-weight: 500;">
                                     ${combo.memberName}
@@ -270,26 +323,7 @@ async function handleAccoladesClick(requisition) {
                             </div>
 
                             <!-- Accolade Type -->
-                            <div style="
-                                padding: 12px;
-                                background: #f8fafc;
-                                border-radius: 8px;
-                                border-left: 4px solid ${isPaid ? '#059669' : '#6366f1'};
-                            ">
-                                <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                    <i class="ri-price-tag-3-line me-1"></i>Accolade Type
-                                </div>
-                                <div style="
-                                    color: ${isPaid ? '#059669' : '#6366f1'};
-                                    font-weight: 500;
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 6px;
-                                ">
-                                    <i class="ri-${isPaid ? 'shopping-cart-2' : 'gift'}-line"></i>
-                                    ${isPaid ? 'Paid' : 'Free'}
-                                </div>
-                            </div>
+                            ${accoladeTypeHtml}
                         </div>
 
                         
@@ -309,7 +343,7 @@ async function handleAccoladesClick(requisition) {
                                     resize: vertical;
                                     min-height: 80px;
                                 "
-                            >${combo.roComment}</textarea>
+                            >${currentRoComment}</textarea>
                         </div>
 
                         <!-- Action Buttons -->
@@ -426,42 +460,23 @@ async function handleRequisitionAction(data) {
         const roComment = commentEl ? commentEl.value : '';
         
         console.log('📝 Captured RO Comment:', roComment);
+
+        // Check if this is a visitor case (memberId === 0)
+        const isVisitor = actionData.memberId === 0;
         
-        // Accumulate approvals and comments
-        accumulatedApprovals[key] = actionData.status;
-        accumulatedComments[key] = roComment; // Store the actual comment
+        if (isVisitor) {
+            // For visitor, prepare direct values
+            const chapterRequestData = {
+                chapter_requisition_id: actionData.requisitionId,
+                approve_status: actionData.status,  // Direct 'approved' or 'declined'
+                ro_comment: roComment,  // Direct comment
+                pickup_status: false,
+                pickup_date: null
+            };
 
-        // Check if any accolade is approved to set pickup status
-        const isAnyApproved = Object.values(accumulatedApprovals).includes('approved');
-        
-        console.log('🔍 Checking approvals:', {
-            accumulatedApprovals,
-            isAnyApproved
-        });
+            console.log('📦 Visitor Request Data:', chapterRequestData);
 
-        // Check if this is a paid accolade
-        const isPaidAccolade = memberRequisitions.some(req => 
-            req.member_id === actionData.memberId && 
-            req.chapter_id === currentRequisition.chapter_id && 
-            req.accolade_id === actionData.accoladeId &&
-            req.order_id !== null && 
-            req.accolade_amount !== null
-        );
-
-        console.log('💰 Is Paid Accolade:', isPaidAccolade);
-
-        // First update chapter requisition
-        const chapterRequestData = {
-            chapter_requisition_id: actionData.requisitionId,
-            approve_status: accumulatedApprovals,
-            ro_comment: accumulatedComments,
-            pickup_date: null
-        };
-
-        console.log('📦 Chapter Request Data:', chapterRequestData);
-
-        try {
-            // Update chapter requisition
+            // Update chapter requisition for visitor
             const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
@@ -474,116 +489,172 @@ async function handleRequisitionAction(data) {
                 throw new Error('Chapter requisition update failed');
             }
 
-            // If it's a paid accolade, update member requisition
-            if (isPaidAccolade) {
-                console.log('🔄 Updating member requisition for paid accolade');
-                
-                // Find the correct member requisition record
-                const memberReq = memberRequisitions.find(req => 
-                    req.member_id === actionData.memberId && 
-                    req.chapter_id === currentRequisition.chapter_id && 
-                    req.accolade_id === actionData.accoladeId
-                );
-
-                if (!memberReq) {
-                    throw new Error('Member requisition record not found');
-                }
-
-                // Prepare member request data based on action (approve/reject)
-                const memberRequestData = {
-                    member_request_id: memberReq.member_request_id,
-                    member_id: actionData.memberId,
-                    chapter_id: currentRequisition.chapter_id,
-                    accolade_id: actionData.accoladeId,
-                    approve_status: actionData.status === 'approved' ? 'approved' : 'rejected',
-                    response_comment: roComment,
-                    request_status: actionData.status === 'approved' ? 'closed' : 'open',
-                    approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
-                };
-
-                console.log('📝 Member Request Data:', memberRequestData);
-
-                const memberResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(memberRequestData)
-                });
-
-                if (!memberResponse.ok) {
-                    throw new Error('Member requisition update failed');
-                }
-
-                console.log('✅ Member requisition updated:', {
-                    status: actionData.status,
-                    newRequestStatus: memberRequestData.request_status
-                });
-            } else {
-                // For free accolades, check if member requisition exists
-                const response = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
-                const allMemberRequisitions = await response.json();
-                
-                // Check if this specific free accolade exists in member requisitions
-                const freeReq = allMemberRequisitions.find(req => 
-                    req.member_id === actionData.memberId && 
-                    req.chapter_id === currentRequisition.chapter_id && 
-                    req.accolade_id === actionData.accoladeId
-                );
-
-                if (freeReq) {
-                    console.log('🆓 Found free accolade in member requisitions:', actionData.accoladeId);
-                    try {
-                        const freeRequestData = {
-                            member_request_id: freeReq.member_request_id,
-                            member_id: actionData.memberId,
-                            chapter_id: currentRequisition.chapter_id,
-                            accolade_id: actionData.accoladeId,
-                            approve_status: actionData.status === 'approved' ? 'approved' : 'pending',
-                            response_comment: roComment,
-                            request_status: actionData.status === 'approved' ? 'closed' : 'open',
-                            approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
-                        };
-
-                        const freeResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
-                            method: 'PUT',
-                            headers: { 
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(freeRequestData)
-                        });
-
-                        if (!freeResponse.ok) {
-                            console.warn(`Warning: Failed to update free accolade ${actionData.accoladeId}`);
-                        } else {
-                            console.log(`✅ Successfully updated free accolade ${actionData.accoladeId} to ${freeRequestData.approve_status}`);
-                        }
-                    } catch (error) {
-                        console.warn(`Warning: Error updating free accolade ${actionData.accoladeId}:`, error);
-                    }
-                } else {
-                    console.log(`ℹ️ Free accolade ${actionData.accoladeId} not found in member requisitions`);
-                }
-            }
-
-            // Show success message (moved outside the if/else blocks)
+            // Show success message for visitor
             Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: `Requisition ${actionData.status} successfully`,
+                text: `Visitor requisition ${actionData.status} successfully`,
                 timer: 2000,
                 showConfirmButton: false
             }).then(() => {
                 loadData(); // Refresh the data
             });
 
-        } catch (error) {
-            console.error('❌ API Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to update requisition: ' + error.message
+        } else {
+            // Original member flow
+            accumulatedApprovals[key] = actionData.status;
+            accumulatedComments[key] = roComment;
+
+            // Check if any accolade is approved to set pickup status
+            const isAnyApproved = Object.values(accumulatedApprovals).includes('approved');
+            
+            console.log('🔍 Checking approvals:', {
+                accumulatedApprovals,
+                isAnyApproved
             });
+
+            // Check if this is a paid accolade
+            const isPaidAccolade = memberRequisitions.some(req => 
+                req.member_id === actionData.memberId && 
+                req.chapter_id === currentRequisition.chapter_id && 
+                req.accolade_id === actionData.accoladeId &&
+                req.order_id !== null && 
+                req.accolade_amount !== null
+            );
+
+            // First update chapter requisition
+            const chapterRequestData = {
+                chapter_requisition_id: actionData.requisitionId,
+                approve_status: accumulatedApprovals,
+                ro_comment: accumulatedComments,
+                pickup_date: null
+            };
+
+            try {
+                // Update chapter requisition
+                const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(chapterRequestData)
+                });
+
+                if (!chapterResponse.ok) {
+                    throw new Error('Chapter requisition update failed');
+                }
+
+                // Rest of the existing member logic...
+                if (isPaidAccolade) {
+                    console.log('🔄 Updating member requisition for paid accolade');
+                    
+                    // Find the correct member requisition record
+                    const memberReq = memberRequisitions.find(req => 
+                        req.member_id === actionData.memberId && 
+                        req.chapter_id === currentRequisition.chapter_id && 
+                        req.accolade_id === actionData.accoladeId
+                    );
+
+                    if (!memberReq) {
+                        throw new Error('Member requisition record not found');
+                    }
+
+                    // Prepare member request data based on action (approve/reject)
+                    const memberRequestData = {
+                        member_request_id: memberReq.member_request_id,
+                        member_id: actionData.memberId,
+                        chapter_id: currentRequisition.chapter_id,
+                        accolade_id: actionData.accoladeId,
+                        approve_status: actionData.status === 'approved' ? 'approved' : 'rejected',
+                        response_comment: roComment,
+                        request_status: actionData.status === 'approved' ? 'closed' : 'open',
+                        approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
+                    };
+
+                    console.log('📝 Member Request Data:', memberRequestData);
+
+                    const memberResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(memberRequestData)
+                    });
+
+                    if (!memberResponse.ok) {
+                        throw new Error('Member requisition update failed');
+                    }
+
+                    console.log('✅ Member requisition updated:', {
+                        status: actionData.status,
+                        newRequestStatus: memberRequestData.request_status
+                    });
+                } else {
+                    // For free accolades, check if member requisition exists
+                    const response = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+                    const allMemberRequisitions = await response.json();
+                    
+                    // Check if this specific free accolade exists in member requisitions
+                    const freeReq = allMemberRequisitions.find(req => 
+                        req.member_id === actionData.memberId && 
+                        req.chapter_id === currentRequisition.chapter_id && 
+                        req.accolade_id === actionData.accoladeId
+                    );
+
+                    if (freeReq) {
+                        console.log('🆓 Found free accolade in member requisitions:', actionData.accoladeId);
+                        try {
+                            const freeRequestData = {
+                                member_request_id: freeReq.member_request_id,
+                                member_id: actionData.memberId,
+                                chapter_id: currentRequisition.chapter_id,
+                                accolade_id: actionData.accoladeId,
+                                approve_status: actionData.status === 'approved' ? 'approved' : 'pending',
+                                response_comment: roComment,
+                                request_status: actionData.status === 'approved' ? 'closed' : 'open',
+                                approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
+                            };
+
+                            const freeResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
+                                method: 'PUT',
+                                headers: { 
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(freeRequestData)
+                            });
+
+                            if (!freeResponse.ok) {
+                                console.warn(`Warning: Failed to update free accolade ${actionData.accoladeId}`);
+                            } else {
+                                console.log(`✅ Successfully updated free accolade ${actionData.accoladeId} to ${freeRequestData.approve_status}`);
+                            }
+                        } catch (error) {
+                            console.warn(`Warning: Error updating free accolade ${actionData.accoladeId}:`, error);
+                        }
+                    } else {
+                        console.log(`ℹ️ Free accolade ${actionData.accoladeId} not found in member requisitions`);
+                    }
+                }
+
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: `Requisition ${actionData.status} successfully`,
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    loadData();
+                });
+
+            } catch (error) {
+                console.error('❌ API Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to update requisition: ' + error.message
+                });
+            }
         }
 
     } catch (error) {
@@ -939,8 +1010,8 @@ async function handlePickupConfirmation(requisitionId, currentStatus) {
                 pickup_status: !currentStatus,
                 // pickup_date: !currentStatus ? new Date().toISOString() : null,
                 // Keep existing approvals and comments
-                approve_status: accumulatedApprovals,
-                ro_comment: accumulatedComments
+                // approve_status: accumulatedApprovals,
+                // ro_comment: accumulatedComments
             };
 
             // Make API call to update pickup status
