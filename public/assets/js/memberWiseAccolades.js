@@ -67,7 +67,13 @@ async function getCurrentChapterDetails() {
             const chapters = await response.json();
             console.log('📚 All chapters:', chapters);
 
-            const currentChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+            const currentChapter = chapters.find(chapter =>
+              chapter.email_id === chapterEmail ||
+              chapter.vice_president_mail === chapterEmail ||
+              chapter.president_mail === chapterEmail ||
+              chapter.treasurer_mail === chapterEmail
+          );
+          
             console.log('🎯 Matched chapter:', currentChapter);
 
             if (currentChapter) {

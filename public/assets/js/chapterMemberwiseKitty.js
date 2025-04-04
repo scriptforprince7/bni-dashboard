@@ -72,7 +72,13 @@ document.addEventListener("DOMContentLoaded", () => {
         loggedInChapter = chapters.find(ch => ch.chapter_id === parseInt(chapterId));
         console.log('🏢 RO Admin viewing chapter:', loggedInChapter);
       } else {
-        loggedInChapter = chapters.find(ch => ch.email_id === chapterEmail);
+        loggedInChapter = chapters.find(ch =>
+          ch.email_id === chapterEmail ||
+          ch.vice_president_mail === chapterEmail ||
+          ch.president_mail === chapterEmail ||
+          ch.treasurer_mail === chapterEmail
+      );
+      
         console.log('🏢 Chapter details:', loggedInChapter);
       }
   

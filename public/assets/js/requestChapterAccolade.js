@@ -48,7 +48,13 @@ async function fetchAndDisplayAccoladeRequests() {
             chapterData = chapters.find(chapter => chapter.chapter_id === currentChapterId);
         } else {
             // For regular chapter access, match by email
-            chapterData = chapters.find(chapter => chapter.email_id === chapterEmail);
+            chapterData = chapters.find(chapter =>
+                chapter.email_id === chapterEmail ||
+                chapter.vice_president_mail === chapterEmail ||
+                chapter.president_mail === chapterEmail ||
+                chapter.treasurer_mail === chapterEmail
+            );
+            
         }
 
         if (!chapterData) {
@@ -182,7 +188,13 @@ document.querySelector('#paid-requisitions-filter').addEventListener('click', as
                     const currentChapterId = parseInt(localStorage.getItem('current_chapter_id'));
                     currentChapter = chapters.find(chapter => chapter.chapter_id === currentChapterId);
                 } else {
-                    currentChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+                    currentChapter = chapters.find(
+                        (chapter) =>
+                          chapter.email_id === chapterEmail ||
+                          chapter.vice_president_mail === chapterEmail ||
+                          chapter.president_mail === chapterEmail ||
+                          chapter.treasurer_mail === chapterEmail
+                      );
                 }
 
                 if (!currentChapter) {

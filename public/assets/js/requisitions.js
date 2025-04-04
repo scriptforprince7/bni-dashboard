@@ -31,7 +31,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             const chapters = await chaptersResponse.json();
             console.log('📚 All Chapters:', chapters);
             
-            userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+            userChapter = chapters.find(chapter =>
+                chapter.email_id === userEmail ||
+                chapter.vice_president_mail === userEmail ||
+                chapter.president_mail === userEmail ||
+                chapter.treasurer_mail === userEmail
+            );
+            
         }
 
         if (!userChapter) {
@@ -655,7 +661,14 @@ async function showRequisitionForm() {
         const userEmail = getUserEmail();
         const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
-        const currentChapter = chapters.find(chapter => chapter.email_id === userEmail);
+        const currentChapter = chapters.find(
+            (chapter) =>
+              chapter.email_id === userEmail ||
+              chapter.vice_president_mail === userEmail ||
+              chapter.president_mail === userEmail ||
+              chapter.treasurer_mail === userEmail
+          );
+          
         
         if (!currentChapter) {
             throw new Error('Chapter not found');

@@ -437,16 +437,23 @@ async function fetchMembers() {
 
 // Helper function to get chapter for user
 async function getChapterForUser(email) {
-    try {
-        const response = await fetch(chaptersApiUrl);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const chapters = await response.json();
-        return chapters.find(chapter => chapter.email_id === email);
-    } catch (error) {
-        console.error('Error fetching chapter for user:', error);
-        return null;
-    }
+  try {
+      const response = await fetch(chaptersApiUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const chapters = await response.json();
+      
+      return chapters.find(chapter =>
+          chapter.email_id === email ||
+          chapter.vice_president_mail === email ||
+          chapter.president_mail === email ||
+          chapter.treasurer_mail === email
+      );
+  } catch (error) {
+      console.error('Error fetching chapter for user:', error);
+      return null;
+  }
 }
+
 
 // Function to update the total chapters count
 const updateTotalMembersCount = () => {

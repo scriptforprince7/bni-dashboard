@@ -85,7 +85,15 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       // For chapter users, fetch their chapter details
       const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
       const chapters = await chaptersResponse.json();
-      const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+      const userChapter = chapters.find(chapter =>
+        chapter.email_id === userEmail ||
+        chapter.vice_president_mail === userEmail ||
+        chapter.president_mail === userEmail ||
+        chapter.treasurer_mail === userEmail
+    );
+    
+    console.log('Found user chapter:', userChapter);
+    
       
       console.log('🏢 Chapter user filtering:', {
         userEmail,

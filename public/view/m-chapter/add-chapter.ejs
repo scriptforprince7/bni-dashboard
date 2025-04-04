@@ -595,6 +595,75 @@
           <div class="row">
             <div class="col-xl-12">
               <div class="card custom-card">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="form-check form-switch">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        role="switch" 
+                        id="showEmergencyContact" 
+                        style="width: 3em; height: 1.5em; margin-right: 10px;"
+                      >
+                      <label class="form-check-label" for="showEmergencyContact">
+                        <span style="font-size: 15px; color: #d01f2f;">
+                          <i class="bi bi-shield-fill-plus me-1"></i>
+                          <b>Add Login Emails</b>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+ 
+                  <!-- Emergency Contact Details Section (initially hidden) -->
+                  <div id="chapterEmailSection" style="display: none;">
+                    <div class="row gy-3">
+                      <div class="col-xl-4">
+                        <label for="president_email" class="form-label">
+                          <i class="bi bi-people-fill me-1"></i>  President Chapter Email
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="president_email"
+                          name="president_email"
+                          placeholder="Enter Email"
+                        />
+                      </div>
+ 
+                      <div class="col-xl-4">
+                        <label for="vice_president_email" class="form-label">
+                          <i class="bi bi-people-fill me-1"></i>  Vice President Chapter Email
+                        </label>
+                        <input
+                          type="tel"
+                          class="form-control"
+                          id="vice_president_email"
+                          name="vice_president_email"
+                          placeholder="Enter Email"
+                        />
+                      </div>
+ 
+                      <div class="col-xl-4">
+                        <label for="treasurer_email" class="form-label">
+                          <i class="bi bi-people-fill me-1"></i> Treasurer Chapter Email
+                        </label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="treasurer_email"
+                          name="treasurer_email"
+                          placeholder="Enter Email"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
                 <div class="card-body add-products">
                   <div class="row gx-4">
                     <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
@@ -1524,4 +1593,25 @@ function fetchAndDisplayHotels() {
 // Call fetchAndDisplayHotels on page load
 document.addEventListener("DOMContentLoaded", fetchAndDisplayHotels);
 </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const checkbox = document.getElementById('showEmergencyContact');
+      const emergencySection = document.getElementById('chapterEmailSection');
+  
+      checkbox.addEventListener('change', function() {
+          if (this.checked) {
+              emergencySection.style.display = 'block';
+              setTimeout(() => {
+                  emergencySection.style.opacity = '1';
+              }, 50);
+          } else {
+              emergencySection.style.opacity = '0';
+              setTimeout(() => {
+                  emergencySection.style.display = 'none';
+              }, 300);
+          }
+      });
+  });
+  </script> 
   

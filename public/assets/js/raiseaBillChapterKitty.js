@@ -52,7 +52,13 @@ const fetchChapterId = async () => {
         const response = await fetch(chaptersApiUrl);
         if (!response.ok) throw new Error('Network response was not ok');
         const chapters = await response.json();
-        current_user = chapters.find(chapter => chapter.email_id === chapterEmail);
+        current_user = chapters.find(chapter =>
+            chapter.email_id === chapterEmail ||
+            chapter.vice_president_mail === chapterEmail ||
+            chapter.president_mail === chapterEmail ||
+            chapter.treasurer_mail === chapterEmail
+        );
+        
         
         if (current_user) {
             console.log('Found chapter details:', {

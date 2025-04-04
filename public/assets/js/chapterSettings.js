@@ -40,8 +40,15 @@ async function fetchChapterData() {
         console.log('Received chapters data:', chapters);
 
         // Find the chapter matching the user's email
-        const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+        const userChapter = chapters.find(chapter =>
+            chapter.email_id === userEmail ||
+            chapter.vice_president_mail === userEmail ||
+            chapter.president_mail === userEmail ||
+            chapter.treasurer_mail === userEmail
+        );
+        
         console.log('Found user chapter:', userChapter);
+        
         
         if (!userChapter) {
             console.error('No chapter found matching email:', userEmail);

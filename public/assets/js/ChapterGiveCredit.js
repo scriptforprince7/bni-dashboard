@@ -46,7 +46,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (loginType === 'ro_admin') {
         current_User = chapters.find(chapter => chapter.chapter_id === parseInt(chapter_id));
     } else {
-        current_User = chapters.find(chapter => chapter.email_id === chapterEmail);
+        current_User = chapters.find(chapter =>
+            chapter.email_id === chapterEmail ||
+            chapter.vice_president_mail === chapterEmail ||
+            chapter.president_mail === chapterEmail ||
+            chapter.treasurer_mail === chapterEmail
+        );
+        
     }
 
     if (!current_User) {

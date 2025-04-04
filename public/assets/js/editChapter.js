@@ -266,6 +266,9 @@ const populateChapterFields = (data) => {
     data.date_of_publishing ? new Date(data.date_of_publishing).toISOString().split("T")[0] : "Not Found";
   document.getElementById("chapter_launched_by").value = data.chapter_launched_by || "Not Found";
   document.getElementById("billing_frequency").value = data.kitty_billing_frequency || "Not Found";
+  document.getElementById("president_email").value = data.president_mail || "Not Found";
+  document.getElementById("vice_president_email").value = data.vice_president_mail || "Not Found";
+  document.getElementById("treasurer_email").value = data.treasurer_mail || "Not Found";
 
   // Handle logo preview
   const logoPreviewContainer = document.getElementById('logoPreviewContainer');
@@ -459,6 +462,9 @@ const collectChapterFormData = () => {
       billing_frequency: document.querySelector("#billing_frequency").value,
       chapter_available_fund: document.querySelector("#chapter_available_fund").value,
       hotel_id: document.getElementById('hotel_id').value,
+      president_email: document.getElementById('president_email').value,
+      vice_president_email: document.getElementById('vice_president_email').value,
+      treasurer_email: document.getElementById('treasurer_email').value,
   };
 
   console.log('📦 Collected chapter data with hotel:', chapterData);

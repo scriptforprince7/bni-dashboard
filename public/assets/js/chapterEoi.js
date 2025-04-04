@@ -68,15 +68,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Find the chapter based on login type
         let userChapter;
         if (loginType === 'ro_admin') {
-            userChapter = chapters.find(chapter => 
-                chapter.chapter_id.toString() === chapterId && 
-                chapter.email_id === userEmail
+            userChapter = chapters.find(chapter =>
+                chapter.chapter_id.toString() === chapterId &&
+                (
+                    chapter.email_id === userEmail ||
+                    chapter.vice_president_mail === userEmail ||
+                    chapter.president_mail === userEmail ||
+                    chapter.treasurer_mail === userEmail
+                )
             );
             console.log('🏢 RO Admin accessing chapter details:', userChapter);
         } else {
-            userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+            userChapter = chapters.find(chapter =>
+                chapter.email_id === userEmail ||
+                chapter.vice_president_mail === userEmail ||
+                chapter.president_mail === userEmail ||
+                chapter.treasurer_mail === userEmail
+            );
             console.log('🏢 Chapter user details:', userChapter);
         }
+        
 
         if (!userChapter) {
             console.warn('⚠️ No matching chapter found:', {

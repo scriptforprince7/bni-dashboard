@@ -165,7 +165,13 @@ async function fetchTransactions() {
         const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         
-        const matchingChapter = chapters.find(chapter => chapter.email_id === userEmail);
+        const matchingChapter = chapters.find(chapter =>
+            chapter.email_id === userEmail ||
+            chapter.vice_president_mail === userEmail ||
+            chapter.president_mail === userEmail ||
+            chapter.treasurer_mail === userEmail
+        );
+        
         if (!matchingChapter) {
             console.error('❌ No matching chapter found');
             hideLoader();

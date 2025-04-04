@@ -137,7 +137,14 @@ showLoader();
             chapter.email_id === chapterEmail
         );
     } else {
-        loggedInChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+      loggedInChapter = chapters.find(
+        (chapter) =>
+          chapter.email_id === chapterEmail ||
+          chapter.vice_president_mail === chapterEmail ||
+          chapter.president_mail === chapterEmail ||
+          chapter.treasurer_mail === chapterEmail
+      );
+      
     }
 
     if (!loggedInChapter) {

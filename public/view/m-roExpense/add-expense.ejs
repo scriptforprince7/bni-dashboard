@@ -228,7 +228,14 @@ document.addEventListener("DOMContentLoaded", async function () {
       filteredChapters = chapters;
     } else {
       console.log('User is not RO Admin - filtering chapters by email');
-      filteredChapters = chapters.filter(chapter => chapter.email_id === userEmail);
+      filteredChapters = chapters.filter(
+  chapter =>
+    chapter.email_id === userEmail ||
+    chapter.vice_president_mail === userEmail ||
+    chapter.president_mail === userEmail ||
+    chapter.treasurer_mail === userEmail
+);
+
       console.log('Filtered chapters by email:', filteredChapters);
     }
 

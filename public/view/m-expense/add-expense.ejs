@@ -251,7 +251,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     const chapters = await response.json();
     
     // Find matching chapter by email
-    const matchingChapter = chapters.find(chapter => chapter.email_id === userEmail);
+    const matchingChapter = chapters.find(
+  chapter =>
+    chapter.email_id === userEmail ||
+    chapter.vice_president_mail === userEmail ||
+    chapter.president_mail === userEmail ||
+    chapter.treasurer_mail === userEmail
+);
+
     
     if (matchingChapter) {
       console.log('Found matching chapter:', matchingChapter.chapter_name);
@@ -308,7 +315,14 @@ document.addEventListener("DOMContentLoaded", async function () {
       filteredChapters = chapters;
     } else {
       console.log('User is not RO Admin - filtering chapters by email');
-      filteredChapters = chapters.filter(chapter => chapter.email_id === userEmail);
+      filteredChapters = chapters.filter(
+  chapter =>
+    chapter.email_id === userEmail ||
+    chapter.vice_president_mail === userEmail ||
+    chapter.president_mail === userEmail ||
+    chapter.treasurer_mail === userEmail
+);
+
       console.log('Filtered chapters by email:', filteredChapters);
     }
 

@@ -56,7 +56,15 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('All chapters:', chapters);
 
     // Find user's chapter based on email
-    const userChapter = chapters.find(chapter => chapter.email_id === userEmail);
+    const userChapter = chapters.find(chapter =>
+      chapter.email_id === userEmail ||
+      chapter.vice_president_mail === userEmail ||
+      chapter.president_mail === userEmail ||
+      chapter.treasurer_mail === userEmail
+  );
+  
+  console.log('Found user chapter:', userChapter);
+  
     console.log('User chapter details:', userChapter);
 
     if (!userChapter && getUserLoginType() !== 'ro_admin') {
