@@ -207,8 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const orderTransactions = transactions.filter(trans => 
           trans.order_id === order.order_id && 
           trans.payment_status === 'SUCCESS' &&
-          (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only")
+          (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only") &&
+          order.chapter_id === loggedInChapter.chapter_id // ✅ Add this condition
         );
+        
   
         // Calculate amount after GST deduction
         orderTransactions.forEach(trans => {
