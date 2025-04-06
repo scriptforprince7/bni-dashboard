@@ -322,6 +322,11 @@ function renderTrainings(trainingsToShow) {
                                 <a href="/tr/edit-training/?training_id=${training.training_id}" style="color:white">Edit</a>
                             </span>
                         </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm send-mail-btn" onclick="openMailDialog(${training.training_id})">
+                                <i class="ri-mail-send-line me-1"></i> Send Mail
+                            </button>
+                        </td>
                     </tr>`;
             });
         })
@@ -376,6 +381,248 @@ document.addEventListener('DOMContentLoaded', () => {
     populateTrainingStatusFilter();
     populateYearsDropdown();
 });
+
+// Add these new functions
+async function openMailDialog(trainingId) {
+    console.log('🚀 Opening mail dialog for training ID:', trainingId);
+    
+    try {
+        // Fetch all required data
+        console.log('📡 Fetching required data from APIs...');
+        const [regions, chapters, members] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json()),
+            fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
+            fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json())
+        ]);
+
+        console.log('✅ Data fetched successfully:', {
+            regionsCount: regions.length,
+            chaptersCount: chapters.length,
+            membersCount: members.length
+        });
+
+        const regionOptions = regions.map(region => 
+            `<option value="${region.region_id}">${region.region_name}</option>`
+        ).join('');
+
+        const result = await Swal.fire({
+            title: 'Send Training Mail',
+            html: `
+                <div class="mail-dialog-container">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Select Region</label>
+                        <select class="form-select" id="regionSelect" onchange="updateChapters(this.value)">
+                            <option value="">Select Region</option>
+                            ${regionOptions}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Select Chapter</label>
+                        <select class="form-select" id="chapterSelect" onchange="updateMembers(this.value)" disabled>
+                            <option value="">Select Chapter</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Members</label>
+                        <div class="member-select-container">
+                            <div class="d-flex justify-content-between mb-2">
+                                <label class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="selectAllMembers">
+                                    <span class="form-check-label">Select All</span>
+                                </label>
+                            </div>
+                            <div class="member-list" id="memberList">
+                                <!-- Members will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            customClass: {
+                container: 'mail-dialog-custom',
+                popup: 'mail-dialog-popup',
+                content: 'mail-dialog-content'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Send Mail',
+            confirmButtonColor: '#d01f2f',
+            cancelButtonColor: '#6c757d',
+            width: '600px',
+            didOpen: () => {
+                // Store data for access by other functions
+                window.mailDialogData = { regions, chapters, members };
+                
+                // Setup event listeners
+                document.getElementById('selectAllMembers').addEventListener('change', function() {
+                    const memberCheckboxes = document.querySelectorAll('.member-checkbox');
+                    memberCheckboxes.forEach(cb => cb.checked = this.checked);
+                });
+            }
+        });
+
+        if (result.isConfirmed) {
+            console.log('📧 Preparing to send emails...');
+            const selectedMembers = getSelectedMembers();
+            
+            if (selectedMembers.length === 0) {
+                console.warn('⚠️ No members selected');
+                Swal.fire('Warning', 'Please select at least one member', 'warning');
+                return;
+            }
+
+            console.log('👥 Selected member IDs:', selectedMembers);
+
+            // Show loading state
+            Swal.fire({
+                title: 'Sending Emails',
+                html: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Get member emails from selected IDs
+            const selectedMemberDetails = window.mailDialogData.members
+                .filter(m => selectedMembers.includes(m.member_id.toString()))
+                .map(m => ({
+                    member_id: m.member_id,
+                    member_email_address: m.member_email_address
+                }));
+
+            console.log('📧 Selected member details:', selectedMemberDetails);
+
+            try {
+                const response = await fetch('https://backend.bninewdelhi.com/api/sendTrainingMails', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        member_ids: selectedMembers,
+                        training_id: trainingId
+                    })
+                });
+
+                const data = await response.json();
+                console.log('📬 Mail sending response:', data);
+
+                if (data.success) {
+                    // Show success message with details
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Emails Sent Successfully!',
+                        html: `
+                            <div class="text-left">
+                                <p>✅ Successfully sent: ${data.details.filter(d => d.success).length}</p>
+                                ${data.details.filter(d => !d.success).length > 0 ? 
+                                    `<p>❌ Failed: ${data.details.filter(d => !d.success).length}</p>` : ''}
+                            </div>
+                        `,
+                        confirmButtonColor: '#d01f2f'
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to send emails');
+                }
+            } catch (error) {
+                console.error('❌ Error sending emails:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to send emails. Please try again.',
+                    confirmButtonColor: '#d01f2f'
+                });
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error in mail dialog:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load required data. Please try again.',
+            confirmButtonColor: '#d01f2f'
+        });
+    }
+}
+
+function updateChapters(regionId) {
+    console.log('Updating chapters for region:', regionId);
+    const chapterSelect = document.getElementById('chapterSelect');
+    const { chapters } = window.mailDialogData;
+    
+    chapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+    chapterSelect.disabled = !regionId;
+    
+    if (regionId) {
+        const filteredChapters = chapters.filter(c => c.region_id === parseInt(regionId));
+        filteredChapters.forEach(chapter => {
+            chapterSelect.innerHTML += `
+                <option value="${chapter.chapter_id}">${chapter.chapter_name}</option>
+            `;
+        });
+    }
+}
+
+function updateMembers(chapterId) {
+    console.log('Updating members for chapter:', chapterId);
+    const memberList = document.getElementById('memberList');
+    const { members } = window.mailDialogData;
+    
+    memberList.innerHTML = '';
+    
+    if (chapterId) {
+        const filteredMembers = members.filter(m => m.chapter_id === parseInt(chapterId));
+        filteredMembers.forEach(member => {
+            memberList.innerHTML += `
+                <div class="member-item">
+                    <label class="form-check">
+                        <input type="checkbox" class="form-check-input member-checkbox" 
+                               value="${member.member_id}">
+                        <span class="form-check-label">
+                            ${member.member_first_name} ${member.member_last_name}
+                        </span>
+                    </label>
+                </div>
+            `;
+        });
+    }
+}
+
+function getSelectedMembers() {
+    const checkboxes = document.querySelectorAll('.member-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+// Add this CSS to your stylesheet
+const style = document.createElement('style');
+style.textContent = `
+    .mail-dialog-custom .mail-dialog-popup {
+        border-radius: 15px;
+    }
+    
+    .mail-dialog-content {
+        padding: 20px;
+    }
+    
+    .member-select-container {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    
+    .member-item {
+        padding: 5px 0;
+    }
+    
+    .member-item:hover {
+        background-color: #f8f9fa;
+    }
+`;
+document.head.appendChild(style);
 
 
 

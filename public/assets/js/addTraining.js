@@ -142,6 +142,7 @@ document.getElementById("submit-event").addEventListener("click", async () => {
     const billing_company_field = document.getElementById("billing_company");
     const billing_company = billing_company_field.dataset.companyId || "1"; // Use stored ID or default to "1"
     const venueInput = document.getElementById("training_venue");
+    const training_time = document.getElementById("training_time").value.trim();
     
     // Get the hotel_id from the venue input's data attribute
     const hotel_id = venueInput.dataset.hotelId;
@@ -163,6 +164,7 @@ document.getElementById("submit-event").addEventListener("click", async () => {
         training_venue: hotel_id, // Send the hotel_id instead of venue name
         training_ticket_price: document.getElementById("training_ticket_price").value || null,
         training_date: document.getElementById("training_date").value.trim() || null,
+        training_time: training_time,
         training_note: document.getElementById("training_note").value.trim() || null,
         training_published_by: document.getElementById("training_published_by").value.trim() || null,
         training_status: document.getElementById("training_status").value.trim() || null
@@ -195,6 +197,7 @@ document.getElementById("submit-event").addEventListener("click", async () => {
             document.getElementById("training_venue").value = "";
             document.getElementById("training_ticket_price").value = "";
             document.getElementById("training_date").value = "";
+            document.getElementById("training_time").value = "";
             document.getElementById("training_note").value = "";
             document.getElementById("training_published_by").value = "";
             document.getElementById("training_status").value = "";
