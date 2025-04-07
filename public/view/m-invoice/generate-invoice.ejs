@@ -2,6 +2,10 @@
 <%- include('../partials/header') %>
 <!-- end header -->
 
+<!-- Add Toastify CSS and JS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <!-- sidebar -->
 <style>
   /* Style for dropdown menu to enable scrolling */
@@ -61,7 +65,67 @@ background-color: #555; /* Darker shade on hover */
     transform: translateY(0);
   }
 }
+
+.payment-type-options {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.payment-type-options .form-check {
+  margin-right: 20px;
+  display: inline-block;
+}
+
+.payment-type-options .form-check-input:checked + .form-check-label {
+  font-weight: bold;
+  color: #6259ca;
+}
 </style>
+
+<!-- Add ToastContainer div -->
+<div id="toast-container"></div>
+
+<!-- Initialize Toastify -->
+<script>
+// Initialize toast configuration
+window.toast = {
+  error: function(message) {
+    Toastify({
+      text: message,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: "#ff6b6b",
+      close: true,
+      stopOnFocus: true
+    }).showToast();
+  },
+  success: function(message) {
+    Toastify({
+      text: message,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: "#51cf66",
+      close: true,
+      stopOnFocus: true
+    }).showToast();
+  },
+  warning: function(message) {
+    Toastify({
+      text: message,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: "#fcc419",
+      close: true,
+      stopOnFocus: true
+    }).showToast();
+  }
+};
+</script>
 
 <%- include('../partials/sidebar') %>
 
@@ -126,6 +190,72 @@ background-color: #555; /* Darker shade on hover */
       <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
     </div>
     
+    <!-- Payment Type Options (for meeting payments) -->
+    <div id="payment-type-options" class="payment-type-options" style="display: none;">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="paymentType" id="fullPaymentOption" value="full" checked>
+            <label class="form-check-label" for="fullPaymentOption">Full Payment</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="paymentType" id="partialPaymentOption" value="partial">
+            <label class="form-check-label" for="partialPaymentOption">Partial Payment</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="paymentType" id="advancePaymentOption" value="advance">
+            <label class="form-check-label" for="advancePaymentOption">Advance Payment</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div id="kitty-bill-type" style="display: none;">
+            <div class="alert alert-info mb-0 py-2">
+              <p class="mb-0"><strong>Bill Type:</strong> <span id="bill-type"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Kitty Bill Info (Moved to top) -->
+    <div id="kitty-bill-info" style="display: none;" class="mb-3">
+      <div class="alert alert-info">
+        <h6 class="mb-2">Kitty Bill Details</h6>
+        <div class="row">
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Description:</strong> <span id="bill-description"></span></p>
+          </div>
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Amount:</strong> <span id="bill-amount"></span></p>
+          </div>
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Due Date:</strong> <span id="bill-due-date"></span></p>
+          </div>
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Penalty Fee:</strong> <span id="bill-penalty"></span></p>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col-md-12">
+            <p class="mb-0">Bill Status: <span id="bill-status"></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Kitty Bill Message -->
+    <div id="no-kitty-bill-message" style="display: none;" class="mb-3">
+      <div class="alert alert-warning">
+        <h6 class="mb-0">No kitty bill raised for this chapter</h6>
+      </div>
+    </div>
+
+    <!-- Chapter Selection Message (Only for meeting payments) -->
+    <div id="chapter-selection-message" class="mb-3" style="display: none;">
+      <div class="alert alert-info">
+        <h6 class="mb-0">Please select a chapter to view kitty bill details</h6>
+      </div>
+    </div>
 
     <!-- Start::row-1 -->
     <div class="row">
@@ -271,13 +401,21 @@ background-color: #555; /* Darker shade on hover */
                 />
                         </td>
                         <td>
-                          <textarea
-                            rows="1"
-                            class="form-control form-control-light"
-                            placeholder="Enter Description"
-                            name="particulars"
-                            id="particulars"
-                          ></textarea>
+                          <div id="particulars-container">
+                            <textarea
+                              rows="1"
+                              class="form-control form-control-light"
+                              placeholder="Enter Description"
+                              name="particulars"
+                              id="particulars"
+                            ></textarea>
+                            <div id="kitty-bill-particulars" style="display: none;">
+                              <div class="alert alert-info mt-2">
+                                <p class="mb-1"><strong>Bill Type:</strong> <span id="particulars-bill-type"></span></p>
+                                <p class="mb-1"><strong>Description:</strong> <span id="particulars-bill-description"></span></p>
+                              </div>
+                            </div>
+                          </div>
                         </td>
                         <td>
                           <input
@@ -378,6 +516,49 @@ background-color: #555; /* Darker shade on hover */
                                     value="-"
                                     id="grand_total"
                                     readonly
+                                  />
+                                </td>
+                              </tr>
+                              
+                              <!-- Partial Payment Fields (Hidden by default) -->
+                              <tr id="partial-payment-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Partial Amount :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="number"
+                                    class="form-control form-control-light"
+                                    id="partial-amount"
+                                    placeholder="Enter partial amount"
+                                  />
+                                </td>
+                              </tr>
+                              <tr id="remaining-balance-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Remaining Balance :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light"
+                                    id="remaining-balance"
+                                    readonly
+                                  />
+                                </td>
+                              </tr>
+                              
+                              <!-- Advance Payment Fields (Hidden by default) -->
+                              <tr id="advance-amount-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Advance Amount :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="number"
+                                    class="form-control form-control-light"
+                                    id="advance-amount"
+                                    placeholder="Enter advance amount"
                                   />
                                 </td>
                               </tr>
@@ -519,37 +700,68 @@ background-color: #555; /* Darker shade on hover */
     <!--End::row-1 -->
   </div>
 </div>
-<script src="../../assets/js/cashInvoice.js"></script>
+
+<!-- Move all script tags to the end, just before closing body tag -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../../assets/js/cashInvoice.js"></script>
 
 <script>
+// Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+  // Payment method handling
   const paymentMethods = document.getElementsByName('paymentMethod');
   const upiFields = document.getElementById('upiFields');
   const bankFields = document.getElementById('bankFields');
   const chequeFields = document.getElementById('chequeFields');
   const impsFields = document.getElementById('impsFields');
 
-  paymentMethods.forEach(method => {
-    method.addEventListener('change', function() {
-      // Hide all payment fields first
-      upiFields.style.display = 'none';
-      bankFields.style.display = 'none';
-      chequeFields.style.display = 'none';
-      impsFields.style.display = 'none';
+  if (paymentMethods.length > 0) {
+    paymentMethods.forEach(method => {
+      method.addEventListener('change', function() {
+        // Hide all payment fields first
+        if (upiFields) upiFields.style.display = 'none';
+        if (bankFields) bankFields.style.display = 'none';
+        if (chequeFields) chequeFields.style.display = 'none';
+        if (impsFields) impsFields.style.display = 'none';
 
-      // Show relevant fields based on selection
-      if (this.id === 'upiOption') {
-        upiFields.style.display = 'block';
-      } else if (this.id === 'bankOption') {
-        bankFields.style.display = 'block';
-      } else if (this.id === 'chequeOption') {
-        chequeFields.style.display = 'block';
-      } else if (this.id === 'impsOption') {
-        impsFields.style.display = 'block';
-      }
+        // Show relevant fields based on selection
+        if (this.id === 'upiOption' && upiFields) {
+          upiFields.style.display = 'block';
+        } else if (this.id === 'bankOption' && bankFields) {
+          bankFields.style.display = 'block';
+        } else if (this.id === 'chequeOption' && chequeFields) {
+          chequeFields.style.display = 'block';
+        } else if (this.id === 'impsOption' && impsFields) {
+          impsFields.style.display = 'block';
+        }
+      });
     });
-  });
+  }
+
+  // Payment type handling (Full, Partial, Advance)
+  const paymentTypes = document.getElementsByName('paymentType');
+  const partialPaymentRow = document.getElementById('partial-payment-row');
+  const remainingBalanceRow = document.getElementById('remaining-balance-row');
+  const advanceAmountRow = document.getElementById('advance-amount-row');
+
+  if (paymentTypes.length > 0) {
+    paymentTypes.forEach(type => {
+      type.addEventListener('change', function() {
+        // Hide all payment type sections first
+        if (partialPaymentRow) partialPaymentRow.style.display = 'none';
+        if (remainingBalanceRow) remainingBalanceRow.style.display = 'none';
+        if (advanceAmountRow) advanceAmountRow.style.display = 'none';
+
+        // Show relevant section based on selection
+        if (this.id === 'partialPaymentOption') {
+          if (partialPaymentRow) partialPaymentRow.style.display = 'table-row';
+          if (remainingBalanceRow) remainingBalanceRow.style.display = 'table-row';
+        } else if (this.id === 'advancePaymentOption') {
+          if (advanceAmountRow) advanceAmountRow.style.display = 'table-row';
+        }
+      });
+    });
+  }
 });
 </script>
 

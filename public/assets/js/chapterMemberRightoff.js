@@ -7,7 +7,8 @@ function hideLoader() {
 }
 
 const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
-const memberApiUrl= 'https://backend.bninewdelhi.com/api/members';
+const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
+const getBankOrderApi = 'https://backend.bninewdelhi.com/api/getBankOrder';
 let creditType;
 document.addEventListener('DOMContentLoaded', async () => {
     // console.log('=== Chapter Give Credit Loading Process Started ===');
@@ -161,7 +162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 row.appendChild(statusCell);
 
                 const member_permanent_id = member.member_id;
-const getBankOrderApi = 'https://backend.bninewdelhi.com/api/getBankOrder';
 
 // Late Payment cell
 const latePaymentCell = document.createElement('td');
@@ -211,8 +211,6 @@ fetch(getBankOrderApi)
 
         // Add click handler for Rightoff Member button
         document.querySelector('.add_bill').addEventListener('click', async () => {
-            // console.log('=== Member Write-off Process Started ===');
-        
             try {
                 const allCheckboxes = document.querySelectorAll('#chaptersTableBody input[type="checkbox"]');
                 const allDisabled = Array.from(allCheckboxes).every(checkbox => checkbox.disabled);
@@ -229,9 +227,18 @@ fetch(getBankOrderApi)
         
                 const selectedMembers = Array.from(
                     document.querySelectorAll('#chaptersTableBody input[type="checkbox"]:checked:not([disabled])')
-                ).map(checkbox => checkbox.value);
+                ).map(checkbox => {
+                    // Find the member data from filteredMembers array
+                    const member = filteredMembers.find(m => String(m.member_id) === String(checkbox.value));
+                    return {
+                        member_id: checkbox.value,
+                        member_name: `${member.member_first_name} ${member.member_last_name}`,
+                        member_email: member.member_email_address,
+                        member_phone: member.member_phone_number
+                    };
+                });
         
-                console.log('Selected member IDs:', selectedMembers);
+                console.log('Selected member IDs with details:', selectedMembers);
         
                 if (selectedMembers.length === 0) {
                     Swal.fire({
@@ -244,10 +251,7 @@ fetch(getBankOrderApi)
                 }
         
                 const rightoffDate = document.querySelector('#region_name').value.trim();
-                console.log('Write-off date:', rightoffDate);
-
                 const rightoffComment = document.querySelector('#writeoff_comment').value.trim();
-                console.log('Write-off comment:', rightoffComment);
         
                 if (!rightoffDate) {
                     Swal.fire({
@@ -259,44 +263,33 @@ fetch(getBankOrderApi)
                     return;
                 }
         
-                // Fetch bank order details
-const getBankOrderApi = 'https://backend.bninewdelhi.com/api/getBankOrder';
-const bankOrderResponse = await fetch(getBankOrderApi);
-const bankOrderData = await bankOrderResponse.json();
-
-console.log("Bank Order Data:", bankOrderData); // Debugging
-
-// Prepare members data with payment details
-let totalLatePayments = 0;
-let totalPendingAmount = 0;
-
-const membersData = selectedMembers.map(memberId => {
-    console.log("Processing Member ID:", memberId); // Debugging
-
-    const memberData = bankOrderData.find(item => Number(item.member_id) === Number(memberId)) || {};
-    console.log("Found Member Data:", memberData); // Debugging
-
-    const latePayments = memberData.no_of_late_payment || 0;
-    const pendingAmount = memberData.amount_to_pay || 0;
-
-    // Accumulate totals
-    totalLatePayments += latePayments;
-    totalPendingAmount += pendingAmount;
-
-    return {
-        member_id: memberId,
-        no_of_late_payment: latePayments,
-        total_pending_amount: pendingAmount
-    };
-});
-
-console.log("Final Members Data:", membersData);
-console.log("Total Late Payments:", totalLatePayments);
-console.log("Total Pending Amount:", totalPendingAmount);
-
+                // Fetch bank order details and calculate totals
+                const bankOrderResponse = await fetch(getBankOrderApi);
+                const bankOrderData = await bankOrderResponse.json();
+        
+                let totalLatePayments = 0;
+                let totalPendingAmount = 0;
+        
+                const membersData = selectedMembers.map(member => {
+                    const memberData = bankOrderData.find(item => Number(item.member_id) === Number(member.member_id)) || {};
+                    const latePayments = memberData.no_of_late_payment || 0;
+                    const pendingAmount = memberData.amount_to_pay || 0;
+        
+                    totalLatePayments += latePayments;
+                    totalPendingAmount += pendingAmount;
+        
+                    return {
+                        member_id: member.member_id,
+                        member_name: member.member_name,
+                        member_email: member.member_email,
+                        member_phone: member.member_phone,
+                        no_of_late_payment: latePayments,
+                        total_pending_amount: pendingAmount
+                    };
+                });
         
                 const data = {
-                    members: membersData, // Send array of member objects
+                    members: membersData,
                     chapter_id: current_User.chapter_id,
                     rightoff_date: rightoffDate,
                     rightoff_comment: rightoffComment,
@@ -307,7 +300,7 @@ console.log("Total Pending Amount:", totalPendingAmount);
                 console.log('Sending data to API:', data);
         
                 showLoader();
-                const response = await fetch('https://backend.bninewdelhi.com/api/addMemberWriteOff', {
+                const response = await fetch('backend.bninewdelhi.com/api/addMemberWriteOff', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -348,7 +341,6 @@ console.log("Total Pending Amount:", totalPendingAmount);
                 });
             } finally {
                 hideLoader();
-                // console.log('=== Member Write-off Process Completed ===');
             }
         });
         
