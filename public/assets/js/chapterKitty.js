@@ -450,7 +450,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           chapterId
         );
         document.getElementById("totalKittyDetails").textContent =
-          "No Bill Raised for this Quarter";
+          "No Bill Raised Yet";
         document.getElementById("totalKittyAmountReceived").textContent = "N/A";
         document.querySelector(".member_count").textContent = memberCount;
         document.querySelector("#total_available_amount").textContent =
@@ -491,7 +491,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         );
 
         document.getElementById("totalKittyDetails").textContent =
-          "No Bill Raised for this Quarter";
+          "No Bill Raised Yet";
         // need changes heere
         // document.getElementById('totalKittyAmountReceived').textContent = 'N/A';
         // document.querySelector('#total_available_amount').textContent = indianCurrencyFormatter.format(parseFloat(available_fund)- parseFloat(total_paid_expense));
