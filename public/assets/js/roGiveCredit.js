@@ -11,94 +11,193 @@ const lateNOApiUrl = 'https://backend.bninewdelhi.com/api/getbankOrder';
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Get late payment data
-        const lateNOResponse = await fetch(lateNOApiUrl);
-        if (!lateNOResponse.ok) throw new Error('Network response was not ok');
-        const memberLateData = await lateNOResponse.json();
-        console.log('Member credit data fetched successfully:', memberLateData);
-
-        // Get all members
-        const MembersResponse = await fetch(memberApiUrl);
-        if (!MembersResponse.ok) throw new Error('Network response was not ok');
-        const Members = await MembersResponse.json();
-        console.log('members Found:', Members.length);
-
-        // Store members data globally
-        window.allMembers = Members;
-
+        // Initially show message in table
         const tableBody = document.getElementById('chaptersTableBody');
-        if (Members.length > 0) {
-            tableBody.innerHTML = '';
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; font-weight: bold; padding: 20px;">
+                    Please Select Region and Chapter to view members
+                </td>
+            </tr>
+        `;
 
-            Members.forEach((member, index) => {
-                const row = document.createElement('tr');
+        // Populate Region Filter
+        const regionFilter = document.getElementById('regionFilter');
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+        const regions = await regionsResponse.json();
+        
+        regions.forEach(region => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'dropdown-item';
+            a.href = 'javascript:void(0);';
+            a.textContent = region.region_name;
+            a.setAttribute('data-region-id', region.region_id);
+            li.appendChild(a);
+            regionFilter.appendChild(li);
+        });
 
-                const latePaymentData = memberLateData.find(lateData => lateData.member_id === member.member_id);
-                const latePaymentCount = latePaymentData ? latePaymentData.no_of_late_payment : 0;
-
-                // Checkbox cell
-                const checkboxCell = document.createElement('td');
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = member.member_id;
-                checkbox.style.fontWeight = 'bold';
-                checkboxCell.appendChild(checkbox);
-                row.appendChild(checkboxCell);
-
-                // Serial number cell
-                const serialNumberCell = document.createElement('td');
-                serialNumberCell.textContent = index + 1;
-                serialNumberCell.style.fontWeight = 'bold';
-                row.appendChild(serialNumberCell);
-
-                // Name cell with image
-                const nameCell = document.createElement('td');
-                nameCell.style.fontWeight = 'bold';
+        // Handle Region Selection
+        regionFilter.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('dropdown-item')) {
+                const regionId = e.target.getAttribute('data-region-id');
+                const regionName = e.target.textContent;
                 
-                const img = document.createElement('img');
-                img.src = 'https://cdn-icons-png.flaticon.com/512/194/194828.png';
-                img.alt = '';
-                img.style.width = '30px';
-                img.style.height = '30px';
-                img.style.borderRadius = '50%';
-                img.style.marginRight = '10px';
-                
-                nameCell.appendChild(img);
-                nameCell.appendChild(document.createTextNode(member.member_first_name + ' ' + member.member_last_name));
-                row.appendChild(nameCell);
+                // Update region button text
+                const regionBtn = e.target.closest('.dropdown').querySelector('.dropdown-toggle');
+                regionBtn.textContent = regionName;
 
-                // Phone cell
-                const phoneCell = document.createElement('td');
-                phoneCell.textContent = member.member_phone_number;
-                phoneCell.style.fontWeight = 'bold';
-                row.appendChild(phoneCell);
+                // Clear chapter filter and table
+                const chapterFilter = document.getElementById('chapterFilter');
+                chapterFilter.innerHTML = '';
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; font-weight: bold; padding: 20px;">
+                            Please Select Chapter to view members
+                        </td>
+                    </tr>
+                `;
 
-                // Status cell
-                const statusCell = document.createElement('td');
-                statusCell.textContent = member.member_status;
-                statusCell.style.fontWeight = 'bold';
-                row.appendChild(statusCell);
+                // Fetch and populate chapters for selected region
+                const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+                const chapters = await chaptersResponse.json();
+                const filteredChapters = chapters.filter(chapter => chapter.region_id === parseInt(regionId));
 
-                // Late Payment cell
-                const latePaymentCell = document.createElement('td');
-                latePaymentCell.textContent = latePaymentCount;
-                latePaymentCell.style.fontWeight = 'bold';
-                row.appendChild(latePaymentCell);
+                filteredChapters.forEach(chapter => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.className = 'dropdown-item';
+                    a.href = 'javascript:void(0);';
+                    a.textContent = chapter.chapter_name;
+                    a.setAttribute('data-chapter-id', chapter.chapter_id);
+                    li.appendChild(a);
+                    chapterFilter.appendChild(li);
+                });
+            }
+        });
 
-                tableBody.appendChild(row);
-            });
-        } else {
+        // Handle Chapter Selection
+        document.getElementById('chapterFilter').addEventListener('click', async (e) => {
+            if (e.target.classList.contains('dropdown-item')) {
+                const chapterId = e.target.getAttribute('data-chapter-id');
+                const chapterName = e.target.textContent;
+
+                // Update chapter button text
+                const chapterBtn = e.target.closest('.dropdown').querySelector('.dropdown-toggle');
+                chapterBtn.textContent = chapterName;
+
+                // Fetch and display members for selected chapter
+                const membersResponse = await fetch(memberApiUrl);
+                const members = await membersResponse.json();
+                const filteredMembers = members.filter(member => member.chapter_id === parseInt(chapterId));
+
+                // Get late payment data
+                const lateNOResponse = await fetch(lateNOApiUrl);
+                const memberLateData = await lateNOResponse.json();
+
+                // Store filtered members globally
+                window.allMembers = filteredMembers;
+
+                // Populate table with filtered members
+                if (filteredMembers.length > 0) {
+                    tableBody.innerHTML = '';
+                    filteredMembers.forEach((member, index) => {
+                        const row = document.createElement('tr');
+
+                        const latePaymentData = memberLateData.find(lateData => lateData.member_id === member.member_id);
+                        const latePaymentCount = latePaymentData ? latePaymentData.no_of_late_payment : 0;
+
+                        // Checkbox cell
+                        const checkboxCell = document.createElement('td');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = member.member_id;
+                        checkbox.style.fontWeight = 'bold';
+                        checkboxCell.appendChild(checkbox);
+                        row.appendChild(checkboxCell);
+
+                        // Serial number cell
+                        const serialNumberCell = document.createElement('td');
+                        serialNumberCell.textContent = index + 1;
+                        serialNumberCell.style.fontWeight = 'bold';
+                        row.appendChild(serialNumberCell);
+
+                        // Name cell with image
+                        const nameCell = document.createElement('td');
+                        nameCell.style.fontWeight = 'bold';
+                        
+                        const img = document.createElement('img');
+                        img.src = 'https://cdn-icons-png.flaticon.com/512/194/194828.png';
+                        img.alt = '';
+                        img.style.width = '30px';
+                        img.style.height = '30px';
+                        img.style.borderRadius = '50%';
+                        img.style.marginRight = '10px';
+                        
+                        nameCell.appendChild(img);
+                        nameCell.appendChild(document.createTextNode(member.member_first_name + ' ' + member.member_last_name));
+                        row.appendChild(nameCell);
+
+                        // Phone cell
+                        const phoneCell = document.createElement('td');
+                        phoneCell.textContent = member.member_phone_number;
+                        phoneCell.style.fontWeight = 'bold';
+                        row.appendChild(phoneCell);
+
+                        // Status cell
+                        const statusCell = document.createElement('td');
+                        statusCell.textContent = member.member_status;
+                        statusCell.style.fontWeight = 'bold';
+                        row.appendChild(statusCell);
+
+                        // Late Payment cell
+                        const latePaymentCell = document.createElement('td');
+                        latePaymentCell.textContent = latePaymentCount;
+                        latePaymentCell.style.fontWeight = 'bold';
+                        row.appendChild(latePaymentCell);
+
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; font-weight: bold; padding: 20px;">
+                                No members found in this chapter
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        });
+
+        // Handle Reset Filters
+        document.getElementById('reset-filters-btn').addEventListener('click', () => {
+            // Reset dropdown texts
+            document.querySelector('[data-bs-toggle="dropdown"]').textContent = 'Region';
+            document.querySelectorAll('[data-bs-toggle="dropdown"]')[1].textContent = 'Chapter';
+            
+            // Clear chapter filter
+            document.getElementById('chapterFilter').innerHTML = '';
+            
+            // Reset table
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="font-weight: bold;">No members found</td>
-                </tr>`;
-        }
+                    <td colspan="6" style="text-align: center; font-weight: bold; padding: 20px;">
+                        Please Select Region and Chapter to view members
+                    </td>
+                </tr>
+            `;
+        });
+
     } catch (error) {
         console.error('Error:', error);
         document.getElementById('chaptersTableBody').innerHTML = `
             <tr>
-                <td colspan="6" style="font-weight: bold;">Error loading members</td>
-            </tr>`;
+                <td colspan="6" style="text-align: center; font-weight: bold; padding: 20px;">
+                    Error loading data
+                </td>
+            </tr>
+        `;
     }
 });
 
