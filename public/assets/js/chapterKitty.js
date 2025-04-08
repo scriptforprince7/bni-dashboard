@@ -377,8 +377,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     console.log("Total Late Payment:", totalLatePayment);
     console.log("--------------------------------", pendingAmount);
+    const formattedPendingAmount =
+            indianCurrencyFormatter.format(pendingAmount);
+          
     document.getElementById("totalKittypendingamount").textContent =
-      pendingAmount;
+    formattedPendingAmount;
 
     // Process each entry in the filtered bank orders
     filteredBankOrders.forEach((order) => {
