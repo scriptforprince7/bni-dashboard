@@ -1,0 +1,835 @@
+<!-- header -->
+<%- include('../partials/header') %> 
+<!-- end header -->
+
+<!-- sidebar -->
+
+<%- include('../partials/chapter-sidebar') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+    /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+max-height: 200px; /* Adjust the height as needed */
+overflow-y: auto;  /* Enables vertical scrolling */
+overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+background-color: #888; /* Color of the scrollbar thumb */
+border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+background-color: #555; /* Darker shade on hover */
+}
+
+/* Add this to hide the filters section */
+/* .card-header .d-flex {
+    display: none !important;
+} */
+
+  </style>
+
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+    <div class="container-fluid">
+
+            
+        <!-- Page Header -->
+        <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
+            <div>
+                <nav>
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="javascript:void(0);">Let's View A Training</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Training Details</li>
+                    </ol>
+                </nav>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="page-title fw-medium fs-18 mb-0" id="page_title"></h1>
+                    <button class="btn btn-danger btn-wave me-0" id="markAsCompletedBtn">
+                        <i class="ri-check-line me-1"></i> Mark as Completed
+                    </button>
+                </div>
+             </div>
+            <div class="btn-list">
+              
+              <!-- <h6>Scan QR Code:</h6> -->
+<!-- <a href="#" id="openCamera">
+<i class="fa fa-camera" style="font-size:20px; color:red;"></i>
+</a> -->
+<div id="qr-reader" style="width: 300px;"></div>
+<div id="qr-reader-results"></div>
+
+          </div>          
+        </div>
+        <!-- Page Header Close -->
+
+            <!-- Start:: row-1 -->
+            <div class="row">
+                <div class="col-xl-12">
+                  <div class="card custom-card">
+                    <div class="card-body add-products">
+                      <div class="row gx-4">
+                        <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                          <div class="card custom-card shadow-none mb-0 border-0">
+                            <div class="card-body p-0">
+                              <div class="row gy-3">
+                                <div class="col-xl-6">
+                                  <label for="training_name" class="form-label"
+                                    >Training Name</label
+                                  >
+                                  <input
+                                    type="text"
+                                    class="form-control"
+                                    id="training_name"
+                                    name="training_name"
+                                    placeholder="Training Name"
+                                    readonly
+                                    style="background-color: #F0F0F0;"
+                                  />
+                                  <label
+                                    for="product-cost-add"
+                                    class="form-label mt-1 fs-12 fw-normal text-muted mb-0"
+                                    >
+                                </div>    
+                                <div class="col-xl-6">
+                                  <label for="billing_company" class="form-label"
+                                    >Billing Company</label
+                                  >
+                                  <input
+                                    type="text"
+                                    class="form-control"
+                                    id="billing_company"
+                                    name="billing_company"
+                                    placeholder="ADI Corporate Training"
+                                    value="ADI Corporate Training"
+                                    readonly
+                                    style="background-color: #F0F0F0;"
+                                  />
+                                </div> 
+                                <div class="col-xl-6">
+                                  <label for="training_venue" class="form-label"
+                                    >Training Venue</label
+                                  >
+                                  <input
+                                    type="text"
+                                    class="form-control"
+                                    id="training_venue"
+                                    name="training_venue"
+                                    placeholder="The Roseate House.."
+                                    readonly
+                                    style="background-color: #F0F0F0;"
+                                  />
+                                </div> 
+          
+                                <div class="col-xl-6">
+                                  <label for="training_ticket_price" class="form-label"
+                                    >Training Venue Fees</label
+                                  >
+                                  <input
+                                    type="text"
+                                    class="form-control"
+                                    id="training_ticket_price"
+                                    name="training_ticket_price"
+                                    placeholder="₹26,5000/-.."
+                                    readonly
+                                    style="background-color: #F0F0F0;"
+                                  />
+                                </div> 
+                                <div class="col-xl-6">
+                                  <label for="training_date" class="form-label"
+                                    >Training Date</label
+                                  >
+                                  <input
+                                    type="date"
+                                    class="form-control"
+                                    id="training_date"
+                                    name="training_date"
+                                    placeholder="Stock in date.."
+                                    readonly
+                                    style="background-color: #F0F0F0;"
+                                  />
+                                </div>
+                          
+                                <div class="col-xl-6">
+                                  <label for="training_published_by" class="form-label"
+                                    >Training by</label
+                                  >
+                                  <input
+                                    type="text"
+                                    class="form-control"
+                                    id="training_published_by"
+                                    name="training_published_by"
+                                    placeholder="Stock in date.."
+                                    readonly
+                                    style="background-color: #F0F0F0;"
+                                  />
+                                </div>
+                         
+                                  
+                              
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <!-- End:: row-1 -->
+
+        <div class="col-xl-12">
+            <div class="row">
+              <div class="col-xxl-12 col-xl-12">
+                <div class="row" style="display: flex; justify-content: center;">
+                  <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h1 class="mb-2 fs-12 cus">
+                              No. of Registrations:
+                            </h1>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span class="count-up registrations">0</span>
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h6 class="mb-2 fs-12 cus">
+                              Total Checkin:
+                            </h6>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span class="count-up non-registrations">0</span>
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xxl-3">
+                    <div
+                      class="card custom-card overflow-hidden main-content-card"
+                    >
+                      <div
+                        class="card-body p-4"
+                        style="background-color: gainsboro"
+                      >
+                        <div class="d-flex align-items-start gap-3">
+                          <div class="flex-fill">
+                            <h6 class="mb-2 fs-12 cus">
+                              Total Missed:
+                            </h6>
+                            <div class="pb-0 mt-0">
+                              <div>
+                                <h5 class="fw-medium mb-1">
+                                  <span class="count-up missed-registrations">0</span>
+                                </h5>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            class="main-card-icon primary border-3 border border-primary border-opacity-50 rounded-circle"
+                          >
+                            <div
+                              class="avatar avatar-md bg-primary border border-primary border-opacity-10 avatar-rounded"
+                            >
+                              <div class="avatar avatar-sm svg-white">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="44"
+                                  height="44"
+                                  viewBox="0 0 24 24"
+                                  stroke-width="1.5"
+                                  stroke="#d01f2f"
+                                  fill="none"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                >
+                                  <path
+                                    stroke="none"
+                                    d="M0 0h24v24H0z"
+                                    fill="none"
+                                  />
+                                  <path
+                                    d="M7 8v-2a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"
+                                  />
+                                  <path
+                                    d="M7 16v2a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-2"
+                                  />
+                                  <rect
+                                    x="3"
+                                    y="8"
+                                    width="18"
+                                    height="8"
+                                    rx="2"
+                                  />
+                                  <circle cx="16.5" cy="12" r="1.5" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <div class="row">
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div
+                  class="card-header justify-content-between"
+                  style="background-color: gainsboro !important"
+                >
+                  <div class="card-title">Training Transactions</div>
+                  <div class="d-flex" >
+                    <!-- Region Filter -->
+                    <!-- <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Region
+                      </a>
+                      <ul class="dropdown-menu" id="region-filter" role="menu">
+                        
+                      </ul>
+                    </div> -->
+                  
+                    <!-- Chapter Filter -->
+                    <!-- <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Chapter
+                      </a>
+                      <ul class="dropdown-menu" id="chapter-filter" role="menu">
+                        
+                      </ul>
+                    </div> -->
+                  
+                    <!-- Month Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Month
+                      </a>
+                      <ul class="dropdown-menu" id="month-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                  
+                    <!-- Payment Gateway Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Gateway
+                      </a>
+                      <ul class="dropdown-menu" id="payment-gateway-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Status Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Payment Status
+                      </a>
+                      <ul class="dropdown-menu" id="payment-status-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Payment Method Filter -->
+                    <div class="dropdown me-2">
+                      <a href="javascript:void(0);"
+                         class="btn btn-sm btn-light text-muted dropdown-toggle"
+                         data-bs-toggle="dropdown"
+                         aria-expanded="true">
+                        <i class="ti ti-sort-descending-2 me-1"></i> Method
+                      </a>
+                      <ul class="dropdown-menu" id="payment-method-filter" role="menu">
+                        <!-- Items will be dynamically inserted here -->
+                      </ul>
+                    </div>
+                  
+                    <!-- Apply Filter Button -->
+                    <button href=""
+                            id="apply-filters-btn"
+                            class="btn btn-sm btn-primary btn-wave waves-light">
+                      Apply Filter
+                    </button>
+                    <div style="margin-left: 3px;"><button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+                      Reset Filter
+                    </button></div>
+                    
+                    
+                  </div>
+                  
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table text-nowrap">
+                      <thead>
+                        <tr>
+                          <th scope="col">S.no</th>
+                          <th scope="col">Checked In</th>
+                          <th scope="col">Checked In QR Code</th>
+                          <th scope="col">Date</th>
+                          <th scope="col">Member Name</th>
+                          <th scope="col">Chapter</th>
+                          <th scope="col">Amount</th>
+                          <th scope="col">Payment Method</th>
+                          <th scope="col">Order ID</th>
+                          <th scope="col">Transaction ID</th>
+                          <th scope="col">PG Status</th>
+                          <th scope="col">Gateway</th>
+                          <th scope="col">Settlement Status</th>
+                          <th scope="col">Tranfer UTR</th>
+                          <th scope="col">Tranfer Time</th>
+                          <th scope="col">IRN</th>
+                          <th scope="col">QR Code</th>
+                          <th scope="col">E-Invoice Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="invoice-list">
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0">
+                  <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0 float-end">
+                      <li class="page-item disabled">
+                        <a class="page-link">Previous</a>
+                      </li>
+                      <li class="page-item active">
+                        <a class="page-link" href="javascript:void(0);">1</a>
+                      </li>
+                      <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);">Next</a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+    </div>
+</div>
+<!-- End::content  -->
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+const training_id = urlParams.get('training_id'); // Get the accolade ID from the URL
+
+// Function to show the loader
+function showLoader() {
+document.getElementById('loader').style.display = 'flex'; // Show loader
+}
+
+// Function to hide the loader
+function hideLoader() {
+document.getElementById('loader').style.display = 'none'; // Hide loader
+}
+
+
+// DOM elements for the form fields
+const page_title = document.getElementById('page_title');
+const training_name = document.getElementById('training_name');
+const training_venue = document.getElementById('training_venue');
+const training_ticket_price = document.getElementById('training_ticket_price');
+const training_date = document.getElementById('training_date');
+const training_published_by = document.getElementById('training_published_by');
+
+// Function to format date to YYYY-MM-DD for input[type="date"]
+function formatDateForInput(dateString) {
+const date = new Date(dateString);
+if (isNaN(date)) return ''; // If the date is invalid, return an empty string
+return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+}
+
+// Function to fetch event details and populate the form
+async function fetchTrainingDetails() {
+try {
+showLoader();
+const response = await fetch(`https://backend.bninewdelhi.com/api/getTraining/${training_id}`);
+if (!response.ok) throw new Error('Failed to fetch event details');
+
+const trainingData = await response.json();
+
+// Populate the form fields with the fetched data
+page_title.textContent = trainingData.training_name || '';
+training_name.value = trainingData.training_name || '';
+training_venue.value = trainingData.training_venue || '';
+training_ticket_price.value = trainingData.training_price || '';
+training_date.value = formatDateForInput(trainingData.training_date) || '';
+training_published_by.value = trainingData.training_published_by || '';
+
+} catch (error) {
+console.error('Error fetching training details:', error);
+} finally {
+hideLoader();
+}
+}
+
+// Call the fetchTrainingDetails function on page load
+window.addEventListener('load', fetchTrainingDetails);
+
+
+</script>
+<script type="module" src="../../assets/js/chapterViewTraining.js"></script>
+
+<!-- <script>
+// Remove these duplicate declarations since they're already defined in the earlier script
+// const urlParams = new URLSearchParams(window.location.search);
+// const training_id = urlParams.get('training_id');
+
+// Use the existing urlParams and training_id variables
+fetch('https://backend.bninewdelhi.com/api/allCheckins')
+.then((response) => response.json())
+.then((data) => {
+    console.log('All checkins data:', data);
+    console.log('Current training_id:', training_id);
+    
+    // Filter checkins for the specific training_id
+    const trainingCheckins = data.filter(checkin => {
+        console.log('Comparing checkin training_id:', checkin.training_id, 'with current training_id:', parseInt(training_id));
+        return checkin.training_id === parseInt(training_id);
+    });
+    
+    console.log('Filtered checkins for this training:', trainingCheckins);
+    
+    // Count the total check-ins where checked_in is true for this training
+    const totalCheckins = trainingCheckins.filter((checkin) => {
+        console.log('Checkin status for record:', checkin.checked_in);
+        return checkin.checked_in === true;
+    }).length;
+    
+    console.log('Total checked in:', totalCheckins);
+    
+    // Total registrations is the total number of checkins for this training
+    const totalRegistrations = trainingCheckins.length;
+    console.log('Total registrations:', totalRegistrations);
+    
+    // Count the total missed (total registrations minus total checkins)
+    const totalMissed = totalRegistrations - totalCheckins;
+    console.log('Total missed:', totalMissed);
+
+    // Update header numbers
+    document.querySelector('.registrations').textContent = totalRegistrations;
+    document.querySelector('.non-registrations').textContent = totalCheckins;
+    document.querySelector('.missed-registrations').textContent = totalMissed;
+
+    // Update the three cards with the exact same numbers
+    const cardElements = document.querySelectorAll('.count-up');
+    cardElements.forEach((element, index) => {
+        if (element.closest('.col-xxl-3')) {  // Only target the card elements
+            if (index === 0) {
+                console.log('Setting registrations card to:', totalRegistrations);
+                element.textContent = totalRegistrations;
+            }
+            if (index === 1) {
+                console.log('Setting checkins card to:', totalCheckins);
+                element.textContent = totalCheckins;
+            }
+            if (index === 2) {
+                console.log('Setting missed card to:', totalMissed);
+                element.textContent = totalMissed;
+            }
+        }
+    });
+})
+.catch((error) => {
+    console.error('Error fetching check-ins:', error);
+});
+
+</script> -->
+
+<%- include('../partials/footer') %> 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<!-- Add QR Code library before your closing body tag -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js@1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" integrity="sha512-r6rDA7W6ZeQhvl8S7yRVQUKVHdexq+GAlNkNNqVC7YyIV+NwqCTJe2hDWCiffTyRNOeGEzRRJ9ifvRm/HCzGYg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- Add hidden elements that maintain the necessary classes -->
+<div style="display: none;">
+    <span class="registrations"><b>0</b></span>
+    <span class="non-registrations"><b>0</b></span>
+    <span class="missed-registrations"><b>0</b></span>
+</div>
+
+<!-- Add this script section just before the closing body tag -->
+<script>
+  // Function to calculate and update attendance numbers
+  const updateAttendanceNumbers = async () => {
+    const training_id = new URLSearchParams(window.location.search).get('training_id');
+    
+    try {
+      // Get registrations count directly from table
+      const tableBody = document.querySelector('.table-responsive tbody');
+      const totalRegistrations = tableBody ? tableBody.rows.length - 1 : 0; // Subtract 1 for header row
+      
+      // Get all checkins
+      const checkinsResponse = await fetch('https://backend.bninewdelhi.com/api/allCheckins');
+      const checkinsData = await checkinsResponse.json();
+      
+      // Filter and deduplicate checkins
+      const uniqueCheckins = {};
+      checkinsData.forEach(checkin => {
+        if (checkin.training_id === parseInt(training_id)) {
+          const orderId = checkin.order_id;
+          // Only keep the latest checkin for each order_id
+          if (!uniqueCheckins[orderId] || checkin.checkin_id > uniqueCheckins[orderId].checkin_id) {
+            uniqueCheckins[orderId] = checkin;
+          }
+        }
+      });
+
+      // Calculate total unique checkins
+      const totalCheckins = Object.values(uniqueCheckins)
+        .filter(checkin => checkin.checked_in === true).length;
+
+      // Calculate missed (table entries minus checkins)
+      const totalMissed = totalRegistrations - totalCheckins;
+      
+      console.log('Attendance Numbers:', {
+        totalRegistrations,
+        totalCheckins,
+        totalMissed,
+        uniqueCheckinCount: Object.keys(uniqueCheckins).length
+      });
+      
+      // Update the display
+      document.querySelector('.registrations').textContent = totalRegistrations;
+      document.querySelector('.non-registrations').textContent = totalCheckins;
+      document.querySelector('.missed-registrations').textContent = totalMissed;
+      
+    } catch (error) {
+      console.error('Error updating attendance numbers:', error);
+    }
+  };
+
+  // Call the function when page loads
+  document.addEventListener('DOMContentLoaded', updateAttendanceNumbers);
+  
+  // Update numbers when table content changes
+  const observer = new MutationObserver(updateAttendanceNumbers);
+  observer.observe(document.querySelector('.table-responsive tbody'), {
+    childList: true,
+    subtree: true
+  });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const trainingId = urlParams.get('training_id');
+    const markAsCompletedBtn = document.getElementById('markAsCompletedBtn');
+
+    // Check training status and update button accordingly
+    async function checkTrainingStatus() {
+        try {
+            const response = await fetch('https://backend.bninewdelhi.com/api/alltrainings');
+            const trainings = await response.json();
+            const training = trainings.find(t => t.training_id === parseInt(trainingId));
+            
+            if (training && training.training_status === 'Completed') {
+                markAsCompletedBtn.classList.remove('btn-danger');
+                markAsCompletedBtn.classList.add('btn-success');
+                markAsCompletedBtn.innerHTML = '<i class="ri-check-double-line me-1"></i> Already Completed';
+                markAsCompletedBtn.disabled = true;
+            }
+        } catch (error) {
+            console.error('Error checking training status:', error);
+        }
+    }
+
+    // Check status on page load
+    checkTrainingStatus();
+
+    markAsCompletedBtn.addEventListener('click', async function() {
+        try {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "You want to mark this training as completed?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d01f2f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, mark as completed!'
+            });
+
+            if (result.isConfirmed) {
+                const updateResponse = await fetch('https://backend.bninewdelhi.com/api/markTrainingCompleted', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        training_id: trainingId
+                    })
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error('Failed to update training status');
+                }
+
+                // Update button appearance
+                markAsCompletedBtn.classList.remove('btn-danger');
+                markAsCompletedBtn.classList.add('btn-success');
+                markAsCompletedBtn.innerHTML = '<i class="ri-check-double-line me-1"></i> Already Completed';
+                markAsCompletedBtn.disabled = true;
+
+                Swal.fire(
+                    'Updated!',
+                    'Training has been marked as completed.',
+                    'success'
+                );
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire(
+                'Error!',
+                'Something went wrong while updating the training status.',
+                'error'
+            );
+        }
+    });
+});
+</script>
