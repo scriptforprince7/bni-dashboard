@@ -156,10 +156,18 @@ async function fetchTrainingDetails() {
 
     // Populate the form fields with the fetched data
     training_name.value = trainingData.training_name || '';
+    training_venue.value = trainingData.training_venue || '';
     training_ticket_price.value = trainingData.training_price || '';
     training_date.value = formatDateForInput(trainingData.training_date) || '';
     training_note.value = trainingData.training_note || '';
     training_published_by.value = trainingData.training_published_by || '';
+    
+    // Add time field population
+    const training_time = document.getElementById('training_time');
+    if (training_time && trainingData.training_time) {
+        // Format time from "14:53:00" to "14:53" for input[type="time"]
+        training_time.value = trainingData.training_time.substring(0, 5);
+    }
     
     // Setup hotel dropdown and display current venue
     await setupHotelDropdown();
@@ -170,6 +178,7 @@ async function fetchTrainingDetails() {
 
   } catch (error) {
     console.error('Error fetching training details:', error);
+    showToast('error', 'Failed to fetch training details');
   } finally {
     hideLoader();
   }
@@ -191,6 +200,8 @@ const collectFormData = () => {
         training_note: document.querySelector("#training_note").value,
         training_published_by: document.querySelector("#training_published_by").value,
         training_status: document.querySelector("#training_status").value,
+        // Add training time to the data being sent
+        training_time: document.querySelector("#training_time").value + ':00' // Add seconds to match backend format
     };
     return trainingData;
 };
