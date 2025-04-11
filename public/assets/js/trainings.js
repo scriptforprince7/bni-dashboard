@@ -11,6 +11,8 @@ const yearsDropdown = document.getElementById('year-filter');
 let trainings = []; // Store all trainings
 let selectedTrainingStatus = null;
 let selectedYear = null;
+let currentSortField = null;
+let isAscending = true;
 
 // Loader functions
 function showLoader() {
@@ -374,12 +376,120 @@ async function fetchAndDisplayTrainings() {
     }
 }
 
-// Initialize
+// Add sorting functionality
+function initializeSorting() {
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    sortableHeaders.forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', () => {
+            const sortField = header.dataset.sort;
+            
+            // Toggle sort direction if clicking the same header
+            if (currentSortField === sortField) {
+                isAscending = !isAscending;
+            } else {
+                currentSortField = sortField;
+                isAscending = true;
+            }
+
+            // Update sort icons
+            document.querySelectorAll('.sort-icon').forEach(icon => {
+                icon.className = 'ti ti-arrows-sort sort-icon';
+            });
+            
+            // Update clicked header's icon
+            const icon = header.querySelector('.sort-icon');
+            icon.className = `ti ${isAscending ? 'ti-sort-ascending' : 'ti-sort-descending'} sort-icon`;
+
+            // Sort and render trainings
+            const sortedTrainings = sortTrainings(trainings, sortField, isAscending);
+            renderTrainings(sortedTrainings);
+        });
+    });
+}
+
+// Sorting function
+function sortTrainings(trainingsArray, field, ascending) {
+    return [...trainingsArray].sort((a, b) => {
+        let compareA, compareB;
+
+        switch (field) {
+            case 'name':
+                compareA = a.training_name.toLowerCase();
+                compareB = b.training_name.toLowerCase();
+                break;
+            
+            case 'venue':
+                compareA = a.training_venue?.toLowerCase() || '';
+                compareB = b.training_venue?.toLowerCase() || '';
+                break;
+            
+            case 'date':
+                compareA = new Date(a.training_date).getTime();
+                compareB = new Date(b.training_date).getTime();
+                break;
+            
+            case 'registrations':
+                compareA = parseInt(a.registrations_count) || 0;
+                compareB = parseInt(b.registrations_count) || 0;
+                break;
+            
+            case 'price':
+                compareA = parseFloat(a.training_price) || 0;
+                compareB = parseFloat(b.training_price) || 0;
+                break;
+            
+            case 'status':
+                const statusOrder = {
+                    'Scheduled': 1,
+                    'Completed': 2,
+                    'Postponed': 3,
+                    'Cancelled': 4
+                };
+                compareA = statusOrder[a.training_status] || 999;
+                compareB = statusOrder[b.training_status] || 999;
+                break;
+            
+            default:
+                return 0;
+        }
+
+        if (compareA < compareB) return ascending ? -1 : 1;
+        if (compareA > compareB) return ascending ? 1 : -1;
+        return 0;
+    });
+}
+
+// Update existing style declaration instead of creating new one
+document.head.querySelector('style').textContent += `
+    .sortable {
+        position: relative;
+        cursor: pointer;
+    }
+    .sort-icon {
+        font-size: 14px;
+        margin-left: 5px;
+        color: #666;
+    }
+    .ti-sort-ascending,
+    .ti-sort-descending {
+        color: #2563eb;
+    }
+`;
+
+// Modify the existing DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAndDisplayTrainings();
-    populateMonthsDropdown();
-    populateTrainingStatusFilter();
-    populateYearsDropdown();
+    console.log('DOM Loaded - Starting initialization');
+    try {
+        fetchAndDisplayTrainings();
+        populateMonthsDropdown();
+        populateTrainingStatusFilter();
+        populateYearsDropdown();
+        initializeSorting();
+        console.log('Initialization complete');
+    } catch (error) {
+        console.error('Error during initialization:', error);
+    }
 });
 
 // Add these new functions
@@ -594,35 +704,6 @@ function getSelectedMembers() {
     const checkboxes = document.querySelectorAll('.member-checkbox:checked');
     return Array.from(checkboxes).map(cb => cb.value);
 }
-
-// Add this CSS to your stylesheet
-const style = document.createElement('style');
-style.textContent = `
-    .mail-dialog-custom .mail-dialog-popup {
-        border-radius: 15px;
-    }
-    
-    .mail-dialog-content {
-        padding: 20px;
-    }
-    
-    .member-select-container {
-        max-height: 200px;
-        overflow-y: auto;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        padding: 10px;
-    }
-    
-    .member-item {
-        padding: 5px 0;
-    }
-    
-    .member-item:hover {
-        background-color: #f8f9fa;
-    }
-`;
-document.head.appendChild(style);
 
 
 

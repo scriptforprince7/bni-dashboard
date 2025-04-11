@@ -31,11 +31,199 @@ function showToast(type, message) {
   }
 }
 
+// Add this function at the top of your file
+function getPaymentDetails() {
+    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.id;
+    const paymentNote = document.getElementById('payment-note')?.value || '';
+
+    let paymentData = {
+        mode_of_payment: {}
+    };
+
+    switch(selectedMethod) {
+        case 'cashOption':
+            paymentData.mode_of_payment = {
+                cash: {
+                    payment_note: paymentNote
+                }
+            };
+            break;
+
+        case 'upiOption':
+            paymentData.mode_of_payment = {
+                upi: {
+                    upi_id: document.getElementById('upiId').value,
+                    reference_number: document.getElementById('upiNumber').value,
+                    payment_note: paymentNote
+                }
+            };
+            break;
+
+        case 'bankOption':
+            const transferType = document.querySelector('input[name="bankTransferType"]:checked')?.id;
+            paymentData.mode_of_payment = {
+                bank_transfer: {
+                    transfer_type: transferType === 'rtgsOption' ? 'RTGS' : 
+                                 transferType === 'neftOption' ? 'NEFT' : 
+                                 transferType === 'impsOption' ? 'IMPS' : '',
+                    transfer_utr: document.getElementById('transferUTR').value,
+                    transfer_id: document.getElementById('transferId').value,
+                    payment_note: paymentNote
+                }
+            };
+            break;
+
+        case 'chequeOption':
+            paymentData.mode_of_payment = {
+                cheque: {
+                    cheque_number: document.getElementById('chequeNo').value,
+                    ifsc_code: document.getElementById('ifscCode').value,
+                    payment_note: paymentNote
+                }
+            };
+            break;
+    }
+
+    console.log('💳 Payment Details:', paymentData);
+    return paymentData;
+}
+
 document.addEventListener("DOMContentLoaded", async function() {
   const urlParams = new URLSearchParams(window.location.search);
   const universalLinkId = urlParams.get("id");
 
   if (!universalLinkId) return;
+
+  // Add new condition for id=5
+  if (universalLinkId === "5") {
+    // Show SweetAlert with two options
+    const result = await Swal.fire({
+      title: 'Selet Visitor Type',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Invited By',
+      cancelButtonText: 'Other',
+      confirmButtonColor: '#6259ca',
+      cancelButtonColor: '#7987a1',
+      reverseButtons: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+
+    // First update all "Billing To" labels to "Invited By"
+    const allLabels = document.querySelectorAll('.dw-semibold.mb-2');
+    allLabels.forEach(label => {
+      if (label.textContent.trim() === 'Billing To :') {
+        label.textContent = 'Invited By :';
+      }
+    });
+
+    // Get the billing container and additional fields
+    const billingToContainer = document.querySelector('.col-xl-4.col-lg-4.col-md-6.col-sm-6.ms-auto.mt-sm-0.mt-3');
+    const additionalFields = [
+      document.getElementById('member_address').closest('.col-xl-12'),
+      document.getElementById('member_company_name').closest('.col-xl-12'),
+      document.getElementById('member_phone_number').closest('.col-xl-12'),
+      document.getElementById('member_gst_number').closest('.col-xl-12')
+    ];
+
+    if (!result.isConfirmed) {
+      // User clicked "Other"
+      const selectContainer = billingToContainer.querySelector('.col-xl-12');
+      selectContainer.innerHTML = `
+        <input 
+          type="text" 
+          class="form-control form-control-light" 
+          id="invited-by-input" 
+          placeholder="Enter name"
+        >
+      `;
+
+      // Hide additional fields
+      additionalFields.forEach(field => {
+        if (field) {
+          field.style.display = 'none';
+        }
+      });
+      
+      console.log("✅ Replaced dropdown with text input and hid additional fields");
+    } else {
+      // User clicked "Invited By"
+      // Show additional fields
+      additionalFields.forEach(field => {
+        if (field) {
+          field.style.display = 'block';
+        }
+      });
+      
+      console.log("✅ Kept dropdown and showed additional fields");
+    }
+
+    // Show visitor details section
+    document.getElementById('visitor-details-section').style.display = 'block';
+
+    // Handle GST checkbox
+    document.getElementById('has-gst').addEventListener('change', function() {
+      document.getElementById('gst-fields').style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Handle Get GST Details button click
+    document.getElementById('get-gst-details').addEventListener('click', async function() {
+      const gstNumber = document.getElementById('company-gstin').value.trim();
+      
+      if (!gstNumber) {
+        showToast('error', 'Please enter GST number');
+        return;
+      }
+
+      try {
+        showLoader();
+        const response = await fetch(`https://backend.bninewdelhi.com/api/get-gst-details/${gstNumber}`);
+        const data = await response.json();
+
+        if (data.error) {
+          showToast('error', data.error);
+          return;
+        }
+
+        // Update company details with GST data
+        document.getElementById('visitor-company-name').value = data.legalName || data.tradeName || '';
+        document.getElementById('visitor-company-address').value = formatGSTAddress(data.address);
+        
+        showToast('success', 'GST details fetched successfully');
+      } catch (error) {
+        console.error('Error fetching GST details:', error);
+        showToast('error', 'Failed to fetch GST details');
+      } finally {
+        hideLoader();
+      }
+    });
+
+    // Helper function to format GST address
+    function formatGSTAddress(address) {
+      if (!address) return '';
+      
+      const parts = [
+        address.bno,
+        address.st,
+        address.loc,
+        address.dst,
+        address.stcd,
+        address.pin
+      ].filter(Boolean);
+      
+      return parts.join(', ');
+    }
+
+    // Show visitor details section
+    document.getElementById('visitor-details-section').style.display = 'block';
+
+    // Add animation classes for smooth transitions
+    const visitorSection = document.getElementById('visitor-details-section');
+    visitorSection.classList.add('animate__animated', 'animate__fadeIn');
+
+    console.log("User selected: Invited By");
+  }
 
   try {
     showLoader();
@@ -172,13 +360,99 @@ document.addEventListener("DOMContentLoaded", async function() {
         // Handle chapter selection
         chapterLink.addEventListener("click", async function() {
           chapterDropdownBtn.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${chapter.chapter_name}`;
-          selectedChapterId = chapter.chapter_id;  // Store the chapter ID
+          selectedChapterId = chapter.chapter_id;
           console.log("🏢 Selected Chapter:", {
             name: chapter.chapter_name,
             id: selectedChapterId
           });
-          
-          // Only show kitty bill related sections for meeting payments
+
+          // Add visitor fees handling for id=5
+          if (universalLinkId === "5") {
+            console.log("🎯 Processing for Visitor Payment (ID 5)");
+            try {
+              // Set particulars text for visitor payment
+              const particularsField = document.getElementById('particulars');
+              if (particularsField) {
+                particularsField.value = "Visitors Payment";
+                particularsField.readOnly = true; // Make it read-only
+                console.log("✅ Set particulars text for visitor payment");
+              }
+
+              // Get visitor fees from the selected chapter
+              const visitorFee = parseFloat(chapter.chapter_visitor_fees) || 0;
+              console.log("💰 Chapter Visitor Fee:", visitorFee);
+
+              // Update Rate and Amount fields
+              document.getElementById('rate').value = `₹ ${visitorFee.toFixed(2)}`;
+              document.getElementById('price').value = `₹ ${visitorFee.toFixed(2)}`;
+              document.getElementById('taxable-total-amount').value = `₹ ${visitorFee.toFixed(2)}`;
+              console.log("✅ Updated Rate and Amount fields");
+
+              // Hide CGST and SGST rows
+              const cgstRow = document.querySelector('tr:has(#cgst_amount)');
+              const sgstRow = document.querySelector('tr:has(#sgst_amount)');
+              if (cgstRow) cgstRow.style.display = 'none';
+              if (sgstRow) sgstRow.style.display = 'none';
+              console.log("✅ Hidden CGST and SGST rows");
+
+              // Calculate GST (18%)
+              const gstAmount = visitorFee * 0.18;
+              console.log("💰 GST Amount (18%):", gstAmount);
+
+              // Add or update GST row
+              let gstRow = document.getElementById('gst-18-row');
+              const taxableRow = document.querySelector('tr:has(#taxable-total-amount)');
+              const grandTotalRow = document.querySelector('tr:has(#grand_total)');
+
+              // Make sure grand total row is visible
+              if (grandTotalRow) {
+                grandTotalRow.style.display = 'table-row';
+                console.log("✅ Ensured Grand Total row is visible");
+              }
+
+              if (!gstRow && taxableRow && grandTotalRow) {
+                gstRow = document.createElement('tr');
+                gstRow.id = 'gst-18-row';
+                gstRow.innerHTML = `
+                  <th scope="row">
+                    <div class="fw-medium">Add GST (18%) :</div>
+                  </th>
+                  <td>
+                    <input
+                      type="text"
+                      class="form-control form-control-light invoice-amount-input"
+                      id="gst-18-amount"
+                      value="₹ ${gstAmount.toFixed(2)}"
+                      readonly
+                    />
+                  </td>
+                `;
+                // Insert GST row before Grand Total
+                grandTotalRow.parentNode.insertBefore(gstRow, grandTotalRow);
+                console.log("✅ Added GST row before Grand Total");
+              } else if (gstRow) {
+                document.getElementById('gst-18-amount').value = `₹ ${gstAmount.toFixed(2)}`;
+                console.log("✅ Updated GST Amount");
+              }
+
+              // Calculate and update Grand Total (Visitor Fee + GST)
+              const grandTotal = visitorFee + gstAmount;
+              const grandTotalField = document.getElementById('grand_total');
+              if (grandTotalField) {
+                grandTotalField.value = `₹ ${grandTotal.toFixed(2)}`;
+                grandTotalField.style.display = 'block'; // Make sure the input field is visible
+                console.log("✅ Updated Grand Total:", grandTotal.toFixed(2));
+              } else {
+                console.error("❌ Grand Total field not found!");
+              }
+
+            } catch (error) {
+              console.error("❌ Error processing visitor fees:", error);
+              showToast('error', 'Failed to process visitor fees');
+            }
+          }
+
+          // Only show chapter selection message for meeting payments
           if (universalLinkId === "4") {
             // Hide chapter selection message
             chapterSelectionMessage.style.display = "none";
@@ -301,233 +575,68 @@ document.addEventListener("DOMContentLoaded", async function() {
       }
     }
 
-    // Function to update members dropdown
+    // Function to update member dropdown
     function updateMemberDropdown(chapterId, allMembers) {
-      const memberDropdown = document.getElementById("company-name");
-      memberDropdown.innerHTML = `<option selected>Select Member</option>`;
-
-      const filteredMembers = allMembers.filter(member => member.chapter_id == chapterId);
-      
-      console.log("👥 Available Members:", filteredMembers.map(member => ({
-        id: member.member_id,
-        name: `${member.member_first_name} ${member.member_last_name}`,
-        company: member.member_company_name
-      })));
-
-      filteredMembers.forEach(member => {
-        const option = document.createElement("option");
-        option.value = member.member_id;
-        option.textContent = `${member.member_first_name} ${member.member_last_name}`;
-        // Store full details in dataset
-        option.dataset.firstName = member.member_first_name;
-        option.dataset.lastName = member.member_last_name;
-        option.dataset.address = member.street_address_line_1;
-        option.dataset.companyName = member.member_company_name;
-        option.dataset.phoneNumber = member.member_phone_number;
-        option.dataset.gstNumber = member.member_gst_number;
-        
-        memberDropdown.appendChild(option);
-      });
-
-      // Add event listener for dropdown selection
-      memberDropdown.addEventListener("change", function() {
-        const selectedOption =
-          memberDropdown.options[memberDropdown.selectedIndex];
-
-        if (selectedOption.value !== "Select Member") {
-          document.getElementById("member_address").value =
-            selectedOption.dataset.address || "";
-          document.getElementById("member_company_name").value =
-            selectedOption.dataset.companyName || "";
-          document.getElementById("member_phone_number").value =
-            selectedOption.dataset.phoneNumber || "";
-          document.getElementById("member_gst_number").value =
-            selectedOption.dataset.gstNumber || "";
-            
-          // Fetch bank order data for meeting/kitty payments
-          if (universalLinkId === "4") {
-            fetchBankOrderData(selectedOption.value, selectedChapterId);
-          }
-        } else {
-          // Clear fields if no member is selected
-          document.getElementById("member_address").value = "";
-          document.getElementById("member_company_name").value = "";
-          document.getElementById("member_phone_number").value = "";
-          document.getElementById("member_gst_number").value = "";
-          
-          // Clear payment fields
-          document.getElementById("rate").value = "-";
-          document.getElementById("price").value = "-";
-          document.getElementById("taxable-total-amount").value = "-";
-          document.getElementById("cgst_amount").value = "-";
-          document.getElementById("sgst_amount").value = "-";
-          document.getElementById("grand_total").value = "-";
+        // Check if we're in "Other" mode - if so, skip all dropdown handling
+        const invitedByInput = document.getElementById('invited-by-input');
+        if (invitedByInput) {
+            console.log("📝 In 'Other' mode - skipping member dropdown update");
+            return;
         }
-      });
-    }
 
-    // Function to fetch bank order data
-    async function fetchBankOrderData(memberId, chapterId) {
-      try {
-        showLoader();
-        const response = await fetch("https://backend.bninewdelhi.com/api/getBankOrder");
-        const bankOrders = await response.json();
-        
-        // Find the bank order for the selected member and chapter
-        const bankOrder = bankOrders.find(order => 
-          order.member_id == memberId && 
-          order.chapter_id == chapterId
-        );
-        
-        if (bankOrder) {
-          console.log("💰 Bank Order Data:", bankOrder);
-          
-          // Store bank order data in the member select element for later use
-          const memberSelect = document.getElementById("company-name");
-          memberSelect.dataset.bankOrderId = bankOrder.bank_order_id;
-          memberSelect.dataset.amountToPay = bankOrder.amount_to_pay;
-          memberSelect.dataset.kittyDueDate = bankOrder.kitty_due_date;
-          memberSelect.dataset.noOfLatePayment = bankOrder.no_of_late_payment;
-          memberSelect.dataset.kittyPenalty = bankOrder.kitty_penalty;
-          
-          // Calculate amounts
-          const amountToPay = parseFloat(bankOrder.amount_to_pay) || 0;
-          const gstAmount = amountToPay * 0.18; // 18% GST
-          const cgstAmount = gstAmount / 2; // 9% CGST
-          const sgstAmount = gstAmount / 2; // 9% SGST
-          const grandTotal = amountToPay + gstAmount;
-          
-          // Store calculated amounts
-          memberSelect.dataset.totalAmount = amountToPay;
-          memberSelect.dataset.gstAmount = gstAmount;
-          memberSelect.dataset.cgstAmount = cgstAmount;
-          memberSelect.dataset.sgstAmount = sgstAmount;
-          memberSelect.dataset.grandTotal = grandTotal;
-          
-          // Update form fields
-          document.getElementById("rate").value = formatCurrency(amountToPay);
-          document.getElementById("price").value = formatCurrency(amountToPay);
-          document.getElementById("taxable-total-amount").value = formatCurrency(amountToPay);
-          document.getElementById("cgst_amount").value = formatCurrency(cgstAmount);
-          document.getElementById("sgst_amount").value = formatCurrency(sgstAmount);
-          document.getElementById("grand_total").value = formatCurrency(grandTotal);
-          
-          // Update particulars field with kitty payment description
-          document.getElementById("particulars").value = "Kitty Payment";
-          
-          // Show payment type options if not already visible
-          document.getElementById("payment-type-options").style.display = "block";
-          
-          // Check if member has zero pending balance
-          const hasZeroBalance = amountToPay === 0;
-          
-          // Update payment type options based on balance
-          const fullPaymentOption = document.getElementById("fullPaymentOption");
-          const partialPaymentOption = document.getElementById("partialPaymentOption");
-          const advancePaymentOption = document.getElementById("advancePaymentOption");
-          
-          if (hasZeroBalance) {
-            // If zero balance, disable full and partial payment options
-            if (fullPaymentOption) fullPaymentOption.disabled = true;
-            if (partialPaymentOption) partialPaymentOption.disabled = true;
-            if (advancePaymentOption) advancePaymentOption.checked = true;
-            
-            // Show advance payment fields
-            if (document.getElementById("advance-amount-row")) {
-              document.getElementById("advance-amount-row").style.display = "table-row";
-            }
-            
-            // Add a note about advance payment
-            const paymentTypeOptions = document.getElementById("payment-type-options");
-            let advanceNote = document.getElementById("advance-payment-note");
-            
-            if (!advanceNote) {
-              advanceNote = document.createElement("div");
-              advanceNote.id = "advance-payment-note";
-              advanceNote.className = "alert alert-info mt-2";
-              advanceNote.innerHTML = "<strong>Note:</strong> You have no pending balance. You can make an advance payment by entering your desired amount.";
-              paymentTypeOptions.appendChild(advanceNote);
-            } else {
-              advanceNote.style.display = "block";
-            }
-          } else {
-            // If has balance, enable all payment options
-            if (fullPaymentOption) fullPaymentOption.disabled = false;
-            if (partialPaymentOption) partialPaymentOption.disabled = false;
-            if (advancePaymentOption) advancePaymentOption.disabled = false;
-            
-            // Hide advance payment note if exists
-            const advanceNote = document.getElementById("advance-payment-note");
-            if (advanceNote) {
-              advanceNote.style.display = "none";
-            }
-          }
-          
-          // Show kitty bill info if available
-          if (bankOrder.kitty_due_date) {
-            document.getElementById("kitty-bill-info").style.display = "block";
-            document.getElementById("bill-description").textContent = "Kitty Payment";
-            document.getElementById("bill-amount").textContent = formatCurrency(amountToPay);
-            document.getElementById("bill-due-date").textContent = new Date(bankOrder.kitty_due_date).toLocaleDateString();
-            document.getElementById("bill-penalty").textContent = formatCurrency(bankOrder.kitty_penalty || 0);
-            
-            // Check if due date has passed
-            const today = new Date();
-            const dueDate = new Date(bankOrder.kitty_due_date);
-            if (today > dueDate) {
-              document.getElementById("bill-status").textContent = "Overdue";
-              document.getElementById("bill-status").classList.add("text-danger");
-            } else {
-              document.getElementById("bill-status").textContent = "Active";
-              document.getElementById("bill-status").classList.add("text-success");
-            }
-          }
-        } else {
-          console.log("No bank order found for this member and chapter");
-          showToast('warning', "No payment information found for this member");
-          
-          // Clear payment fields
-          document.getElementById("rate").value = "-";
-          document.getElementById("price").value = "-";
-          document.getElementById("taxable-total-amount").value = "-";
-          document.getElementById("cgst_amount").value = "-";
-          document.getElementById("sgst_amount").value = "-";
-          document.getElementById("grand_total").value = "-";
-          
-          // Enable advance payment for members with no bank order
-          const advancePaymentOption = document.getElementById("advancePaymentOption");
-          if (advancePaymentOption) {
-            advancePaymentOption.checked = true;
-            advancePaymentOption.disabled = false;
-          }
-          
-          // Show advance payment fields
-          if (document.getElementById("advance-amount-row")) {
-            document.getElementById("advance-amount-row").style.display = "table-row";
-          }
-          
-          // Add a note about advance payment
-          const paymentTypeOptions = document.getElementById("payment-type-options");
-          let advanceNote = document.getElementById("advance-payment-note");
-          
-          if (!advanceNote) {
-            advanceNote = document.createElement("div");
-            advanceNote.id = "advance-payment-note";
-            advanceNote.className = "alert alert-info mt-2";
-            advanceNote.innerHTML = "<strong>Note:</strong> You can make an advance payment by entering your desired amount.";
-            paymentTypeOptions.appendChild(advanceNote);
-          } else {
-            advanceNote.style.display = "block";
-          }
+        const memberDropdown = document.getElementById("company-name");
+        if (!memberDropdown) {
+            console.log("⚠️ Member dropdown not found - might be in 'Other' mode");
+            return;
         }
-      } catch (error) {
-        console.error("Error fetching bank order data:", error);
-        showToast('error', "Error fetching payment information");
-      } finally {
-        hideLoader();
-      }
-    }
 
+        // Rest of your existing dropdown code remains unchanged
+        memberDropdown.innerHTML = `<option selected>Select Member</option>`;
+        const filteredMembers = allMembers.filter(member => member.chapter_id == chapterId);
+        
+        console.log("👥 Available Members:", filteredMembers.map(member => ({
+            id: member.member_id,
+            name: `${member.member_first_name} ${member.member_last_name}`,
+            company: member.member_company_name
+        })));
+
+        filteredMembers.forEach(member => {
+            const option = document.createElement("option");
+            option.value = member.member_id;
+            option.textContent = `${member.member_first_name} ${member.member_last_name}`;
+            // Store full details in dataset
+            option.dataset.firstName = member.member_first_name;
+            option.dataset.lastName = member.member_last_name;
+            option.dataset.address = member.street_address_line_1;
+            option.dataset.companyName = member.member_company_name;
+            option.dataset.phoneNumber = member.member_phone_number;
+            option.dataset.gstNumber = member.member_gst_number;
+            
+            memberDropdown.appendChild(option);
+        });
+
+        // Keep existing event listener code
+        memberDropdown.addEventListener("change", function() {
+            const selectedOption = memberDropdown.options[memberDropdown.selectedIndex];
+
+            if (selectedOption.value !== "Select Member") {
+                document.getElementById("member_address").value =
+                    selectedOption.dataset.address || "";
+                document.getElementById("member_company_name").value =
+                    selectedOption.dataset.companyName || "";
+                document.getElementById("member_phone_number").value =
+                    selectedOption.dataset.phoneNumber || "";
+                document.getElementById("member_gst_number").value =
+                    selectedOption.dataset.gstNumber || "";
+            } else {
+                // Clear fields if no member is selected
+                document.getElementById("member_address").value = "";
+                document.getElementById("member_company_name").value = "";
+                document.getElementById("member_phone_number").value = "";
+                document.getElementById("member_gst_number").value = "";
+            }
+        });
+    }
     // Show all chapters by default
     updateChapterDropdown(null, chapters);
 
@@ -754,298 +863,249 @@ document.addEventListener("DOMContentLoaded", async function() {
       });
     }
 
-    // Handle payment method changes
-    const paymentMethods = document.getElementsByName('paymentMethod');
-    const upiFields = document.getElementById('upiFields');
-    const bankFields = document.getElementById('bankFields');
-    const chequeFields = document.getElementById('chequeFields');
+    // // Handle payment method changes
+    // const paymentMethods = document.getElementsByName('paymentMethod');
+    // const upiFields = document.getElementById('upiFields');
+    // const bankFields = document.getElementById('bankFields');
+    // const chequeFields = document.getElementById('chequeFields');
 
-    paymentMethods.forEach(method => {
-      method.addEventListener('change', function() {
-        // Hide all payment fields first
-        upiFields.style.display = 'none';
-        bankFields.style.display = 'none';
-        chequeFields.style.display = 'none';
+    // paymentMethods.forEach(method => {
+    //   method.addEventListener('change', function() {
+    //     // Hide all payment fields first
+    //     upiFields.style.display = 'none';
+    //     bankFields.style.display = 'none';
+    //     chequeFields.style.display = 'none';
 
-        // Show relevant fields based on selection
-        if (this.id === 'upiOption') {
-          upiFields.style.display = 'block';
-        } else if (this.id === 'bankOption') {
-          bankFields.style.display = 'block';
-        } else if (this.id === 'chequeOption') {
-          chequeFields.style.display = 'block';
-        }
+    //     // Show relevant fields based on selection
+    //     if (this.id === 'upiOption') {
+    //       upiFields.style.display = 'block';
+    //     } else if (this.id === 'bankOption') {
+    //       bankFields.style.display = 'block';
+    //     } else if (this.id === 'chequeOption') {
+    //       chequeFields.style.display = 'block';
+    //     }
 
-        console.log('💳 Payment Method Changed:', this.id);
-      });
-    });
+    //     console.log('💳 Payment Method Changed:', this.id);
+    //   });
+    // });
 
-    // Function to get payment details
-    function getPaymentDetails() {
-      const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').id;
-      const paymentNote = document.getElementById('payment-note').value;
-      let paymentData = {
-        mode_of_payment: {}
-      };
-
-      switch(selectedMethod) {
-        case 'cashOption':
-          paymentData.mode_of_payment = {
-            cash: {
-              payment_note: paymentNote
-            }
-          };
-          break;
-
-        case 'upiOption':
-          paymentData.mode_of_payment = {
-            upi: {
-              upi_id: document.getElementById('upiId').value,
-              reference_number: document.getElementById('upiNumber').value,
-              payment_note: paymentNote
-            }
-          };
-          break;
-
-        case 'bankOption':
-          const transferType = document.querySelector('input[name="bankTransferType"]:checked')?.id;
-          paymentData.mode_of_payment = {
-            bank_transfer: {
-              transfer_type: transferType === 'rtgsOption' ? 'RTGS' : 
-                           transferType === 'neftOption' ? 'NEFT' : 
-                           transferType === 'impsOption' ? 'IMPS' : '',
-              transfer_utr: document.getElementById('transferUTR').value,
-              transfer_id: document.getElementById('transferId').value,
-              payment_note: paymentNote
-            }
-          };
-          break;
-
-        case 'chequeOption':
-          paymentData.mode_of_payment = {
-            cheque: {
-              cheque_number: document.getElementById('chequeNo').value,
-              ifsc_code: document.getElementById('ifscCode').value,
-              payment_note: paymentNote
-            }
-          };
-          break;
-      }
-
-      console.log('💳 Payment Details:', paymentData);
-      return paymentData;
-    }
-
-    // Submit handler
-    document.getElementById('invoice-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      // Get selected member
-      const memberSelect = document.getElementById("company-name");
-      const selectedMember = memberSelect.options[memberSelect.selectedIndex];
-      
-      if (!selectedMember || !selectedMember.value) {
-        showToast('warning', "Please select a member");
-        return;
-      }
-      
-      // Get payment method details
-      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-      const paymentData = getPaymentDetails(paymentMethod);
-      
-      // Construct invoice data
-      const invoiceData = {
-        member_id: selectedMember.value,
-        member_name: selectedMember.text,
-        member_address: selectedMember.dataset.address,
-        member_company: selectedMember.dataset.company,
-        member_phone: selectedMember.dataset.phone,
-        member_gst: selectedMember.dataset.gst,
-        payment_method: paymentMethod,
-        ...paymentData,
-        rate: document.getElementById("rate").value,
-        price: document.getElementById("price").value,
-        taxable_total_amount: document.getElementById("taxable-total-amount").value,
-        cgst_amount: document.getElementById("cgst_amount").value,
-        sgst_amount: document.getElementById("sgst_amount").value,
-        grand_total: document.getElementById("grand_total").value,
-        universal_link_id: universalLinkId
-      };
-      
-      // Handle specific cases for meeting or kitty payment
-      if (universalLinkId === "4") {
-        const bankOrderId = memberSelect.dataset.bankOrderId;
-        const kittyDueDate = memberSelect.dataset.kittyDueDate;
-        const totalAmount = parseFloat(memberSelect.dataset.totalAmount || 0);
-        const paymentType = document.querySelector('input[name="paymentType"]:checked').value;
+    // Add submit handler for the invoice form
+    const submitButton = document.getElementById('submit_invoice');
+    if (submitButton) {
+      submitButton.addEventListener('click', async function(e) {
+        e.preventDefault();
         
-        // Add bank order related fields
-        invoiceData.bank_order_id = bankOrderId;
-        invoiceData.kitty_due_date = kittyDueDate;
-        
-        if (paymentType === 'full') {
-          invoiceData.member_pending_balance = 0;
-          invoiceData.total_amount_paid = totalAmount;
-          invoiceData.payment_note = "Full payment made";
-        } else if (paymentType === 'partial') {
-          const partialAmount = parseFloat(document.getElementById("partial-amount").value || 0);
-          const remainingBalance = totalAmount - partialAmount;
-          invoiceData.member_pending_balance = remainingBalance;
-          invoiceData.total_amount_paid = partialAmount;
-          invoiceData.payment_note = `Partial payment of ${formatCurrency(partialAmount)} made. Remaining balance: ${formatCurrency(remainingBalance)}`;
-        } else if (paymentType === 'advance') {
-          const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
+        try {
+          if(universalLinkId === "5"){
+            return;
+          }
+          showLoader();
           
-          if (totalAmount > 0) {
-            // If member has a balance, add it to the advance amount
-            invoiceData.member_pending_balance = totalAmount;
-            invoiceData.total_amount_paid = advanceAmount;
-            invoiceData.payment_note = `Advance payment of ${formatCurrency(advanceAmount)} made. Pending balance: ${formatCurrency(totalAmount)}`;
-          } else {
-            // If member has zero balance, just record the advance amount
-            invoiceData.member_pending_balance = 0;
-            invoiceData.total_amount_paid = advanceAmount;
-            invoiceData.payment_note = `Advance payment of ${formatCurrency(advanceAmount)} made`;
-          }
-        }
-      }
-      
-      try {
-        showLoader();
-        
-        const response = await fetch('https://backend.bninewdelhi.com/api/add-invoice', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(invoiceData)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
+          // Get all form data
+          const formData = new FormData();
+          
+          // Add form fields manually
+          formData.append('member_id', document.getElementById('company-name').value);
+          formData.append('company_id', document.querySelector('.company_info').value);
+          formData.append('date_issued', document.getElementById('invoice-date-issued').value);
+          formData.append('particulars', document.getElementById('particulars').value);
+          formData.append('rate', document.getElementById('rate').value);
+          formData.append('price', document.getElementById('price').value);
+          formData.append('taxable_total_amount', document.getElementById('taxable-total-amount').value);
+          formData.append('cgst_amount', document.getElementById('cgst_amount').value);
+          formData.append('sgst_amount', document.getElementById('sgst_amount').value);
+          formData.append('grand_total', document.getElementById('grand_total').value);
+          
+          // Get payment details
+          const paymentData = getPaymentDetails();
+          
+          // Combine form data with payment data
+          const invoiceData = {
+            // Add your existing invoice data here
+            member_id: formData.get('member_id'),
+            company_id: formData.get('company_id'),
+            date_issued: formData.get('date_issued'),
+            particulars: formData.get('particulars'),
+            rate: formData.get('rate'),
+            price: formData.get('price'),
+            taxable_total_amount: formData.get('taxable_total_amount'),
+            cgst_amount: formData.get('cgst_amount'),
+            sgst_amount: formData.get('sgst_amount'),
+            grand_total: formData.get('grand_total'),
+            
+            // Add the payment data
+            ...paymentData
+          };
+
+          console.log('📤 Submitting invoice with data:', invoiceData);
+
+          // // Send to your API
+          // const response = await fetch('your-api-endpoint', {
+          //   method: 'POST',
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //   },
+          //   body: JSON.stringify(invoiceData)
+          // });
+
+          // if (!response.ok) {
+          //   throw new Error('Failed to create invoice');
+          // }
+
+          // const result = await response.json();
+          // console.log('✅ Invoice created successfully:', result);
+
+          // Show success message
           Swal.fire({
-            title: 'Success!',
-            text: 'Invoice generated successfully',
             icon: 'success',
-            confirmButtonText: 'OK'
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.href = '/transactions';
-            }
+            title: 'Success!',
+            text: 'Invoice created successfully',
+            showConfirmButton: false,
+            timer: 1500
           });
-        } else {
-          throw new Error(result.message || 'Failed to generate invoice');
+
+          // Redirect or refresh as needed
+          setTimeout(() => {
+            window.location.href = '/your-redirect-path';
+          }, 1500);
+
+        } catch (error) {
+          console.error('❌ Error creating invoice:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to create invoice. Please try again.'
+          });
+        } finally {
+          hideLoader();
         }
-      } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-          title: 'Error!',
-          text: error.message || 'Failed to generate invoice',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        });
-      } finally {
-        hideLoader();
+      });
+    }
+
+    // Add this after your existing chapter selection code
+    document.querySelector('.company_info').addEventListener('change', async function() {
+      if (universalLinkId === "5") {
+        try {
+          const selectedChapterId = this.value;
+          console.log("📍 Chapter Selection Changed - Selected ID:", selectedChapterId);
+          
+          if (!selectedChapterId) {
+            console.log("❌ No chapter selected");
+            return;
+          }
+
+          showLoader();
+          
+          // Fetch chapters data
+          const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+          const chapters = await response.json();
+          console.log("📋 All Chapters Data:", chapters);
+          
+          // Find selected chapter
+          const selectedChapter = chapters.find(chapter => chapter.id === parseInt(selectedChapterId));
+          console.log("✅ Found Selected Chapter:", selectedChapter);
+          
+          if (!selectedChapter) {
+            console.log("❌ Chapter not found in data");
+            showToast('error', 'Chapter data not found');
+            return;
+          }
+
+          // Get visitor fees
+          const visitorFee = parseFloat(selectedChapter.chapter_visitor_fees) || 0;
+          console.log("💰 Visitor Fee:", visitorFee);
+          
+          // Update Rate field
+          const rateField = document.getElementById('rate');
+          if (rateField) {
+            rateField.value = visitorFee.toFixed(2);
+            console.log("✅ Updated Rate:", rateField.value);
+          }
+
+          // Update Amount field
+          const priceField = document.getElementById('price');
+          if (priceField) {
+            priceField.value = visitorFee.toFixed(2);
+            console.log("✅ Updated Price:", priceField.value);
+          }
+
+          // Update Total Taxable Value
+          const taxableField = document.getElementById('taxable-total-amount');
+          if (taxableField) {
+            taxableField.value = visitorFee.toFixed(2);
+            console.log("✅ Updated Taxable Amount:", taxableField.value);
+          }
+
+          // Hide CGST and SGST rows
+          const cgstRow = document.querySelector('tr:has(#cgst_amount)');
+          const sgstRow = document.querySelector('tr:has(#sgst_amount)');
+          
+          if (cgstRow) {
+            cgstRow.style.display = 'none';
+            console.log("✅ Hidden CGST Row");
+          }
+          if (sgstRow) {
+            sgstRow.style.display = 'none';
+            console.log("✅ Hidden SGST Row");
+          }
+
+          // Calculate GST (18%)
+          const gstAmount = visitorFee * 0.18;
+          console.log("💰 Calculated GST Amount:", gstAmount);
+
+          // Add or update GST row
+          let gstRow = document.getElementById('gst-18-row');
+          const taxableRow = document.querySelector('tr:has(#taxable-total-amount)');
+          const grandTotalRow = document.querySelector('tr:has(#grand_total)');
+
+          // Make sure grand total row is visible
+          if (grandTotalRow) {
+            grandTotalRow.style.display = 'table-row';
+            console.log("✅ Ensured Grand Total row is visible");
+          }
+
+          if (!gstRow && taxableRow && grandTotalRow) {
+            gstRow = document.createElement('tr');
+            gstRow.id = 'gst-18-row';
+            gstRow.innerHTML = `
+              <th scope="row">
+                <div class="fw-medium">Add GST (18%) :</div>
+              </th>
+              <td>
+                <input
+                  type="text"
+                  class="form-control form-control-light invoice-amount-input"
+                  id="gst-18-amount"
+                  value="₹ ${gstAmount.toFixed(2)}"
+                  readonly
+                />
+              </td>
+            `;
+            // Insert GST row before Grand Total
+            grandTotalRow.parentNode.insertBefore(gstRow, grandTotalRow);
+            console.log("✅ Added GST row before Grand Total");
+          } else if (gstRow) {
+            document.getElementById('gst-18-amount').value = `₹ ${gstAmount.toFixed(2)}`;
+            console.log("✅ Updated GST Amount");
+          }
+
+          // Calculate and update Grand Total (Visitor Fee + GST)
+          const grandTotal = visitorFee + gstAmount;
+          const grandTotalField = document.getElementById('grand_total');
+          if (grandTotalField) {
+            grandTotalField.value = grandTotal.toFixed(2);
+            grandTotalField.style.display = 'block'; // Make sure the input field is visible
+            console.log("✅ Updated Grand Total:", grandTotal.toFixed(2));
+          }
+
+        } catch (error) {
+          console.error("❌ Error in chapter selection handler:", error);
+          showToast('error', 'Failed to process chapter selection');
+        } finally {
+          hideLoader();
+        }
       }
     });
-
-    // Payment type handling (Full, Partial, Advance)
-    const paymentTypes = document.getElementsByName('paymentType');
-    const partialPaymentRow = document.getElementById('partial-payment-row');
-    const remainingBalanceRow = document.getElementById('remaining-balance-row');
-    const advanceAmountRow = document.getElementById('advance-amount-row');
-    const partialAmountInput = document.getElementById('partial-amount');
-    const advanceAmountInput = document.getElementById('advance-amount');
-
-    // Add event listener for advance amount input
-    if (advanceAmountInput) {
-      advanceAmountInput.addEventListener('input', function() {
-        const advanceAmount = parseFloat(this.value || 0);
-        
-        // Calculate GST for advance payment
-        const gstAmount = advanceAmount * 0.18; // 18% GST
-        const cgstAmount = gstAmount / 2; // 9% CGST
-        const sgstAmount = gstAmount / 2; // 9% SGST
-        const grandTotal = advanceAmount + gstAmount;
-        
-        // Update form fields with calculated amounts
-        document.getElementById("rate").value = formatCurrency(advanceAmount);
-        document.getElementById("price").value = formatCurrency(advanceAmount);
-        document.getElementById("taxable-total-amount").value = formatCurrency(advanceAmount);
-        document.getElementById("cgst_amount").value = formatCurrency(cgstAmount);
-        document.getElementById("sgst_amount").value = formatCurrency(sgstAmount);
-        document.getElementById("grand_total").value = formatCurrency(grandTotal);
-        
-        // Store calculated amounts in the member select element for later use
-        const memberSelect = document.getElementById("company-name");
-        memberSelect.dataset.totalAmount = advanceAmount;
-        memberSelect.dataset.gstAmount = gstAmount;
-        memberSelect.dataset.cgstAmount = cgstAmount;
-        memberSelect.dataset.sgstAmount = sgstAmount;
-        memberSelect.dataset.grandTotal = grandTotal;
-      });
-    }
-
-    // Add event listener for partial amount input
-    if (partialAmountInput) {
-      partialAmountInput.addEventListener('input', function() {
-        const memberSelect = document.getElementById("company-name");
-        const totalAmount = parseFloat(memberSelect.dataset.totalAmount || 0);
-        const partialAmount = parseFloat(this.value || 0);
-        
-        // Ensure partial amount doesn't exceed total amount
-        if (partialAmount > totalAmount) {
-          this.value = totalAmount;
-          showToast('warning', "Partial amount cannot exceed total amount");
-        }
-        
-        // Calculate and display remaining balance
-        const remainingBalance = totalAmount - parseFloat(this.value || 0);
-        document.getElementById("remaining-balance").value = formatCurrency(remainingBalance);
-      });
-    }
-
-    if (paymentTypes.length > 0) {
-      paymentTypes.forEach(type => {
-        type.addEventListener('change', function() {
-          // Hide all payment type sections first
-          if (partialPaymentRow) partialPaymentRow.style.display = 'none';
-          if (remainingBalanceRow) remainingBalanceRow.style.display = 'none';
-          if (advanceAmountRow) advanceAmountRow.style.display = 'none';
-
-          // Show relevant section based on selection
-          if (this.id === 'partialPaymentOption') {
-            if (partialPaymentRow) partialPaymentRow.style.display = 'table-row';
-            if (remainingBalanceRow) remainingBalanceRow.style.display = 'table-row';
-            
-            // Set default partial amount to half of the total amount
-            const memberSelect = document.getElementById("company-name");
-            const totalAmount = parseFloat(memberSelect.dataset.totalAmount || 0);
-            const defaultPartialAmount = Math.floor(totalAmount / 2);
-            document.getElementById("partial-amount").value = defaultPartialAmount;
-            
-            // Calculate and display remaining balance
-            const remainingBalance = totalAmount - defaultPartialAmount;
-            document.getElementById("remaining-balance").value = formatCurrency(remainingBalance);
-          } else if (this.id === 'advancePaymentOption') {
-            if (advanceAmountRow) advanceAmountRow.style.display = 'table-row';
-            
-            // Set default advance amount based on whether member has a balance
-            const memberSelect = document.getElementById("company-name");
-            const totalAmount = parseFloat(memberSelect.dataset.totalAmount || 0);
-            
-            if (totalAmount > 0) {
-              // If member has a balance, set default to the total amount
-              document.getElementById("advance-amount").value = totalAmount;
-            } else {
-              // If member has zero balance, set a default amount or leave empty
-              document.getElementById("advance-amount").value = "";
-            }
-          }
-        });
-      });
-    }
   } catch (error) {
     console.error("Error:", error);
     showToast('error', "An error occurred while loading data");
@@ -1058,3 +1118,274 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 let selectedRegionId = null;  // Global variables to store IDs
 let selectedChapterId = null;
+
+document.getElementById("submit_invoice").addEventListener("click", async function(e) {
+    const universalLinkId = new URLSearchParams(window.location.search).get("id");
+
+    // If it's visitor payment (ID 5), don't proceed with this handler
+    if (universalLinkId === "5") {
+        e.preventDefault(); // Prevent default form submission
+        e.stopPropagation(); // Stop event propagation
+        return;
+    }
+
+    showLoader();
+
+    try {
+        const memberSelect = document.getElementById("company-name");
+        const selectedOption = memberSelect.options[memberSelect.selectedIndex];
+
+        if (!selectedOption || selectedOption.value === "Select Member") {
+            showToast('warning', "Please select a member first");
+            return;
+        }
+
+        // Get payment method details
+        const paymentDetails = getPaymentDetails();
+
+        // Build invoice data
+        let invoiceData = {
+            region_id: selectedRegionId,
+            chapter_id: selectedChapterId,
+            universal_link_id: universalLinkId,
+            date_issued: document.getElementById("invoice-date-issued").value,
+            member_id: selectedOption.value,
+            member_first_name: selectedOption.dataset.firstName,
+            member_last_name: selectedOption.dataset.lastName,
+            member_address: document.getElementById("member_address").value,
+            member_company_name: document.getElementById("member_company_name").value,
+            member_phone_number: document.getElementById("member_phone_number").value,
+            member_gst_number: document.getElementById("member_gst_number").value,
+            mode_of_payment: paymentDetails.mode_of_payment
+        };
+
+        // Add meeting payment specific data if universal_link_id is 4
+        if (universalLinkId === "4") {
+            // Get selected payment type
+            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked').value;
+            const totalAmount = parseFloat(memberSelect.dataset.totalAmount || 0);
+            const gstAmount = parseFloat(memberSelect.dataset.gstAmount || 0);
+            const creditAmount = parseFloat(memberSelect.dataset.creditAmount || 0);
+            const penaltyAmount = parseFloat(memberSelect.dataset.penaltyAmount || 0);
+            const noOfLatePayment = parseInt(memberSelect.dataset.noOfLatePayment || 0);
+
+            let amountToPay = totalAmount;
+            let memberPendingBalance = 0;
+            let paymentType = "full";
+
+            if (selectedPaymentType === "partial") {
+                amountToPay = parseFloat(document.getElementById("partial-amount").value || 0);
+                memberPendingBalance = totalAmount - amountToPay;
+                paymentType = "partial";
+            } else if (selectedPaymentType === "advance") {
+                amountToPay = parseFloat(document.getElementById("advance-amount").value || 0);
+                paymentType = "advance";
+                
+                // Add advance payment specific data
+                invoiceData.advance_payment = {
+                    amount: amountToPay
+                };
+            }
+
+            // Adjust for credits
+            const finalAmount = Math.max(0, amountToPay - creditAmount);
+
+            Object.assign(invoiceData, {
+                kitty_bill_id: document.getElementById("kitty-bill-info").dataset.billId || "",
+                member_pending_balance: memberPendingBalance,
+                total_amount_paid: finalAmount,
+                tax: gstAmount,
+                penalty_amount: penaltyAmount,
+                no_of_late_payment: noOfLatePayment,
+                date_of_update: new Date().toISOString(),
+                payment_type: paymentType,
+                payment_note: paymentType === "partial" ? "meeting-payments-partial" : 
+                             paymentType === "advance" ? "meeting-payments-advance" : 
+                             "meeting-payments"
+            });
+        }
+
+        // Send to backend
+        const response = await fetch("backend.bninewdelhi.com/api/add-invoice", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(invoiceData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showToast('success', "Invoice created successfully!");
+            // Show success message
+            await Swal.fire({
+                icon: 'success',
+                title: 'Invoice Created Successfully!',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>Member:</strong> ${invoiceData.member_first_name} ${invoiceData.member_last_name}</p>
+                        <p><strong>Amount:</strong> ₹${invoiceData.total_amount_paid}</p>
+                        <p><strong>Order ID:</strong> ${result.order_id}</p>
+                    </div>
+                `,
+                timer: 3000,
+                showConfirmButton: true,
+                confirmButtonText: 'View Transactions'
+            });
+
+            // Redirect to transactions page
+            window.location.href = '/t/all-transactions';
+        } else {
+            throw new Error(result.message || 'Failed to create invoice');
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        showToast('error', error.message || "Error creating invoice");
+    } finally {
+        hideLoader();
+    }
+});
+
+// Separate handler for Visitor Payment (ID 5)
+document.addEventListener('DOMContentLoaded', function() {
+    const universalLinkId = new URLSearchParams(window.location.search).get("id");
+    const submitButton = document.getElementById("submit_invoice");
+
+    if (universalLinkId === "5" && submitButton) {
+        submitButton.addEventListener("click", async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("🔘 Make Invoice button clicked for ID 5");
+            
+            try {
+                showLoader();
+                
+                // Check payment mode
+                const invitedByInput = document.getElementById('invited-by-input');
+                const isOtherMode = invitedByInput !== null;
+                
+                // Get basic invoice data first
+                let invoiceData = {
+                    universal_link_id: universalLinkId,
+                    date_issued: document.getElementById("invoice-date-issued").value,
+                    visitor_name: document.getElementById('visitor-name').value,
+                    visitor_email: document.getElementById('visitor-email').value,
+                    visitor_mobile: document.getElementById('visitor-mobile').value,
+                    visitor_address: document.getElementById('visitor-address').value,
+                    visitor_business_category: document.getElementById("visitor-category").value.trim(),
+                    visitor_company: document.getElementById('visitor-company-name').value,
+                    visitor_gstin: document.getElementById('company-gstin').value,
+                    visitor_company_address: document.getElementById('visitor-company-address').value,
+                    particulars: "Visitors Payment",
+                    taxable_amount: document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+                    gst_amount: document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0',
+                    total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
+                    mode_of_payment: getPaymentDetails().mode_of_payment,
+                    region_id: selectedRegionId,
+                    chapter_id: selectedChapterId
+                };
+
+                // Add member details based on mode
+                if (isOtherMode) {
+                    // For "Other" case
+                    if (!invitedByInput.value.trim()) {
+                        showToast('warning', "Please enter the invited by name");
+                        return;
+                    }
+                    invoiceData.member_name = invitedByInput.value.trim();
+                    invoiceData.member_id = null;
+                    invoiceData.member_company = null;
+                    invoiceData.member_phone = null;
+                    invoiceData.member_gstin = null;
+                } else {
+                    // For "Invited By" case
+                    const memberSelect = document.getElementById('company-name');
+                    if (!memberSelect || memberSelect.value === "Select Member") {
+                        showToast('warning', "Please select a member");
+                        return;
+                    }
+                    const selectedOption = memberSelect.options[memberSelect.selectedIndex];
+                    invoiceData.member_id = selectedOption.value;
+                    invoiceData.member_name = `${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}`;
+                    invoiceData.member_company = selectedOption.dataset.companyName;
+                    invoiceData.member_phone = selectedOption.dataset.phoneNumber;
+                    invoiceData.member_gstin = selectedOption.dataset.gstNumber;
+                }
+
+                console.log("📤 Sending visitor payment data:", invoiceData);
+
+                // Rest of your existing code (API call, success handling, etc.)
+                const result = await Swal.fire({
+                    title: 'Confirm Invoice Generation',
+                    text: 'Are you sure you want to generate this invoice?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, generate it!',
+                    cancelButtonText: 'No, cancel',
+                    confirmButtonColor: '#6259ca',
+                    cancelButtonColor: '#7987a1'
+                });
+
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                const response = await fetch('https://backend.bninewdelhi.com/api/addVisitorPayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(invoiceData)
+                });
+
+                const responseData = await response.json();
+                console.log("📥 Backend Response:", responseData);
+
+                if (response.ok) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Visitor Invoice Created Successfully!',
+                        html: `
+                            <div style="text-align: left;">
+                                <p><strong>Visitor:</strong> ${invoiceData.visitor_name}</p>
+                                <p><strong>Amount:</strong> ₹${invoiceData.total_amount}</p>
+                                <p><strong>Order ID:</strong> ${responseData.data.order_id}</p>
+                            </div>
+                        `,
+                        timer: 3000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'View Transactions'
+                    });
+
+                    window.location.href = '/t/all-transactions';
+                } else {
+                    throw new Error(responseData.message || 'Failed to process visitor payment');
+                }
+
+            } catch (error) {
+                console.error('❌ Error processing visitor payment:', error);
+                showToast('error', error.message || 'Error processing visitor payment');
+            } finally {
+                hideLoader();
+            }
+        });
+    }
+});
+
+// Update toast configuration to use style.background
+window.showToast = function(type, message) {
+    const toastConfig = {
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        style: {
+            background: type === 'error' ? "#ff6b6b" : 
+                       type === 'success' ? "#51cf66" : 
+                       type === 'warning' ? "#fcc419" : "#4dabf7"
+        },
+        close: true,
+        stopOnFocus: true
+    };
+    
+    Toastify(toastConfig).showToast();
+};
