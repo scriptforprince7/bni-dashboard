@@ -138,29 +138,32 @@ function updateChapterCounts() {
 }
 
 // Function to display chapters
-const displayChapters = (chapters) => {
-    console.log("Displaying chapters:", chapters);
+async function displayChapters(chapters) {
+    console.log("📊 Displaying chapters:", chapters);
     const tableBody = document.getElementById("chaptersTableBody");
     const totalEntries = chapters.length;
     
-    // Update total entries display
+    // Update total entries display and counters
     document.getElementById("totalEntries").textContent = totalEntries;
+    document.getElementById("total-chapters-count").textContent = totalEntries;
+
+    // Update total members count
+    fetch('https://backend.bninewdelhi.com/api/members')
+        .then(response => response.json())
+        .then(members => {
+            const activeMembersCount = members.filter(member => member).length;
+            document.getElementById("memberTotal").innerHTML = `<b>${activeMembersCount}</b>`;
+        })
+        .catch(error => {
+            console.error('❌ Error fetching members:', error);
+            document.getElementById("memberTotal").innerHTML = '<b>0</b>';
+        });
     
-    if (!tableBody) {
-        console.error("Chapters table body not found");
-        return;
-    }
-
-    if (chapters.length === 0) {
-        handleNoData(tableBody);
-        return;
-    }
-
     // Calculate pagination
-    totalPages = Math.ceil(chapters.length / entriesPerPage);
-    const start = showingAll ? 0 : (currentPage - 1) * entriesPerPage;
-    const end = showingAll ? chapters.length : Math.min(start + entriesPerPage, chapters.length);
-    
+    const start = (currentPage - 1) * entriesPerPage;
+    const end = showingAll ? chapters.length : start + entriesPerPage;
+    const chaptersToShow = showingAll ? chapters : chapters.slice(start, end);
+
     // Update showing entries text
     document.getElementById("showingStart").textContent = chapters.length > 0 ? start + 1 : 0;
     document.getElementById("showingEnd").textContent = end;
@@ -168,60 +171,31 @@ const displayChapters = (chapters) => {
     // Clear existing table content
     tableBody.innerHTML = "";
 
+    // Reset counters
+    let active_total = 0;
+    let inactive_total = 0;
+
     // Display chapters
-    const chaptersToShow = showingAll ? chapters : chapters.slice(start, end);
-    
-    member_total = 0; // Reset member total before counting
-    active_total = 0; // Reset active chapters count
-    let inactive_total = 0; // Reset inactive chapters count
-
-    // Update total chapters count
-    const totalChaptersElement = document.getElementById("total-chapters-count");
-    if (totalChaptersElement) {
-        totalChaptersElement.textContent = totalEntries;
-    }
-
-    // Fetch total members count from API
-    fetch('https://backend.bninewdelhi.com/api/members')
-        .then(response => response.json())
-        .then(members => {
-            const tot_member_display = document.getElementById("memberTotal");
-            if (tot_member_display) {
-                const activeMembersCount = members.filter(member => member).length;
-                tot_member_display.innerHTML = activeMembersCount;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching members:', error);
-            const tot_member_display = document.getElementById("memberTotal");
-            if (tot_member_display) {
-                tot_member_display.innerHTML = '0';
-            }
-        });
-
-    // Populate the table with chapters data
-    chaptersToShow.forEach((chapter, index) => {
+    for (const chapter of chaptersToShow) {
         const membersCount = getMemberCountForChapter(chapter.chapter_id);
         const regionName = getRegionNameById(chapter.region_id);
-
-        member_total = parseFloat(member_total) + parseFloat(membersCount);
         
-        // Clean the chapter status and count running/inactive
-        const cleanStatus = chapter.chapter_status.replace(/['"]+/g, '').trim().toLowerCase();
-        console.log('Original status:', chapter.chapter_status);
-        console.log('Cleaned status:', cleanStatus);
+        // Update status counters
+        const cleanStatus = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
         if(cleanStatus === 'running') {
             active_total++;
         } else {
             inactive_total++;
         }
-
-        console.log(`Chapter ${chapter.chapter_name} status: ${cleanStatus}`);
-        console.log(`Running count: ${active_total}, Inactive count: ${inactive_total}`);
-
+        
+        // Calculate total available fund
+        console.log('💰 Calculating available fund for:', chapter.chapter_name);
+        const totalAvailable = await calculateTotalAvailableFund(chapter);
+        console.log('✅ Fund calculation complete:', totalAvailable);
+        
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td style="border: 1px solid grey;">${showingAll ? index + 1 : start + index + 1}</td>
+            <td style="border: 1px solid grey;">${showingAll ? chapters.indexOf(chapter) + 1 : start + chapters.indexOf(chapter) + 1}</td>
             <td style="border: 1px solid grey;">
                 <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
                     <b>${chapter.chapter_name}</b>
@@ -229,20 +203,20 @@ const displayChapters = (chapters) => {
             </td>
             <td style="border: 1px solid grey;">${regionName}</td>
             <td style="border: 1px solid grey;"><b>${membersCount}</b></td>
-            <td style="border: 1px solid grey;"><b>₹${chapter.available_fund}</b></td>
+            <td style="border: 1px solid grey;"><b>₹${totalAvailable.toLocaleString('en-IN')}</b></td>
             <td style="border: 1px solid grey;">${chapter.chapter_meeting_day || 'N/A'}</td>
             <td style="border: 1px solid grey;"><b>₹${chapter.chapter_kitty_fees || '0'}</b></td>
             <td style="border: 1px solid grey;"><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
             <td style="border: 1px solid grey;"><b>${chapter.kitty_billing_frequency || 'N/A'}</b></td>
             <td style="border: 1px solid grey;">
-               <span class="badge bg-${
-        cleanStatus === 'running' ? 'success' :
-        cleanStatus === 'pre-launch' ? 'warning' :
-        cleanStatus === 're-launch' ? 'info' :
-        'secondary'
-    }">
-        ${cleanStatus.charAt(0).toUpperCase() + cleanStatus.slice(1)}
-    </span>
+                <span class="badge bg-${
+                    cleanStatus === 'running' ? 'success' :
+                    cleanStatus === 'pre-launch' ? 'warning' :
+                    cleanStatus === 're-launch' ? 'info' :
+                    'secondary'
+                }">
+                    ${chapter.chapter_status}
+                </span>
             </td>
             <td>
                 <span class="badge bg-warning text-light" style="cursor:pointer;">
@@ -254,34 +228,27 @@ const displayChapters = (chapters) => {
             </td>
         `;
         tableBody.appendChild(row);
+    }
 
-        // Update the display counters
-        const tot_member_display = document.getElementById("memberTotal");
-        const tot_running_display = document.getElementById("RunningChapter");
-        const tot_inactive_display = document.getElementById("InactiveChapter");
-        
-        if (tot_running_display) tot_running_display.innerHTML = active_total;
-        if (tot_inactive_display) tot_inactive_display.innerHTML = inactive_total;
-        if (tot_member_display) tot_member_display.innerHTML = member_total;
-    });
+    // Update status counters display
+    document.getElementById("RunningChapter").innerHTML = `<b>${active_total}</b>`;
+    document.getElementById("PreLaunchChapter").innerHTML = `<b>${
+        chapters.filter(chapter => 
+            chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim() === 'pre-launch'
+        ).length
+    }</b>`;
+    document.getElementById("ReLaunchChapter").innerHTML = `<b>${
+        chapters.filter(chapter => 
+            chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim() === 're-launch'
+        ).length
+    }</b>`;
 
-    console.log('Final counts:', {
-        total_chapters: totalEntries,
-        running_chapters: active_total,
-        inactive_chapters: inactive_total,
-        total_members: member_total
-    });
-
-    // Update the running chapters count after displaying chapters
-    updateRunningChaptersCount();
-
-    // Update pagination UI
-    const paginationContainer = document.getElementById("paginationContainer");
-    paginationContainer.style.display = showingAll ? 'none' : 'flex';
+    // Update pagination if needed
     if (!showingAll) {
+        const totalPages = Math.ceil(totalEntries / entriesPerPage);
         updatePagination(totalPages);
     }
-};
+}
 
 // Function to populate filter dropdowns
 function populateFilters() {
@@ -335,39 +302,52 @@ function applyFilters() {
     const { region, meetingDay, chapterStatus } = window.BNI.state.filters;
     console.log('🔍 Starting filter application:', { region, meetingDay, chapterStatus });
     
+    // Create a Set to track unique chapter IDs
+    const seenChapterIds = new Set();
+    
     window.BNI.state.filteredChapters = window.BNI.state.allChapters.filter(chapter => {
+        // Check if we've already seen this chapter
+        if (seenChapterIds.has(chapter.chapter_id)) {
+            console.log(`🔄 Skipping duplicate chapter: ${chapter.chapter_name}`);
+            return false;
+        }
+        
         // Get clean values
         const chapterMeetingDay = (chapter.chapter_meeting_day || '').trim();
         const cleanStatus = (chapter.chapter_status || '').replace(/['"]+/g, '').trim().toLowerCase();
+        const chapterRegion = getRegionNameById(chapter.region_id);
         
         // Set match conditions
         const matchesMeetingDay = meetingDay === 'all' || chapterMeetingDay === meetingDay;
         const matchesStatus = chapterStatus === 'all' || cleanStatus === chapterStatus.toLowerCase();
-        const matchesRegion = !region || region === 'all' || getRegionNameById(chapter.region_id) === region;
+        const matchesRegion = !region || region === 'all' || chapterRegion === region;
 
         console.log(`Checking ${chapter.chapter_name}:`, {
             meeting: { has: chapterMeetingDay, want: meetingDay, matches: matchesMeetingDay },
             status: { has: cleanStatus, want: chapterStatus, matches: matchesStatus },
-            region: { has: getRegionNameById(chapter.region_id), want: region, matches: matchesRegion }
+            region: { has: chapterRegion, want: region, matches: matchesRegion }
         });
 
-        return matchesMeetingDay && matchesStatus && matchesRegion;
+        // If chapter matches all conditions, add to seen set and return true
+        if (matchesMeetingDay && matchesStatus && matchesRegion) {
+            seenChapterIds.add(chapter.chapter_id);
+            return true;
+        }
+
+        return false;
     });
 
-
+    console.log(`✅ Found ${window.BNI.state.filteredChapters.length} unique matching chapters`);
+    
     if (window.BNI.state.filteredChapters.length === 0) {
-        console.log('No entries match the applied filters');
+        console.log('❌ No entries match the applied filters');
         const tableBody = document.getElementById("chaptersTableBody");
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No entries match the applied filters</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center;">No entries match the applied filters</td></tr>';
         }
     } else {
-        console.log(`Found ${window.BNI.state.filteredChapters.length} matching chapters`);
         displayChapters(window.BNI.state.filteredChapters);
     }
-
-    console.log(`Found ${window.BNI.state.filteredChapters.length} matching chapters`);
-    displayChapters(window.BNI.state.filteredChapters);
 }
 
 // Event listeners for filters
@@ -790,3 +770,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// Add this function at the top with other utility functions
+const calculateTotalAvailableFund = async (chapterData) => {
+    try {
+        console.log('🏁 Starting fund calculation for chapter:', chapterData.chapter_name);
+
+        // 1. Base available fund
+        const available_fund = parseFloat(chapterData.available_fund) || 0;
+        console.log('💰 Base available fund:', available_fund);
+
+        // 2. Get Paid Expenses
+        console.log('📊 Fetching expenses...');
+        const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+        const expenses = await expenseResponse.json();
+        let total_paid_expense = 0;
+        if (Array.isArray(expenses)) {
+            expenses.forEach((expense) => {
+                if (expense.payment_status === "paid" && expense.chapter_id === chapterData.chapter_id) {
+                    total_paid_expense += parseFloat(expense.amount) || 0;
+                }
+            });
+        }
+        console.log('💸 Total paid expenses:', total_paid_expense);
+
+        // 3. Get Visitor Amount
+        console.log('🏃 Fetching visitors...');
+        const visitorResponse = await fetch("https://backend.bninewdelhi.com/api/getAllVisitors");
+        const visitors = await visitorResponse.json();
+        let visitorAmountTotal = 0;
+        if (Array.isArray(visitors)) {
+            const chapterVisitors = visitors.filter(visitor => visitor.chapter_id === chapterData.chapter_id);
+            visitorAmountTotal = chapterVisitors.reduce((sum, visitor) => 
+                sum + (parseFloat(visitor.sub_total) || 0), 0);
+        }
+        console.log('👥 Total visitor amount:', visitorAmountTotal);
+
+        // 4. Get Kitty Payments through Orders and Transactions
+        console.log('🏦 Fetching orders and transactions...');
+        const [ordersResponse, transactionsResponse] = await Promise.all([
+            fetch("https://backend.bninewdelhi.com/api/allOrders"),
+            fetch("https://backend.bninewdelhi.com/api/allTransactions")
+        ]);
+
+        const [allOrders, allTransactions] = await Promise.all([
+            ordersResponse.json(),
+            transactionsResponse.json()
+        ]);
+
+        // Filter relevant orders
+        const chapterOrders = allOrders.filter(order => 
+            order.chapter_id === chapterData.chapter_id && 
+            order.universal_link_id === 4 &&
+            order.payment_note === "meeting-payments"
+        );
+
+        // Calculate ReceivedAmount
+        let ReceivedAmount = 0;
+        chapterOrders.forEach(order => {
+            const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
+            if (transaction && transaction.payment_status === "SUCCESS") {
+                // Remove 18% GST and round up
+                const payamount = Math.ceil(
+                    parseFloat(transaction.payment_amount) -
+                    (parseFloat(transaction.payment_amount) * 18) / 118
+                );
+                ReceivedAmount += parseFloat(payamount);
+            }
+        });
+        console.log('💵 Received kitty amount (after GST):', ReceivedAmount);
+
+        // 5. Calculate final amount
+        const totalAvailable = parseFloat(available_fund) - 
+                             parseFloat(total_paid_expense) + 
+                             parseFloat(visitorAmountTotal) + 
+                             parseFloat(ReceivedAmount);
+
+        console.log('🎯 Final calculation:', {
+            available_fund,
+            total_paid_expense,
+            visitorAmountTotal,
+            ReceivedAmount,
+            totalAvailable
+        });
+
+        return totalAvailable;
+
+    } catch (error) {
+        console.error('❌ Error calculating fund:', error);
+        console.error('📝 Error details:', {
+            chapter: chapterData.chapter_name,
+            chapter_id: chapterData.chapter_id,
+            error_message: error.message
+        });
+        return parseFloat(chapterData.available_fund) || 0;
+    }
+};

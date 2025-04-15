@@ -15,6 +15,11 @@ let totalReceivedAmount = 0;
 let selectedRegionId = null;
 let selectedChapterId = null;
 
+// Add pagination variables at the top
+let currentPage = 1;
+const entriesPerPage = 25;
+let totalPages = 0;
+
 // Function to show loader
 function showLoader() {
   document.getElementById('loader').style.display = 'flex';
@@ -27,7 +32,10 @@ function hideLoader() {
 
 async function fetchMemberWiseKitty() {
   try {
-    console.log('🚀 Fetching member-wise kitty data...');
+    console.log('🚀 Starting fetchMemberWiseKitty with:', {
+      selectedRegionId,
+      selectedChapterId
+    });
 
     const [orders, transactions, bankOrders, activeBill, members, credits, chapters] = await Promise.all([
       fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
@@ -39,10 +47,79 @@ async function fetchMemberWiseKitty() {
       fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json())
     ]);
 
-    console.log('✅ Data fetched successfully');
+    console.log('✅ All data fetched successfully');
 
-    // Filter members based on selected filters
-    const membersWithPending = bankOrders
+    // Calculate total pending amount based on selected chapter
+    let totalPendingAmount = 0;
+    const relevantBankOrders = selectedChapterId 
+      ? bankOrders.filter(order => order.chapter_id === parseInt(selectedChapterId))
+      : bankOrders;
+
+    console.log('📊 Calculating pending amount for:', {
+      totalOrders: bankOrders.length,
+      filteredOrders: relevantBankOrders.length,
+      selectedChapter: selectedChapterId
+    });
+
+    relevantBankOrders.forEach(order => {
+      if (order.amount_to_pay > 0) {
+        totalPendingAmount += parseFloat(order.amount_to_pay);
+      }
+    });
+
+    // Calculate total received amount based on selected chapter
+    let allReceived = 0;
+
+    // First get relevant members based on chapter
+    const relevantMembers = selectedChapterId 
+        ? bankOrders.filter(order => order.chapter_id === parseInt(selectedChapterId))
+            .map(order => order.member_id)
+        : bankOrders.map(order => order.member_id);
+
+    console.log('🔍 Processing members:', relevantMembers);
+
+    // Calculate total received for these members
+    relevantMembers.forEach(memberId => {
+        // Find all kitty payment orders for this member
+        const memberOrders = orders.filter(o => 
+            o.customer_id === memberId && 
+            o.universal_link_id === 4
+        );
+
+        console.log(`📊 Found orders for member ${memberId}:`, memberOrders);
+
+        // Process each order's transactions
+        memberOrders.forEach(memberOrder => {
+            const orderTransactions = transactions.filter(trans => 
+                trans.order_id === memberOrder.order_id && 
+                trans.payment_status === 'SUCCESS'
+            );
+
+            orderTransactions.forEach(trans => {
+                const amount = parseFloat(trans.payment_amount);
+                allReceived += amount;
+                console.log(`💰 Adding transaction: ${formatInIndianStyle(amount)}`);
+            });
+        });
+    });
+
+    // Remove GST from total received amount and round off
+    const totalReceivedWithoutGST = Math.round((allReceived / 118) * 100);
+
+    console.log('📈 Final calculations:', {
+      totalPending: formatInIndianStyle(totalPendingAmount),
+      totalReceivedWithGST: formatInIndianStyle(allReceived),
+      totalReceivedWithoutGST: formatInIndianStyle(totalReceivedWithoutGST),
+      rawAmount: allReceived,
+      calculation: `${allReceived} / 118 * 100 = ${totalReceivedWithoutGST}`
+    });
+
+    // Update UI with calculated totals (now showing rounded amount without GST)
+    document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(totalPendingAmount)}`;
+    document.querySelector('#total_V_amount').textContent = `₹ ${formatInIndianStyle(totalReceivedWithoutGST)}`;
+
+    // Continue with existing member filtering and table population
+    const filteredMembers = bankOrders
       .filter(order => {
         if (selectedRegionId && selectedChapterId) {
           const chapter = chapters.find(ch => ch.chapter_id === order.chapter_id);
@@ -117,20 +194,28 @@ async function fetchMemberWiseKitty() {
       })
       .filter(Boolean);
 
-    console.log('👥 Filtered members count:', membersWithPending.length);
+    // Calculate pagination
+    totalPages = Math.ceil(filteredMembers.length / entriesPerPage);
+    const start = (currentPage - 1) * entriesPerPage;
+    const end = Math.min(start + entriesPerPage, filteredMembers.length);
+    const paginatedMembers = filteredMembers.slice(start, end);
+
+    // Update pagination info
+    document.getElementById('startEntry').textContent = filteredMembers.length ? start + 1 : 0;
+    document.getElementById('endEntry').textContent = end;
+    document.getElementById('totalEntries').textContent = filteredMembers.length;
 
     // Populate the table
     const tableBody = document.getElementById('paymentsTableBody');
     if (tableBody) {
-      const tableContent = membersWithPending
-        .slice(0, 3)
+      const tableContent = paginatedMembers
         .map((member, index) => {
           const bankOrder = bankOrders.find(order => order.member_id === member.memberId);
           const latePaymentCount = bankOrder ? bankOrder.no_of_late_payment : 0;
 
           return `
             <tr>
-              <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
+              <td style="border: 1px solid lightgrey; text-align: center;"><strong>${start + index + 1}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.chapterName}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.memberName}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(member.pendingAmount)}</strong></td>
@@ -143,50 +228,36 @@ async function fetchMemberWiseKitty() {
         }).join('');
 
       tableBody.innerHTML = tableContent;
-      console.log('📊 Table populated with chapter names');
+
+      // Update pagination controls
+      const paginationContainer = document.querySelector('.pagination');
+      if (paginationContainer) {
+        let paginationHTML = `
+          <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0);" onclick="changePage(${currentPage - 1})">Previous</a>
+          </li>
+        `;
+
+        for (let i = 1; i <= totalPages; i++) {
+          paginationHTML += `
+            <li class="page-item ${currentPage === i ? 'active' : ''}">
+              <a class="page-link" href="javascript:void(0);" onclick="changePage(${i})">${i}</a>
+            </li>
+          `;
+        }
+
+        paginationHTML += `
+          <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0);" onclick="changePage(${currentPage + 1})">Next</a>
+          </li>
+        `;
+
+        paginationContainer.innerHTML = paginationHTML;
+      }
     }
 
-    // Calculate total kitty amount from active bill
-    const totalActiveBillAmount = activeBill.reduce((sum, bill) => {
-      return sum + parseFloat(bill.total_bill_amount);
-    }, 0);
-    console.log('💰 Total Active Bill Amount:', formatInIndianStyle(totalActiveBillAmount));
-    document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(Math.ceil(totalActiveBillAmount))}`;
-
-    // Calculate total received amount
-    let allReceived = 0;
-    orders.forEach(order => {
-      // Find successful transactions for meeting payments
-      const orderTransactions = transactions.filter(trans => 
-        trans.order_id === order.order_id && 
-        trans.payment_status === 'SUCCESS' &&
-        (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only")
-      );
-
-      // Calculate amount after GST deduction
-      orderTransactions.forEach(trans => {
-        const amount = Math.ceil(parseFloat(trans.payment_amount) - ((parseFloat(trans.payment_amount)*18) / 118));
-        console.log('💵 Transaction Amount after GST deduction:', formatInIndianStyle(amount));
-        allReceived += amount;
-      });
-    });
-
-    // Calculate total pending amount from bank orders
-    let totalPendingAmount = 0;
-    bankOrders.forEach(order => {
-      if (order.amount_to_pay > 0) {
-        totalPendingAmount += parseFloat(order.amount_to_pay);
-      }
-    });
-
-    console.log('💰 Total Received Amount:', formatInIndianStyle(allReceived));
-    console.log('💰 Total Pending Amount:', formatInIndianStyle(totalPendingAmount));
-    
-    document.querySelector('#total_V_amount').textContent = `₹ ${formatInIndianStyle(allReceived)}`;
-    document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(totalPendingAmount)}`;
-
   } catch (error) {
-    console.error('❌ Error fetching member-wise kitty data:', error);
+    console.error('❌ Error in fetchMemberWiseKitty:', error);
   }
 }
 
@@ -294,16 +365,21 @@ function handleChapterSelection(event) {
   }
 }
 
-// Add reset filters functionality
+// Function to handle page changes
+function changePage(newPage) {
+  if (newPage >= 1 && newPage <= totalPages) {
+    currentPage = newPage;
+    fetchMemberWiseKitty();
+  }
+}
+
+// Add event listener for the reset filters button
 document.getElementById('reset-filters-btn').addEventListener('click', () => {
-  console.log('🔄 Resetting filters');
+  currentPage = 1; // Reset to first page
   selectedRegionId = null;
   selectedChapterId = null;
-  
-  // Reset button texts
   document.querySelector('.region-button').textContent = 'Choose Region';
   document.querySelector('.chapter-button').textContent = 'Choose Chapter';
-  
-  // Refresh table without filters
   fetchMemberWiseKitty();
 });
+

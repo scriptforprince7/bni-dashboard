@@ -173,7 +173,7 @@
                               <div class="form-check mt-2">
                                   <input class="form-check-input" type="checkbox" id="withGST" name="withGST">
                                   <label class="form-check-label" for="withGST">
-                                      Include GST
+                                      with GST
                                   </label>
                               </div>
                             </div>
@@ -370,7 +370,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Get selected chapter and convert ID to number
     const selectedChapter = document.getElementById("chapter");
-    const selectedChapterId = parseInt(selectedChapter.value, 10); // Convert to number
+    const selectedChapterId = parseInt(selectedChapter.value, 10);
     
     // Validate chapter selection
     if (!selectedChapterId || isNaN(selectedChapterId)) {
@@ -395,6 +395,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add the numeric chapter_id
     formData.append('chapter_id', selectedChapterId);
 
+    // Add GST checkbox value to formData
+    formData.append('withGST', document.getElementById('withGST').checked);
+
     // Debug: Log all form data and selected chapter
     console.log('Chapter Selection:', {
       originalValue: selectedChapter.value,
@@ -411,6 +414,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       chapter_id: selectedChapterId, // Now using the converted number
       chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
       amount: parseFloat(document.getElementById('amount').value),
+      withGST: document.getElementById('withGST').checked, // Added GST value
       payment_status: document.getElementById('payment_status').value,
       bill_date: document.getElementById('bill_date').value,
       bill_no: document.getElementById('bill_no').value,
