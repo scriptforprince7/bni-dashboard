@@ -1560,11 +1560,10 @@ console.log('Found user chapter:', userChapter);
       const backButton = document.querySelector('.header-element a[href="/d/ro-dashboard"]');
       if (backButton) {
           if (userLoginType === 'ro_admin') {
-              // Check for chapter context
+              // Existing RO admin logic
               const currentChapterEmail = localStorage.getItem('current_chapter_email');
               const currentChapterId = localStorage.getItem('current_chapter_id');
               
-              // Check for member context
               const currentMemberEmail = localStorage.getItem('current_member_email');
               const currentMemberId = localStorage.getItem('current_member_id');
 
@@ -1574,7 +1573,6 @@ console.log('Found user chapter:', userChapter);
                   backButton.href = '/c/manage-chapter';
                   backButton.setAttribute('title', 'Back to Chapter Management');
                   
-                  // Add click handler for chapter context
                   backButton.onclick = function(e) {
                       e.preventDefault();
                       localStorage.removeItem('current_chapter_email');
@@ -1587,7 +1585,6 @@ console.log('Found user chapter:', userChapter);
                   backButton.href = '/m/manage-members';
                   backButton.setAttribute('title', 'Back to Members Management');
                   
-                  // Add click handler for member context
                   backButton.onclick = function(e) {
                       e.preventDefault();
                       localStorage.removeItem('current_member_email');
@@ -1598,9 +1595,30 @@ console.log('Found user chapter:', userChapter);
                   console.log('Hiding back button - no context');
                   backButton.parentElement.style.display = 'none';
               }
+          } else if (userLoginType === 'chapter') {
+              // New chapter user logic
+              const currentMemberEmail = localStorage.getItem('current_member_email');
+              const currentMemberId = localStorage.getItem('current_member_id');
+
+              if (currentMemberEmail && currentMemberId) {
+                  console.log('Showing back button for chapter with member context');
+                  backButton.parentElement.style.display = 'block';
+                  backButton.href = '/cm/managechaptermember';
+                  backButton.setAttribute('title', 'Back to Chapter Member Management');
+                  
+                  backButton.onclick = function(e) {
+                      e.preventDefault();
+                      localStorage.removeItem('current_member_email');
+                      localStorage.removeItem('current_member_id');
+                      window.location.href = '/cm/managechaptermember';
+                  };
+              } else {
+                  console.log('Hiding back button - no chapter member context');
+                  backButton.parentElement.style.display = 'none';
+              }
           } else {
               // Hide for all other user types
-              console.log('Hiding back button - not RO admin');
+              console.log('Hiding back button - not RO admin or chapter');
               backButton.parentElement.style.display = 'none';
           }
       }
@@ -1656,6 +1674,13 @@ console.log('Found user chapter:', userChapter);
               userName = member.member_first_name;
               messagePrefix = 'You are viewing'; // Prefix for admin viewing
             }
+          } else if (getUserLoginType() === 'chapter' && currentMemberEmail && currentMemberId) {
+            // New: Check for chapter user viewing member context
+            const member = members.find(m => m.member_id.toString() === currentMemberId);
+            if (member) {
+              userName = member.member_first_name;
+              messagePrefix = 'You are viewing'; // Prefix for chapter viewing member
+            }
           } else {
             // Check user login type and email
             const loginType = getUserLoginType();
@@ -1675,7 +1700,8 @@ console.log('Found user chapter:', userChapter);
           }
 
           if (userName) {
-            const messageSuffix = (messagePrefix === 'You are viewing') ? ', from Admin' : '';
+            const messageSuffix = (messagePrefix === 'You are viewing') ? 
+                (getUserLoginType() === 'ro_admin' ? ', from Admin' : ', from Chapter') : '';
             welcomeMessageElement.innerHTML = `<span class="small-text">${messagePrefix}</span> <span class="username">${userName}</span><span class="small-text">${messageSuffix}</span>`;
           }
         }

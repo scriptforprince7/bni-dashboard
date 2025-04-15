@@ -73,11 +73,11 @@ async function fetchAndDisplayAccoladeRequests() {
         console.log('📝 Chapter Requisitions:', chapterRequisitions);
 
         // Step 4: Fetch members data
-        const membersResponse = await fetch('https://bni-data-backend.onrender.com/api/members');
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await membersResponse.json();
 
         // Step 5: Fetch accolades data
-        const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await accoladesResponse.json();
         console.log('🏆 All Accolades:', accolades);
 
@@ -218,8 +218,8 @@ document.querySelector('#paid-requisitions-filter').addEventListener('click', as
 
                 // Step 4: Fetch members and accolades data
                 const [membersResponse, accoladesResponse] = await Promise.all([
-                    fetch('https://bni-data-backend.onrender.com/api/members'),
-                    fetch('https://bni-data-backend.onrender.com/api/accolades')
+                    fetch('https://backend.bninewdelhi.com/api/members'),
+                    fetch('https://backend.bninewdelhi.com/api/accolades')
                 ]);
                 
                 const [members, accolades] = await Promise.all([

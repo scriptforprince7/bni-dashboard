@@ -560,7 +560,7 @@ function loadCashfreeSDK(callback) {
 async function showAccoladeDetails(accoladeId) {
     try {
         // Fetch accolades data
-        const response = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await response.json();
         
         // Find the matching accolade
@@ -720,7 +720,7 @@ async function getPendingRequisitions() {
                 }
 
                 // Fetch accolades data for the modal
-                const accoladesResponse = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+                const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
                 const accolades = await accoladesResponse.json();
 
                 console.log('🏆 All Accolades:', accolades);

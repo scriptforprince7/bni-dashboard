@@ -273,7 +273,7 @@ function updateTransactionsDisplay(transactionsToShow) {
             <td>${index + 1}</td>
             <td>${new Date(transaction.payment_time).toLocaleDateString('en-IN')}</td>
             <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br>
-                <a href="/minv/view-memberInvoice?order_id=${transaction.order_id}" 
+                <a href="/minv/view-chapterInvoice?order_id=${transaction.order_id}" 
                    class="fw-medium text-success">View</a></td>
             <td>${getPaymentMethodDisplay(transaction.payment_method)}</td>
             <td><em>${transaction.order_id}</em></td>

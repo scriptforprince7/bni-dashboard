@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('👤 RO Admin accessing chapter:', { currentChapterEmail, currentChapterId });
             
             // Step 2: Fetch chapter data to get full chapter details
-            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chapters = await chaptersResponse.json();
             console.log('📚 All Chapters:', chapters);
             
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('👤 User Email:', userEmail);
             
             // Step 2: Fetch chapter data and find matching chapter
-            const chaptersResponse = await fetch('https://bni-data-backend.onrender.com/api/chapters');
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chapters = await chaptersResponse.json();
             console.log('📚 All Chapters:', chapters);
             
@@ -294,7 +294,7 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
     try {
         // Add visitors to the parallel fetch
         const [accoladesResponse, membersResponse, requisitionResponse, memberRequisitionsResponse, visitorsResponse] = await Promise.all([
-            fetch('https://bni-data-backend.onrender.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
             fetch('https://backend.bninewdelhi.com/api/members'),
             fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
             fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
@@ -752,8 +752,20 @@ document.querySelector('.action-button button').addEventListener('click', showRe
 
 async function showRequisitionForm() {
     try {
-        // First get chapter info based on logged in email
-        const userEmail = getUserEmail();
+        // First get chapter info based on login type
+        const loginType = getUserLoginType();
+        let userEmail;
+
+        if (loginType === 'ro_admin') {
+            // For RO admin, get chapter email from localStorage
+            userEmail = localStorage.getItem('current_chapter_email');
+            console.log('👤 RO Admin using chapter email:', userEmail);
+        } else {
+            // For regular users, get email from token
+            userEmail = getUserEmail();
+            console.log('👤 Regular user email:', userEmail);
+        }
+
         const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         const currentChapter = chapters.find(
@@ -764,7 +776,6 @@ async function showRequisitionForm() {
               chapter.treasurer_mail === userEmail
           );
           
-        
         if (!currentChapter) {
             throw new Error('Chapter not found');
         }
@@ -862,7 +873,31 @@ async function showRequisitionForm() {
                                 background-color: white;
                                 padding: 5px;
                             ">
-                                ${members.map(m => `
+                                ${members.filter(member => {
+                                    // Get login type and appropriate chapter email
+                                    const loginType = getUserLoginType();
+                                    let chapterEmail;
+
+                                    if (loginType === 'ro_admin') {
+                                        // For RO admin, get chapter email from localStorage
+                                        chapterEmail = localStorage.getItem('current_chapter_email');
+                                        console.log("👤 RO Admin using chapter email:", chapterEmail);
+                                    } else {
+                                        // For regular users, get email from token
+                                        chapterEmail = getUserEmail();
+                                        console.log("👤 Regular user email:", chapterEmail);
+                                    }
+                                    
+                                    // Find chapter ID from chapters API response
+                                    const chapter = chapters.find(ch => ch.email_id === chapterEmail);
+                                    console.log("🏢 Found chapter:", chapter);
+                                    
+                                    if (chapter) {
+                                        // Only return members that belong to this chapter
+                                        return member.chapter_id === chapter.chapter_id;
+                                    }
+                                    return false;
+                                }).map(m => `
                                     <div class="member-checkbox-item" style="
                                         padding: 8px 12px;
                                         display: flex;
@@ -1503,6 +1538,8 @@ async function markAsGiven(requisitionId, combinationKey) {
                 timer: 2000
             });
         } else {
+
+
             // Existing member logic
             // ... your existing member update code ...
         }

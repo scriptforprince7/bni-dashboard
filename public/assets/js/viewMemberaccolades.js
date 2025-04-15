@@ -229,7 +229,7 @@ async function handleRequestAndPay(accoladeId) {
 async function showAccoladeDetails(accoladeId) {
     try {
         // Fetch accolades data
-        const response = await fetch('https://bni-data-backend.onrender.com/api/accolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await response.json();
         
         // Find the matching accolade
