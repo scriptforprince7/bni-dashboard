@@ -601,7 +601,7 @@ const filteredTransactions = transactions.filter((transaction) => {
       console.log('Checking payment method for transaction:', transaction.order_id);
       console.log('Payment method structure:', transaction.payment_method);
 
-      if (transaction.payment_method?.payment_method?.cash?.channel === "cash collect") {
+      if (transaction.payment_method?.cash?.payment_note === "Visitor Payment") {
           console.log('✅ Cash payment detected for order:', transaction.order_id);
           actionButton = `
               <button class="btn btn-sm btn-success" disabled>
@@ -638,11 +638,21 @@ const filteredTransactions = transactions.filter((transaction) => {
             'Order Details': order,
             'Link Type': universalLinkName,
             'Visitor Name': order?.visitor_name,
-            'Member Name': order?.member_name
+            'Member Name': order?.member_name,
+            'Payment Note': order?.payment_note
         });
 
         // Trim the universalLinkName to handle any extra spaces
         const linkType = universalLinkName?.trim();
+
+        // Check for Visitor Payment in payment_note
+    if (order?.payment_note === "Visitor Payment") {
+      console.log('👥 Visitor Payment Detected from Note:', {
+          'Visitor Name': order?.visitor_name || 'Not Available',
+          'Order ID': order?.order_id
+      });
+      return order?.visitor_name || "Unknown Visitor";
+  }
 
         if (linkType === "New Member Payment") {
             console.log('🆕 New Member Payment Detected:', {
