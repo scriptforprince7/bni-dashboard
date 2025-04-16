@@ -300,7 +300,7 @@ fetch(getBankOrderApi)
                 console.log('Sending data to API:', data);
         
                 showLoader();
-                const response = await fetch('backend.bninewdelhi.com/api/addMemberWriteOff', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/addMemberWriteOff', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
