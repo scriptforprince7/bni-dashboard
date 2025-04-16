@@ -183,22 +183,47 @@ document.addEventListener("DOMContentLoaded", () => {
         tableBody.innerHTML = tableContent;
         console.log('✅ Table populated with chapter-specific entries');
       }
-  
-      // Calculate total kitty amount from bank orders
-      let totalPendingAmount = 0;
-      bankOrders.forEach(order => {
-        if (order.amount_to_pay > 0 && order.chapter_id === loggedInChapter.chapter_id) {
-          totalPendingAmount += parseFloat(order.amount_to_pay);
-        }
-      });
-  
-      console.log('💰 Total Pending Amount for chapter:', {
-        chapterId: loggedInChapter.chapter_id,
-        chapterName: loggedInChapter.chapter_name,
-        totalPending: formatInIndianStyle(totalPendingAmount)
-      });
-  
-      document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(totalPendingAmount)}`;
+
+      // Fetch write-off data
+const writeoffResponse = await fetch(
+  "https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
+);
+const writeoffData = await writeoffResponse.json();
+
+let totalWriteoffAmount = 0;
+writeoffData.forEach((writeoff) => {
+  if (parseInt(writeoff.chapter_id) === parseInt(chapterId)) {
+    totalWriteoffAmount += parseFloat(writeoff.total_pending_amount || 0);
+  }
+});
+
+console.log("Total write-off amount calculated:", totalWriteoffAmount);
+
+// Calculate total pending amount from bank orders
+let totalPendingAmount = 0;
+bankOrders.forEach(order => {
+  if (
+    parseFloat(order.amount_to_pay || 0) > 0 &&
+    parseInt(order.chapter_id) === parseInt(loggedInChapter.chapter_id)
+  ) {
+    totalPendingAmount += parseFloat(order.amount_to_pay);
+  }
+});
+
+// Subtract total write-off
+totalPendingAmount -= totalWriteoffAmount;
+
+console.log('💰 Total Pending Amount for chapter:', {
+  chapterId: loggedInChapter.chapter_id,
+  chapterName: loggedInChapter.chapter_name,
+  totalPending: formatInIndianStyle(totalPendingAmount)
+});
+
+document.querySelector('#totalKittyDetails').textContent = `₹ ${formatInIndianStyle(totalPendingAmount)}`;
+
+      
+
+
   
       // Calculate total received amount
       let allReceived = 0;

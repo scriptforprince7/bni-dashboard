@@ -365,16 +365,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     );
     let totalLatePayment = 0;
     filteredBankOrders.forEach((order) => {
-      totalLatePayment += parseFloat(order.no_of_late_payment);
-      if (order.amount_to_pay >= 0) {
-        pendingAmount += parseFloat(order.amount_to_pay);
-        // console.log("print to be show", totalWriteoffAmount);
-        // console.log("pending amount to be show", pendingAmount);
-        pendingAmount -= totalWriteoffAmount;
-      } else {
-        pendingAmount += 0;
+      const latePayment = parseFloat(order.no_of_late_payment) || 0;
+      const amount = parseFloat(order.amount_to_pay) || 0;
+    
+      totalLatePayment += latePayment;
+      if (amount >= 0) {
+        pendingAmount += amount;
       }
     });
+    
+    pendingAmount -= totalWriteoffAmount || 0;
+    
     console.log("Total Late Payment:", totalLatePayment);
     console.log("--------------------------------", pendingAmount);
     const formattedPendingAmount =
