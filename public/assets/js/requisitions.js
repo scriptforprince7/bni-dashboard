@@ -889,7 +889,7 @@ async function showRequisitionForm() {
                                     }
                                     
                                     // Find chapter ID from chapters API response
-                                    const chapter = chapters.find(ch => ch.email_id === chapterEmail);
+                                    const chapter = chapters.find(ch => ch.email_id === chapterEmail || ch.vice_president_mail === chapterEmail || ch.president_mail === chapterEmail || ch.treasurer_mail === chapterEmail);
                                     console.log("🏢 Found chapter:", chapter);
                                     
                                     if (chapter) {

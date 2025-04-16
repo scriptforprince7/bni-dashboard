@@ -4026,7 +4026,7 @@
               const chapters = await chaptersResponse.json();
               
               // Find chapter by email
-              const userChapter = chapters.find(chapter => chapter.email_id === chapterEmail);
+              const userChapter = chapters.find(chapter => chapter.email_id === chapterEmail || chapter.vice_president_mail === chapterEmail || chapter.president_mail === chapterEmail || chapter.treasurer_mail === chapterEmail);
               console.log('🏢 Found chapter:', userChapter);
 
               if (!userChapter) {
