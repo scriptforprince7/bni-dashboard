@@ -1469,6 +1469,16 @@ async function handlePickupDateUpdate(requisitionId, currentDate) {
                 throw new Error('Requisition not found');
             }
 
+            // Helper function to safely parse JSON strings
+            const safeJSONParse = (value) => {
+                if (!value) return {};
+                try {
+                    return typeof value === 'string' ? JSON.parse(value) : value;
+                } catch (e) {
+                    return value;
+                }
+            };
+
             const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
@@ -1478,9 +1488,9 @@ async function handlePickupDateUpdate(requisitionId, currentDate) {
                     chapter_requisition_id: requisitionId,
                     pickup_status: true,
                     pickup_date: pickupDate,
-                    approve_status: currentRequisition.approve_status,
-                    ro_comment: currentRequisition.ro_comment,
-                    given_status: currentRequisition.given_status,
+                    approve_status: safeJSONParse(currentRequisition.approve_status),
+                    ro_comment: safeJSONParse(currentRequisition.ro_comment),
+                    given_status: safeJSONParse(currentRequisition.given_status),
                     slab_wise_comment: currentRequisition.slab_wise_comment
                 })
             });
