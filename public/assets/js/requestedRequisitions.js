@@ -333,6 +333,7 @@ async function handleAccoladesClick(requisition) {
                                 <i class="ri-chat-2-line me-1"></i>RO Comment
                             </div>
                             <textarea 
+                                id="ro-comment-${combo.memberId}_${combo.accolade.accolade_id}"
                                 class="form-control" 
                                 placeholder="Enter your comment here..."
                                 style="
@@ -455,8 +456,8 @@ async function handleRequisitionAction(data) {
         console.log('🎯 Action Data:', actionData);
 
         const key = `${actionData.memberId}_${actionData.accoladeId}`;
-        // Get the comment from the textarea in the current accolade section
-        const commentEl = document.querySelector(`.accolade-section textarea`);
+        // Get the comment from the specific textarea using the unique ID
+        const commentEl = document.querySelector(`#ro-comment-${key}`);
         const roComment = commentEl ? commentEl.value : '';
         
         console.log('📝 Captured RO Comment:', roComment);
@@ -712,6 +713,10 @@ const renderTable = () => {
             Accolades Requested <i class="ri-arrow-${currentSort.column === 'accolades' ? 
             (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
         </th>
+        <th scope="col" onclick="sortTable('description')" style="cursor: pointer">
+            Accolades Description <i class="ri-arrow-${currentSort.column === 'description' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
         <th scope="col" onclick="sortTable('comment')" style="cursor: pointer">
             Comment <i class="ri-arrow-${currentSort.column === 'comment' ? 
             (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
@@ -777,6 +782,33 @@ const renderTable = () => {
                             </div>
                         </div>
                     </td>
+                    
+                    <!-- Add new Accolades Description column here -->
+                    <td style="padding: 16px; text-align: center;">
+                        <button 
+                            onclick="handleViewAccoladeDetails(${JSON.stringify(req).replace(/"/g, '&quot;')})"
+                            class="btn btn-sm"
+                            style="
+                                background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+                                color: white;
+                                border: none;
+                                padding: 5px 15px;
+                                border-radius: 6px;
+                                font-size: 0.8rem;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 5px;
+                                transition: all 0.3s ease;
+                            "
+                            onmouseover="this.style.transform='translateY(-2px)'"
+                            onmouseout="this.style.transform='translateY(0)'"
+                        >
+                            <i class="ri-eye-line"></i>
+                            View Details
+                        </button>
+                    </td>
+
+                    <!-- Keep existing comment field exactly as it is -->
                     <td style="padding: 16px;">
                         <div class="comment-container" style="
                             display: flex;
@@ -877,20 +909,53 @@ const renderTable = () => {
 
     // Add event listeners for pickup status buttons
     document.querySelectorAll('.pickup-status-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const currentStatus = btn.getAttribute('data-status') || 'not-ready';
-            if (currentStatus === 'not-ready') {
-                btn.style.background = '#dcfce7';
-                btn.style.color = '#16a34a';
-                btn.innerHTML = '<i class="ri-checkbox-circle-line"></i> Ready to Pickup';
-                btn.setAttribute('data-status', 'ready');
-            } else {
-                btn.style.background = '#f3f4f6';
-                btn.style.color = '#4b5563';
-                btn.innerHTML = '<i class="ri-time-line"></i> Not Ready';
-                btn.setAttribute('data-status', 'not-ready');
-            }
-        });
+        const row = btn.closest('tr');
+        const requisitionId = parseInt(row.querySelector('td:first-child').textContent);
+        
+        // Find the requisition data
+        const requisition = allRequisitions.find(req => req.chapter_requisition_id === requisitionId);
+        
+        if (requisition && requisition.pickup_status && requisition.pickup_date) {
+            // Format the date to dd/mm/yy
+            const pickupDate = new Date(requisition.pickup_date);
+            const formattedDate = pickupDate.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            });
+
+            // Create a container div for button and date
+            const container = document.createElement('div');
+            // container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '4px';
+            container.style.alignItems = 'center';
+
+            // Style the existing button
+            btn.style.background = '#e5e7eb';
+            btn.style.color = '#6b7280';
+            btn.style.cursor = 'default';
+            btn.style.pointerEvents = 'none';
+            btn.innerHTML = '<i class="ri-checkbox-circle-line"></i> Picked Up';
+            btn.removeEventListener('click', handlePickupConfirmation);
+
+            // Create date element
+            const dateSpan = document.createElement('span');
+            dateSpan.style.fontSize = '0.75rem';
+            dateSpan.style.color = '#6b7280';
+            dateSpan.innerHTML = `<i class="ri-calendar-line"></i> ${formattedDate}`;
+
+            // Replace button with container containing button and date
+            btn.parentNode.replaceChild(container, btn);
+            container.appendChild(btn);
+            container.appendChild(dateSpan);
+        } else {
+            // Normal button for items not picked up
+            btn.addEventListener('click', () => {
+                const currentStatus = btn.getAttribute('data-status') || 'not-ready';
+                handlePickupConfirmation(requisitionId, currentStatus === 'ready');
+            });
+        }
     });
 };
 
@@ -1277,4 +1342,227 @@ function applyFilters() {
 
     console.log('✨ Final filtered results:', filteredRequisitions);
     renderTable();
+}
+
+async function handleViewAccoladeDetails(requisition) {
+    try {
+        // Fetch necessary data
+        const [accoladesResponse, membersResponse, visitorsResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
+        ]);
+
+        const [allAccolades, allMembers, visitors] = await Promise.all([
+            accoladesResponse.json(),
+            membersResponse.json(),
+            visitorsResponse.json()
+        ]);
+
+        // Create combinations array
+        const combinations = [];
+        requisition.member_ids.forEach(memberId => {
+            let memberName;
+            let isVisitor = false;
+
+            if (memberId === 0) {
+                isVisitor = true;
+                const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+                memberName = visitor ? `${visitor.visitor_name} (Visitor)` : 'Unknown Visitor';
+            } else {
+                const member = allMembers.find(m => m.member_id === memberId);
+                memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
+            }
+            
+            requisition.accolade_ids.forEach(accoladeId => {
+                const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
+                combinations.push({ memberId, memberName, accolade, isVisitor });
+            });
+        });
+
+        // Group combinations by accolade
+        const accoladeGroups = combinations.reduce((groups, combo) => {
+            const key = combo.accolade.accolade_id;
+            if (!groups[key]) {
+                groups[key] = {
+                    accolade: combo.accolade,
+                    members: []
+                };
+            }
+            groups[key].members.push({
+                name: combo.memberName,
+                isVisitor: combo.isVisitor
+            });
+            return groups;
+        }, {});
+
+        // Create HTML for each accolade group
+        const accoladesHtml = Object.values(accoladeGroups).map(group => `
+            <div class="accolade-card" style="
+                background: white;
+                border-radius: 16px;
+                margin-bottom: 24px;
+                box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);
+                overflow: hidden;
+                border: 1px solid rgba(0, 0, 0, 0.05);
+                position: relative;
+            ">
+                <!-- Sticky Accolade Header -->
+                <div style="
+                    background: ${group.accolade.accolade_type === 'Global' ? 
+                        'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 
+                        'linear-gradient(135deg, #ef4444, #b91c1c)'};
+                    padding: 20px;
+                    color: white;
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        position: relative;
+                    ">
+                        <h3 style="
+                            margin: 0;
+                            font-size: 1.35rem;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            color: white;
+                        ">
+                            <i class="ri-award-fill" style="font-size: 1.5rem;"></i>
+                            ${group.accolade.accolade_name}
+                            <span style="
+                                font-size: 0.9rem;
+                                opacity: 0.9;
+                                font-weight: normal;
+                                color: white;
+                            ">(${group.members.length} members)</span>
+                        </h3>
+                        <div style="
+                            background: rgba(255, 255, 255, 0.15);
+                            padding: 6px 16px;
+                            border-radius: 9999px;
+                            font-size: 0.875rem;
+                            color: white;
+                            backdrop-filter: blur(4px);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            font-weight: 500;
+                            letter-spacing: 0.5px;
+                        ">
+                            ${group.accolade.accolade_type}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Members List -->
+                <div style="padding: 20px;">
+                    <div style="
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                    ">
+                        ${group.members.map(member => `
+                            <div style="
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                                padding: 12px;
+                                background: ${member.isVisitor ? 
+                                    'linear-gradient(to right, #f0fdf4, #dcfce7)' : 
+                                    'linear-gradient(to right, #f1f5f9, #f8fafc)'};
+                                border-radius: 10px;
+                                transition: transform 0.2s ease;
+                                border: 1px solid ${member.isVisitor ? '#86efac' : '#e2e8f0'};
+                            "
+                            onmouseover="this.style.transform='translateX(5px)'"
+                            onmouseout="this.style.transform='translateX(0)'"
+                            >
+                                <div style="
+                                    background: ${member.isVisitor ? '#22c55e' : '#64748b'};
+                                    color: white;
+                                    width: 32px;
+                                    height: 32px;
+                                    border-radius: 50%;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                ">
+                                    <i class="ri-${member.isVisitor ? 'user-follow-line' : 'user-line'}"></i>
+                                </div>
+                                <span style="
+                                    color: ${member.isVisitor ? '#15803d' : '#1e293b'};
+                                    font-weight: 500;
+                                    flex-grow: 1;
+                                ">${member.name}</span>
+                                <span style="
+                                    font-size: 0.8rem;
+                                    color: ${member.isVisitor ? '#16a34a' : '#64748b'};
+                                    background: ${member.isVisitor ? '#dcfce7' : '#f1f5f9'};
+                                    padding: 4px 12px;
+                                    border-radius: 9999px;
+                                    border: 1px solid ${member.isVisitor ? '#86efac' : '#e2e8f0'};
+                                ">
+                                    ${member.isVisitor ? 'Visitor' : 'Member'}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Show SweetAlert with a compact header
+        Swal.fire({
+            html: `
+                <div style="
+                    margin: -20px -20px 0 -20px;
+                    padding: 15px 20px;
+                    border-bottom: 1px solid #e5e7eb;
+                    background: linear-gradient(to right, #f8fafc, #ffffff);
+                ">
+                    <h3 style="
+                        margin: 0;
+                        color: #2563eb;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <i class="ri-award-fill"></i>
+                        Accolade Details
+                    </h3>
+                </div>
+                <div style="
+                    max-height: 85vh;
+                    overflow-y: auto;
+                    padding: 0;
+                    margin: 0 -20px -20px -20px;
+                    scrollbar-width: thin;
+                ">
+                    ${accoladesHtml}
+                </div>
+            `,
+            width: '650px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            padding: '20px',
+            customClass: {
+                container: 'accolade-details-modal'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in handleViewAccoladeDetails:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load accolade details'
+        });
+    }
 }

@@ -786,7 +786,18 @@ window.toast = {
 
 <!-- Move all script tags to the end, just before closing body tag -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="../../assets/js/cashInvoice.js"></script>
+
+<!-- Add a check to prevent both scripts from loading simultaneously -->
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') === '4') {
+        // Load only kittyPaymentsInvoice.js for meeting payments
+        document.write('<script src="../../assets/js/kittyPaymentsInvoice.js"><\/script>');
+    } else {
+        // Load cashInvoice.js for other cases
+        document.write('<script src="../../assets/js/cashInvoice.js"><\/script>');
+    }
+</script>
 
 <script>
 // Wait for DOM to be fully loaded
