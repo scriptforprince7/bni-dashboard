@@ -149,8 +149,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     <td>
                         <button 
-                            class="btn btn-info btn-sm"
+                            class="btn ${(req.pickup_status && req.pickup_date) ? 'btn-info' : 'btn-secondary'} btn-sm"
                             onclick="showGivenStatusModal(${req.chapter_requisition_id})"
+                            ${(!req.pickup_status || !req.pickup_date) ? 'disabled' : ''}
+                            title="${!req.pickup_status ? 'Please set pickup status first' : 
+                                   (req.pickup_status && !req.pickup_date) ? 'Please set pickup date first' : 
+                                   'View/Update Given Status'}"
+                            style="${(!req.pickup_status || !req.pickup_date) ? 'opacity: 0.65; filter: grayscale(100%);' : ''}"
                         >
                             <i class="ri-gift-line me-1"></i>
                             Given Status
@@ -285,6 +290,22 @@ style.textContent = `
     .member-checkbox-container::-webkit-scrollbar-track {
         background-color: #f1f5f9;
     }
+
+    /* Styles for disabled Given Status button */
+    .btn-secondary.btn-sm[disabled] {
+        opacity: 0.65;
+        cursor: not-allowed;
+        background-color: #cbd5e1;
+        border-color: #cbd5e1;
+        filter: grayscale(100%);
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary.btn-sm[disabled]:hover {
+        background-color: #cbd5e1;
+        border-color: #cbd5e1;
+        opacity: 0.65;
+    }
 `;
 
 document.head.appendChild(style);
@@ -312,7 +333,7 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
         console.log('💰 Member Requisitions:', memberRequisitions);
 
         // Get the specific requisition to access comments
-        const requisition = allRequisitions.find(r => r.chapter_requisition_id === requisitionId);
+        const requisition = allRequisitions.find(r => r.chapter_requisition_id === parseInt(requisitionId));
         console.log('📝 Requisition:', requisition);
         
         // Check if this is a visitor requisition
@@ -345,6 +366,22 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
         }
         console.log('💬 Comments Map:', commentsMap);
 
+        // Group members by accolade for counting
+        const accoladeGroups = {};
+        
+        if (isVisitorRequisition) {
+            // For visitor requisitions, each accolade has 1 member (the visitor)
+            accoladeIds.forEach(accoladeId => {
+                accoladeGroups[accoladeId] = 1;
+            });
+        } else {
+            // For regular requisitions, count members per accolade
+            Object.keys(commentsMap).forEach(key => {
+                const [memberId, accoladeId] = key.split('_').map(Number);
+                accoladeGroups[accoladeId] = (accoladeGroups[accoladeId] || 0) + 1;
+            });
+        }
+
         // Match accolades with members and their comments
         const accoladeDetails = accoladeIds.map(accoladeId => {
             const accolade = allAccolades.find(a => a.accolade_id === accoladeId);
@@ -376,7 +413,8 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
             return {
                 accolade,
                 isPaid,
-                members: assignedMembers
+                members: assignedMembers,
+                memberCount: accoladeGroups[accoladeId] || 0
             };
         });
 
@@ -399,8 +437,20 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
                     justify-content: space-between;
                     align-items: center;
                 ">
-                    <div style="color: white; font-size: 1.1rem; font-weight: 600;">
-                        <i class="ri-award-fill me-2"></i>${detail.accolade.accolade_name}
+                    <div>
+                        <h4 style="margin: 0; color: white; font-size: 16px;">
+                            <i class="ri-award-fill me-2"></i>
+                            ${detail.accolade.accolade_name} 
+                            <span style="
+                                background: rgba(255, 255, 255, 0.2);
+                                padding: 2px 8px;
+                                border-radius: 12px;
+                                font-size: 0.85em;
+                                margin-left: 8px;
+                            ">
+                                ${detail.memberCount} ${detail.memberCount === 1 ? 'Member' : 'Members'}
+                            </span>
+                        </h4>
                     </div>
                     <span style="
                         background: ${detail.accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
@@ -569,6 +619,12 @@ async function showApprovedMembers(requisitionId) {
             return;
         }
 
+        // Parse comments and RO comments
+        const comments = JSON.parse(requisition.comment || '{}');
+        const roComments = JSON.parse(requisition.ro_comment || '{}');
+        console.log('💬 Comments:', comments);
+        console.log('💬 RO Comments:', roComments);
+
         // Check if this is a visitor requisition
         const isVisitor = requisition.visitor_id !== null;
         console.log('👤 Is visitor requisition:', isVisitor);
@@ -583,7 +639,9 @@ async function showApprovedMembers(requisitionId) {
                 
                 approvedCombinations = [{
                     memberName: `${visitor?.visitor_name || 'Unknown Visitor'} (Visitor)`,
-                    accoladeName: accolade?.accolade_name || 'Induction Kit'
+                    accoladeName: accolade?.accolade_name || 'Induction Kit',
+                    comment: requisition.comment || 'No comment provided',
+                    roComment: requisition.ro_comment || 'No RO comment provided'
                 }];
             }
         } else {
@@ -599,7 +657,9 @@ async function showApprovedMembers(requisitionId) {
                         
                         return {
                             memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
-                            accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`
+                            accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`,
+                            comment: comments[key] || 'No comment provided',
+                            roComment: roComments[key] || 'No RO comment provided'
                         };
                     });
             } catch (e) {
@@ -610,28 +670,79 @@ async function showApprovedMembers(requisitionId) {
 
         console.log('✅ Approved combinations:', approvedCombinations);
 
-        // Show in SweetAlert
+        // Show in SweetAlert with comments
         const approvedHtml = approvedCombinations.map(combo => `
             <div style="
-                padding: 10px;
-                margin: 5px 0;
+                padding: 15px;
+                margin: 10px 0;
                 background: #f0fdf4;
-                border-radius: 6px;
+                border-radius: 8px;
                 border: 1px solid #dcfce7;
             ">
-                <div style="font-weight: 600; color: #166534;">
-                    ${combo.memberName}
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: start;
+                    margin-bottom: 10px;
+                ">
+                    <div>
+                        <div style="font-weight: 600; color: #166534; margin-bottom: 4px;">
+                            ${combo.memberName}
+                        </div>
+                        <div style="color: #22c55e; font-size: 0.9em;">
+                            ${combo.accoladeName}
+                        </div>
+                    </div>
+                    <span class="badge bg-success-transparent">
+                        <i class="ri-checkbox-circle-line me-1"></i>
+                        Approved
+                    </span>
                 </div>
-                <div style="color: #22c55e; font-size: 0.9em;">
-                    ${combo.accoladeName}
+
+                <!-- Comments Section -->
+                <div style="margin-top: 12px;">
+                    <!-- Request Comment -->
+                    <div style="
+                        background: white;
+                        padding: 10px;
+                        border-radius: 6px;
+                        margin-bottom: 8px;
+                        border: 1px solid #bbf7d0;
+                    ">
+                        <div style="color: #166534; font-size: 0.85em; margin-bottom: 4px;">
+                            <i class="ri-chat-1-line me-1"></i>Request Comment
+                        </div>
+                        <div style="color: #15803d;">
+                            ${combo.comment}
+                        </div>
+                    </div>
+
+                    <!-- RO Comment -->
+                    <div style="
+                        background: white;
+                        padding: 10px;
+                        border-radius: 6px;
+                        border: 1px solid #bbf7d0;
+                    ">
+                        <div style="color: #166534; font-size: 0.85em; margin-bottom: 4px;">
+                            <i class="ri-admin-line me-1"></i>RO Comment
+                        </div>
+                        <div style="color: #15803d;">
+                            ${combo.roComment}
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
 
         Swal.fire({
-            title: 'Approved Members',
+            title: '<span style="color: #16a34a"><i class="ri-checkbox-circle-line me-2"></i>Approved Members</span>',
             html: approvedHtml || '<div class="text-muted">No approved members found</div>',
-            confirmButtonText: 'Close'
+            width: '600px',
+            confirmButtonText: 'Close',
+            customClass: {
+                popup: 'members-popup'
+            }
         });
 
     } catch (error) {
@@ -672,6 +783,12 @@ async function showDeclinedMembers(requisitionId) {
             return;
         }
 
+        // Parse comments and RO comments
+        const comments = JSON.parse(requisition.comment || '{}');
+        const roComments = JSON.parse(requisition.ro_comment || '{}');
+        console.log('💬 Comments:', comments);
+        console.log('💬 RO Comments:', roComments);
+
         // Check if this is a visitor requisition
         const isVisitor = requisition.visitor_id !== null;
         console.log('👤 Is visitor requisition:', isVisitor);
@@ -686,7 +803,9 @@ async function showDeclinedMembers(requisitionId) {
                 
                 declinedCombinations = [{
                     memberName: `${visitor?.visitor_name || 'Unknown Visitor'} (Visitor)`,
-                    accoladeName: accolade?.accolade_name || 'Induction Kit'
+                    accoladeName: accolade?.accolade_name || 'Induction Kit',
+                    comment: requisition.comment || 'No comment provided',
+                    roComment: requisition.ro_comment || 'No RO comment provided'
                 }];
             }
         } else {
@@ -702,7 +821,9 @@ async function showDeclinedMembers(requisitionId) {
                         
                         return {
                             memberName: member ? `${member.member_first_name} ${member.member_last_name}` : `Member ${memberId}`,
-                            accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`
+                            accoladeName: accolade ? accolade.accolade_name : `Accolade ${accoladeId}`,
+                            comment: comments[key] || 'No comment provided',
+                            roComment: roComments[key] || 'No RO comment provided'
                         };
                     });
             } catch (e) {
@@ -713,28 +834,79 @@ async function showDeclinedMembers(requisitionId) {
 
         console.log('❌ Declined combinations:', declinedCombinations);
 
-        // Show in SweetAlert
+        // Show in SweetAlert with comments
         const declinedHtml = declinedCombinations.map(combo => `
             <div style="
-                padding: 10px;
-                margin: 5px 0;
+                padding: 15px;
+                margin: 10px 0;
                 background: #fef2f2;
-                border-radius: 6px;
+                border-radius: 8px;
                 border: 1px solid #fee2e2;
             ">
-                <div style="font-weight: 600; color: #991b1b;">
-                    ${combo.memberName}
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: start;
+                    margin-bottom: 10px;
+                ">
+                    <div>
+                        <div style="font-weight: 600; color: #991b1b; margin-bottom: 4px;">
+                            ${combo.memberName}
+                        </div>
+                        <div style="color: #dc2626; font-size: 0.9em;">
+                            ${combo.accoladeName}
+                        </div>
+                    </div>
+                    <span class="badge bg-danger-transparent">
+                        <i class="ri-close-circle-line me-1"></i>
+                        Declined
+                    </span>
                 </div>
-                <div style="color: #dc2626; font-size: 0.9em;">
-                    ${combo.accoladeName}
+
+                <!-- Comments Section -->
+                <div style="margin-top: 12px;">
+                    <!-- Request Comment -->
+                    <div style="
+                        background: white;
+                        padding: 10px;
+                        border-radius: 6px;
+                        margin-bottom: 8px;
+                        border: 1px solid #fecaca;
+                    ">
+                        <div style="color: #991b1b; font-size: 0.85em; margin-bottom: 4px;">
+                            <i class="ri-chat-1-line me-1"></i>Request Comment
+                        </div>
+                        <div style="color: #b91c1c;">
+                            ${combo.comment}
+                        </div>
+                    </div>
+
+                    <!-- RO Comment -->
+                    <div style="
+                        background: white;
+                        padding: 10px;
+                        border-radius: 6px;
+                        border: 1px solid #fecaca;
+                    ">
+                        <div style="color: #991b1b; font-size: 0.85em; margin-bottom: 4px;">
+                            <i class="ri-admin-line me-1"></i>RO Comment
+                        </div>
+                        <div style="color: #b91c1c;">
+                            ${combo.roComment}
+                        </div>
+                    </div>
                 </div>
             </div>
         `).join('');
 
         Swal.fire({
-            title: 'Declined Members',
+            title: '<span style="color: #dc2626"><i class="ri-close-circle-line me-2"></i>Declined Members</span>',
             html: declinedHtml || '<div class="text-muted">No declined members found</div>',
-            confirmButtonText: 'Close'
+            width: '600px',
+            confirmButtonText: 'Close',
+            customClass: {
+                popup: 'members-popup'
+            }
         });
 
     } catch (error) {
@@ -889,7 +1061,7 @@ async function showRequisitionForm() {
                                     }
                                     
                                     // Find chapter ID from chapters API response
-                                    const chapter = chapters.find(ch => ch.email_id === chapterEmail || ch.vice_president_mail === chapterEmail || ch.president_mail === chapterEmail || ch.treasurer_mail === chapterEmail);
+                                    const chapter = chapters.find(ch => ch.email_id === chapterEmail);
                                     console.log("🏢 Found chapter:", chapter);
                                     
                                     if (chapter) {
