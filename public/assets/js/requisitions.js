@@ -2008,7 +2008,6 @@ async function showGivenStatusModal(requisitionId) {
     }
 }
 
-// Function to mark item as given
 async function markAsGiven(requisitionId, combinationKey) {
     try {
         const dateInput = document.getElementById(`date_${combinationKey}`);
@@ -2063,8 +2062,70 @@ async function markAsGiven(requisitionId, combinationKey) {
                 timer: 2000
             });
         } else {
-            // Existing member logic
-            // ... your existing member update code ...
+            // Member logic
+            console.log('👥 Processing member given status update');
+            
+            // Get existing given status or initialize empty object
+            let existingGivenStatus = {};
+            try {
+                existingGivenStatus = currentRequisition.given_status ? 
+                    JSON.parse(currentRequisition.given_status) : {};
+            } catch (e) {
+                console.warn('Error parsing existing given status, starting fresh');
+            }
+
+            // Update the given status for this combination
+            existingGivenStatus[combinationKey] = {
+                date: givenDate
+            };
+
+            // Helper function to safely handle JSON values
+            const prepareValue = (value) => {
+                if (!value) return null;
+                // If it's already a string that looks like JSON
+                if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
+                    try {
+                        // Parse it to prevent double stringification
+                        return JSON.parse(value);
+                    } catch (e) {
+                        return value;
+                    }
+                }
+                return value;
+            };
+
+            // In markAsGiven function, update the body part:
+            const requestBody = {
+                chapter_requisition_id: requisitionId,
+                given_status: existingGivenStatus, // Don't stringify again
+                // Safely prepare other values
+                approve_status: prepareValue(currentRequisition.approve_status),
+                ro_comment: prepareValue(currentRequisition.ro_comment),
+                pickup_status: currentRequisition.pickup_status,
+                pickup_date: currentRequisition.pickup_date,
+                slab_wise_comment: currentRequisition.slab_wise_comment
+            };
+
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody) // Single stringify of the whole body
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update member given status');
+            }
+
+            console.log('✅ Successfully updated member given status');
+            
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Member accolade marked as given successfully',
+                timer: 2000
+            });
         }
 
         // Refresh the modal
