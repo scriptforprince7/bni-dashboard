@@ -1,0 +1,463 @@
+<!-- Add this script at the very top of your file, before any other content -->
+<script src="../../assets/js/tokenUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  console.log('=== Back to Admin Button Rendering Process Started ===');
+  
+  // Get login type from token
+  const userType = getUserLoginType();
+  console.log('Current User Type:', userType);
+  
+  console.log('=== Back to Admin Button Rendering Process Completed ===');
+</script>
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <style>
+        /* Style for dropdown menu to enable scrolling */
+.dropdown-menu {
+  max-height: 200px; /* Adjust the height as needed */
+  overflow-y: auto;  /* Enables vertical scrolling */
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: #888; /* Color of the scrollbar thumb */
+  border-radius: 4px; /* Rounded edges for the thumb */
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Darker shade on hover */
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid rgba(90, 80, 80, 0.689); /* Adds border to the table, headers, and cells */
+}
+
+td, th {
+    padding: 8px; /* Adds some spacing within the cells */
+    text-align: center; /* Centers the text horizontally */
+    vertical-align: middle; /* Centers the text vertically */
+    font-weight: bold; /* Make text bold */
+}
+
+th {
+    background-color: #f2f2f2; /* Optional: Adds a light background to the headers */
+}
+
+/* Enhanced table styles */
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  color: #495057;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 15px;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table td {
+  padding: 15px;
+  vertical-align: middle;
+}
+
+/* Enhanced dropdown styles */
+.dropdown-menu {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: #6c757d;
+  border-radius: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #495057;
+}
+
+.dropdown-item {
+  padding: 10px 15px;
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #e9ecef;
+  transform: translateX(5px);
+}
+
+/* Button styles */
+.btn {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Search box styles */
+.custom-form-group {
+  position: relative;
+}
+
+.custom-form-group input {
+  border-radius: 8px;
+  padding: 12px 20px;
+  padding-right: 40px;
+  border: 2px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.custom-form-group input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.custom-form-btn {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Accolade popup styles */
+.accolade-popup .swal2-title {
+  font-size: 24px;
+  color: #007bff;
+  margin-bottom: 20px;
+}
+
+.accolade-popup-content {
+  padding: 20px;
+}
+
+.accolade-detail {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #007bff;
+}
+
+.accolade-detail h5 {
+  color: #007bff;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.accolade-detail .publish-date {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.accolade-detail .publish-date i {
+  font-size: 16px;
+}
+
+.accolade-detail p {
+  margin-bottom: 12px;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.accolade-detail p strong {
+  color: #343a40;
+  margin-right: 5px;
+}
+
+.accolade-link {
+  text-decoration: none;
+  color: #007bff;
+  transition: all 0.3s ease;
+}
+
+.accolade-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Card styles */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+
+
+.card-header {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  padding: 20px;
+}
+
+.card-title {
+  font-weight: 800;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+    </style>
+      
+
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+    @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+  </style>
+
+  <style>
+    * {
+      font-family: Montserrat !important;
+      font-weight: 800px;
+    }
+    .text-muted {
+      color: black !important;
+      font-family: Montserrat Alternates;
+    }
+    .popins {
+      font-family: Poppins;
+    }
+  </style>
+
+    <%- include('../partials/sidebar') %>
+      <!-- Start::app-content -->
+      <div class="main-content app-content" style="background-color: #f4f4f4">
+        <div class="container-fluid">
+          <!-- Start::page-header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                <span style="font-weight: 700; font-family: Poppins"
+                  >Member Wise Requisitions</span
+                >
+              </h1>
+              <p>Manage all member requisitions</p>
+            </div>
+            
+          </div>
+          <!-- End::page-header -->
+
+          <div class="row">
+            <div class="col-xl-12 chapter-information" style="display: none;">
+              <div class="card custom-card">
+                <div class="card-body add-products" style="background-color: 	#F5F5F5; box-shadow: 0px 2px 8px rgb(251, 109, 109);">
+                  <div class="row gx-4">
+                    <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                      <div class="card custom-card shadow-none mb-0 border-0" style="background-color: 	#F5F5F5;">
+                        <div class="card-body p-0">
+                          <div class="row gy-3">
+                            <div class="col-xl-2">
+                              <label for="chapter_name" class="form-label"
+                                ><b>Chapter Name</b></label
+                              >
+                              <p class="chapter_name">Prolific</p>
+                            </div>
+                              <div class="col-xl-2">
+                                <label for="chapter_day" class="form-label"
+                                  ><b>Chapter Day</b></label
+                                >
+                                <p class="chapter_day">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="meeting_venue" class="form-label"
+                                  ><b>Meeting Venue</b></label
+                                >
+                                <p class="meeting_venue">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="meeting_fee" class="form-label"
+                                  ><b>Meeting Fee</b></label
+                                >
+                                <p class="meeting_fee">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="visitor_fee" class="form-label"
+                                  ><b>Visitor Fee</b></label
+                                >
+                                <p class="visitor_fee">Prolific</p>
+                              </div>
+                              <div class="col-xl-2">
+                                <label for="region_name" class="form-label"
+                                  ><b>Total Members</b></label
+                                >
+                                <p class="total_members">Prolific</p>
+                              </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          
+        
+            <div class="col-xl-12">
+              <div class="card custom-card">
+                <div class="card-header justify-content-between" style="background-color: gainsboro !important">
+                  <div class="card-title">Choose Members</div>
+                  <div class="d-flex gap-3 align-items-center flex-wrap">
+                    <div class="btn-group">
+                      <!-- Region Filter -->
+                      <div class="dropdown me-2">
+                        <a href="javascript:void(0);"
+                           class="btn btn-sm btn-light text-muted dropdown-toggle"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="true">
+                          <i class="ti ti-sort-descending-2 me-1"></i> Region
+                        </a>
+                        <ul class="dropdown-menu" id="region-filter" role="menu">
+                          <!-- Items will be dynamically inserted here -->
+                        </ul>
+                      </div>
+
+                      <!-- Chapter Filter -->
+                      <div class="dropdown me-2">
+                        <a href="javascript:void(0);"
+                           class="btn btn-sm btn-light text-muted dropdown-toggle"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="true">
+                          <i class="ti ti-sort-descending-2 me-1"></i> Chapter
+                        </a>
+                        <ul class="dropdown-menu" id="chapter-filter" role="menu">
+                          <!-- Items will be dynamically inserted here -->
+                        </ul>
+                      </div>
+
+                      <!-- Apply and Reset Filters -->
+                      <button href=""
+                              id="apply-filters-btn"
+                              class="btn btn-sm btn-primary btn-wave waves-light">
+                        Apply Filter
+                      </button>
+                      <div style="margin-left: 3px;">
+                        <button id="reset-filters-btn" class="btn btn-sm btn-danger btn-wave waves-light">
+                          Reset Filter
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="custom-form-group flex-grow-1">
+                      <input
+                        type="text"
+                        id="searchInput"  
+                        class="form-control"
+                        placeholder="Search Member.."
+                        aria-label="Search Member"
+                        aria-describedby="button-addon2"
+                      />
+                      <a href="javascript:void(0);" class="text-muted custom-form-btn">
+                        <i class="ti ti-search"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table text-nowrap">
+                      <thead>
+                        <tr>
+                            
+                          <th scope="col">S.No.</th>
+                          <th scope="col">Member Name</th>
+                          <th scope="col">Chapter</th>
+                          <th scope="col">No. of Requisitions</th>
+                          <th scope="col">Accolades Issued</th>
+                          <th scope="col">Status</th>
+
+                        </tr>
+                      </thead>
+                      <tbody id="chaptersTableBody">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer border-top-0">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <!-- Show All/Show Paginated Button -->
+                    <button id="togglePagination" class="btn btn-primary">
+                      Show All
+                    </button>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                      <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                          <a class="page-link" id="prevPage">Previous</a>
+                        </li>
+                        <li class="page-item active">
+                          <a class="page-link pageNumber" data-page="1">1</a>
+                        </li>
+                        <li class="page-item">
+                          <a class="page-link" id="nextPage">Next</a>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+      <!-- End::content  -->
+
+
+  
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../../assets/js/tokenUtils.js"></script>
+<script src="../../assets/js/roMemberWiseRequisitions.js"></script>
+<script>
+  document.getElementById('selectAllCheckbox').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('#chaptersTableBody input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+</script>
+
+      <%- include('../partials/footer') %>

@@ -7,5 +7,6 @@ router.get('/manage-accolades', accoladesController.manageAccolades);
 router.get('/add-accolades', accoladesController.addAccolades);
 router.get('/edit-accolades', accoladesController.editAccolades);
 router.get('/requested-requisitions', accoladesController.requestedRequisitions);
+router.get('/member-wise-requisitions', accoladesController.memberWiseRequisitions);
 
 module.exports = router;

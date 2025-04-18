@@ -13,3 +13,7 @@ exports.editAccolades = (req, res) => {
 exports.requestedRequisitions = (req, res) => {
     res.render('m-accolade/requested-requisitions', { title: 'Requested Requisitions' });
 };
+
+exports.memberWiseRequisitions = (req, res) => {
+    res.render('m-accolade/member-wise-requisitions', { title: 'Member Wise Requisitions' });
+};
