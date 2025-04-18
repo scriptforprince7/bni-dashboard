@@ -1,4 +1,4 @@
-const accoladesApiUrl = "https://bni-data-backend.onrender.com/api/accolades";
+const accoladesApiUrl = "backend.bninewdelhi.com/api/accolades";
 const chaptersApiUrl = "https://backend.bninewdelhi.com/api/chapters";
 const requisitionsApiUrl = "https://backend.bninewdelhi.com/api/getRequestedChapterRequisition";
 

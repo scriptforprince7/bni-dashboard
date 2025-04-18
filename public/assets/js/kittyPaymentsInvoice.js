@@ -918,63 +918,80 @@ function showLoader() {
             // Fetch member's kitty data
             const bankOrderResponse = await fetch(`https://backend.bninewdelhi.com/api/getbankOrder`);
             const bankOrderData = await bankOrderResponse.json();
-            const memberBankOrder = bankOrderData.find(order => order.member_id === selectedMemberId);
-  
+            const memberBankOrder = bankOrderData.find(order => 
+                order.member_id === selectedMemberId && 
+                order.chapter_id === selectedChapterId
+            );
+
             // Fetch member credits
             const creditResponse = await fetch(`https://backend.bninewdelhi.com/api/getAllMemberCredit`);
             const creditData = await creditResponse.json();
             const memberCredits = creditData.filter(credit => 
-              credit.member_id === selectedMemberId && 
-              credit.chapter_id === selectedChapterId && 
-              credit.is_adjusted === false
+                credit.member_id === selectedMemberId && 
+                credit.chapter_id === selectedChapterId && 
+                credit.is_adjusted === false
             );
-  
+
             // Calculate total credit amount
-            const totalCreditAmount = memberCredits.reduce((sum, credit) => sum + parseFloat(credit.credit_amount), 0);
-  
+            const totalCreditAmount = memberCredits.reduce((sum, credit) => 
+                sum + parseFloat(credit.credit_amount), 0
+            );
+
             // Get current date
             const currentDateResponse = await fetch(`https://backend.bninewdelhi.com/api/getCurrentDate`);
             const currentDate = await currentDateResponse.json();
-  
+
             // Update UI with kitty bill info
             if (memberBankOrder) {
-              const amountToPay = parseFloat(memberBankOrder.amount_to_pay);
-              const kittyDueDate = memberBankOrder.kitty_due_date;
-              const numberOfLatePayments = memberBankOrder.no_of_late_payment;
-              const kittyPenalty = parseFloat(memberBankOrder.kitty_penalty);
-  
-              let totalAmount = amountToPay;
-              let noOfLatePayment = numberOfLatePayments;
-              let penaltyAmount = 0;
-  
-              // Apply penalty if due date has passed
-              if (kittyDueDate && new Date(kittyDueDate) < new Date(currentDate.currentDate)) {
-                totalAmount += kittyPenalty;
-                noOfLatePayment += 1;
-              } else {
-                penaltyAmount = kittyPenalty;
-              }
-  
-              // Calculate GST
-              const gstAmount = (totalAmount * 0.18).toFixed(2);
-              const grandTotal = parseFloat(totalAmount) + parseFloat(gstAmount);
-  
-              // Update form fields
-              document.getElementById("rate").value = `₹ ${totalAmount.toFixed(2)}`;
-              document.getElementById("price").value = `₹ ${totalAmount.toFixed(2)}`;
-              document.getElementById("taxable-total-amount").value = `₹ ${totalAmount.toFixed(2)}`;
-              document.getElementById("cgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
-              document.getElementById("sgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
-              document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
-              document.getElementById("credit-amount").textContent = `₹ ${totalCreditAmount.toFixed(2)}`;
-              document.getElementById("opening-balance").textContent = `₹ ${memberBankOrder.opening_balance || "0.00"}`;
-  
-              // Store values for later use
-              this.dataset.totalAmount = totalAmount;
-              this.dataset.gstAmount = gstAmount;
-              this.dataset.penaltyAmount = penaltyAmount;
-              this.dataset.noOfLatePayment = noOfLatePayment;
-              this.dataset.creditAmount = totalCreditAmount;
+                let amountToPay = parseFloat(memberBankOrder.amount_to_pay);
+                const kittyDueDate = memberBankOrder.kitty_due_date;
+                const numberOfLatePayments = memberBankOrder.no_of_late_payment;
+                const kittyPenalty = parseFloat(memberBankOrder.kitty_penalty);
+                const advancePayment = parseFloat(memberBankOrder.advance_pay) || 0;
+
+                // Subtract advance payment if exists
+                if (advancePayment > 0) {
+                    amountToPay = Math.max(0, amountToPay - advancePayment);
+                    console.log('💰 Amount after advance payment deduction:', {
+                        originalAmount: memberBankOrder.amount_to_pay,
+                        advancePayment,
+                        finalAmount: amountToPay
+                    });
+                }
+
+                let totalAmount = amountToPay;
+                let noOfLatePayment = numberOfLatePayments;
+                let penaltyAmount = 0;
+
+                // Apply penalty if due date has passed
+                if (kittyDueDate && new Date(kittyDueDate) < new Date(currentDate.currentDate)) {
+                    totalAmount += kittyPenalty;
+                    noOfLatePayment += 1;
+                } else {
+                    penaltyAmount = kittyPenalty;
+                }
+
+                // Calculate GST
+                const gstAmount = (totalAmount * 0.18).toFixed(2);
+                const grandTotal = parseFloat(totalAmount) + parseFloat(gstAmount);
+
+                // Update form fields
+                document.getElementById("rate").value = `₹ ${totalAmount.toFixed(2)}`;
+                document.getElementById("price").value = `₹ ${totalAmount.toFixed(2)}`;
+                document.getElementById("taxable-total-amount").value = `₹ ${totalAmount.toFixed(2)}`;
+                document.getElementById("cgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
+                document.getElementById("sgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
+                document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
+                document.getElementById("credit-amount").textContent = `₹ ${totalCreditAmount.toFixed(2)}`;
+                document.getElementById("opening-balance").textContent = `₹ ${memberBankOrder.opening_balance || "0.00"}`;
+
+                // Store values for later use
+                this.dataset.totalAmount = totalAmount;
+                this.dataset.gstAmount = gstAmount;
+                this.dataset.penaltyAmount = penaltyAmount;
+                this.dataset.noOfLatePayment = noOfLatePayment;
+                this.dataset.creditAmount = totalCreditAmount;
+                this.dataset.advancePayment = advancePayment;
             }
           } catch (error) {
             console.error("Error fetching member data:", error);
@@ -1015,249 +1032,45 @@ function showLoader() {
         });
       }
   
-      // // Handle payment method changes
-      // const paymentMethods = document.getElementsByName('paymentMethod');
-      // const upiFields = document.getElementById('upiFields');
-      // const bankFields = document.getElementById('bankFields');
-      // const chequeFields = document.getElementById('chequeFields');
-  
-      // paymentMethods.forEach(method => {
-      //   method.addEventListener('change', function() {
-      //     // Hide all payment fields first
-      //     upiFields.style.display = 'none';
-      //     bankFields.style.display = 'none';
-      //     chequeFields.style.display = 'none';
-  
-      //     // Show relevant fields based on selection
-      //     if (this.id === 'upiOption') {
-      //       upiFields.style.display = 'block';
-      //     } else if (this.id === 'bankOption') {
-      //       bankFields.style.display = 'block';
-      //     } else if (this.id === 'chequeOption') {
-      //       chequeFields.style.display = 'block';
-      //     }
-  
-      //     console.log('💳 Payment Method Changed:', this.id);
-      //   });
-      // });
-  
-      // Add submit handler for the invoice form
-    //   const submitButton = document.getElementById('submit_invoice');
-    //   if (submitButton) {
-    //     submitButton.addEventListener('click', async function(e) {
-    //       e.preventDefault();
-          
-    //       try {
-    //         if(universalLinkId === "5"){
-    //           return;
-    //         }
-    //         showLoader();
-            
-    //         // Get all form data
-    //         const formData = new FormData();
-            
-    //         // Add form fields manually
-    //         formData.append('member_id', document.getElementById('company-name').value);
-    //         formData.append('company_id', document.querySelector('.company_info').value);
-    //         formData.append('date_issued', document.getElementById('invoice-date-issued').value);
-    //         formData.append('particulars', document.getElementById('particulars').value);
-    //         formData.append('rate', document.getElementById('rate').value);
-    //         formData.append('price', document.getElementById('price').value);
-    //         formData.append('taxable_total_amount', document.getElementById('taxable-total-amount').value);
-    //         formData.append('cgst_amount', document.getElementById('cgst_amount').value);
-    //         formData.append('sgst_amount', document.getElementById('sgst_amount').value);
-    //         formData.append('grand_total', document.getElementById('grand_total').value);
-            
-    //         // Get payment details
-    //         const paymentData = getPaymentDetails();
-            
-    //         // Combine form data with payment data
-    //         const invoiceData = {
-    //           // Add your existing invoice data here
-    //           member_id: formData.get('member_id'),
-    //           company_id: formData.get('company_id'),
-    //           date_issued: formData.get('date_issued'),
-    //           particulars: formData.get('particulars'),
-    //           rate: formData.get('rate'),
-    //           price: formData.get('price'),
-    //           taxable_total_amount: formData.get('taxable_total_amount'),
-    //           cgst_amount: formData.get('cgst_amount'),
-    //           sgst_amount: formData.get('sgst_amount'),
-    //           grand_total: formData.get('grand_total'),
+      // Add advance payment handling while keeping existing code
+      document.querySelectorAll('input[name="paymentType"]').forEach(radio => {
+          radio.addEventListener('change', function() {
+              const partialAmountInput = document.getElementById("partial-amount");
+              const advanceAmountInput = document.getElementById("advance-amount");
+              const remainingBalanceElement = document.getElementById("remaining-balance");
               
-    //           // Add the payment data
-    //           ...paymentData
-    //         };
-  
-    //         console.log('📤 Submitting invoice with data:', invoiceData);
-  
-    //         // // Send to your API
-    //         // const response = await fetch('your-api-endpoint', {
-    //         //   method: 'POST',
-    //         //   headers: {
-    //         //     'Content-Type': 'application/json',
-    //         //   },
-    //         //   body: JSON.stringify(invoiceData)
-    //         // });
-  
-    //         // if (!response.ok) {
-    //         //   throw new Error('Failed to create invoice');
-    //         // }
-  
-    //         // const result = await response.json();
-    //         // console.log('✅ Invoice created successfully:', result);
-  
-    //         // Show success message
-    //         Swal.fire({
-    //           icon: 'success',
-    //           title: 'Success!',
-    //           text: 'Invoice created successfully',
-    //           showConfirmButton: false,
-    //           timer: 1500
-    //         });
-  
-    //         // Redirect or refresh as needed
-    //         setTimeout(() => {
-    //           window.location.href = '/your-redirect-path';
-    //         }, 1500);
-  
-    //       } catch (error) {
-    //         console.error('❌ Error creating invoice:', error);
-    //         Swal.fire({
-    //           icon: 'error',
-    //           title: 'Error',
-    //           text: 'Failed to create invoice. Please try again.'
-    //         });
-    //       } finally {
-    //         hideLoader();
-    //       }
-    //     });
-    //   }
-  
-      // Add this after your existing chapter selection code
-    //   document.querySelector('.company_info').addEventListener('change', async function() {
-    //     if (universalLinkId === "5") {
-    //       try {
-    //         const selectedChapterId = this.value;
-    //         console.log("📍 Chapter Selection Changed - Selected ID:", selectedChapterId);
-            
-    //         if (!selectedChapterId) {
-    //           console.log("❌ No chapter selected");
-    //           return;
-    //         }
-  
-    //         showLoader();
-            
-    //         // Fetch chapters data
-    //         const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
-    //         const chapters = await response.json();
-    //         console.log("📋 All Chapters Data:", chapters);
-            
-    //         // Find selected chapter
-    //         const selectedChapter = chapters.find(chapter => chapter.id === parseInt(selectedChapterId));
-    //         console.log("✅ Found Selected Chapter:", selectedChapter);
-            
-    //         if (!selectedChapter) {
-    //           console.log("❌ Chapter not found in data");
-    //           showToast('error', 'Chapter data not found');
-    //           return;
-    //         }
-  
-    //         // Get visitor fees
-    //         const visitorFee = parseFloat(selectedChapter.chapter_visitor_fees) || 0;
-    //         console.log("💰 Visitor Fee:", visitorFee);
-            
-    //         // Update Rate field
-    //         const rateField = document.getElementById('rate');
-    //         if (rateField) {
-    //           rateField.value = visitorFee.toFixed(2);
-    //           console.log("✅ Updated Rate:", rateField.value);
-    //         }
-  
-    //         // Update Amount field
-    //         const priceField = document.getElementById('price');
-    //         if (priceField) {
-    //           priceField.value = visitorFee.toFixed(2);
-    //           console.log("✅ Updated Price:", priceField.value);
-    //         }
-  
-    //         // Update Total Taxable Value
-    //         const taxableField = document.getElementById('taxable-total-amount');
-    //         if (taxableField) {
-    //           taxableField.value = visitorFee.toFixed(2);
-    //           console.log("✅ Updated Taxable Amount:", taxableField.value);
-    //         }
-  
-    //         // Hide CGST and SGST rows
-    //         const cgstRow = document.querySelector('tr:has(#cgst_amount)');
-    //         const sgstRow = document.querySelector('tr:has(#sgst_amount)');
-            
-    //         if (cgstRow) {
-    //           cgstRow.style.display = 'none';
-    //           console.log("✅ Hidden CGST Row");
-    //         }
-    //         if (sgstRow) {
-    //           sgstRow.style.display = 'none';
-    //           console.log("✅ Hidden SGST Row");
-    //         }
-  
-    //         // Calculate GST (18%)
-    //         const gstAmount = visitorFee * 0.18;
-    //         console.log("💰 Calculated GST Amount:", gstAmount);
-  
-    //         // Add or update GST row
-    //         let gstRow = document.getElementById('gst-18-row');
-    //         const taxableRow = document.querySelector('tr:has(#taxable-total-amount)');
-    //         const grandTotalRow = document.querySelector('tr:has(#grand_total)');
-  
-    //         // Make sure grand total row is visible
-    //         if (grandTotalRow) {
-    //           grandTotalRow.style.display = 'table-row';
-    //           console.log("✅ Ensured Grand Total row is visible");
-    //         }
-  
-    //         if (!gstRow && taxableRow && grandTotalRow) {
-    //           gstRow = document.createElement('tr');
-    //           gstRow.id = 'gst-18-row';
-    //           gstRow.innerHTML = `
-    //             <th scope="row">
-    //               <div class="fw-medium">Add GST (18%) :</div>
-    //             </th>
-    //             <td>
-    //               <input
-    //                 type="text"
-    //                 class="form-control form-control-light invoice-amount-input"
-    //                 id="gst-18-amount"
-    //                 value="₹ ${gstAmount.toFixed(2)}"
-    //                 readonly
-    //               />
-    //             </td>
-    //           `;
-    //           // Insert GST row before Grand Total
-    //           grandTotalRow.parentNode.insertBefore(gstRow, grandTotalRow);
-    //           console.log("✅ Added GST row before Grand Total");
-    //         } else if (gstRow) {
-    //           document.getElementById('gst-18-amount').value = `₹ ${gstAmount.toFixed(2)}`;
-    //           console.log("✅ Updated GST Amount");
-    //         }
-  
-    //         // Calculate and update Grand Total (Visitor Fee + GST)
-    //         const grandTotal = visitorFee + gstAmount;
-    //         const grandTotalField = document.getElementById('grand_total');
-    //         if (grandTotalField) {
-    //           grandTotalField.value = grandTotal.toFixed(2);
-    //           grandTotalField.style.display = 'block'; // Make sure the input field is visible
-    //           console.log("✅ Updated Grand Total:", grandTotal.toFixed(2));
-    //         }
-  
-    //       } catch (error) {
-    //         console.error("❌ Error in chapter selection handler:", error);
-    //         showToast('error', 'Failed to process chapter selection');
-    //       } finally {
-    //         hideLoader();
-    //       }
-    //     }
-    //   });
+              // Reset and hide/show fields based on payment type
+              if (this.value === 'full') {
+                  partialAmountInput.style.display = 'none';
+                  advanceAmountInput.style.display = 'none';
+                  document.getElementById("advance-amount-row").style.display = 'none';
+                  document.getElementById("remaining-balance-row").style.display = 'none';
+              } else if (this.value === 'partial') {
+                  partialAmountInput.style.display = 'block';
+                  advanceAmountInput.style.display = 'none';
+                  document.getElementById("advance-amount-row").style.display = 'none';
+                  document.getElementById("remaining-balance-row").style.display = 'table-row';
+              } else if (this.value === 'advance') {
+                  partialAmountInput.style.display = 'none';
+                  document.getElementById("advance-amount-row").style.display = 'table-row';
+                  document.getElementById("remaining-balance-row").style.display = 'none';
+              }
+          });
+      });
+
+      // Add advance amount input handler
+      document.getElementById("advance-amount")?.addEventListener("input", function() {
+          const advanceAmount = parseFloat(this.value) || 0;
+          const grandTotal = parseFloat(document.getElementById("grand_total").value.replace(/[₹,\s]/g, '')) || 0;
+          
+          if (grandTotal === 0 || advanceAmount > grandTotal) {
+              console.log('💰 Valid advance payment:', {
+                  advanceAmount,
+                  grandTotal,
+                  withGST: advanceAmount * 1.18 // Always calculate with GST
+              });
+          }
+      });
     } catch (error) {
       console.error("Error:", error);
       showToast('error', "An error occurred while loading data");
@@ -1440,8 +1253,41 @@ function showLoader() {
                 console.log("✅ Payment confirmed, processing...");
                 showLoader();
 
-                // Comment out just the API call section
-                console.log("🌐 Payment Data:", invoiceData);
+                // Add advance payment handling before the API call
+                if (selectedPaymentType === "advance") {
+                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value) || 0;
+                    const grandTotal = parseFloat(document.getElementById("grand_total").value.replace(/[₹,\s]/g, '')) || 0;
+
+                    // Calculate advance amount with GST for both cases
+                    const advanceWithGST = advanceAmount * 1.18;
+                    const taxAmount = advanceAmount * 0.18; // Calculate tax amount (18% of advance amount)
+
+                    if (grandTotal === 0) {
+                        // Case 1: When grand total is zero
+                        Object.assign(invoiceData, {
+                            order_amount: advanceWithGST,
+                            payment_type: "advance",
+                            payment_note: "meeting-payments-advance",
+                            advance_amount: advanceWithGST,
+                            tax_amount: taxAmount // Add tax amount
+                        });
+                    } else if (advanceAmount > grandTotal) {
+                        // Case 2: When advance is greater than grand total
+                        Object.assign(invoiceData, {
+                            order_amount: advanceWithGST,
+                            payment_type: "advance",
+                            payment_note: "meeting-payments-advance",
+                            advance_amount: advanceAmount - grandTotal,
+                            tax_amount: taxAmount // Add tax amount
+                        });
+                    }
+                }
+
+                // Keep existing console log
+                console.log("🌐 Payment Data to be sent:", invoiceData);
+
+                // Keep rest of the existing code (API call, success handling, etc.)
+
                 showToast('success', "Check console for payment data");
 
                 const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPaymentManually', {
@@ -1474,16 +1320,10 @@ function showLoader() {
                 } else {
                     throw new Error(responseData.message || 'Failed to create invoice');
                 }
-
+                
             } catch (error) {
                 console.error("❌ Error:", error);
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || "Error creating invoice"
-                });
-            } finally {
-                hideLoader();
+                showToast('error', error.message || "Error processing payment");
             }
         });
     } else {
