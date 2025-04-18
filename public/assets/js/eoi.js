@@ -35,6 +35,68 @@ document.addEventListener('DOMContentLoaded', async function() {
         return `${day}/${month}/${year}`;
     }
 
+    // Add CSS for name styling
+    const style = document.createElement('style');
+    style.textContent = `
+        .visitor-name {
+            color: #d01f2f;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            position: relative;
+        }
+
+        .visitor-name:hover {
+            color: #fff;
+            background: #d01f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(208, 31, 47, 0.2);
+        }
+
+        .visitor-name::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #d01f2f;
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease;
+        }
+
+        .visitor-name:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* Animation for modal opening */
+        .modal.fade .modal-dialog {
+            transform: scale(0.8);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .modal.show .modal-dialog {
+            transform: scale(1);
+        }
+
+        /* Pulse animation for new entries */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .new-entry {
+            animation: pulse 1s ease-in-out;
+        }
+    `;
+    document.head.appendChild(style);
+
     try {
         showLoader();
         console.log('🔄 Fetching EOI data...');
@@ -84,10 +146,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><b>${index + 1}</b></td>
-                 <td><b>${eoi.first_name} ${eoi.last_name}</b></td>
+                <td>
+                    <b>
+                        <a href="javascript:void(0);" 
+                           class="visitor-name" 
+                           data-eoi-index="${index}"
+                           title="Click to view details">
+                            <i class="ti ti-user-circle me-1"></i>
+                            ${eoi.first_name} ${eoi.last_name}
+                        </a>
+                    </b>
+                </td>
                 <td><b>${regionMap.get(eoi.region_id) || 'N/A'}</b></td>
                 <td><b>${chapterMap.get(eoi.chapter_id) || 'N/A'}</b></td>
-               
                 <td><b>${eoi.company_name}</b></td>
                 <td><b>${eoi.company_gstin}</b></td>
                 <td><b>+91-${eoi.phone_no}</b></td>
@@ -98,8 +169,65 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <td><b>${memberMap.get(eoi.invited_by_member_id) || 'N/A'}</b></td>
                 <td style="text-align: center;">${createCheckMark(eoi.is_interested === "Yes")}</td>
             `;
+
+            // Add new entry animation
+            row.classList.add('new-entry');
             tableBody.appendChild(row);
         });
+
+        // Add click event listener for visitor names
+        document.querySelectorAll('.visitor-name').forEach(link => {
+            link.addEventListener('click', function() {
+                const index = this.getAttribute('data-eoi-index');
+                const eoi = eoiForms[index];
+                
+                // Add loading animation to modal
+                const modal = new bootstrap.Modal(document.getElementById('visitorDetailsModal'));
+                document.getElementById('visitorDetailsModal').classList.add('loading');
+                
+                // Populate modal with visitor details
+                document.getElementById('modal-visitor-name').textContent = `${eoi.first_name} ${eoi.last_name}`;
+                document.getElementById('modal-is-interested').innerHTML = `
+                    <span class="badge ${getInterestBadgeClass(eoi.is_interested)}">
+                        ${eoi.is_interested}
+                    </span>`;
+                document.getElementById('modal-region').textContent = regionMap.get(eoi.region_id) || 'N/A';
+                document.getElementById('modal-chapter').textContent = chapterMap.get(eoi.chapter_id) || 'N/A';
+                document.getElementById('modal-invited-by').textContent = memberMap.get(eoi.invited_by_member_id) || 'N/A';
+                document.getElementById('modal-visit-date').textContent = formatDate(eoi.chapter_visit_date);
+                document.getElementById('modal-company-name').textContent = eoi.company_name;
+                document.getElementById('modal-company-address').textContent = eoi.company_address || 'N/A';
+                document.getElementById('modal-gstin').textContent = eoi.company_gstin;
+                document.getElementById('modal-business').textContent = eoi.business;
+                document.getElementById('modal-email').textContent = eoi.email;
+                document.getElementById('modal-phone').textContent = `+91-${eoi.phone_no}`;
+                document.getElementById('modal-best-time').textContent = eoi.best_time_to_reach;
+                document.getElementById('modal-hear-about').textContent = eoi.hear_about_us;
+                document.getElementById('modal-previous-member').innerHTML = `
+                    <span class="badge ${eoi.previous_member ? 'bg-success' : 'bg-danger'}">
+                        ${eoi.previous_member ? 'Yes' : 'No'}
+                    </span>`;
+                document.getElementById('modal-exp-rating').innerHTML = createStarRating(eoi.exp_rating);
+
+                // Remove loading class and show modal
+                document.getElementById('visitorDetailsModal').classList.remove('loading');
+                modal.show();
+            });
+        });
+
+        // Helper function to get badge class based on interest status
+        function getInterestBadgeClass(status) {
+            switch(status) {
+                case 'Yes':
+                    return 'bg-success';
+                case 'Maybe':
+                    return 'bg-warning';
+                case 'No':
+                    return 'bg-danger';
+                default:
+                    return 'bg-secondary';
+            }
+        }
 
         // Function to populate filter dropdowns
         function populateFilters(eoiForms, regions, chapters) {

@@ -211,6 +211,121 @@
 
       <%- include('../partials/footer') %> 
 
+<!-- Visitor Details Modal -->
+<div class="modal fade" id="visitorDetailsModal" tabindex="-1" aria-labelledby="visitorDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="visitorDetailsModalLabel">Visitor Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Full Name:</label>
+                            <p id="modal-visitor-name"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Interest Status:</label>
+                            <p id="modal-is-interested"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Region:</label>
+                            <p id="modal-region"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Chapter:</label>
+                            <p id="modal-chapter"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Invited By:</label>
+                            <p id="modal-invited-by"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Visit Date:</label>
+                            <p id="modal-visit-date"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Company Name:</label>
+                            <p id="modal-company-name"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="detail-item">
+                            <label class="fw-bold">Company Address:</label>
+                            <p id="modal-company-address"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">GST Number:</label>
+                            <p id="modal-gstin"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Business:</label>
+                            <p id="modal-business"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Email:</label>
+                            <p id="modal-email"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Phone Number:</label>
+                            <p id="modal-phone"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Best Time to Reach:</label>
+                            <p id="modal-best-time"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">How did you hear about us?</label>
+                            <p id="modal-hear-about"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Previous Member:</label>
+                            <p id="modal-previous-member"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Experience Rating:</label>
+                            <p id="modal-exp-rating"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     /* Custom styles for radio buttons */
     .btn-group {
@@ -328,5 +443,47 @@
     .table th:last-child,
     .table td:last-child {
         border-right: none;
+    }
+
+    /* Modal Styles */
+    .detail-item {
+        margin-bottom: 15px;
+    }
+
+    .detail-item label {
+        color: #666;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .detail-item p {
+        margin: 0;
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+    }
+
+    #visitorDetailsModal .modal-content {
+        border-radius: 15px;
+    }
+
+    #visitorDetailsModal .modal-header {
+        border-radius: 15px 15px 0 0;
+        background-color: #d01f2f;
+        color: white;
+    }
+
+    #visitorDetailsModal .btn-close {
+        color: white;
+        filter: brightness(0) invert(1);
+    }
+
+    #visitorDetailsModal .modal-body {
+        padding: 20px;
+    }
+
+    #visitorDetailsModal .modal-footer {
+        border-radius: 0 0 15px 15px;
     }
 </style> 
