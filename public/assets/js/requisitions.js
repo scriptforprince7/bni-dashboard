@@ -101,7 +101,57 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <span class="badge bg-primary-transparent" 
                               style="font-size: 0.9em; cursor: pointer;"
                               onclick="showAccoladeDetails(${JSON.stringify(req.accolade_ids)}, ${req.chapter_requisition_id})">
-                            ${req.accolade_ids.length} Accolades
+                            ${(() => {
+                                // For visitor requisitions
+                                if (req.visitor_id !== null) {
+                                    return `1 accolade, 1 member`;
+                                }
+                                
+                                // For regular requisitions
+                                try {
+                                    // Count members from the comment object which contains all assignments
+                                    const comments = JSON.parse(req.comment || '{}');
+                                    const uniqueMembers = new Set();
+                                    
+                                    // Extract unique member IDs from the comment keys
+                                    Object.keys(comments).forEach(key => {
+                                        const [memberId] = key.split('_');
+                                        uniqueMembers.add(memberId);
+                                    });
+                                    
+                                    return `${req.accolade_ids.length} accolade${req.accolade_ids.length > 1 ? 's' : ''}, ${uniqueMembers.size} member${uniqueMembers.size > 1 ? 's' : ''}`;
+                                } catch (e) {
+                                    console.error('Error parsing comments:', e);
+                                    return `${req.accolade_ids.length} accolade${req.accolade_ids.length > 1 ? 's' : ''}`;
+                                }
+                            })()}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-info-transparent" 
+                              style="font-size: 0.9em; cursor: pointer;"
+                              onclick="showTotalAccoladesDetails(${req.chapter_requisition_id})"
+                              title="Click to view member-wise details">
+                            <i class="ri-stack-line me-1"></i>
+                            ${(() => {
+                                if (req.visitor_id !== null) {
+                                    return '1 total'; // For visitor requisitions
+                                }
+                                try {
+                                    const comments = JSON.parse(req.comment || '{}');
+                                    const uniqueMembers = new Set();
+                                    Object.keys(comments).forEach(key => {
+                                        const [memberId] = key.split('_');
+                                        uniqueMembers.add(memberId);
+                                    });
+                                    const totalAccolades = req.accolade_ids.length * uniqueMembers.size;
+                                    return `${totalAccolades} total`;
+                                } catch (e) {
+                                    console.error('Error calculating total accolades:', e);
+                                    return '0 total';
+                                }
+                            })()}
                         </span>
                     </td>
                     
@@ -309,6 +359,119 @@ style.textContent = `
 `;
 
 document.head.appendChild(style);
+
+// Add custom styles for toast notifications
+const toastStyles = `
+    .delete-confirmation-popup {
+        padding: 1rem !important;
+        margin-top: 1rem !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        min-width: 300px !important;
+        border-radius: 8px !important;
+        background: white !important;
+        z-index: 9999 !important;
+    }
+
+    .delete-confirmation-popup .swal2-title {
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .delete-confirmation-popup .swal2-html-container {
+        font-size: 0.875rem !important;
+        margin: 0 !important;
+    }
+
+    .delete-confirmation-popup .swal2-actions {
+        margin-top: 1rem !important;
+    }
+
+    .delete-success-popup {
+        padding: 0.75rem !important;
+        margin-top: 1rem !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        min-width: 250px !important;
+        border-radius: 8px !important;
+        background: #f0fdf4 !important;
+        border: 1px solid #dcfce7 !important;
+        z-index: 9999 !important;
+    }
+
+    .delete-success-popup .swal2-title {
+        color: #166534 !important;
+        font-size: 0.875rem !important;
+    }
+
+    .delete-success-popup .swal2-icon {
+        margin: 0.5rem auto !important;
+    }
+`;
+
+style.textContent += toastStyles;
+
+// Add custom toast notification styles
+const customToastStyles = `
+    .custom-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background: #f0fdf4;
+        border: 1px solid #dcfce7;
+        border-radius: 6px;
+        color: #166534;
+        font-size: 14px;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+
+style.textContent += customToastStyles;
+
+// Function to show custom toast notification
+function showCustomToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.innerHTML = `
+        <i class="ri-check-line" style="color: #16a34a;"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+
+    // Remove toast after 1.5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 1500);
+}
 
 // Update showAccoladeDetails function
 async function showAccoladeDetails(accoladeIds, requisitionId) {
@@ -619,19 +782,10 @@ async function showApprovedMembers(requisitionId) {
             return;
         }
 
-        // Parse comments and RO comments
-        const comments = JSON.parse(requisition.comment || '{}');
-        const roComments = JSON.parse(requisition.ro_comment || '{}');
-        console.log('💬 Comments:', comments);
-        console.log('💬 RO Comments:', roComments);
-
-        // Check if this is a visitor requisition
-        const isVisitor = requisition.visitor_id !== null;
-        console.log('👤 Is visitor requisition:', isVisitor);
-
         let approvedCombinations = [];
 
-        if (isVisitor) {
+        // Check if this is a visitor requisition
+        if (requisition.visitor_id) {
             // Handle visitor case
             if (requisition.approve_status === 'approved') {
                 const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
@@ -648,6 +802,10 @@ async function showApprovedMembers(requisitionId) {
             // Handle regular member case
             try {
                 const approveStatus = JSON.parse(requisition.approve_status || '{}');
+                const comments = JSON.parse(requisition.comment || '{}');
+                const roComments = JSON.parse(requisition.ro_comment || '{}');
+
+                // Get all approved combinations
                 approvedCombinations = Object.entries(approveStatus)
                     .filter(([key, status]) => status === 'approved')
                     .map(([key]) => {
@@ -664,7 +822,6 @@ async function showApprovedMembers(requisitionId) {
                     });
             } catch (e) {
                 console.error('Error parsing approve status:', e);
-                approvedCombinations = [];
             }
         }
 
@@ -783,19 +940,10 @@ async function showDeclinedMembers(requisitionId) {
             return;
         }
 
-        // Parse comments and RO comments
-        const comments = JSON.parse(requisition.comment || '{}');
-        const roComments = JSON.parse(requisition.ro_comment || '{}');
-        console.log('💬 Comments:', comments);
-        console.log('💬 RO Comments:', roComments);
-
-        // Check if this is a visitor requisition
-        const isVisitor = requisition.visitor_id !== null;
-        console.log('👤 Is visitor requisition:', isVisitor);
-
         let declinedCombinations = [];
 
-        if (isVisitor) {
+        // Check if this is a visitor requisition
+        if (requisition.visitor_id) {
             // Handle visitor case
             if (requisition.approve_status === 'declined') {
                 const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
@@ -812,6 +960,10 @@ async function showDeclinedMembers(requisitionId) {
             // Handle regular member case
             try {
                 const approveStatus = JSON.parse(requisition.approve_status || '{}');
+                const comments = JSON.parse(requisition.comment || '{}');
+                const roComments = JSON.parse(requisition.ro_comment || '{}');
+
+                // Get all declined combinations
                 declinedCombinations = Object.entries(approveStatus)
                     .filter(([key, status]) => status === 'declined')
                     .map(([key]) => {
@@ -828,7 +980,6 @@ async function showDeclinedMembers(requisitionId) {
                     });
             } catch (e) {
                 console.error('Error parsing approve status:', e);
-                declinedCombinations = [];
             }
         }
 
@@ -987,37 +1138,111 @@ async function showRequisitionForm() {
                         <div class="form-group mb-4">
                             <label style="
                                 display: block;
-                                margin-bottom: 10px;
-                                color: #475569;
-                                font-size: 0.95em;
-                                font-weight: 500;
+                                margin-bottom: 15px;
+                                color: #1e293b;
+                                font-size: 1.1em;
+                                font-weight: 600;
                             ">
-                                <i class="ri-award-line me-1"></i> Select Accolades
+                                <i class="ri-award-line me-2" style="color: #6366f1;"></i>
+                                Select Accolades
                             </label>
                             <div class="accolade-checkbox-container" style="
                                 height: 200px;
                                 overflow-y: auto;
-                                border: 1px solid #cbd5e1;
-                                border-radius: 6px;
+                                border: 1px solid #e2e8f0;
+                                border-radius: 12px;
                                 background-color: white;
-                                padding: 5px;
+                                padding: 8px;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                             ">
                                 ${accolades.map(a => `
                                     <div class="accolade-checkbox-item" style="
-                                        padding: 8px 12px;
+                                        padding: 12px;
                                         display: flex;
                                         align-items: center;
-                                        gap: 10px;
+                                        gap: 12px;
                                         border-bottom: 1px solid #f1f5f9;
-                                    ">
+                                        transition: all 0.2s ease;
+                                        cursor: pointer;
+                                        position: relative;
+                                        overflow: hidden;
+                                    "
+                                    onmouseover="this.style.backgroundColor='#f8fafc'"
+                                    onmouseout="this.style.backgroundColor='white'"
+                                    >
                                         <input type="checkbox" 
                                                id="accolade-${a.accolade_id}" 
                                                value="${a.accolade_id}"
                                                class="accolade-checkbox"
-                                               style="width: 16px; height: 16px;"
+                                               style="
+                                                   width: 18px;
+                                                   height: 18px;
+                                                   border: 2px solid #6366f1;
+                                                   border-radius: 4px;
+                                                   cursor: pointer;
+                                               "
                                         >
-                                        <label for="accolade-${a.accolade_id}" style="margin: 0;">
-                                            ${a.accolade_name}
+                                        <label for="accolade-${a.accolade_id}" style="
+                                            margin: 0;
+                                            flex: 1;
+                                            cursor: pointer;
+                                        ">
+                                            <div style="
+                                                display: flex;
+                                                justify-content: space-between;
+                                                align-items: center;
+                                                gap: 8px;
+                                            ">
+                                                <span style="
+                                                    color: #1e293b;
+                                                    font-weight: 500;
+                                                    font-size: 0.95em;
+                                                ">${a.accolade_name}</span>
+                                                
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    <span class="badge" style="
+                                                        background: ${a.accolade_type === 'Global' ? 'linear-gradient(145deg, #818cf8, #6366f1)' : 'linear-gradient(145deg, #f87171, #ef4444)'};
+                                                        color: white;
+                                                        padding: 4px 10px;
+                                                        border-radius: 999px;
+                                                        font-size: 0.7em;
+                                                        font-weight: 500;
+                                                        letter-spacing: 0.5px;
+                                                        text-transform: uppercase;
+                                                    ">
+                                                        ${a.accolade_type}
+                                                    </span>
+                                                    
+                                                    <span class="badge" style="
+                                                        background: ${a.item_type === 'Paid' ? '#dcfce7' : '#dbeafe'};
+                                                        color: ${a.item_type === 'Paid' ? '#15803d' : '#1e40af'};
+                                                        padding: 4px 10px;
+                                                        border-radius: 999px;
+                                                        font-size: 0.75em;
+                                                        font-weight: 500;
+                                                        display: flex;
+                                                        align-items: center;
+                                                        gap: 4px;
+                                                    ">
+                                                        <i class="ri-${a.item_type === 'Paid' ? 'money-dollar-circle-line' : 'gift-line'}"></i>
+                                                        ${a.item_type || 'Free'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            ${a.eligibility_and_condition ? `
+                                                <div style="
+                                                    margin-top: 6px;
+                                                    color: #64748b;
+                                                    font-size: 0.8em;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    gap: 4px;
+                                                ">
+                                                    <i class="ri-information-line"></i>
+                                                    ${a.eligibility_and_condition}
+                                                </div>
+                                            ` : ''}
                                         </label>
                                     </div>
                                 `).join('')}
@@ -1030,63 +1255,123 @@ async function showRequisitionForm() {
                         <div class="form-group mb-4">
                             <label style="
                                 display: block;
-                                margin-bottom: 10px;
-                                color: #475569;
-                                font-size: 0.95em;
-                                font-weight: 500;
+                                margin-bottom: 15px;
+                                color: #1e293b;
+                                font-size: 1.1em;
+                                font-weight: 600;
                             ">
-                                <i class="ri-team-line me-1"></i> Select Members
+                                <i class="ri-team-line me-2" style="color: #6366f1;"></i>
+                                Select Members
                             </label>
+
+                            <!-- Search Bar -->
+                            <div style="
+                                margin-bottom: 10px;
+                                position: relative;
+                            ">
+                                <input 
+                                    type="text" 
+                                    id="memberSearchInput"
+                                    placeholder="Search members..."
+                                    style="
+                                        width: 100%;
+                                        padding: 8px 12px;
+                                        padding-left: 35px;
+                                        border: 2px solid #e2e8f0;
+                                        border-radius: 8px;
+                                        font-size: 0.95em;
+                                        transition: all 0.2s ease;
+                                        background-color: white;
+                                    "
+                                    oninput="filterMembers(this.value)"
+                                    onfocus="this.style.borderColor='#818cf8'"
+                                    onblur="this.style.borderColor='#e2e8f0'"
+                                >
+                                <i class="ri-search-line" style="
+                                    position: absolute;
+                                    left: 12px;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                    color: #94a3b8;
+                                "></i>
+                            </div>
+
                             <div class="member-checkbox-container" style="
                                 height: 200px;
                                 overflow-y: auto;
-                                border: 1px solid #cbd5e1;
-                                border-radius: 6px;
+                                border: 1px solid #e2e8f0;
+                                border-radius: 12px;
                                 background-color: white;
-                                padding: 5px;
+                                padding: 8px;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                             ">
-                                ${members.filter(member => {
-                                    // Get login type and appropriate chapter email
-                                    const loginType = getUserLoginType();
-                                    let chapterEmail;
+                                <div id="membersList">
+                                    ${members.filter(member => {
+                                        // Get login type and appropriate chapter email
+                                        const loginType = getUserLoginType();
+                                        let chapterEmail;
 
-                                    if (loginType === 'ro_admin') {
-                                        // For RO admin, get chapter email from localStorage
-                                        chapterEmail = localStorage.getItem('current_chapter_email');
-                                        console.log("👤 RO Admin using chapter email:", chapterEmail);
-                                    } else {
-                                        // For regular users, get email from token
-                                        chapterEmail = getUserEmail();
-                                        console.log("👤 Regular user email:", chapterEmail);
-                                    }
-                                    
-                                    // Find chapter ID from chapters API response
-                                    const chapter = chapters.find(ch => ch.email_id === chapterEmail);
-                                    console.log("🏢 Found chapter:", chapter);
-                                    
-                                    if (chapter) {
-                                        // Only return members that belong to this chapter
-                                        return member.chapter_id === chapter.chapter_id;
-                                    }
-                                    return false;
-                                }).map(m => `
-                                    <div class="member-checkbox-item" style="
-                                        padding: 8px 12px;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 10px;
-                                        border-bottom: 1px solid #f1f5f9;
-                                    ">
-                                        <input type="checkbox" 
-                                               id="member-${m.member_id}" 
-                                               value="${m.member_id}"
-                                               style="width: 16px; height: 16px;"
+                                        if (loginType === 'ro_admin') {
+                                            chapterEmail = localStorage.getItem('current_chapter_email');
+                                            console.log("👤 RO Admin using chapter email:", chapterEmail);
+                                        } else {
+                                            chapterEmail = getUserEmail();
+                                            console.log("👤 Regular user email:", chapterEmail);
+                                        }
+                                        
+                                        const chapter = chapters.find(ch => ch.email_id === chapterEmail);
+                                        console.log("🏢 Found chapter:", chapter);
+                                        
+                                        if (chapter) {
+                                            return member.chapter_id === chapter.chapter_id;
+                                        }
+                                        return false;
+                                    }).map(m => `
+                                        <div class="member-checkbox-item" style="
+                                            padding: 12px;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            border-bottom: 1px solid #f1f5f9;
+                                            transition: all 0.2s ease;
+                                            cursor: pointer;
+                                        "
+                                        onmouseover="this.style.backgroundColor='#f8fafc'"
+                                        onmouseout="this.style.backgroundColor='white'"
+                                        data-member-name="${m.member_first_name.toLowerCase()} ${m.member_last_name.toLowerCase()}"
                                         >
-                                        <label for="member-${m.member_id}" style="margin: 0;">
-                                            ${m.member_first_name} ${m.member_last_name}
-                                        </label>
-                                    </div>
-                                `).join('')}
+                                            <input type="checkbox" 
+                                                   id="member-${m.member_id}" 
+                                                   value="${m.member_id}"
+                                                   style="
+                                                       width: 18px;
+                                                       height: 18px;
+                                                       border: 2px solid #6366f1;
+                                                       border-radius: 4px;
+                                                       cursor: pointer;
+                                                   "
+                                            >
+                                            <label for="member-${m.member_id}" style="
+                                                margin: 0;
+                                                cursor: pointer;
+                                                font-weight: 500;
+                                                color: #1e293b;
+                                                flex: 1;
+                                            ">
+                                                ${m.member_first_name} ${m.member_last_name}
+                                            </label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div id="noMembersFound" style="
+                                    display: none;
+                                    padding: 20px;
+                                    text-align: center;
+                                    color: #64748b;
+                                ">
+                                    <i class="ri-search-line mb-2" style="font-size: 24px;"></i>
+                                    <p style="margin: 0;">No members found</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1318,7 +1603,31 @@ async function showRequisitionForm() {
                     margin-bottom: 12px;
                     border: 1px solid #e2e8f0;
                     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                    position: relative;
                 ">
+                    <div class="delete-btn" 
+                         onclick="deleteAssignment(${assignment.sno})"
+                         style="
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            cursor: pointer;
+                            width: 30px;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border-radius: 50%;
+                            background: #fee2e2;
+                            color: #dc2626;
+                            transition: all 0.2s ease;
+                         "
+                         onmouseover="this.style.background='#fecaca'"
+                         onmouseout="this.style.background='#fee2e2'"
+                    >
+                        <i class="ri-delete-bin-line"></i>
+                    </div>
+                    
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                         <span style="
                             background: #2563eb;
@@ -1385,6 +1694,18 @@ async function showRequisitionForm() {
                     }
                 });
             });
+        };
+
+        // Update delete assignment function
+        window.deleteAssignment = function(sno) {
+            // Remove the assignment from the assignments array
+            assignments = assignments.filter(a => a.sno !== sno);
+            
+            // Re-render the assignments table
+            renderAssignments();
+
+            // Show custom toast notification
+            showCustomToast('Assignment removed');
         };
 
     } catch (error) {
@@ -1462,6 +1783,7 @@ async function handlePickupDateUpdate(requisitionId, currentDate) {
             console.log('🎯 Looking for requisition ID:', requisitionId);
             
             const currentRequisition = requisitionsData.find(req => req.chapter_requisition_id === parseInt(requisitionId));
+            
             
             console.log('📝 Found requisition:', currentRequisition);
 
@@ -1680,16 +2002,16 @@ async function markAsGiven(requisitionId, combinationKey) {
         const chapterReqResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
         const chapterRequisitions = await chapterReqResponse.json();
         
-        const chapterRequisition = chapterRequisitions.find(req => 
+        const currentRequisition = chapterRequisitions.find(req => 
             req.chapter_requisition_id === parseInt(requisitionId)
         );
 
-        if (!chapterRequisition) {
+        if (!currentRequisition) {
             throw new Error('Chapter requisition not found');
         }
 
         // Check if it's a visitor requisition
-        if (chapterRequisition.visitor_id) {
+        if (currentRequisition.visitor_id) {
             console.log('👤 Processing visitor given status update');
             
             // Update only chapter requisition for visitor
@@ -1720,8 +2042,6 @@ async function markAsGiven(requisitionId, combinationKey) {
                 timer: 2000
             });
         } else {
-
-
             // Existing member logic
             // ... your existing member update code ...
         }
@@ -1735,6 +2055,257 @@ async function markAsGiven(requisitionId, combinationKey) {
             icon: 'error',
             title: 'Error',
             text: 'Failed to update status: ' + error.message
+        });
+    }
+}
+
+// Add the new function for showing total accolades details
+async function showTotalAccoladesDetails(requisitionId) {
+    try {
+        console.log('🎯 Fetching total accolades details for requisition:', requisitionId);
+        
+        // Fetch all required data
+        const [requisitionResponse, membersResponse, accoladesResponse, visitorsResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
+        ]);
+
+        const [requisitions, members, accolades, visitors] = await Promise.all([
+            requisitionResponse.json(),
+            membersResponse.json(),
+            accoladesResponse.json(),
+            visitorsResponse.json()
+        ]);
+
+        // Find the specific requisition
+        const requisition = requisitions.find(req => req.chapter_requisition_id === parseInt(requisitionId));
+        console.log('📝 Found requisition:', requisition);
+
+        if (!requisition) {
+            throw new Error('Requisition not found');
+        }
+
+        let memberAccolades = [];
+        let totalCount = 0;
+
+        // Process visitor requisition
+        if (requisition.visitor_id) {
+            const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+            const accolade = accolades.find(a => a.accolade_id === requisition.accolade_ids[0]);
+            
+            memberAccolades = [{
+                memberName: visitor ? visitor.visitor_name : 'Unknown Visitor',
+                isVisitor: true,
+                accolades: [{
+                    name: accolade ? accolade.accolade_name : 'Induction Kit',
+                    count: 1
+                }],
+                totalCount: 1
+            }];
+            totalCount = 1;
+        } else {
+            // Process regular member requisition
+            try {
+                const comments = JSON.parse(requisition.comment || '{}');
+                const memberMap = new Map();
+
+                // Group accolades by member
+                Object.keys(comments).forEach(key => {
+                    const [memberId, accoladeId] = key.split('_').map(Number);
+                    const member = members.find(m => m.member_id === memberId);
+                    const accolade = accolades.find(a => a.accolade_id === accoladeId);
+
+                    if (member && accolade) {
+                        if (!memberMap.has(memberId)) {
+                            memberMap.set(memberId, {
+                                memberName: `${member.member_first_name} ${member.member_last_name}`,
+                                isVisitor: false,
+                                accolades: new Map()
+                            });
+                        }
+
+                        const memberData = memberMap.get(memberId);
+                        if (!memberData.accolades.has(accoladeId)) {
+                            memberData.accolades.set(accoladeId, {
+                                name: accolade.accolade_name,
+                                count: 1
+                            });
+                        } else {
+                            memberData.accolades.get(accoladeId).count++;
+                        }
+                    }
+                });
+
+                // Convert map to array and calculate totals
+                memberAccolades = Array.from(memberMap.values()).map(member => {
+                    const accoladesList = Array.from(member.accolades.values());
+                    const memberTotal = accoladesList.reduce((sum, acc) => sum + acc.count, 0);
+                    totalCount += memberTotal;
+                    return {
+                        ...member,
+                        accolades: accoladesList,
+                        totalCount: memberTotal
+                    };
+                });
+            } catch (e) {
+                console.error('Error processing member accolades:', e);
+            }
+        }
+
+        // Create the modal content
+        const modalContent = `
+            <div class="total-accolades-container" style="
+                max-height: 70vh;
+                overflow-y: auto;
+                padding: 20px;
+            ">
+                <!-- Summary Card -->
+                <div style="
+                    background: linear-gradient(145deg, #60a5fa, #3b82f6);
+                    padding: 20px;
+                    border-radius: 12px;
+                    color: white;
+                    margin-bottom: 25px;
+                    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+                ">
+                    <div style="font-size: 2em; font-weight: 600; margin-bottom: 5px;">
+                        ${totalCount}
+                    </div>
+                    <div style="opacity: 0.9;">Total Accolades Requested</div>
+                </div>
+
+                <!-- Member Cards -->
+                ${memberAccolades.map(member => `
+                    <div class="member-card" style="
+                        background: white;
+                        border-radius: 12px;
+                        margin-bottom: 20px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                        border: 1px solid #e5e7eb;
+                        overflow: hidden;
+                    ">
+                        <!-- Member Header -->
+                        <div style="
+                            background: ${member.isVisitor ? 'linear-gradient(145deg, #fb923c, #f97316)' : 'linear-gradient(145deg, #60a5fa, #3b82f6)'};
+                            padding: 15px;
+                            color: white;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <div>
+                                <h4 style="margin: 0; font-size: 16px; color: white;">
+                                    <i class="${member.isVisitor ? 'ri-user-star-line' : 'ri-user-line'} me-2"></i>
+                                    ${member.memberName}
+                                </h4>
+                            </div>
+                            <span style="
+                                background: rgba(255, 255, 255, 0.2);
+                                padding: 4px 12px;
+                                border-radius: 999px;
+                                font-size: 0.85em;
+                                color: white;
+                            ">
+                                ${member.totalCount} Total
+                            </span>
+                        </div>
+
+                        <!-- Accolades List -->
+                        <div style="padding: 15px;">
+                            ${member.accolades.map(accolade => `
+                                <div style="
+                                    display: flex;
+                                    justify-content: space-between;
+                                    align-items: center;
+                                    padding: 10px;
+                                    background: #f8fafc;
+                                    margin-bottom: 8px;
+                                    border-radius: 8px;
+                                    border: 1px solid #e2e8f0;
+                                ">
+                                    <div style="color: #1e293b;">
+                                        <i class="ri-award-line me-2" style="color: #60a5fa;"></i>
+                                        ${accolade.name}
+                                    </div>
+                                    <span class="badge" style="
+                                        background-color: rgba(96, 165, 250, 0.15);
+                                        color: #3b82f6;
+                                        font-weight: 600;
+                                        padding: 4px 12px;
+                                        border-radius: 6px;
+                                    ">
+                                        ${accolade.count} ${accolade.count === 1 ? 'unit' : 'units'}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Show the modal
+        Swal.fire({
+            title: '<span style="color: #3b82f6;"><i class="ri-stack-line me-2"></i>Total Accolades Details</span>',
+            html: modalContent,
+            width: '600px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                container: 'total-accolades-modal'
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error showing total accolades details:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load total accolades details'
+        });
+    }
+}
+
+// Add the filterMembers function after your existing code
+function filterMembers(searchTerm) {
+    const memberItems = document.querySelectorAll('.member-checkbox-item');
+    const noMembersFound = document.getElementById('noMembersFound');
+    let hasVisibleMembers = false;
+    
+    searchTerm = searchTerm.toLowerCase().trim();
+    
+    memberItems.forEach(item => {
+        const memberName = item.getAttribute('data-member-name');
+        const shouldShow = memberName.includes(searchTerm);
+        item.style.display = shouldShow ? 'flex' : 'none';
+        if (shouldShow) hasVisibleMembers = true;
+    });
+    
+    // Show/hide the "No members found" message
+    if (noMembersFound) {
+        noMembersFound.style.display = hasVisibleMembers ? 'none' : 'block';
+    }
+
+    // Add highlight to matching text if there's a search term
+    if (searchTerm) {
+        memberItems.forEach(item => {
+            if (item.style.display !== 'none') {
+                const label = item.querySelector('label');
+                const memberName = label.textContent;
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                label.innerHTML = memberName.replace(regex, '<span style="background-color: #dbeafe; padding: 0 2px; border-radius: 2px;">$1</span>');
+            }
+        });
+    } else {
+        // Reset highlights if search is cleared
+        memberItems.forEach(item => {
+            const label = item.querySelector('label');
+            const memberName = item.getAttribute('data-member-name').split(' ');
+            label.textContent = memberName.map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
         });
     }
 }
