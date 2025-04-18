@@ -172,6 +172,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                             ${declinedCount} Declined
                         </span>
                     </td>
+
+                    
+
+<td>
+  <span class="badge"
+        style="background-color: rgba(138, 43, 226, 0.15); 
+               color: #8a2be2; 
+               font-size: 0.95em; 
+               padding: 6px 14px; 
+               border-radius: 30px;
+               font-weight: 600;
+               box-shadow: 0 2px 6px rgba(138, 43, 226, 0.2);
+               display: inline-block;
+               border: 1px solid rgba(138, 43, 226, 0.25);
+               backdrop-filter: blur(2px);">
+    ${req.slab_wise_comment}
+  </span>
+</td>
+
+
+
                     
                     <td>
                         ${req.pickup_status 
