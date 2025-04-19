@@ -450,6 +450,12 @@ const customToastStyles = `
         animation: slideIn 0.3s ease-out;
     }
 
+    .custom-toast.warning {
+        background: #fff7ed;
+        border: 1px solid #ffedd5;
+        color: #c2410c;
+    }
+
     @keyframes slideIn {
         from {
             transform: translateX(100%);
@@ -476,11 +482,11 @@ const customToastStyles = `
 style.textContent += customToastStyles;
 
 // Function to show custom toast notification
-function showCustomToast(message) {
+function showCustomToast(message, type = 'success') {
     const toast = document.createElement('div');
-    toast.className = 'custom-toast';
+    toast.className = `custom-toast ${type}`;
     toast.innerHTML = `
-        <i class="ri-check-line" style="color: #16a34a;"></i>
+        <i class="ri-${type === 'success' ? 'check-line' : 'error-warning-line'}" style="color: ${type === 'success' ? '#16a34a' : '#c2410c'};"></i>
         <span>${message}</span>
     `;
     document.body.appendChild(toast);
@@ -1549,7 +1555,7 @@ async function showRequisitionForm() {
         });
 
         // Add assignment handling function
-        window.addAssignment = function() {
+        window.addAssignment = async function() {
             // Get selections from top dropdowns (Method 1)
             const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
                 .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
@@ -1573,30 +1579,47 @@ async function showRequisitionForm() {
                     Swal.showValidationMessage('Please select at least one member');
                     return;
                 }
-                
-                selectedMembers.forEach(member => {
-                    selectedAccolades.forEach(accolade => {
+
+                // Check each member-accolade combination
+                for (const member of selectedMembers) {
+                    for (const accolade of selectedAccolades) {
+                        const hasAccolade = await checkExistingAccolades(member.member_id, accolade.accolade_id);
+                        
+                        if (hasAccolade) {
+                            // Show custom toast notification for existing accolade
+                            showCustomToast(`${member.member_first_name} ${member.member_last_name} already has ${accolade.accolade_name}`, 'warning');
+                            continue; // Skip this combination
+                        }
+
                         assignments.push({
                             sno: currentSno++,
                             accolade,
                             member,
                             comment: ''
                         });
-                    });
-                });
+                    }
+                }
             }
 
             // Handle Method 2: Requisition selection
-            selectedItems.forEach(({ accolade, member }) => {
-                if (accolade && member) {
+            for (const item of selectedItems) {
+                if (item.accolade && item.member) {
+                    const hasAccolade = await checkExistingAccolades(item.member.member_id, item.accolade.accolade_id);
+                    
+                    if (hasAccolade) {
+                        // Show custom toast notification for existing accolade
+                        showCustomToast(`${item.member.member_first_name} ${item.member.member_last_name} already has ${item.accolade.accolade_name}`, 'warning');
+                        continue; // Skip this combination
+                    }
+
                     assignments.push({
                         sno: currentSno++,
-                        accolade,
-                        member,
+                        accolade: item.accolade,
+                        member: item.member,
                         comment: ''
                     });
                 }
-            });
+            }
 
             // Validate if any assignments were added
             if (selectedAccolades.length === 0 && selectedItems.length === 0) {
@@ -2389,5 +2412,28 @@ function filterMembers(searchTerm) {
                 word.charAt(0).toUpperCase() + word.slice(1)
             ).join(' ');
         });
+    }
+}
+
+// Add this function before the addAssignment function
+async function checkExistingAccolades(memberId, accoladeId) {
+    try {
+        // Fetch members data
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        const members = await membersResponse.json();
+
+        // Find the member
+        const member = members.find(m => m.member_id === memberId);
+        
+        if (!member) {
+            console.error('Member not found:', memberId);
+            return false;
+        }
+
+        // Check if the accolade exists in member's accolades_id array
+        return member.accolades_id.includes(accoladeId);
+    } catch (error) {
+        console.error('Error checking existing accolades:', error);
+        return false;
     }
 }
