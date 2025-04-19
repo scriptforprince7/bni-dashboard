@@ -20,6 +20,9 @@ let allTotal = 0;
 let allreceived = 0;
 let allpending = 0;
 let totalLatePayment = 0;
+let selectedChapterId = null;
+let totalWriteOffAmount = 0;
+let isAscending = true;
 
 // Function to show loader
 function showLoader() {
@@ -34,7 +37,7 @@ function hideLoader() {
 async function fetchPayments() {
   try {
     showLoader();
-    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, visiPayment] = await Promise.all([ 
+    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, visiPayment, writeOffs] = await Promise.all([ 
       fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments').then(res => res.json()),
@@ -45,11 +48,19 @@ async function fetchPayments() {
       fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getAllVisitors').then(res => res.json())
-
+      fetch('https://backend.bninewdelhi.com/api/getAllVisitors').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff').then(res => res.json())
     ]);
     allvisi= visiPayment;
 
+    // Calculate total write-off amount (default view)
+    totalWriteOffAmount = writeOffs.reduce((sum, writeOff) => {
+      return sum + parseFloat(writeOff.total_pending_amount || 0);
+    }, 0);
+
+    // Update write-off display
+    document.querySelector('#total_expse_amount').textContent = 
+      `₹ ${formatInIndianStyle(totalWriteOffAmount)}`;
 
     console.log('Fetched all data successfully');
     console.log('------===------==-=----=-=-=-=-= active bill ',activeBill);
@@ -276,13 +287,13 @@ async function handleRegionSelection(event) {
 }
 
 // Function to handle chapter selection
-let selectedChapterId = null;
 function handleChapterSelection(event) {
   if (event.target && event.target.matches("a.dropdown-item")) {
     selectedChapterId = event.target.dataset.id;
     // Select the clicked chapter in dropdown
     setSelectedChapter(event.target);
-    filterTable(); // Only filter the table when a chapter is selected
+    filterTable();
+    updateTotalKittyAmount();
   }
 }
 
@@ -493,3 +504,162 @@ function populateRegionFilter() {
     console.error('Error populating region filter:', error);
   }
 }
+
+// Function to update both kitty total and received amounts
+async function updateTotalKittyAmount() {
+  try {
+    // Get kitty payments
+    const kittyResponse = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
+    const kittyPayments = await kittyResponse.json();
+    
+    // Get orders and transactions
+    const [orders, transactions] = await Promise.all([
+      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json())
+    ]);
+
+    let totalActiveBillAmount = 0;
+    let chapterReceivedAmount = 0;
+
+    if (selectedChapterId) {
+      // Filter kitty payments for selected chapter
+      totalActiveBillAmount = kittyPayments
+        .filter(bill => bill.chapter_id === parseInt(selectedChapterId))
+        .reduce((sum, bill) => sum + parseFloat(bill.total_bill_amount), 0);
+
+      // Get kitty bill IDs for the selected chapter
+      const filteredKittyBills = kittyPayments.filter(bill => 
+        bill.chapter_id === parseInt(selectedChapterId)
+      );
+      const kittyBillIds = filteredKittyBills.map(bill => bill.kitty_bill_id);
+
+      // Filter orders for selected chapter
+      const filteredOrders = orders.filter(order => 
+        order.chapter_id === parseInt(selectedChapterId) &&
+        (order.payment_note === "meeting-payments" || 
+         order.payment_note === "meeting-payments-opening-only") &&
+        kittyBillIds.includes(order.kitty_bill_id)
+      );
+
+      // Calculate received amount from successful transactions
+      filteredOrders.forEach(order => {
+        const orderTransactions = transactions.filter(trans => 
+          trans.order_id === order.order_id && 
+          trans.payment_status === 'SUCCESS'
+        );
+
+        orderTransactions.forEach(trans => {
+          const amount = Math.ceil(parseFloat(trans.payment_amount) - 
+            ((parseFloat(trans.payment_amount) * 18) / 118));
+          chapterReceivedAmount += amount;
+        });
+      });
+
+    } else {
+      // Show totals for all chapters
+      totalActiveBillAmount = kittyPayments
+        .reduce((sum, bill) => sum + parseFloat(bill.total_bill_amount), 0);
+      chapterReceivedAmount = allreceived;
+    }
+
+    // Update both displays
+    document.querySelector('#totalKittyDetails').textContent = 
+      `₹ ${formatInIndianStyle(Math.ceil(totalActiveBillAmount))}`;
+    document.querySelector('#totalKittyAmountReceived').textContent = 
+      `₹ ${formatInIndianStyle(chapterReceivedAmount)}`;
+
+    // Get write-offs data
+    const writeOffResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff');
+    const writeOffs = await writeOffResponse.json();
+
+    let filteredWriteOffAmount = 0;
+
+    if (selectedChapterId) {
+      // Filter write-offs for selected chapter
+      filteredWriteOffAmount = writeOffs
+        .filter(writeOff => writeOff.chapter_id === parseInt(selectedChapterId))
+        .reduce((sum, writeOff) => sum + parseFloat(writeOff.total_pending_amount || 0), 0);
+    } else {
+      // Show total for all chapters
+      filteredWriteOffAmount = writeOffs
+        .reduce((sum, writeOff) => sum + parseFloat(writeOff.total_pending_amount || 0), 0);
+    }
+
+    // Update write-off display
+    document.querySelector('#total_expse_amount').textContent = 
+      `₹ ${formatInIndianStyle(filteredWriteOffAmount)}`;
+
+  } catch (error) {
+    console.error('Error updating amounts:', error);
+  }
+}
+
+// Add sorting function
+function handleSort(column) {
+  isAscending = !isAscending;
+  
+  // Make a copy of the current table data
+  let dataToSort = [...allKittys];
+  
+  // Sort the data
+  dataToSort.sort((a, b) => {
+    switch(column) {
+      case 'chapter_name':
+        return isAscending ? 
+          a.chapter_name.localeCompare(b.chapter_name) : 
+          b.chapter_name.localeCompare(a.chapter_name);
+      
+      case 'memberCount':
+        return isAscending ? 
+          (a.memberCount || 0) - (b.memberCount || 0) : 
+          (b.memberCount || 0) - (a.memberCount || 0);
+      
+      case 'availableFund':
+        const fundA = parseFloat(a.available_fund || 0);
+        const fundB = parseFloat(b.available_fund || 0);
+        return isAscending ? fundA - fundB : fundB - fundA;
+      
+      case 'receivedPayments':
+        const recA = parseFloat(a.receivedPayments || 0);
+        const recB = parseFloat(b.receivedPayments || 0);
+        return isAscending ? recA - recB : recB - recA;
+      
+      case 'totalPending':
+        const pendA = parseFloat(a.totalPending || 0);
+        const pendB = parseFloat(b.totalPending || 0);
+        return isAscending ? pendA - pendB : pendB - pendA;
+      
+      case 'totalExpenses':
+        const expA = parseFloat(a.totalExpenses || 0);
+        const expB = parseFloat(b.totalExpenses || 0);
+        return isAscending ? expA - expB : expB - expA;
+      
+      case 'pendingExpenses':
+        const pExpA = parseFloat(a.pendingExpenses || 0);
+        const pExpB = parseFloat(b.pendingExpenses || 0);
+        return isAscending ? pExpA - pExpB : pExpB - pExpA;
+      
+      case 'latePayment':
+        return isAscending ? 
+          (a.latePayment || 0) - (b.latePayment || 0) : 
+          (b.latePayment || 0) - (a.latePayment || 0);
+      
+      default:
+        return 0;
+    }
+  });
+
+  // Update the table with sorted data
+  displayPayments(dataToSort);
+}
+
+// Add event listeners for sort icons
+document.addEventListener('DOMContentLoaded', function() {
+  const sortIcons = document.querySelectorAll('.sort-icon');
+  sortIcons.forEach(icon => {
+    icon.addEventListener('click', function() {
+      const column = this.getAttribute('data-column');
+      handleSort(column);
+    });
+  });
+});

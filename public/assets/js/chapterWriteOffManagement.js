@@ -203,3 +203,58 @@ function viewMembers(memberIds) {
 
 // Initialize the data fetch
 fetchAndFilterData();
+
+// Add this function to handle table export
+function exportTableToCSV() {
+  // Get table data
+  const tableRows = document.querySelectorAll('#chaptersTableBody tr');
+  
+  // Define headers
+  const headers = [
+    'S.No.',
+    'Write Off Date',
+    'Write Off Description',
+    'No. of Members',
+    'Total Writeoff Amount',
+    'Write Off by'
+  ];
+
+  // Create CSV content
+  let csvContent = headers.join(',') + '\n';
+
+  // Add table data
+  tableRows.forEach(row => {
+    const columns = row.querySelectorAll('td');
+    const rowData = Array.from(columns).map(column => {
+      // Remove ₹ symbol and commas from amounts
+      let data = column.textContent.trim();
+      data = data.replace('₹', '').replace(/,/g, '');
+      // Wrap in quotes to handle any commas in text
+      return `"${data}"`;
+    });
+    csvContent += rowData.join(',') + '\n';
+  });
+
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  // Set download attributes
+  link.setAttribute('href', url);
+  link.setAttribute('download', `writeoff_history_${new Date().toLocaleDateString()}.csv`);
+  link.style.visibility = 'hidden';
+  
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Add event listener for export button
+document.addEventListener('DOMContentLoaded', function() {
+  const exportBtn = document.getElementById('exportTableBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportTableToCSV);
+  }
+});

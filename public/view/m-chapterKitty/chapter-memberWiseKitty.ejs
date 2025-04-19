@@ -1,4 +1,3 @@
-
     <!-- header -->
     <%- include('../partials/header') %> 
     <!-- end header -->
@@ -22,9 +21,17 @@
               <p>Manage kitty payments with just one click</p>
             </div>
             
-           
-            
-            
+            <div class="d-flex align-items-center gap-2">
+              <button id="exportTableBtn" class="btn btn-danger btn-md" style="padding: 8px 20px; font-size: 15px;">
+                <i class="ti ti-download me-2"></i>Export Data
+              </button>
+              
+              <!-- Month Filter -->
+              
+              
+              <!-- Apply Filter Button -->
+              </div>
+            </div>
           </div>
           <!-- End::page-header -->
           <style>
@@ -61,7 +68,7 @@
                       >
                         <div>
                           <span class="d-block text-muted mb-1 popins"
-                            >Total Member Pending Kitty Amount</span
+                            >Total Member Kitty Amount</span
                           >
                             
                             
@@ -252,6 +259,7 @@
                   
                 </div>
                 <div class="card-body p-0">
+              
                   <div class="table-responsive">
                     <table class="table text-nowrap">
                       <thead>

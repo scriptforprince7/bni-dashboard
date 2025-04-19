@@ -31,6 +31,14 @@ let activeFilters = {
 // Add these variables at the top with other global variables
 let selectedActions = {};
 
+// Add these new functions at the top with other global variables
+const PICKUP_STATUSES = {
+    PENDING: 'yet_to_be_ready',
+    READY: 'ready_for_pickup',
+    PICKED: 'picked_up',
+    FAILED: 'pickup_failed'
+};
+
 // Function to show the loader
 function showLoader() {
     document.getElementById('loader').style.display = 'flex';
@@ -890,7 +898,11 @@ const renderTable = () => {
             (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
         </th>
         <th scope="col" onclick="sortTable('pickup_status')" style="cursor: pointer">
-            Pickup Status <i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
+            Pickup Status (By RO) <i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
+        <th scope="col" onclick="sortTable('pickup_status')" style="cursor: pointer">
+            Pickup Status (By Chapter)<i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
             (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
         </th>
         <th scope="col" onclick="sortTable('status')" style="cursor: pointer">
@@ -1104,6 +1116,96 @@ const renderTable = () => {
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         ${requestDate}
                     </td>
+                    <td style="font-weight: bold; color: #1e293b; padding: 16px;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <select 
+                                class="form-select pickup-status-select"
+                                onchange="handlePickupStatusChange(${req.chapter_requisition_id}, this.value)"
+                                style="
+                                    padding: 8px;
+                                    border-radius: 6px;
+                                    border: 1px solid #e5e7eb;
+                                    background-color: ${
+                                        req.pick_up_status_ro === PICKUP_STATUSES.READY ? '#dcfce7' :
+                                        req.pick_up_status_ro === PICKUP_STATUSES.PICKED ? '#bbf7d0' :
+                                        req.pick_up_status_ro === PICKUP_STATUSES.FAILED ? '#fee2e2' :
+                                        '#f3f4f6'
+                                    };
+                                    color: ${
+                                        req.pick_up_status_ro === PICKUP_STATUSES.READY ? '#16a34a' :
+                                        req.pick_up_status_ro === PICKUP_STATUSES.PICKED ? '#15803d' :
+                                        req.pick_up_status_ro === PICKUP_STATUSES.FAILED ? '#dc2626' :
+                                        '#4b5563'
+                                    };
+                                    cursor: pointer;
+                                    font-weight: 500;
+                                "
+                            >
+                                <option value="${PICKUP_STATUSES.PENDING}" 
+                                    ${req.pick_up_status_ro === PICKUP_STATUSES.PENDING ? 'selected' : ''}>
+                                    Yet to be Ready
+                                </option>
+                                <option value="${PICKUP_STATUSES.READY}"
+                                    ${req.pick_up_status_ro === PICKUP_STATUSES.READY ? 'selected' : ''}>
+                                    Ready for Pickup
+                                </option>
+                                <option value="${PICKUP_STATUSES.PICKED}"
+                                    ${req.pick_up_status_ro === PICKUP_STATUSES.PICKED ? 'selected' : ''}>
+                                    Picked Up
+                                </option>
+                                <option value="${PICKUP_STATUSES.FAILED}"
+                                    ${req.pick_up_status_ro === PICKUP_STATUSES.FAILED ? 'selected' : ''}>
+                                    Pickup Failed
+                                </option>
+                            </select>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button 
+                                    onclick="handlePickupComment(${req.chapter_requisition_id}, '${req.pick_up_status_ro_comment || ''}')"
+                                    style="
+                                        background: none;
+                                        border: none;
+                                        padding: 4px 8px;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 4px;
+                                        color: #6b7280;
+                                        font-size: 0.875rem;
+                                        cursor: pointer;
+                                        border-radius: 4px;
+                                        transition: all 0.2s ease;
+                                    "
+                                    onmouseover="this.style.backgroundColor='#f3f4f6'"
+                                    onmouseout="this.style.backgroundColor='transparent'"
+                                >
+                                    <i class="ri-chat-1-line"></i>
+                                    ${req.pick_up_status_ro_comment ? 'Edit Comment' : 'Add Comment'}
+                                </button>
+                                ${req.pick_up_status_ro_comment ? `
+                                    <button 
+                                        onclick="showPickupComment('${req.pick_up_status_ro_comment.replace(/'/g, "\\'")}')"
+                                        style="
+                                            background: none;
+                                            border: none;
+                                            padding: 4px 8px;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 4px;
+                                            color: #6b7280;
+                                            font-size: 0.875rem;
+                                            cursor: pointer;
+                                            border-radius: 4px;
+                                            transition: all 0.2s ease;
+                                        "
+                                        onmouseover="this.style.backgroundColor='#f3f4f6'"
+                                        onmouseout="this.style.backgroundColor='transparent'"
+                                    >
+                                        <i class="ri-eye-line"></i>
+                                        View
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </td>
                     <td style="padding: 16px;">
                         <button 
                             class="pickup-status-btn"
@@ -1123,6 +1225,7 @@ const renderTable = () => {
                                 transition: all 0.3s ease;
                                 box-shadow: 0 1px 2px rgba(0,0,0,0.05);
                             "
+                            onclick="handlePickupConfirmation(${req.chapter_requisition_id}, ${req.pickup_status})"
                         >
                             <i class="${pickupButtonIcon}"></i>
                             ${pickupButtonText}
@@ -1282,6 +1385,8 @@ function handleCommentSubmit(requisitionId, commentText) {
                 color: '#16a34a',
                 iconColor: '#16a34a'
             });
+
+
 
             Toast.fire({
                 icon: 'success',
@@ -2152,4 +2257,137 @@ function countRejectedStatus(approveStatus) {
         console.error('Error counting rejected status:', error);
         return 0;
     }
+}
+
+// Add this function to handle pickup status change
+async function handlePickupStatusChange(requisitionId, newStatus) {
+    try {
+        const updateData = {
+            chapter_requisition_id: requisitionId,
+            pick_up_status_ro: newStatus  // Changed from ro_pickup_status
+        };
+
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update pickup status');
+        }
+
+        // Show success message
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true,
+            background: '#dcfce7',
+            color: '#16a34a'
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: 'Pickup status updated successfully'
+        });
+
+        // Refresh the data
+        loadData();
+    } catch (error) {
+        console.error('Error updating pickup status:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update pickup status'
+        });
+    }
+}
+
+// Add new function to handle pickup comment
+async function handlePickupComment(requisitionId, currentComment) {
+    try {
+        const { value: comment } = await Swal.fire({
+            title: 'Pickup Comment',
+            html: `
+                <textarea 
+                    id="pickup-comment" 
+                    class="swal2-textarea" 
+                    placeholder="Enter pickup comment..."
+                    style="height: 100px; width: 100%; padding: 8px;"
+                >${currentComment || ''}</textarea>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Save',
+            cancelButtonText: 'Cancel',
+            preConfirm: () => {
+                return document.getElementById('pickup-comment').value;
+            }
+        });
+
+        if (comment !== undefined) {  // Only proceed if not cancelled
+            const updateData = {
+                chapter_requisition_id: requisitionId,
+                pick_up_status_ro_comment: comment  // Changed from ro_pickup_comment
+            };
+
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update pickup comment');
+            }
+
+            // Show success message specifically for comment update
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                background: '#dcfce7',
+                color: '#16a34a'
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: 'Comment updated successfully'
+            }).then(() => {
+                // Only refresh the specific row or element that needs updating
+                const row = document.querySelector(`[data-requisition-id="${requisitionId}"]`).closest('tr');
+                if (row) {
+                    const commentButton = row.querySelector('button:has(.ri-chat-1-line)');
+                    if (commentButton) {
+                        commentButton.innerHTML = `<i class="ri-chat-1-line"></i> Edit Comment`;
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error updating pickup comment:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update comment'
+        });
+    }
+}
+
+// Add this function to show pickup comment
+function showPickupComment(comment) {
+    if (!comment) return;
+    
+    Swal.fire({
+        title: 'Pickup Comment',
+        text: comment,
+        confirmButtonText: 'Close'
+    });
 }

@@ -347,8 +347,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     );
     // console.log('👥 Found members for chapter:', chapterMembersWithBalance.length);
     // Step 4: Fetch members count using chapter_id
-    const activeMembers = chapterMembersWithBalance.filter(member => !member.writeoff_status);
-    const memberCount = activeMembers.length;
+    const memberCount = chapterMembersWithBalance.length;
     // console.log("chapter member",chapterMembersWithBalance);
 
     const bankOrderResponse = await fetch(
@@ -558,20 +557,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           let ReceivedAmount = 0;
           let MiscellaneousAmount = 0;
 
-          // Sort chapter orders by transaction date in descending order (most recent first)
-          const sortedChapterOrders = chapterOrders.slice().sort((a, b) => {
-            const transactionA = allTransactions.find(tran => tran.order_id === a.order_id);
-            const transactionB = allTransactions.find(tran => tran.order_id === b.order_id);
-            
-            if (!transactionA || !transactionB) return 0;
-            
-            const dateA = new Date(transactionA.payment_time);
-            const dateB = new Date(transactionB.payment_time);
-            
-            return dateB - dateA; // Sort in descending order (most recent first)
-          });
-
-          sortedChapterOrders.forEach(async (order) => {
+          chapterOrders.forEach(async (order) => {
             // Find matching transaction
             const transaction = allTransactions.find(
               (tran) => tran.order_id === order.order_id
@@ -846,20 +832,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     let ReceivedAmount = 0;
     let MiscellaneousAmount = 0;
 
-    // Sort chapter orders by transaction date in descending order (most recent first)
-    const sortedChapterOrders = chapterOrders.slice().sort((a, b) => {
-      const transactionA = allTransactions.find(tran => tran.order_id === a.order_id);
-      const transactionB = allTransactions.find(tran => tran.order_id === b.order_id);
-      
-      if (!transactionA || !transactionB) return 0;
-      
-      const dateA = new Date(transactionA.payment_time);
-      const dateB = new Date(transactionB.payment_time);
-      
-      return dateB - dateA; // Sort in descending order (most recent first)
-    });
+    // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
+    // const pendingBalances = await pendingBalanceResponse.json();
 
-    sortedChapterOrders.forEach(async (order) => {
+    chapterOrders.forEach(async (order) => {
       // Find matching transaction
       const transaction = allTransactions.find(
         (tran) => tran.order_id === order.order_id
@@ -1111,5 +1087,63 @@ document.addEventListener("DOMContentLoaded", async function () {
   } finally {
     hideLoader();
     console.log("=== Chapter Kitty Loading Process Completed ===");
+  }
+});
+
+// Add this function to handle table export
+function exportTableToCSV() {
+  // Get table data
+  const tableRows = document.querySelectorAll('#paymentsTableBody tr');
+  
+  // Define headers
+  const headers = [
+    'S.No.',
+    'Date',
+    'Member Name',
+    'Amount',
+    'Payment Method',
+    'Order ID',
+    'Transaction ID',
+    'PG Status',
+    'Gateway'
+  ];
+
+  // Create CSV content
+  let csvContent = headers.join(',') + '\n';
+
+  // Add table data
+  tableRows.forEach(row => {
+    const columns = row.querySelectorAll('td');
+    const rowData = Array.from(columns).map(column => {
+      // Remove ₹ symbol and commas from amounts
+      let data = column.textContent.trim();
+      data = data.replace('₹', '').replace(/,/g, '');
+      // Wrap in quotes to handle any commas in text
+      return `"${data}"`;
+    });
+    csvContent += rowData.join(',') + '\n';
+  });
+
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  
+  // Set download attributes
+  link.setAttribute('href', url);
+  link.setAttribute('download', `kitty_transactions_${new Date().toLocaleDateString()}.csv`);
+  link.style.visibility = 'hidden';
+  
+  // Trigger download
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Add event listener for export button
+document.addEventListener('DOMContentLoaded', function() {
+  const exportBtn = document.getElementById('exportTableBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportTableToCSV);
   }
 });

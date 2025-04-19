@@ -191,6 +191,81 @@ document.addEventListener('DOMContentLoaded', async function() {
   </span>
 </td>
 
+<td>
+    <div style="
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    ">
+        <!-- Status Badge -->
+        <div style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            ${req.pick_up_status_ro === 'ready_for_pickup' ? `
+                background: #dcfce7;
+                color: #16a34a;
+            ` : req.pick_up_status_ro === 'picked_up' ? `
+                background: #dbeafe;
+                color: #2563eb;
+            ` : req.pick_up_status_ro === 'pickup_failed' ? `
+                background: #fee2e2;
+                color: #dc2626;
+            ` : `
+                background: #f3f4f6;
+                color: #6b7280;
+            `}
+        ">
+            <i class="ri-${
+                req.pick_up_status_ro === 'ready_for_pickup' ? 'checkbox-circle' : 
+                req.pick_up_status_ro === 'picked_up' ? 'check-double' :
+                req.pick_up_status_ro === 'pickup_failed' ? 'close-circle' : 
+                'time'}-line">
+            </i>
+            ${
+                req.pick_up_status_ro === 'ready_for_pickup' ? 'Ready for Pickup' :
+                req.pick_up_status_ro === 'picked_up' ? 'Picked Up' :
+                req.pick_up_status_ro === 'pickup_failed' ? 'Pickup Failed' :
+                'Yet to be Ready'
+            }
+        </div>
+
+        <!-- Comment Section (if exists) -->
+        ${req.pick_up_status_ro_comment ? `
+            <div style="
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 0.8rem;
+                color: #64748b;
+                cursor: pointer;
+                padding: 4px 8px;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+            "
+            onclick="showPickupComment('${req.pick_up_status_ro_comment.replace(/'/g, "\\'")}')"
+            onmouseover="this.style.background='#f1f5f9'"
+            onmouseout="this.style.background='#f8fafc'"
+            >
+                <i class="ri-chat-1-line"></i>
+                <span style="
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 150px;
+                ">${req.pick_up_status_ro_comment}</span>
+                <i class="ri-arrow-right-s-line" style="color: #94a3b8;"></i>
+            </div>
+        ` : ''}
+    </div>
+</td>
+
 
 
                     
