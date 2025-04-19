@@ -28,6 +28,9 @@ let activeFilters = {
     accolade: 'all'
 };
 
+// Add these variables at the top with other global variables
+let selectedActions = {};
+
 // Function to show the loader
 function showLoader() {
     document.getElementById('loader').style.display = 'flex';
@@ -101,10 +104,13 @@ async function handleAccoladesClick(requisition) {
         
         console.log('📝 Processing requisition:', requisition);
         
+        // Reset selected actions for new popup
+        selectedActions = {};
+        
         // Parse approve status and comments only if not a visitor request
         let approveStatusMap = {};
         let commentsMap = {};
-        let roCommentsMap = '';  // Changed to string for visitor case
+        let roCommentsMap = '';
         
         const isVisitor = requisition.member_ids.includes(0);
         
@@ -117,14 +123,13 @@ async function handleAccoladesClick(requisition) {
                 console.error('Error parsing data:', e);
             }
         } else {
-            // For visitor, use direct values
             approveStatusMap = requisition.approve_status || '';
             commentsMap = requisition.comment || '';
-            roCommentsMap = requisition.ro_comment || '';  // Direct string value for visitor
+            roCommentsMap = requisition.ro_comment || '';
             console.log('👤 Visitor RO Comment:', roCommentsMap);
         }
 
-        // Fetch all required data including visitors
+        // Fetch all required data
         const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse, visitorsResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/accolades'),
             fetch('https://backend.bninewdelhi.com/api/chapters'),
@@ -141,23 +146,18 @@ async function handleAccoladesClick(requisition) {
             visitorsResponse.json()
         ]);
 
-        // Match chapter based on chapter_id
         const chapter = allChapters.find(ch => ch.chapter_id === requisition.chapter_id);
         
-        // Create combinations with comments and payment status
         const combinations = [];
         requisition.member_ids.forEach(memberId => {
             let memberName;
             let isVisitor = false;
 
             if (memberId === 0) {
-                // This is a visitor case
                 isVisitor = true;
                 const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
                 memberName = visitor ? `${visitor.visitor_name} (Visitor)` : 'Unknown Visitor';
-                console.log('👤 Found visitor:', memberName);
             } else {
-                // Regular member case
                 const member = allMembers.find(m => m.member_id === memberId);
                 memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
             }
@@ -167,6 +167,7 @@ async function handleAccoladesClick(requisition) {
                 const commentKey = `${memberId}_${accoladeId}`;
                 const comment = commentsMap[commentKey] || '';
                 const roComment = roCommentsMap[commentKey] || '';
+                const currentStatus = approveStatusMap[commentKey];
 
                 combinations.push({
                     memberId,
@@ -174,15 +175,98 @@ async function handleAccoladesClick(requisition) {
                     accolade,
                     comment,
                     roComment,
-                    isVisitor
+                    isVisitor,
+                    currentStatus
                 });
             });
         });
 
-        // Modify the SweetAlert HTML structure
+        // Create HTML for the popup
         Swal.fire({
             title: '<div style="color: #2563eb; margin-bottom: 20px;"><i class="ri-file-list-3-line"></i> Accolade Request Details</div>',
             html: `
+                <div style="
+                    margin-bottom: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 16px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                    border: 1px solid #e2e8f0;
+                ">
+                    <div style="display: flex; gap: 12px;">
+                        <button 
+                            onclick="selectAllCheckboxes()"
+                            class="btn"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                background: #e2e8f0;
+                                color: #475569;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                            "
+                        >
+                            <i class="ri-checkbox-multiple-line"></i>
+                            Select All
+                        </button>
+                        <button 
+                            onclick="bulkApprove()"
+                            class="btn"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                background: #dcfce7;
+                                color: #16a34a;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                            "
+                        >
+                            <i class="ri-checkbox-circle-line"></i>
+                            Approve Selected
+                        </button>
+                        <button 
+                            onclick="bulkDecline()"
+                            class="btn"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                background: #fee2e2;
+                                color: #dc2626;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                            "
+                        >
+                            <i class="ri-close-circle-line"></i>
+                            Decline Selected
+                        </button>
+                    </div>
+                    <button 
+                        onclick="submitBulkActions()"
+                        class="btn"
+                        style="
+                            padding: 8px 24px;
+                            border-radius: 6px;
+                            background: #2563eb;
+                            color: white;
+                            border: none;
+                            font-weight: 500;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        "
+                    >
+                        <i class="ri-save-line"></i>
+                        Submit Status
+                    </button>
+                </div>
                 <div class="request-details-container" style="
                     width: 100%;
                     max-height: 80vh;
@@ -202,6 +286,9 @@ async function handleAccoladesClick(requisition) {
                                 color: white;
                                 text-align: left;
                             ">
+                                <th style="padding: 16px; font-weight: 600; white-space: nowrap;">
+                                    <i class="ri-checkbox-line me-2"></i>Select
+                                </th>
                                 <th style="padding: 16px; font-weight: 600; white-space: nowrap;">
                                     <i class="ri-number-s me-2"></i>S.No
                                 </th>
@@ -230,8 +317,7 @@ async function handleAccoladesClick(requisition) {
                         </thead>
                         <tbody>
                             ${combinations.map((combo, index) => {
-                                const currentStatus = isVisitor ? approveStatusMap : approveStatusMap[`${combo.memberId}_${combo.accolade.accolade_id}`];
-                                const currentRoComment = isVisitor ? roCommentsMap : (roCommentsMap[`${combo.memberId}_${combo.accolade.accolade_id}`] || '');
+                                const key = `${combo.memberId}_${combo.accolade.accolade_id}`;
                                 const isPaid = checkAccoladePaidStatus(
                                     memberRequisitions, 
                                     combo.memberId, 
@@ -247,6 +333,19 @@ async function handleAccoladesClick(requisition) {
                                     "
                                     onmouseover="this.style.backgroundColor='#f1f5f9'"
                                     onmouseout="this.style.backgroundColor='${index % 2 === 0 ? '#f8fafc' : 'white'}'">
+                                        <td style="padding: 16px; text-align: center;">
+                                            <input 
+                                                type="checkbox" 
+                                                class="accolade-checkbox"
+                                                data-key="${key}"
+                                                style="
+                                                    width: 18px;
+                                                    height: 18px;
+                                                    cursor: pointer;
+                                                "
+                                                ${combo.currentStatus ? 'disabled' : ''}
+                                            >
+                                        </td>
                                         <td style="padding: 16px;">
                                             <span style="color: #1e293b; font-weight: 500;">${index + 1}</span>
                                         </td>
@@ -292,7 +391,7 @@ async function handleAccoladesClick(requisition) {
                                         </td>
                                         <td style="padding: 16px;">
                                             <textarea 
-                                                id="ro-comment-${combo.memberId}_${combo.accolade.accolade_id}"
+                                                id="ro-comment-${key}"
                                                 class="form-control" 
                                                 placeholder="Enter your comment here..."
                                                 style="
@@ -304,7 +403,8 @@ async function handleAccoladesClick(requisition) {
                                                     min-height: 38px;
                                                     font-size: 0.875rem;
                                                 "
-                                            >${currentRoComment}</textarea>
+                                                onchange="handleBulkAction('${key}')"
+                                            >${combo.roComment}</textarea>
                                         </td>
                                         <td style="padding: 16px; text-align: center;">
                                             <div style="
@@ -313,44 +413,34 @@ async function handleAccoladesClick(requisition) {
                                                 justify-content: center;
                                             ">
                                                 <button 
-                                                    onclick="handleRequisitionAction({
-                                                        requisitionId: ${requisition.chapter_requisition_id},
-                                                        memberId: ${combo.memberId},
-                                                        accoladeId: ${combo.accolade.accolade_id},
-                                                        status: 'declined',
-                                                        index: ${index}
-                                                    })"
+                                                    onclick="handleBulkAction('${key}', 'declined')"
+                                                    class="action-btn decline-btn"
+                                                    data-key="${key}"
                                                     style="
                                                         padding: 6px 12px;
                                                         border-radius: 6px;
                                                         border: none;
-                                                        background: ${currentStatus === 'declined' ? '#fecaca' : '#fee2e2'};
+                                                        background: ${combo.currentStatus === 'declined' ? '#fecaca' : '#fee2e2'};
                                                         color: #dc2626;
-                                                        cursor: ${currentStatus === 'declined' ? 'not-allowed' : 'pointer'};
-                                                        opacity: ${currentStatus === 'declined' ? '0.5' : '1'};
+                                                        cursor: pointer;
+                                                        opacity: ${combo.currentStatus === 'declined' ? '0.7' : '1'};
                                                     "
-                                                    ${currentStatus === 'declined' ? 'disabled' : ''}
                                                 >
                                                     <i class="ri-close-circle-line"></i>
                                                 </button>
                                                 <button 
-                                                    onclick="handleRequisitionAction({
-                                                        requisitionId: ${requisition.chapter_requisition_id},
-                                                        memberId: ${combo.memberId},
-                                                        accoladeId: ${combo.accolade.accolade_id},
-                                                        status: 'approved',
-                                                        index: ${index}
-                                                    })"
+                                                    onclick="handleBulkAction('${key}', 'approved')"
+                                                    class="action-btn approve-btn"
+                                                    data-key="${key}"
                                                     style="
                                                         padding: 6px 12px;
                                                         border-radius: 6px;
                                                         border: none;
-                                                        background: ${currentStatus === 'approved' ? '#bbf7d0' : '#dcfce7'};
+                                                        background: ${combo.currentStatus === 'approved' ? '#bbf7d0' : '#dcfce7'};
                                                         color: #16a34a;
-                                                        cursor: ${currentStatus === 'approved' ? 'not-allowed' : 'pointer'};
-                                                        opacity: ${currentStatus === 'approved' ? '0.5' : '1'};
+                                                        cursor: pointer;
+                                                        opacity: ${combo.currentStatus === 'approved' ? '0.7' : '1'};
                                                     "
-                                                    ${currentStatus === 'approved' ? 'disabled' : ''}
                                                 >
                                                     <i class="ri-checkbox-circle-line"></i>
                                                 </button>
@@ -372,25 +462,144 @@ async function handleAccoladesClick(requisition) {
                 popup: 'swal-wide-popup'
             }
         });
-
-        // Add this function to handle checkbox changes
-        window.togglePickupDate = function(index) {
-            const checkbox = document.getElementById(`pickupStatus_${index}`);
-            const dateContainer = document.getElementById(`pickupDateContainer_${index}`);
-            
-            if (checkbox.checked) {
-                dateContainer.style.display = 'block';
-            } else {
-                dateContainer.style.display = 'none';
-            }
-        };
-
     } catch (error) {
         console.error('❌ Error in handleAccoladesClick:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
             text: 'Failed to load accolades details'
+        });
+    }
+}
+
+// Add these new functions for bulk actions
+function selectAllCheckboxes() {
+    const checkboxes = document.querySelectorAll('.accolade-checkbox:not([disabled])');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = !allChecked;
+    });
+}
+
+function handleBulkAction(key, action) {
+    const commentEl = document.querySelector(`#ro-comment-${key}`);
+    const comment = commentEl ? commentEl.value : '';
+
+    // If action is provided, update the status. Otherwise, just update the comment
+    if (action) {
+        selectedActions[key] = {
+            status: action,
+            comment: comment
+        };
+        
+        // Update button styles
+        const row = document.querySelector(`[data-key="${key}"]`).closest('tr');
+        const approveBtn = row.querySelector('.approve-btn');
+        const declineBtn = row.querySelector('.decline-btn');
+        
+        // Reset both buttons first
+        approveBtn.style.background = '#dcfce7';
+        approveBtn.style.opacity = '1';
+        declineBtn.style.background = '#fee2e2';
+        declineBtn.style.opacity = '1';
+        
+        // Then highlight the selected action
+        if (action === 'approved') {
+            approveBtn.style.background = '#bbf7d0';
+            approveBtn.style.opacity = '0.7';
+            declineBtn.style.background = '#fee2e2';
+            declineBtn.style.opacity = '1';
+        } else {
+            declineBtn.style.background = '#fecaca';
+            declineBtn.style.opacity = '0.7';
+            approveBtn.style.background = '#dcfce7';
+            approveBtn.style.opacity = '1';
+        }
+    } else {
+        // If no action is provided, just update the comment while preserving existing status
+        const existingAction = selectedActions[key];
+        selectedActions[key] = {
+            status: existingAction ? existingAction.status : undefined,
+            comment: comment
+        };
+    }
+}
+
+function bulkApprove() {
+    const checkboxes = document.querySelectorAll('.accolade-checkbox:checked:not([disabled])');
+    checkboxes.forEach(checkbox => {
+        const key = checkbox.getAttribute('data-key');
+        handleBulkAction(key, 'approved');
+    });
+}
+
+function bulkDecline() {
+    const checkboxes = document.querySelectorAll('.accolade-checkbox:checked:not([disabled])');
+    checkboxes.forEach(checkbox => {
+        const key = checkbox.getAttribute('data-key');
+        handleBulkAction(key, 'declined');
+    });
+}
+
+async function submitBulkActions() {
+    try {
+        // Get the current requisition's existing data
+        const existingApproveStatus = currentRequisition.approve_status ? 
+            JSON.parse(currentRequisition.approve_status) : {};
+        const existingRoComments = currentRequisition.ro_comment ? 
+            JSON.parse(currentRequisition.ro_comment) : {};
+
+        // Prepare the data for API
+        const updateData = {
+            chapter_requisition_id: currentRequisition.chapter_requisition_id,
+            approve_status: { ...existingApproveStatus },
+            ro_comment: { ...existingRoComments }
+        };
+
+        // Populate the update data
+        for (const [key, action] of Object.entries(selectedActions)) {
+            // Only update status if one was selected
+            if (action.status) {
+                updateData.approve_status[key] = action.status;
+            }
+            // Always update comment if provided
+            if (action.comment && action.comment.trim()) {
+                updateData.ro_comment[key] = action.comment.trim();
+            }
+        }
+
+        // Make API call
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update requisitions');
+        }
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Changes saved successfully',
+            timer: 2000,
+            showConfirmButton: false
+        });
+
+        // Refresh the data
+        loadData();
+
+    } catch (error) {
+        console.error('Error in submitBulkActions:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to process changes: ' + error.message
         });
     }
 }
@@ -790,7 +999,7 @@ const renderTable = () => {
                         </style>
                     </td>
 
-                    <!-- Keep existing comment field exactly as it is -->
+                    <!-- Comment field -->
                     <td style="padding: 16px;">
                         <div class="comment-container" style="
                             display: flex;
@@ -804,7 +1013,7 @@ const renderTable = () => {
                                     placeholder="Add comment..."
                                     value="${slabWiseComment}"
                                     style="
-                                       border: 1px solid #e5e7eb;
+                                        border: 1px solid #e5e7eb;
                                         border-radius: 6px 0 0 6px;
                                         padding: 8px 12px;
                                         font-size: 0.875rem;
@@ -826,7 +1035,9 @@ const renderTable = () => {
                                         align-items: center;
                                         justify-content: center;
                                         transition: all 0.3s ease;
+                                        cursor: pointer;
                                     "
+                                    onclick="handleCommentSubmit(${req.chapter_requisition_id}, this.previousElementSibling.value)"
                                 >
                                     <i class="ri-check-line" style="color: white;"></i>
                                 </button>
@@ -1026,27 +1237,21 @@ async function savePickupStatus(index) {
 // Modify the comment submission part
 function handleCommentSubmit(requisitionId, commentText) {
     try {
-        // Helper function to safely parse JSON
-        const safeJSONParse = (value) => {
-            if (!value) return {};
-            try {
-                return typeof value === 'string' ? JSON.parse(value) : value;
-            } catch (e) {
-                return value;
-            }
-        };
-
-        // Find the current requisition to get its pickup status
+        // Find the current requisition to get its current state
         const currentRequisition = allRequisitions.find(req => req.chapter_requisition_id === requisitionId);
+        if (!currentRequisition) {
+            throw new Error('Requisition not found');
+        }
 
         // Prepare the data object for API
         const requestData = {
             chapter_requisition_id: requisitionId,
             slab_wise_comment: commentText,
-            approve_status: safeJSONParse(accumulatedApprovals),
-            ro_comment: safeJSONParse(accumulatedComments),
-            pickup_status: currentRequisition ? currentRequisition.pickup_status : false,
-            pickup_date: currentRequisition ? currentRequisition.pickup_date : null
+            // Preserve existing approval statuses and comments
+            approve_status: currentRequisition.approve_status || {},
+            ro_comment: currentRequisition.ro_comment || {},
+            pickup_status: currentRequisition.pickup_status || false,
+            pickup_date: currentRequisition.pickup_date || null
         };
 
         console.log('📦 Preparing comment submission:', requestData);
@@ -1072,13 +1277,19 @@ function handleCommentSubmit(requisitionId, commentText) {
                 position: 'top-end',
                 showConfirmButton: false,
                 timer: 1500,
-                timerProgressBar: true
+                timerProgressBar: true,
+                background: '#dcfce7',
+                color: '#16a34a',
+                iconColor: '#16a34a'
             });
 
             Toast.fire({
                 icon: 'success',
                 title: 'Comment saved successfully'
             });
+
+            // Refresh the data to show updated comment
+            loadData();
         })
         .catch(error => {
             console.error('❌ API Error:', error);
