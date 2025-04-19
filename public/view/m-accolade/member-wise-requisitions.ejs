@@ -461,3 +461,64 @@ th {
 </script>
 
       <%- include('../partials/footer') %>
+
+<!-- /* Enhanced pagination styles */ -->
+
+<style>
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination .page-item {
+  margin: 0 2px;
+}
+
+.pagination .page-link {
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #495057;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+  background-color: #e9ecef;
+}
+
+.pagination .page-link:hover:not(.disabled) {
+  background-color: #e9ecef;
+  color: #007bff;
+  transform: translateY(-2px);
+}
+
+/* Card styles */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card-header {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  padding: 20px;
+}
+
+.card-title {
+  font-weight: 800;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+</style>

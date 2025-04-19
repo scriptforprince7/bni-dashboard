@@ -157,33 +157,24 @@ function getAccoladeNames(accoladeIds) {
 
 // Function to filter members based on selected region and chapter
 function filterMembers() {
-    if (!selectedRegion || !selectedChapter) {
-        filteredMembers = [];
-        return;
+    // Initially show all members
+    filteredMembers = [...allMembers];
+
+    // Apply region filter if selected
+    if (selectedRegion && selectedRegion !== 'all') {
+        filteredMembers = filteredMembers.filter(member => member.region_id === parseInt(selectedRegion));
     }
 
-    filteredMembers = allMembers.filter(member => {
-        const regionMatch = selectedRegion === 'all' || member.region_id === parseInt(selectedRegion);
-        const chapterMatch = selectedChapter === 'all' || member.chapter_id === parseInt(selectedChapter);
-        return regionMatch && chapterMatch;
-    });
+    // Apply chapter filter if selected
+    if (selectedChapter && selectedChapter !== 'all') {
+        filteredMembers = filteredMembers.filter(member => member.chapter_id === parseInt(selectedChapter));
+    }
 }
 
 // Function to display members in table
 function displayMembers() {
     const tableBody = document.getElementById('chaptersTableBody');
     
-    if (!selectedRegion || !selectedChapter) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center">
-                    <h5 class="text-primary fw-bold my-4">Please select a Region and Chapter to view members' accolades</h5>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
     if (filteredMembers.length === 0) {
         tableBody.innerHTML = `
             <tr>
@@ -224,22 +215,65 @@ function updatePagination() {
     }
 
     paginationContainer.style.display = 'flex';
-    document.getElementById('prevPage').classList.toggle('disabled', currentPage === 1);
-    
-    const pageNumbers = document.querySelector('.pagination');
-    pageNumbers.innerHTML = `
+
+    // Calculate the range of page numbers to display
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    // Adjust start page if we're near the end
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    // Build pagination HTML
+    let paginationHTML = `
         <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
             <a class="page-link" id="prevPage" href="#">Previous</a>
-        </li>
-        ${Array.from({length: totalPages}, (_, i) => i + 1).map(page => `
-            <li class="page-item ${page === currentPage ? 'active' : ''}">
-                <a class="page-link pageNumber" href="#" data-page="${page}">${page}</a>
-            </li>
-        `).join('')}
+        </li>`;
+
+    // Add first page and ellipsis if necessary
+    if (startPage > 1) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link pageNumber" href="#" data-page="1">1</a>
+            </li>`;
+        if (startPage > 2) {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>`;
+        }
+    }
+
+    // Add page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link pageNumber" href="#" data-page="${i}">${i}</a>
+            </li>`;
+    }
+
+    // Add last page and ellipsis if necessary
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>`;
+        }
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link pageNumber" href="#" data-page="${totalPages}">${totalPages}</a>
+            </li>`;
+    }
+
+    paginationHTML += `
         <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
             <a class="page-link" id="nextPage" href="#">Next</a>
-        </li>
-    `;
+        </li>`;
+
+    paginationContainer.innerHTML = paginationHTML;
 }
 
 // Event Listeners
@@ -251,19 +285,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateRegionFilter();
     populateChapterFilter();
     
-    // Display initial message
+    // Initialize filteredMembers with all members
+    filteredMembers = [...allMembers];
+    
+    // Display all members initially
     displayMembers();
 
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        if (!selectedRegion || !selectedChapter) return;
         
-        filterMembers();
-        filteredMembers = filteredMembers.filter(member => 
-            member.member_first_name.toLowerCase().includes(searchTerm) ||
-            member.member_last_name.toLowerCase().includes(searchTerm)
-        );
+        // Filter from all members
+        filteredMembers = allMembers.filter(member => {
+            const nameMatch = (member.member_first_name + ' ' + member.member_last_name)
+                .toLowerCase()
+                .includes(searchTerm);
+                
+            // Apply region and chapter filters if selected
+            const regionMatch = !selectedRegion || selectedRegion === 'all' || 
+                member.region_id === parseInt(selectedRegion);
+            const chapterMatch = !selectedChapter || selectedChapter === 'all' || 
+                member.chapter_id === parseInt(selectedChapter);
+                
+            return nameMatch && regionMatch && chapterMatch;
+        });
+        
         currentPage = 1;
         displayMembers();
     });
