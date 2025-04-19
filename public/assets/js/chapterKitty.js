@@ -347,7 +347,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     );
     // console.log('👥 Found members for chapter:', chapterMembersWithBalance.length);
     // Step 4: Fetch members count using chapter_id
-    const memberCount = chapterMembersWithBalance.length;
+    const activeMembers = chapterMembersWithBalance.filter(member => !member.writeoff_status);
+    const memberCount = activeMembers.length;
     // console.log("chapter member",chapterMembersWithBalance);
 
     const bankOrderResponse = await fetch(
@@ -557,7 +558,20 @@ document.addEventListener("DOMContentLoaded", async function () {
           let ReceivedAmount = 0;
           let MiscellaneousAmount = 0;
 
-          chapterOrders.forEach(async (order) => {
+          // Sort chapter orders by transaction date in descending order (most recent first)
+          const sortedChapterOrders = chapterOrders.slice().sort((a, b) => {
+            const transactionA = allTransactions.find(tran => tran.order_id === a.order_id);
+            const transactionB = allTransactions.find(tran => tran.order_id === b.order_id);
+            
+            if (!transactionA || !transactionB) return 0;
+            
+            const dateA = new Date(transactionA.payment_time);
+            const dateB = new Date(transactionB.payment_time);
+            
+            return dateB - dateA; // Sort in descending order (most recent first)
+          });
+
+          sortedChapterOrders.forEach(async (order) => {
             // Find matching transaction
             const transaction = allTransactions.find(
               (tran) => tran.order_id === order.order_id
@@ -832,10 +846,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     let ReceivedAmount = 0;
     let MiscellaneousAmount = 0;
 
-    // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
-    // const pendingBalances = await pendingBalanceResponse.json();
+    // Sort chapter orders by transaction date in descending order (most recent first)
+    const sortedChapterOrders = chapterOrders.slice().sort((a, b) => {
+      const transactionA = allTransactions.find(tran => tran.order_id === a.order_id);
+      const transactionB = allTransactions.find(tran => tran.order_id === b.order_id);
+      
+      if (!transactionA || !transactionB) return 0;
+      
+      const dateA = new Date(transactionA.payment_time);
+      const dateB = new Date(transactionB.payment_time);
+      
+      return dateB - dateA; // Sort in descending order (most recent first)
+    });
 
-    chapterOrders.forEach(async (order) => {
+    sortedChapterOrders.forEach(async (order) => {
       // Find matching transaction
       const transaction = allTransactions.find(
         (tran) => tran.order_id === order.order_id
