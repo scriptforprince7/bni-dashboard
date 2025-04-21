@@ -1,4 +1,4 @@
-const accoladesApiUrl = "backend.bninewdelhi.com/api/accolades";
+const accoladesApiUrl = "https://backend.bninewdelhi.com/api/accolades";
 const chaptersApiUrl = "https://backend.bninewdelhi.com/api/chapters";
 const requisitionsApiUrl = "https://backend.bninewdelhi.com/api/getRequestedChapterRequisition";
 
@@ -966,6 +966,10 @@ const renderTable = () => {
             Requested date <i class="ri-arrow-${currentSort.column === 'date' ? 
             (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
         </th>
+        <th scope="col" onclick="sortTable('requested_by')" style="cursor: pointer">
+            Requested By <i class="ri-arrow-${currentSort.column === 'requested_by' ? 
+            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
+        </th>
         <th scope="col" onclick="sortTable('pickup_status')" style="cursor: pointer">
             Pickup Status (By RO) <i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
             (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
@@ -1185,6 +1189,25 @@ const renderTable = () => {
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         ${requestDate}
                     </td>
+                    <td style="padding: 16px;">
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    ">
+        <i class="ri-user-line" style="color: #3b82f6;"></i>
+        <span style="
+            color: #1e293b;
+            font-weight: 500;
+            background: #f0f9ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        ">
+            ${req.requested_by || 'Not Specified'}
+        </span>
+    </div>
+</td>
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                             <select 

@@ -1588,6 +1588,8 @@ async function showRequisitionForm() {
                         const key = `${assignment.member.member_id}_${assignment.accolade.accolade_id}`;
                         commentsObject[key] = assignment.comment || '';
                     });
+                     // Get the email of logged in user from token
+            const requestedByEmail = getUserEmail();
 
                     const chapterRequisitionData = {
                         member_ids: uniqueMembers,
@@ -1597,7 +1599,8 @@ async function showRequisitionForm() {
                         request_status: 'open',
                         ro_comment: null,
                         pickup_status: false,
-                        pickup_date: null
+                        pickup_date: null,
+                        requested_by: requestedByEmail
                     };
 
                     const response = await fetch('https://backend.bninewdelhi.com/api/chapter-requisition', {
