@@ -914,75 +914,80 @@ async function showApprovedMembers(requisitionId) {
 
         console.log('✅ Approved combinations:', approvedCombinations);
 
-        // Show in SweetAlert with comments
-        const approvedHtml = approvedCombinations.map(combo => `
-            <div style="
-                padding: 15px;
-                margin: 10px 0;
-                background: #f0fdf4;
-                border-radius: 8px;
-                border: 1px solid #dcfce7;
-            ">
-                <div style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: start;
-                    margin-bottom: 10px;
-                ">
-                    <div>
-                        <div style="font-weight: 600; color: #166534; margin-bottom: 4px;">
-                            ${combo.memberName}
-                        </div>
-                        <div style="color: #22c55e; font-size: 0.9em;">
-                            ${combo.accoladeName}
-                        </div>
-                    </div>
-                    <span class="badge bg-success-transparent">
-                        <i class="ri-checkbox-circle-line me-1"></i>
-                        Approved
-                    </span>
-                </div>
-
-                <!-- Comments Section -->
-                <div style="margin-top: 12px;">
-                    <!-- Request Comment -->
-                    <div style="
-                        background: white;
-                        padding: 10px;
-                        border-radius: 6px;
-                        margin-bottom: 8px;
-                        border: 1px solid #bbf7d0;
-                    ">
-                        <div style="color: #166534; font-size: 0.85em; margin-bottom: 4px;">
-                            <i class="ri-chat-1-line me-1"></i>Request Comment
-                        </div>
-                        <div style="color: #15803d;">
-                            ${combo.comment}
-                        </div>
-                    </div>
-
-                    <!-- RO Comment -->
-                    <div style="
-                        background: white;
-                        padding: 10px;
-                        border-radius: 6px;
-                        border: 1px solid #bbf7d0;
-                    ">
-                        <div style="color: #166534; font-size: 0.85em; margin-bottom: 4px;">
-                            <i class="ri-admin-line me-1"></i>RO Comment
-                        </div>
-                        <div style="color: #15803d;">
-                            ${combo.roComment}
-                        </div>
-                    </div>
+        // For showApprovedMembers function
+        const approvedHtml = `
+            <div class="approved-details-container" style="width: 100%;">
+                <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f0fdf4; border-bottom: 2px solid #bbf7d0;">
+                                <th style="padding: 12px 16px; text-align: left; color: #166534; font-weight: 600;">Member</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #166534; font-weight: 600;">Accolade</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #166534; font-weight: 600;">Status</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #166534; font-weight: 600;">Request Comment</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #166534; font-weight: 600;">RO Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${approvedCombinations.map(combo => `
+                                <tr style="border-bottom: 1px solid #dcfce7;">
+                                    <td style="padding: 12px 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="
+                                                width: 32px;
+                                                height: 32px;
+                                                border-radius: 50%;
+                                                background: #dcfce7;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                            ">
+                                                <i class="ri-user-line" style="color: #15803d;"></i>
+                                            </div>
+                                            <div style="font-weight: 500; color: #15803d;">
+                                                ${combo.memberName}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="color: #16a34a;">
+                                            <i class="ri-award-fill me-2"></i>${combo.accoladeName}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <span style="
+                                            padding: 4px 8px;
+                                            border-radius: 9999px;
+                                            font-size: 0.75rem;
+                                            background: #dcfce7;
+                                            color: #15803d;
+                                        ">
+                                            <i class="ri-checkbox-circle-line me-1"></i>Approved
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="color: #15803d; font-size: 0.875rem;">
+                                            ${combo.comment}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="color: #15803d; font-size: 0.875rem;">
+                                            ${combo.roComment}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        `).join('');
+        `;
 
+        // Update the Swal.fire calls to use 90% width
         Swal.fire({
             title: '<span style="color: #16a34a"><i class="ri-checkbox-circle-line me-2"></i>Approved Members</span>',
             html: approvedHtml || '<div class="text-muted">No approved members found</div>',
-            width: '600px',
+            width: '90%',
             confirmButtonText: 'Close',
             customClass: {
                 popup: 'members-popup'
@@ -1072,75 +1077,80 @@ async function showDeclinedMembers(requisitionId) {
 
         console.log('❌ Declined combinations:', declinedCombinations);
 
-        // Show in SweetAlert with comments
-        const declinedHtml = declinedCombinations.map(combo => `
-            <div style="
-                padding: 15px;
-                margin: 10px 0;
-                background: #fef2f2;
-                border-radius: 8px;
-                border: 1px solid #fee2e2;
-            ">
-                <div style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: start;
-                    margin-bottom: 10px;
-                ">
-                    <div>
-                        <div style="font-weight: 600; color: #991b1b; margin-bottom: 4px;">
-                            ${combo.memberName}
-                        </div>
-                        <div style="color: #dc2626; font-size: 0.9em;">
-                            ${combo.accoladeName}
-                        </div>
-                    </div>
-                    <span class="badge bg-danger-transparent">
-                        <i class="ri-close-circle-line me-1"></i>
-                        Declined
-                    </span>
-                </div>
-
-                <!-- Comments Section -->
-                <div style="margin-top: 12px;">
-                    <!-- Request Comment -->
-                    <div style="
-                        background: white;
-                        padding: 10px;
-                        border-radius: 6px;
-                        margin-bottom: 8px;
-                        border: 1px solid #fecaca;
-                    ">
-                        <div style="color: #991b1b; font-size: 0.85em; margin-bottom: 4px;">
-                            <i class="ri-chat-1-line me-1"></i>Request Comment
-                        </div>
-                        <div style="color: #b91c1c;">
-                            ${combo.comment}
-                        </div>
-                    </div>
-
-                    <!-- RO Comment -->
-                    <div style="
-                        background: white;
-                        padding: 10px;
-                        border-radius: 6px;
-                        border: 1px solid #fecaca;
-                    ">
-                        <div style="color: #991b1b; font-size: 0.85em; margin-bottom: 4px;">
-                            <i class="ri-admin-line me-1"></i>RO Comment
-                        </div>
-                        <div style="color: #b91c1c;">
-                            ${combo.roComment}
-                        </div>
-                    </div>
+        // For showDeclinedMembers function
+        const declinedHtml = `
+            <div class="declined-details-container" style="width: 100%;">
+                <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #fef2f2; border-bottom: 2px solid #fecaca;">
+                                <th style="padding: 12px 16px; text-align: left; color: #991b1b; font-weight: 600;">Member</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #991b1b; font-weight: 600;">Accolade</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #991b1b; font-weight: 600;">Status</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #991b1b; font-weight: 600;">Request Comment</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #991b1b; font-weight: 600;">RO Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${declinedCombinations.map(combo => `
+                                <tr style="border-bottom: 1px solid #fee2e2;">
+                                    <td style="padding: 12px 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="
+                                                width: 32px;
+                                                height: 32px;
+                                                border-radius: 50%;
+                                                background: #fee2e2;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                            ">
+                                                <i class="ri-user-line" style="color: #991b1b;"></i>
+                                            </div>
+                                            <div style="font-weight: 500; color: #991b1b;">
+                                                ${combo.memberName}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="color: #dc2626;">
+                                            <i class="ri-award-fill me-2"></i>${combo.accoladeName}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <span style="
+                                            padding: 4px 8px;
+                                            border-radius: 9999px;
+                                            font-size: 0.75rem;
+                                            background: #fee2e2;
+                                            color: #991b1b;
+                                        ">
+                                            <i class="ri-close-circle-line me-1"></i>Declined
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="color: #991b1b; font-size: 0.875rem;">
+                                            ${combo.comment}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="color: #991b1b; font-size: 0.875rem;">
+                                            ${combo.roComment}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        `).join('');
+        `;
 
+        // Update the Swal.fire calls to use 90% width
         Swal.fire({
             title: '<span style="color: #dc2626"><i class="ri-close-circle-line me-2"></i>Declined Members</span>',
             html: declinedHtml || '<div class="text-muted">No declined members found</div>',
-            width: '600px',
+            width: '90%',
             confirmButtonText: 'Close',
             customClass: {
                 popup: 'members-popup'
@@ -2320,103 +2330,152 @@ async function showTotalAccoladesDetails(requisitionId) {
 
         // Create the modal content
         const modalContent = `
-            <div class="total-accolades-container" style="
-                max-height: 70vh;
-                overflow-y: auto;
-                padding: 20px;
-            ">
-                <!-- Summary Card -->
+            <div class="total-accolades-container">
+                <!-- Summary Stats Cards -->
                 <div style="
-                    background: linear-gradient(145deg, #60a5fa, #3b82f6);
-                    padding: 20px;
-                    border-radius: 12px;
-                    color: white;
-                    margin-bottom: 25px;
-                    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 30px;
                 ">
-                    <div style="font-size: 2em; font-weight: 600; margin-bottom: 5px;">
-                        ${totalCount}
+                    <div style="
+                        background: linear-gradient(145deg, #3b82f6, #2563eb);
+                        padding: 25px;
+                        border-radius: 16px;
+                        color: white;
+                        text-align: center;
+                        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+                        transform: translateY(0);
+                        transition: transform 0.2s ease;
+                    "
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                        <i class="ri-stack-line" style="font-size: 2.5em; margin-bottom: 10px;"></i>
+                        <div style="font-size: 2.5em; font-weight: 600; margin-bottom: 5px;">
+                            ${totalCount}
+                        </div>
+                        <div style="opacity: 0.9;">Total Accolades</div>
                     </div>
-                    <div style="opacity: 0.9;">Total Accolades Requested</div>
+                    
+                    <div style="
+                        background: linear-gradient(145deg, #06b6d4, #0891b2);
+                        padding: 25px;
+                        border-radius: 16px;
+                        color: white;
+                        text-align: center;
+                        box-shadow: 0 10px 20px rgba(6, 182, 212, 0.15);
+                        transform: translateY(0);
+                        transition: transform 0.2s ease;
+                    "
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                        <i class="ri-user-line" style="font-size: 2.5em; margin-bottom: 10px;"></i>
+                        <div style="font-size: 2.5em; font-weight: 600; margin-bottom: 5px;">
+                            ${memberAccolades.length}
+                        </div>
+                        <div style="opacity: 0.9;">Total Members</div>
+                    </div>
                 </div>
 
-                <!-- Member Cards -->
-                ${memberAccolades.map(member => `
-                    <div class="member-card" style="
-                        background: white;
-                        border-radius: 12px;
-                        margin-bottom: 20px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                        border: 1px solid #e5e7eb;
-                        overflow: hidden;
-                    ">
-                        <!-- Member Header -->
-                        <div style="
-                            background: ${member.isVisitor ? 'linear-gradient(145deg, #fb923c, #f97316)' : 'linear-gradient(145deg, #60a5fa, #3b82f6)'};
-                            padding: 15px;
-                            color: white;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        ">
-                            <div>
-                                <h4 style="margin: 0; font-size: 16px; color: white;">
-                                    <i class="${member.isVisitor ? 'ri-user-star-line' : 'ri-user-line'} me-2"></i>
-                                    ${member.memberName}
-                                </h4>
-                            </div>
-                            <span style="
-                                background: rgba(255, 255, 255, 0.2);
-                                padding: 4px 12px;
-                                border-radius: 999px;
-                                font-size: 0.85em;
-                                color: white;
-                            ">
-                                ${member.totalCount} Total
-                            </span>
-                        </div>
-
-                        <!-- Accolades List -->
-                        <div style="padding: 15px;">
-                            ${member.accolades.map(accolade => `
-                                <div style="
-                                    display: flex;
-                                    justify-content: space-between;
-                                    align-items: center;
-                                    padding: 10px;
-                                    background: #f8fafc;
-                                    margin-bottom: 8px;
-                                    border-radius: 8px;
-                                    border: 1px solid #e2e8f0;
-                                ">
-                                    <div style="color: #1e293b;">
-                                        <i class="ri-award-line me-2" style="color: #60a5fa;"></i>
-                                        ${accolade.name}
-                                    </div>
-                                    <span class="badge" style="
-                                        background-color: rgba(96, 165, 250, 0.15);
-                                        color: #3b82f6;
-                                        font-weight: 600;
-                                        padding: 4px 12px;
-                                        border-radius: 6px;
-                                    ">
-                                        ${accolade.count} ${accolade.count === 1 ? 'unit' : 'units'}
-                                    </span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('')}
+                <!-- Detailed Table -->
+                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600;">
+                                    <i class="ri-user-line me-2"></i>Member
+                                </th>
+                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600;">
+                                    <i class="ri-award-line me-2"></i>Accolade
+                                </th>
+                                <th style="padding: 16px; text-align: center; color: #2563eb; font-weight: 600;">
+                                    <i class="ri-numbers-line me-2"></i>Quantity
+                                </th>
+                                <th style="padding: 16px; text-align: center; color: #2563eb; font-weight: 600;">
+                                    <i class="ri-user-star-line me-2"></i>Type
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${memberAccolades.map(member => 
+                                member.accolades.map(accolade => `
+                                    <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.2s ease;"
+                                        onmouseover="this.style.backgroundColor='#f8fafc'"
+                                        onmouseout="this.style.backgroundColor='white'">
+                                        <td style="padding: 16px;">
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <div style="
+                                                    width: 40px;
+                                                    height: 40px;
+                                                    border-radius: 50%;
+                                                    background: ${member.isVisitor ? '#fb923c' : '#3b82f6'};
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    color: white;
+                                                ">
+                                                    <i class="${member.isVisitor ? 'ri-user-star-line' : 'ri-user-line'}"></i>
+                                                </div>
+                                                <div>
+                                                    <div style="font-weight: 500; color: #1e293b;">
+                                                        ${member.memberName}
+                                                    </div>
+                                                    <div style="font-size: 0.875rem; color: #64748b;">
+                                                        Total: ${member.totalCount} accolades
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 16px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <i class="ri-award-line" style="color: #3b82f6;"></i>
+                                                <span style="color: #1e293b;">${accolade.name}</span>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 16px; text-align: center;">
+                                            <span style="
+                                                background: #eff6ff;
+                                                color: #3b82f6;
+                                                padding: 6px 12px;
+                                                border-radius: 9999px;
+                                                font-weight: 500;
+                                                font-size: 0.875rem;
+                                            ">
+                                                ${accolade.count} ${accolade.count === 1 ? 'unit' : 'units'}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 16px; text-align: center;">
+                                            <span style="
+                                                background: ${member.isVisitor ? '#fff7ed' : '#f0f9ff'};
+                                                color: ${member.isVisitor ? '#ea580c' : '#0284c7'};
+                                                padding: 6px 12px;
+                                                border-radius: 9999px;
+                                                font-size: 0.875rem;
+                                                display: inline-flex;
+                                                align-items: center;
+                                                gap: 4px;
+                                            ">
+                                                <i class="${member.isVisitor ? 'ri-user-star-line' : 'ri-user-line'}"></i>
+                                                ${member.isVisitor ? 'Visitor' : 'Member'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
 
-        // Show the modal
+        // Update the Swal.fire call
         Swal.fire({
             title: '<span style="color: #3b82f6;"><i class="ri-stack-line me-2"></i>Total Accolades Details</span>',
             html: modalContent,
-            width: '600px',
+            width: '90%',
             showCloseButton: true,
             showConfirmButton: false,
+            padding: '32px',
             customClass: {
                 container: 'total-accolades-modal'
             }

@@ -1808,7 +1808,7 @@ function applyFilters() {
 //             return groups;
 //         }, {});
 
-//         // Create HTML for each accolade group
+//         // Create HTML for each accolade group (keeping your existing HTML structure)
 //         const accoladesHtml = Object.values(accoladeGroups).map(group => `
 //             <div class="accolade-card" style="
 //                 background: white;
@@ -1819,7 +1819,7 @@ function applyFilters() {
 //                 border: 1px solid rgba(0, 0, 0, 0.05);
 //                 position: relative;
 //             ">
-//                 <!-- Sticky Accolade Header -->
+//                 <!-- Your existing accolade header HTML -->
 //                 <div style="
 //                     background: ${group.accolade.accolade_type === 'Global' ? 
 //                         'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 
@@ -2036,162 +2036,170 @@ async function handleViewAccoladeDetails(requisition) {
             }
         });
 
-        // Create HTML for each accolade group (keeping your existing HTML structure)
-        const accoladesHtml = Object.values(accoladeGroups).map(group => `
-            <div class="accolade-card" style="
-                background: white;
-                border-radius: 16px;
-                margin-bottom: 24px;
-                box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);
-                overflow: hidden;
-                border: 1px solid rgba(0, 0, 0, 0.05);
-                position: relative;
-            ">
-                <!-- Your existing accolade header HTML -->
+        // Create HTML for accolade groups in table format
+        const accoladesHtml = `
+            <div class="accolade-details-container" style="width: 100%;">
+                <!-- Summary Cards -->
                 <div style="
-                    background: ${group.accolade.accolade_type === 'Global' ? 
-                        'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 
-                        'linear-gradient(135deg, #ef4444, #b91c1c)'};
-                    padding: 20px;
-                    color: white;
-                    position: sticky;
-                    top: 0;
-                    z-index: 10;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 16px;
+                    margin-bottom: 24px;
+                    justify-content: center;
+                    max-width: 1200px;
+                    margin-left: auto;
+                    margin-right: auto;
                 ">
-                    <div style="
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        position: relative;
-                    ">
-                        <h3 style="
-                            margin: 0;
-                            font-size: 1.35rem;
-                            font-weight: 600;
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            color: white;
-                        ">
-                            <i class="ri-award-fill" style="font-size: 1.5rem;"></i>
-                            ${group.accolade.accolade_name}
-                            <span style="
-                                font-size: 0.9rem;
-                                opacity: 0.9;
-                                font-weight: normal;
-                                color: white;
-                            ">(${group.members.length} members)</span>
-                        </h3>
+                    ${Object.values(accoladeGroups).map(group => `
                         <div style="
-                            background: rgba(255, 255, 255, 0.15);
-                            padding: 6px 16px;
-                            border-radius: 9999px;
-                            font-size: 0.875rem;
+                            background: ${group.accolade.accolade_type === 'Global' 
+                                ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+                                : 'linear-gradient(135deg, #ef4444, #b91c1c)'};
+                            padding: 20px;
+                            border-radius: 12px;
                             color: white;
-                            backdrop-filter: blur(4px);
-                            border: 1px solid rgba(255, 255, 255, 0.2);
-                            font-weight: 500;
-                            letter-spacing: 0.5px;
-                        ">
-                            ${group.accolade.accolade_type}
+                            text-align: center;
+                            transform: translateY(0);
+                            transition: transform 0.2s ease;
+                            cursor: default;
+                        "
+                        onmouseover="this.style.transform='translateY(-5px)'"
+                        onmouseout="this.style.transform='translateY(0)'">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">
+                                <i class="ri-award-fill"></i>
+                            </div>
+                            <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
+                                ${group.accolade.accolade_name}
+                            </div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">
+                                ${group.members.length} Members
+                            </div>
+                            <div style="
+                                background: rgba(255, 255, 255, 0.1);
+                                margin-top: 8px;
+                                padding: 4px 12px;
+                                border-radius: 999px;
+                                font-size: 0.8rem;
+                                backdrop-filter: blur(4px);
+                            ">
+                                ${group.accolade.accolade_type}
+                            </div>
                         </div>
-                    </div>
+                    `).join('')}
                 </div>
 
-                <!-- Members List -->
-                <div style="padding: 20px;">
-                    <div style="
-                        display: flex;
-                        flex-direction: column;
-                        gap: 10px;
-                    ">
-                        ${group.members.map(member => `
-                            <div style="
-                                display: flex;
-                                align-items: center;
-                                gap: 10px;
-                                padding: 12px;
-                                background: linear-gradient(to right, #f1f5f9, #f8fafc);
-                                border-radius: 10px;
-                                transition: transform 0.2s ease;
-                                border: 1px solid #e2e8f0;
-                            "
-                            onmouseover="this.style.transform='translateX(5px)'"
-                            onmouseout="this.style.transform='translateX(0)'"
-                            >
-                                <div style="
-                                    background: #64748b;
-                                    color: white;
-                                    width: 32px;
-                                    height: 32px;
-                                    border-radius: 50%;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="ri-user-line"></i>
-                                </div>
-                                <span style="
-                                    color: #1e293b;
-                                    font-weight: 500;
-                                    flex-grow: 1;
-                                ">${member.name}</span>
-                                <span style="
-                                    font-size: 0.8rem;
-                                    color: #64748b;
-                                    background: #f1f5f9;
-                                    padding: 4px 12px;
-                                    border-radius: 9999px;
-                                    border: 1px solid #e2e8f0;
-                                ">
-                                    Member
-                                </span>
-                            </div>
-                        `).join('')}
-                    </div>
+                <!-- Detailed Table -->
+                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                    <i class="ri-award-fill me-2"></i>Accolade
+                                </th>
+                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                    <i class="ri-user-line me-2"></i>Member
+                                </th>
+                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                    <i class="ri-profile-line me-2"></i>Type
+                                </th>
+                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                    <i class="ri-flag-line me-2"></i>Status
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.values(accoladeGroups).map(group => 
+                                group.members.map(member => `
+                                    <tr style="
+                                        border-bottom: 1px solid #e2e8f0;
+                                        transition: background-color 0.2s ease;
+                                    "
+                                    onmouseover="this.style.backgroundColor='#f8fafc'"
+                                    onmouseout="this.style.backgroundColor='white'">
+                                        <td style="padding: 16px;">
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <div style="
+                                                    width: 40px;
+                                                    height: 40px;
+                                                    border-radius: 50%;
+                                                    background: ${group.accolade.accolade_type === 'Global' ? '#3b82f6' : '#ef4444'};
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    color: white;
+                                                ">
+                                                    <i class="ri-award-fill" style="font-size: 1.25rem;"></i>
+                                                </div>
+                                                <span style="font-weight: 500; color: #1e293b;">
+                                                    ${group.accolade.accolade_name}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 16px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="
+                                                    width: 32px;
+                                                    height: 32px;
+                                                    border-radius: 50%;
+                                                    background: #64748b;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    color: white;
+                                                ">
+                                                    <i class="ri-user-line"></i>
+                                                </div>
+                                                <span style="color: #1e293b;">${member.name}</span>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 16px;">
+                                            <span style="
+                                                padding: 6px 12px;
+                                                border-radius: 999px;
+                                                font-size: 0.875rem;
+                                                background: ${group.accolade.accolade_type === 'Global' ? '#eff6ff' : '#fef2f2'};
+                                                color: ${group.accolade.accolade_type === 'Global' ? '#1d4ed8' : '#b91c1c'};
+                                                border: 1px solid ${group.accolade.accolade_type === 'Global' ? '#bfdbfe' : '#fecaca'};
+                                            ">
+                                                ${group.accolade.accolade_type}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 16px;">
+                                            <span style="
+                                                padding: 6px 12px;
+                                                border-radius: 999px;
+                                                font-size: 0.875rem;
+                                                background: #f0fdf4;
+                                                color: #15803d;
+                                                border: 1px solid #bbf7d0;
+                                                display: inline-flex;
+                                                align-items: center;
+                                                gap: 4px;
+                                            ">
+                                                <i class="ri-user-follow-line"></i>
+                                                Member
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')
+                            ).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        `).join('');
+        `;
 
-        // Show SweetAlert with your existing modal structure
+        // Update the Swal.fire call
         Swal.fire({
-            html: `
-                <div style="
-                    margin: -20px -20px 0 -20px;
-                    padding: 15px 20px;
-                    border-bottom: 1px solid #e5e7eb;
-                    background: linear-gradient(to right, #f8fafc, #ffffff);
-                ">
-                    <h3 style="
-                        margin: 0;
-                        color: #2563eb;
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    ">
-                        <i class="ri-award-fill"></i>
-                        Accolade Details
-                    </h3>
-                </div>
-                <div style="
-                    max-height: 85vh;
-                    overflow-y: auto;
-                    padding: 0;
-                    margin: 0 -20px -20px -20px;
-                    scrollbar-width: thin;
-                ">
-                    ${accoladesHtml}
-                </div>
-            `,
-            width: '650px',
+            title: '<div style="color: #2563eb; display: flex; align-items: center; gap: 8px;"><i class="ri-award-line"></i>Accolade Details</div>',
+            html: accoladesHtml,
+            width: '90%',
             showCloseButton: true,
             showConfirmButton: false,
-            padding: '20px',
+            padding: '32px',
             customClass: {
-                container: 'accolade-details-modal'
+                container: 'accolade-details-modal',
+                popup: 'border-radius: 16px;'
             }
         });
 
@@ -2226,129 +2234,74 @@ async function handleApprovedView(chapterRequisitionId) {
 
         // Build the HTML content with improved styling
         let htmlContent = `
-            <div style="
-                margin: -32px -32px 0;
-                padding: 24px 32px;
-                background: linear-gradient(135deg, #dcfce7, #f0fdf4);
-                border-bottom: 1px solid #86efac;
-                margin-bottom: 24px;
-                border-radius: 8px 8px 0 0;
-            ">
-                <h3 style="
-                    margin: 0;
-                    color: #15803d;
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                ">
+            <div style="margin: -32px -32px 0; padding: 24px 32px; background: linear-gradient(135deg, #dcfce7, #f0fdf4); border-bottom: 1px solid #86efac; border-radius: 8px 8px 0 0;">
+                <h3 style="margin: 0; color: #15803d; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
                     <i class="ri-checkbox-circle-fill" style="font-size: 1.5rem;"></i>
                     Approved Accolades Details
                 </h3>
             </div>
-            <div style="
-                max-height: 60vh;
-                overflow-y: auto;
-                padding: 0 32px;
-                margin-bottom: 24px;
-                scrollbar-width: thin;
-                scrollbar-color: #86efac #f0fdf4;
-            ">
-        `;
+            <div style="width: 100%; overflow-x: auto; padding: 20px;">
+                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: #f0fdf4; border-bottom: 2px solid #86efac;">
+                            <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">Member</th>
+                            <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">Accolade</th>
+                            <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">Status</th>
+                            <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">RO Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
-        // Process each approved pair with enhanced card styling
+        // Process each approved pair
         for (const [key, status] of Object.entries(approveStatus)) {
             if (status === 'approved') {
                 const [memberId, accoladeId] = key.split('_').map(Number);
                 const member = members.find(m => m.member_id === memberId);
                 const accolade = accolades.find(a => a.accolade_id === accoladeId);
                 
-                const memberName = member ? 
-                    `${member.member_first_name} ${member.member_last_name}` : 
-                    'Unknown Member';
+                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
                 const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
                 const roComment = roComments[key] || '-';
 
                 htmlContent += `
-                    <div style="
-                        background: white;
-                        border: 1px solid #86efac;
-                        border-radius: 12px;
-                        padding: 20px;
-                        margin-bottom: 16px;
-                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                        transition: transform 0.2s ease;
-                        cursor: default;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.transform='translateY(0)'">
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            margin-bottom: 12px;
-                            padding-bottom: 12px;
-                            border-bottom: 1px solid #d1fae5;
-                        ">
-                            <div style="
-                                background: #86efac;
-                                color: #15803d;
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.25rem;
-                            ">
-                                <i class="ri-user-line"></i>
+                    <tr style="border-bottom: 1px solid #d1fae5;">
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #86efac; display: flex; align-items: center; justify-content: center;">
+                                    <i class="ri-user-line" style="color: #15803d; font-size: 1.25rem;"></i>
+                                </div>
+                                <span style="font-weight: 500; color: #15803d;">${memberName}</span>
                             </div>
-                            <div>
-                                <strong style="
-                                    color: #15803d;
-                                    font-size: 1.1rem;
-                                    display: block;
-                                ">${memberName}</strong>
-                            </div>
-                        </div>
-                        <div style="
-                            display: flex;
-                            flex-direction: column;
-                            gap: 12px;
-                        ">
-                            <div style="
-                                display: flex;
-                                align-items: center;
-                                gap: 8px;
-                                color: #059669;
-                            ">
-                                <i class="ri-award-fill" style="font-size: 1.1rem;"></i>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px; color: #059669;">
+                                <i class="ri-award-fill"></i>
                                 <span style="font-weight: 500;">${accoladeName}</span>
                             </div>
-                            <div style="
-                                background: #f0fdf4;
-                                padding: 12px;
-                                border-radius: 8px;
-                                display: flex;
-                                align-items: flex-start;
-                                gap: 8px;
-                            ">
-                                <i class="ri-message-2-line" style="color: #16a34a; margin-top: 2px;"></i>
-                                <span style="color: #374151; line-height: 1.5;">${roComment}</span>
+                        </td>
+                        <td style="padding: 16px;">
+                            <span style="background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
+                                <i class="ri-checkbox-circle-line me-1"></i>Approved
+                            </span>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; color: #374151;">
+                                <i class="ri-message-2-line me-2" style="color: #16a34a;"></i>${roComment}
                             </div>
-                        </div>
-                    </div>
-                `;
+                        </td>
+                    </tr>`;
             }
         }
 
-        htmlContent += `</div>`;
+        htmlContent += `
+                </tbody>
+            </table>
+        </div>`;
 
-        // Show enhanced SweetAlert
+        // Update both Swal.fire calls to use 90% width
         Swal.fire({
             html: htmlContent,
-            width: '650px',
+            width: '90%',
             showCloseButton: true,
             showConfirmButton: false,
             padding: '32px',
@@ -2389,129 +2342,74 @@ async function handleRejectedView(chapterRequisitionId) {
 
         // Build the HTML content with improved styling
         let htmlContent = `
-            <div style="
-                margin: -32px -32px 0;
-                padding: 24px 32px;
-                background: linear-gradient(135deg, #fee2e2, #fef2f2);
-                border-bottom: 1px solid #fca5a5;
-                margin-bottom: 24px;
-                border-radius: 8px 8px 0 0;
-            ">
-                <h3 style="
-                    margin: 0;
-                    color: #991b1b;
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                ">
+            <div style="margin: -32px -32px 0; padding: 24px 32px; background: linear-gradient(135deg, #fee2e2, #fef2f2); border-bottom: 1px solid #fca5a5; border-radius: 8px 8px 0 0;">
+                <h3 style="margin: 0; color: #991b1b; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
                     <i class="ri-close-circle-fill" style="font-size: 1.5rem;"></i>
                     Rejected Accolades Details
                 </h3>
             </div>
-            <div style="
-                max-height: 60vh;
-                overflow-y: auto;
-                padding: 0 32px;
-                margin-bottom: 24px;
-                scrollbar-width: thin;
-                scrollbar-color: #fca5a5 #fef2f2;
-            ">
-        `;
+            <div style="width: 100%; overflow-x: auto; padding: 20px;">
+                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: #fef2f2; border-bottom: 2px solid #fca5a5;">
+                            <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">Member</th>
+                            <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">Accolade</th>
+                            <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">Status</th>
+                            <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">RO Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
-        // Process each rejected pair with enhanced card styling
+        // Process each rejected pair
         for (const [key, status] of Object.entries(approveStatus)) {
             if (status === 'declined') {
                 const [memberId, accoladeId] = key.split('_').map(Number);
                 const member = members.find(m => m.member_id === memberId);
                 const accolade = accolades.find(a => a.accolade_id === accoladeId);
                 
-                const memberName = member ? 
-                    `${member.member_first_name} ${member.member_last_name}` : 
-                    'Unknown Member';
+                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
                 const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
                 const roComment = roComments[key] || '-';
 
                 htmlContent += `
-                    <div style="
-                        background: white;
-                        border: 1px solid #fca5a5;
-                        border-radius: 12px;
-                        padding: 20px;
-                        margin-bottom: 16px;
-                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                        transition: transform 0.2s ease;
-                        cursor: default;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.transform='translateY(0)'">
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            margin-bottom: 12px;
-                            padding-bottom: 12px;
-                            border-bottom: 1px solid #fee2e2;
-                        ">
-                            <div style="
-                                background: #fca5a5;
-                                color: #991b1b;
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.25rem;
-                            ">
-                                <i class="ri-user-line"></i>
+                    <tr style="border-bottom: 1px solid #fee2e2;">
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #fca5a5; display: flex; align-items: center; justify-content: center;">
+                                    <i class="ri-user-line" style="color: #991b1b; font-size: 1.25rem;"></i>
+                                </div>
+                                <span style="font-weight: 500; color: #991b1b;">${memberName}</span>
                             </div>
-                            <div>
-                                <strong style="
-                                    color: #991b1b;
-                                    font-size: 1.1rem;
-                                    display: block;
-                                ">${memberName}</strong>
-                            </div>
-                        </div>
-                        <div style="
-                            display: flex;
-                            flex-direction: column;
-                            gap: 12px;
-                        ">
-                            <div style="
-                                display: flex;
-                                align-items: center;
-                                gap: 8px;
-                                color: #dc2626;
-                            ">
-                                <i class="ri-award-fill" style="font-size: 1.1rem;"></i>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px; color: #dc2626;">
+                                <i class="ri-award-fill"></i>
                                 <span style="font-weight: 500;">${accoladeName}</span>
                             </div>
-                            <div style="
-                                background: #fef2f2;
-                                padding: 12px;
-                                border-radius: 8px;
-                                display: flex;
-                                align-items: flex-start;
-                                gap: 8px;
-                            ">
-                                <i class="ri-message-2-line" style="color: #dc2626; margin-top: 2px;"></i>
-                                <span style="color: #374151; line-height: 1.5;">${roComment}</span>
+                        </td>
+                        <td style="padding: 16px;">
+                            <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
+                                <i class="ri-close-circle-line me-1"></i>Rejected
+                            </span>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="background: #fef2f2; padding: 12px; border-radius: 8px; color: #374151;">
+                                <i class="ri-message-2-line me-2" style="color: #dc2626;"></i>${roComment}
                             </div>
-                        </div>
-                    </div>
-                `;
+                        </td>
+                    </tr>`;
             }
         }
 
-        htmlContent += `</div>`;
+        htmlContent += `
+                </tbody>
+            </table>
+        </div>`;
 
-        // Show enhanced SweetAlert
+        // Update both Swal.fire calls to use 90% width
         Swal.fire({
             html: htmlContent,
-            width: '650px',
+            width: '90%',
             showCloseButton: true,
             showConfirmButton: false,
             padding: '32px',
