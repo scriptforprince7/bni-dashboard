@@ -212,57 +212,34 @@ function populateAccoladesTable(accolades) {
     }
 
     debugLog(`Populating table with ${accolades.length} accolades`);
+    console.log('📊 Accolades data to populate:', accolades);  // Add this log
 
     // Clear existing rows
     tableBody.innerHTML = '';
 
     // Add rows for each accolade
     accolades.forEach((accolade, index) => {
+        console.log(`🔄 Processing accolade for row ${index + 1}:`, accolade); // Add this log
+        
         const row = document.createElement('tr');
-        
-        // Format date
-        const publishDate = new Date(accolade.accolade_publish_date).toLocaleDateString();
-        
         row.innerHTML = `
             <td><span style="font-weight: 600">${index + 1}</span></td>
             <td>
                 <span 
-                    style="
-                        font-weight: 600; 
-                        color: #2563eb; 
-                        cursor: pointer;
-                        text-decoration: underline;
-                        transition: all 0.3s ease;
-                    "
-                    onmouseover="this.style.color='#1e40af'"
-                    onmouseout="this.style.color='#2563eb'"
+                    style="font-weight: 600; color: #2563eb; cursor: pointer;"
                     onclick="showAccoladeDetails(${accolade.accolade_id})"
                 >${accolade.accolade_name || 'N/A'}</span>
             </td>
             <td>${accolade.item_type || 'N/A'}</td>
             <td><span style="font-weight: 600">1</span></td>
             <td>${accolade.accolade_published_by || 'N/A'}</td>
-            <td><span style="font-weight: 600">${publishDate}</span></td>
+            <td><span style="font-weight: 600">${accolade.accolade_publish_date || '-'}</span></td>
             <td><span style="font-weight: 600">${accolade.accolade_given_date || '-'}</span></td>
             <td class="text-center">
                 <button 
                     onclick="handleRequestAndPay(${accolade.accolade_id})"
                     class="request-pay-btn"
-                    style="
-                        background: linear-gradient(45deg, #2563eb, #1e40af);
-                        color: white;
-                        border: none;
-                        padding: 8px 16px;
-                        border-radius: 6px;
-                        font-weight: 500;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'"
-                    onmouseout="this.style.transform='translateY(0)'"
+                    style="background: linear-gradient(45deg, #2563eb, #1e40af); color: white;"
                 >
                     <i class="ri-shopping-cart-line"></i>
                     Request & Pay
@@ -271,12 +248,11 @@ function populateAccoladesTable(accolades) {
         `;
         
         tableBody.appendChild(row);
-        debugLog(`Added row ${index + 1} for accolade:`, accolade);
+        console.log(`✅ Added row ${index + 1}`); // Add this log
     });
 
     if (accolades.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No accolades found</td></tr>';
-        debugLog('No accolades to display');
+        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No accolades found</td></tr>';
     }
 
     updateAccoladesCount();

@@ -140,12 +140,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 }
                                 try {
                                     const comments = JSON.parse(req.comment || '{}');
-                                    const uniqueMembers = new Set();
-                                    Object.keys(comments).forEach(key => {
-                                        const [memberId] = key.split('_');
-                                        uniqueMembers.add(memberId);
-                                    });
-                                    const totalAccolades = req.accolade_ids.length * uniqueMembers.size;
+                                    // Simply count the number of pairs in comments object
+                                    const totalAccolades = Object.keys(comments).length;
                                     return `${totalAccolades} total`;
                                 } catch (e) {
                                     console.error('Error calculating total accolades:', e);
@@ -274,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                             ? `<div class="d-flex flex-column" style="min-width: 80px;">
                                 <span class="badge ${req.pickup_date ? 'bg-success-transparent' : 'bg-primary-transparent'} mb-1" 
                                       style="width: fit-content; ${req.pickup_date ? '' : 'cursor: pointer;'}"
-                                      ${req.pickup_date ? '' : `onclick="handlePickupDateUpdate(${req.chapter_requisition_id}, '${req.pickup_date || ''}')"` }>
+                                      ${req.pickup_date ? '' : `onclick="handlePickupDateUpdate(${req.chapter_requisition_id}, '${new Date().toISOString().split('T')[0]}')"` }>
                                     <i class="${req.pickup_date ? 'ri-checkbox-circle-line' : 'ri-calendar-check-line'} me-1"></i>
                                     ${req.pickup_date ? 'Picked Up' : 'Ready to Pick Up'}
                                 </span>
@@ -683,165 +679,154 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
             };
         });
 
-        const detailsHtml = accoladeDetails.map(detail => `
-            <div class="accolade-section" style="
-                background: white;
-                border-radius: 12px;
-                margin-bottom: 20px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                border: 1px solid #e5e7eb;
-            ">
-                <!-- Accolade Header -->
+        const detailsHtml = `
+            <div class="accolade-details-container" style="width: 100%;">
+                <!-- Summary Stats -->
                 <div style="
-                    background: ${detail.accolade.accolade_type === 'Global' 
-                        ? 'linear-gradient(145deg, #2563eb, #1e40af)'
-                        : 'linear-gradient(145deg, #dc2626, #991b1b)'};
-                    padding: 15px;
-                    border-radius: 12px 12px 0 0;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 20px;
+                    margin-bottom: 20px;
+                    justify-content: center;
+                    max-width: 1200px;  /* Add max-width */
+                    margin-left: auto;  /* Center horizontally */
+                    margin-right: auto; /* Center horizontally */
                 ">
-                    <div>
-                        <h4 style="margin: 0; color: white; font-size: 16px;">
-                            <i class="ri-award-fill me-2"></i>
-                            ${detail.accolade.accolade_name} 
-                            <span style="
-                                background: rgba(255, 255, 255, 0.2);
-                                padding: 2px 8px;
-                                border-radius: 12px;
-                                font-size: 0.85em;
-                                margin-left: 8px;
-                            ">
+                    ${accoladeDetails.map(detail => `
+                        <div style="
+                            background: ${detail.accolade.accolade_type === 'Global' 
+                                ? 'linear-gradient(145deg, #2563eb, #1e40af)'
+                                : 'linear-gradient(145deg, #dc2626, #991b1b)'};
+                            padding: 15px;
+                            border-radius: 12px;
+                            color: white;
+                            text-align: center;  /* Center text */
+                        ">
+                            <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 4px;">
+                                <i class="ri-award-fill me-2"></i>${detail.accolade.accolade_name}
+                            </div>
+                            <div style="font-size: 1.25rem; font-weight: 600;">
                                 ${detail.memberCount} ${detail.memberCount === 1 ? 'Member' : 'Members'}
-                            </span>
-                        </h4>
-                    </div>
-                    <span style="
-                        background: ${detail.accolade.accolade_type === 'Global' ? '#4f46e5' : '#e11d48'};
-                        padding: 4px 12px;
-                        border-radius: 9999px;
-                        font-size: 0.75rem;
-                        color: white;
-                        font-weight: 500;
-                    ">
-                        ${detail.accolade.accolade_type}
-                    </span>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
 
-                <!-- Accolade Content -->
-                <div style="padding: 20px;">
-                    <div style="
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 15px;
-                        margin-bottom: 20px;
-                    ">
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-money-dollar-circle-line me-1"></i>Price
-                            </div>
-                            <div style="color: #1e293b; font-weight: 500;">
-                                ₹${detail.accolade.accolade_price || 'N/A'}
-                            </div>
-                        </div>
-
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #6366f1;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-price-tag-3-line me-1"></i>Type
-                            </div>
-                            <div style="
-                                color: #6366f1;
-                                font-weight: 500;
-                                display: flex;
-                                align-items: center;
-                                gap: 6px;
-                            ">
-                                <i class="ri-gift-line"></i>
-                                ${isVisitorRequisition ? 'Induction Kit' : (detail.isPaid ? 'Paid' : 'Free')}
-                            </div>
-                        </div>
-
-                        <div style="
-                            padding: 12px;
-                            background: #f8fafc;
-                            border-radius: 8px;
-                            border-left: 4px solid #2563eb;
-                        ">
-                            <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                <i class="ri-file-text-line me-1"></i>Eligibility & Conditions
-                            </div>
-                            <div style="color: #1e293b;">
-                                ${detail.accolade.eligibility_and_condition || 'No eligibility conditions available'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Assigned Members -->
-                    <div style="margin-top: 20px;">
-                        <h6 style="color: #475569; margin-bottom: 15px;">
-                            <i class="ri-team-line me-2"></i>Assigned Members
-                        </h6>
-                        ${detail.members.map(member => `
-                            <div style="
-                                padding: 15px;
-                                background: #f8fafc;
-                                border-radius: 8px;
-                                margin-bottom: 10px;
-                            ">
-                                <div style="
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 10px;
-                                    margin-bottom: 10px;
-                                ">
-                                    <i class="ri-user-line" style="color: #64748b;"></i>
-                                    <span style="font-weight: 500; color: #1e293b;">
-                                        ${member.member_first_name} ${member.member_last_name}
-                                    </span>
-                                </div>
-                                <div style="
-                                    background: white;
-                                    padding: 10px;
-                                    border-radius: 6px;
-                                    border: 1px solid #e2e8f0;
-                                ">
-                                    <div style="color: #64748b; font-size: 0.875rem; margin-bottom: 4px;">
-                                        <i class="ri-chat-1-line me-1"></i>Comment
-                                    </div>
-                                    <div style="color: #1e293b;">
-                                        ${member.comment || 'No comment provided'}
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
+                <!-- Detailed Table -->
+                <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Accolade</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Type</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Price</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Member</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Status</th>
+                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${accoladeDetails.map(detail => 
+                                detail.members.map(member => `
+                                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                                        <td style="padding: 12px 16px;">
+                                            <div style="font-weight: 500; color: #2563eb;">
+                                                <i class="ri-award-fill me-2"></i>${detail.accolade.accolade_name}
+                                            </div>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                                                ${detail.accolade.eligibility_and_condition || 'No conditions'}
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <span style="
+                                                padding: 4px 8px;
+                                                border-radius: 9999px;
+                                                font-size: 0.75rem;
+                                                background: ${detail.accolade.accolade_type === 'Global' ? '#e0e7ff' : '#fee2e2'};
+                                                color: ${detail.accolade.accolade_type === 'Global' ? '#4f46e5' : '#dc2626'};
+                                            ">
+                                                ${detail.accolade.accolade_type}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <div style="color: #1e293b; font-weight: 500;">
+                                                ₹${detail.accolade.accolade_price || 'N/A'}
+                                            </div>
+                                            <div style="font-size: 0.75rem; color: #64748b;">
+                                                ${isVisitorRequisition ? 'Induction Kit' : (detail.isPaid ? 'Paid' : 'Free')}
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <div style="
+                                                    width: 32px;
+                                                    height: 32px;
+                                                    border-radius: 50%;
+                                                    background: #e2e8f0;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                ">
+                                                    <i class="ri-user-line" style="color: #64748b;"></i>
+                                                </div>
+                                                <div>
+                                                    <div style="font-weight: 500; color: #1e293b;">
+                                                        ${member.member_first_name} ${member.member_last_name}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <span style="
+                                                padding: 4px 8px;
+                                                border-radius: 9999px;
+                                                font-size: 0.75rem;
+                                                background: #f0fdf4;
+                                                color: #166534;
+                                            ">
+                                                <i class="ri-checkbox-circle-line me-1"></i>Approved
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <div style="
+                                                max-width: 200px;
+                                                overflow: hidden;
+                                                text-overflow: ellipsis;
+                                                white-space: nowrap;
+                                                color: #64748b;
+                                                font-size: 0.875rem;
+                                            ">
+                                                ${member.comment || 'No comment provided'}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')
+                            ).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        `).join('');
+        `;
 
         Swal.fire({
             title: '<span style="color: #2563eb"><i class="ri-award-line"></i> Accolade Details</span>',
-            html: `
-                <div style="max-height: 70vh; overflow-y: auto; padding: 20px;">
-                    ${detailsHtml}
-                </div>
-            `,
-            width: '800px',
+            html: detailsHtml,
+            width: '90%',
+            heightAuto: false,
+            customClass: {
+                container: 'accolade-details-modal',
+                popup: 'accolade-details-popup',
+                content: 'accolade-details-content'
+            },
             showCloseButton: true,
             showConfirmButton: false,
-            customClass: {
-                popup: 'accolades-popup'
+            didOpen: () => {
+                // Add custom styles to the modal
+                const modalContent = document.querySelector('.accolade-details-content');
+                if (modalContent) {
+                    modalContent.style.maxHeight = '80vh';
+                    modalContent.style.overflow = 'auto';
+                }
             }
         });
 
@@ -1499,6 +1484,9 @@ async function showRequisitionForm() {
                         overflow-y: auto;
                     ">
                         ${allRequisitions.map(req => {
+                            // Skip if the requisition has already been given
+                            if (req.given_status === true) return '';
+
                             const member = members.find(m => m.member_id === req.member_id);
                             const accolade = accolades.find(a => a.accolade_id === req.accolade_id);
                             
@@ -1534,7 +1522,8 @@ async function showRequisitionForm() {
                                             margin-top: 4px;
                                         ">
                                             <span style="color: ${isPaid ? '#059669' : '#0284c7'}; font-weight: 500;">
-                                                ${isPaid ? `₹${req.accolade_amount}` : 'Free'}
+                                 
+                                            ${isPaid ? `₹${req.accolade_amount}` : 'Free'}
                                             </span>
                                             <span class="badge ${isPaid ? 'bg-success-transparent' : 'bg-info-transparent'}" 
                                                   style="font-size: 0.8em;">
@@ -1861,102 +1850,102 @@ const successStyles = `
 style.textContent += successStyles;
 
 // Add this function to handle date selection
-async function handlePickupDateUpdate(requisitionId, currentDate) {
-    const { value: pickupDate } = await Swal.fire({
-        title: 'Select Pickup Date',
-        html: `
-            <div class="p-4" style="background: #f8fafc; border-radius: 12px;">
-                <div class="mb-3">
-                    <i class="ri-calendar-2-line text-primary" style="font-size: 2rem;"></i>
-                </div>
-                <p class="mb-4" style="color: #475569;">Please select the date when the accolades will be picked up.</p>
+async function handlePickupDateUpdate(requisitionId, defaultDate) {
+    try {
+        const { value: pickupDate } = await Swal.fire({
+            title: 'Select Pickup Date',
+            html: `
                 <input type="date" 
                        id="pickup-date" 
                        class="swal2-input" 
-                       value="${currentDate ? currentDate.split('T')[0] : ''}"
-                       style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Confirm Date',
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#16a34a',
-        cancelButtonColor: '#dc2626',
-        preConfirm: () => {
-            const date = document.getElementById('pickup-date').value;
-            if (!date) {
-                Swal.showValidationMessage('Please select a date');
-                return false;
-            }
-            return date;
-        }
-    });
-
-    if (pickupDate) {
-        try {
-            // First get the existing requisition data
-            const getRequisitionResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
-            const requisitionsData = await getRequisitionResponse.json();
-            
-            console.log('🔍 Fetched requisitions:', requisitionsData);
-            console.log('🎯 Looking for requisition ID:', requisitionId);
-            
-            const currentRequisition = requisitionsData.find(req => req.chapter_requisition_id === parseInt(requisitionId));
-            
-            
-            console.log('📝 Found requisition:', currentRequisition);
-
-            if (!currentRequisition) {
-                throw new Error('Requisition not found');
-            }
-
-            // Helper function to safely parse JSON strings
-            const safeJSONParse = (value) => {
-                if (!value) return {};
-                try {
-                    return typeof value === 'string' ? JSON.parse(value) : value;
-                } catch (e) {
-                    return value;
+                       value="${defaultDate || new Date().toISOString().split('T')[0]}"
+                       style="width: auto;">
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Update',
+            focusConfirm: false,
+            preConfirm: () => {
+                const selectedDate = document.getElementById('pickup-date').value;
+                if (!selectedDate) {
+                    Swal.showValidationMessage('Please select a date');
                 }
-            };
+                return selectedDate;
+            }
+        });
 
-            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chapter_requisition_id: requisitionId,
-                    pickup_status: true,
-                    pickup_date: pickupDate,
-                    approve_status: safeJSONParse(currentRequisition.approve_status),
-                    ro_comment: safeJSONParse(currentRequisition.ro_comment),
-                    given_status: safeJSONParse(currentRequisition.given_status),
-                    slab_wise_comment: currentRequisition.slab_wise_comment
-                })
-            });
+        if (pickupDate) {
+            try {
+                // First get the existing requisition data
+                const getRequisitionResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+                const requisitionsData = await getRequisitionResponse.json();
+                
+                console.log('🔍 Fetched requisitions:', requisitionsData);
+                console.log('🎯 Looking for requisition ID:', requisitionId);
+                
+                const currentRequisition = requisitionsData.find(req => req.chapter_requisition_id === parseInt(requisitionId));
+                
+                
+                console.log('📝 Found requisition:', currentRequisition);
 
-            if (!response.ok) throw new Error('Failed to update pickup date');
+                if (!currentRequisition) {
+                    throw new Error('Requisition not found');
+                }
 
-            // Show success message
-            await Swal.fire({
-                icon: 'success',
-                title: 'Pickup Date Updated!',
-                text: 'The pickup date has been successfully scheduled.',
-                timer: 2000,
-                showConfirmButton: false
-            });
+                // Helper function to safely parse JSON strings
+                const safeJSONParse = (value) => {
+                    if (!value) return {};
+                    try {
+                        return typeof value === 'string' ? JSON.parse(value) : value;
+                    } catch (e) {
+                        return value;
+                    }
+                };
 
-            // Refresh the data
-            location.reload();
-        } catch (error) {
-            console.error('Error updating pickup date:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: 'Failed to update pickup date. Please try again.'
-            });
+                const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chapter_requisition_id: requisitionId,
+                        pickup_status: true,
+                        pickup_date: pickupDate,
+                        approve_status: safeJSONParse(currentRequisition.approve_status),
+                        ro_comment: safeJSONParse(currentRequisition.ro_comment),
+                        given_status: safeJSONParse(currentRequisition.given_status),
+                        slab_wise_comment: currentRequisition.slab_wise_comment
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to update pickup date');
+
+                // Show success message
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Pickup Date Updated!',
+                    text: 'The pickup date has been successfully scheduled.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Refresh the data
+                location.reload();
+            } catch (error) {
+                console.error('Error updating pickup date:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Failed to update pickup date. Please try again.'
+                });
+            }
         }
+    } catch (error) {
+        console.error('Error updating pickup date:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update pickup date'
+        });
     }
 }
 
@@ -2105,7 +2094,6 @@ async function showGivenStatusModal(requisitionId) {
         });
     }
 }
-
 async function markAsGiven(requisitionId, combinationKey) {
     try {
         const dateInput = document.getElementById(`date_${combinationKey}`);
@@ -2115,6 +2103,9 @@ async function markAsGiven(requisitionId, combinationKey) {
             Swal.showValidationMessage('Please select a date');
             return;
         }
+
+        // Parse member and accolade IDs from combinationKey
+        const [memberId, accoladeId] = combinationKey.split('_').map(Number);
 
         // Fetch chapter requisition
         const chapterReqResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
@@ -2132,12 +2123,9 @@ async function markAsGiven(requisitionId, combinationKey) {
         if (currentRequisition.visitor_id) {
             console.log('👤 Processing visitor given status update');
             
-            // Update only chapter requisition for visitor
             const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chapter_requisition_id: requisitionId,
                     given_status: JSON.stringify({
@@ -2150,20 +2138,44 @@ async function markAsGiven(requisitionId, combinationKey) {
             if (!response.ok) {
                 throw new Error('Failed to update visitor given status');
             }
-
-            console.log('✅ Successfully updated visitor given status');
-            
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Visitor accolade marked as given successfully',
-                timer: 2000
-            });
         } else {
-            // Member logic
             console.log('👥 Processing member given status update');
+
+            // 1. Check member requisition status
+            const memberReqResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+            const memberRequisitions = await memberReqResponse.json();
             
-            // Get existing given status or initialize empty object
+            // Check if valid member requisition exists
+            const matchingRequisition = memberRequisitions.find(req => 
+                req.member_id === memberId &&
+                req.accolade_id === accoladeId &&
+                req.chapter_id === currentRequisition.chapter_id &&
+                req.given_status === false &&
+                req.request_status === 'open' &&
+                req.given_date === null
+            );
+
+            if (matchingRequisition) {
+                // Update member requisition if found
+                const memberUpdateResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        member_id: memberId,
+                        chapter_id: currentRequisition.chapter_id,
+                        accolade_id: accoladeId,
+                        given_date: givenDate,
+                        request_status: 'closed',
+                        given_status: true
+                    })
+                });
+
+                if (!memberUpdateResponse.ok) {
+                    console.warn('Failed to update member requisition, but continuing...');
+                }
+            }
+
+            // Always update chapter requisition regardless of member requisition status
             let existingGivenStatus = {};
             try {
                 existingGivenStatus = currentRequisition.given_status ? 
@@ -2172,59 +2184,32 @@ async function markAsGiven(requisitionId, combinationKey) {
                 console.warn('Error parsing existing given status, starting fresh');
             }
 
-            // Update the given status for this combination
             existingGivenStatus[combinationKey] = {
                 date: givenDate
             };
 
-            // Helper function to safely handle JSON values
-            const prepareValue = (value) => {
-                if (!value) return null;
-                // If it's already a string that looks like JSON
-                if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
-                    try {
-                        // Parse it to prevent double stringification
-                        return JSON.parse(value);
-                    } catch (e) {
-                        return value;
-                    }
-                }
-                return value;
-            };
-
-            // In markAsGiven function, update the body part:
-            const requestBody = {
-                chapter_requisition_id: requisitionId,
-                given_status: existingGivenStatus, // Don't stringify again
-                // Safely prepare other values
-                approve_status: prepareValue(currentRequisition.approve_status),
-                ro_comment: prepareValue(currentRequisition.ro_comment),
-                pickup_status: currentRequisition.pickup_status,
-                pickup_date: currentRequisition.pickup_date,
-                slab_wise_comment: currentRequisition.slab_wise_comment
-            };
-
-            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+            const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody) // Single stringify of the whole body
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chapter_requisition_id: requisitionId,
+                    given_status: existingGivenStatus
+                })
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to update member given status');
+            if (!chapterResponse.ok) {
+                throw new Error('Failed to update chapter requisition');
             }
-
-            console.log('✅ Successfully updated member given status');
-            
-            await Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Member accolade marked as given successfully',
-                timer: 2000
-            });
         }
+
+        console.log('✅ Successfully updated given status');
+        
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: `${currentRequisition.visitor_id ? 'Visitor' : 'Member'} accolade marked as given successfully`,
+            timer: 2000
+        });
 
         // Refresh the modal
         await showGivenStatusModal(requisitionId);
@@ -2238,7 +2223,6 @@ async function markAsGiven(requisitionId, combinationKey) {
         });
     }
 }
-
 // Add the new function for showing total accolades details
 async function showTotalAccoladesDetails(requisitionId) {
     try {

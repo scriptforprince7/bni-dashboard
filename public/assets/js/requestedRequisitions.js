@@ -138,26 +138,38 @@ async function handleAccoladesClick(requisition) {
         }
 
         // Fetch all required data
-        const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse, visitorsResponse] = await Promise.all([
+        const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse, visitorsResponse, chapterRequisitionResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/accolades'),
             fetch('https://backend.bninewdelhi.com/api/chapters'),
             fetch('https://backend.bninewdelhi.com/api/members'),
             fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
-            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition')
         ]);
 
-        const [allAccolades, allChapters, allMembers, memberRequisitions, visitors] = await Promise.all([
+        const [allAccolades, allChapters, allMembers, memberRequisitions, visitors, chapterRequisitions] = await Promise.all([
             accoladesResponse.json(),
             chaptersResponse.json(),
             membersResponse.json(),
             memberRequisitionsResponse.json(),
-            visitorsResponse.json()
+            visitorsResponse.json(),
+            chapterRequisitionResponse.json()
         ]);
 
         const chapter = allChapters.find(ch => ch.chapter_id === requisition.chapter_id);
         
+        // Find the specific chapter requisition - use chapterRequisitions directly
+        const currentChapterReq = chapterRequisitions.find(req => 
+            req.chapter_requisition_id === requisition.chapter_requisition_id
+        );
+
+        // Parse the comment field to get the actual pairs
+        const commentPairs = JSON.parse(currentChapterReq.comment || '{}');
+
+        // Create combinations only for existing pairs
         const combinations = [];
-        requisition.member_ids.forEach(memberId => {
+        Object.keys(commentPairs).forEach(pair => {
+            const [memberId, accoladeId] = pair.split('_').map(Number);
             let memberName;
             let isVisitor = false;
 
@@ -170,22 +182,20 @@ async function handleAccoladesClick(requisition) {
                 memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
             }
             
-            requisition.accolade_ids.forEach(accoladeId => {
-                const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
-                const commentKey = `${memberId}_${accoladeId}`;
-                const comment = commentsMap[commentKey] || '';
-                const roComment = roCommentsMap[commentKey] || '';
-                const currentStatus = approveStatusMap[commentKey];
+            const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
+            const commentKey = `${memberId}_${accoladeId}`;
+            const comment = commentsMap[commentKey] || '';
+            const roComment = roCommentsMap[commentKey] || '';
+            const currentStatus = approveStatusMap[commentKey];
 
-                combinations.push({
-                    memberId,
-                    memberName,
-                    accolade,
-                    comment,
-                    roComment,
-                    isVisitor,
-                    currentStatus
-                });
+            combinations.push({
+                memberId,
+                memberName,
+                accolade,
+                comment,
+                roComment,
+                isVisitor,
+                currentStatus
             });
         });
 
@@ -550,51 +560,105 @@ function bulkDecline() {
     });
 }
 
+// async function submitBulkActions() {
+
+
+//     try {
+//         // Get the current requisition's existing data
+//         const existingApproveStatus = currentRequisition.approve_status ? 
+//             JSON.parse(currentRequisition.approve_status) : {};
+//         const existingRoComments = currentRequisition.ro_comment ? 
+//             JSON.parse(currentRequisition.ro_comment) : {};
+
+//         // Prepare the data for API
+//         const updateData = {
+//             chapter_requisition_id: currentRequisition.chapter_requisition_id,
+//             approve_status: { ...existingApproveStatus },
+//             ro_comment: { ...existingRoComments }
+//         };
+
+//         // Populate the update data
+//         for (const [key, action] of Object.entries(selectedActions)) {
+//             // Only update status if one was selected
+//             if (action.status) {
+//                 updateData.approve_status[key] = action.status;
+//             }
+//             // Always update comment if provided
+//             if (action.comment && action.comment.trim()) {
+//                 updateData.ro_comment[key] = action.comment.trim();
+//             }
+//         }
+
+//         // Make API call
+//         const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
+//             method: 'PUT',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify(updateData)
+//         });
+
+//         if (!response.ok) {
+//             throw new Error('Failed to update requisitions');
+//         }
+
+//         // Show success message
+//         await Swal.fire({
+//             icon: 'success',
+//             title: 'Success!',
+//             text: 'Changes saved successfully',
+//             timer: 2000,
+//             showConfirmButton: false
+//         });
+
+//         // Refresh the data
+//         loadData();
+
+//     } catch (error) {
+//         console.error('Error in submitBulkActions:', error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Error',
+//             text: 'Failed to process changes: ' + error.message
+//         });
+//     }
+// }
+
+
+// Comment out original function
+/*
+async function submitBulkActions() {
+    // ... original code ...
+}
+*/
+
+// New simplified version
 async function submitBulkActions() {
     try {
-        // Get the current requisition's existing data
-        const existingApproveStatus = currentRequisition.approve_status ? 
-            JSON.parse(currentRequisition.approve_status) : {};
-        const existingRoComments = currentRequisition.ro_comment ? 
-            JSON.parse(currentRequisition.ro_comment) : {};
+        console.log('🎯 Starting Simplified Submit Actions');
+        console.log('📦 Selected Actions:', selectedActions);
 
-        // Prepare the data for API
-        const updateData = {
-            chapter_requisition_id: currentRequisition.chapter_requisition_id,
-            approve_status: { ...existingApproveStatus },
-            ro_comment: { ...existingRoComments }
-        };
-
-        // Populate the update data
+        // Process each selected action
         for (const [key, action] of Object.entries(selectedActions)) {
-            // Only update status if one was selected
-            if (action.status) {
-                updateData.approve_status[key] = action.status;
-            }
-            // Always update comment if provided
-            if (action.comment && action.comment.trim()) {
-                updateData.ro_comment[key] = action.comment.trim();
-            }
-        }
+            console.log('🔄 Processing action:', { key, action });
+            
+            const [memberId, accoladeId] = key.split('_');
+            console.log('🔍 Parsed IDs:', { memberId, accoladeId });
 
-        // Make API call
-        const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updateData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update requisitions');
+            // Call handleRequisitionAction directly
+            await handleRequisitionAction({
+                memberId: parseInt(memberId),
+                accoladeId: parseInt(accoladeId),
+                status: action.status,
+                requisitionId: currentRequisition.chapter_requisition_id
+            });
         }
 
         // Show success message
         await Swal.fire({
             icon: 'success',
             title: 'Success!',
-            text: 'Changes saved successfully',
+            text: 'Changes processed successfully',
             timer: 2000,
             showConfirmButton: false
         });
@@ -603,7 +667,7 @@ async function submitBulkActions() {
         loadData();
 
     } catch (error) {
-        console.error('Error in submitBulkActions:', error);
+        console.error('❌ Error in simplified submitBulkActions:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -611,7 +675,6 @@ async function submitBulkActions() {
         });
     }
 }
-
 // Function to handle requisition action
 async function handleRequisitionAction(data) {
     try {
@@ -716,7 +779,10 @@ async function handleRequisitionAction(data) {
                     const memberReq = memberRequisitions.find(req => 
                         req.member_id === actionData.memberId && 
                         req.chapter_id === currentRequisition.chapter_id && 
-                        req.accolade_id === actionData.accoladeId
+                        req.accolade_id === actionData.accoladeId &&
+                        req.given_status === false &&
+                        req.request_status === 'open' &&
+                        req.given_date === null
                     );
 
                     if (!memberReq) {
@@ -731,7 +797,7 @@ async function handleRequisitionAction(data) {
                         accolade_id: actionData.accoladeId,
                         approve_status: actionData.status === 'approved' ? 'approved' : 'rejected',
                         response_comment: roComment,
-                        request_status: actionData.status === 'approved' ? 'closed' : 'open',
+                        
                         approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
                     };
 
@@ -762,7 +828,10 @@ async function handleRequisitionAction(data) {
                     const freeReq = allMemberRequisitions.find(req => 
                         req.member_id === actionData.memberId && 
                         req.chapter_id === currentRequisition.chapter_id && 
-                        req.accolade_id === actionData.accoladeId
+                        req.accolade_id === actionData.accoladeId &&
+                        req.given_status === false &&
+                        req.request_status === 'open' &&
+                        req.given_date === null
                     );
 
                     if (freeReq) {
@@ -775,7 +844,7 @@ async function handleRequisitionAction(data) {
                                 accolade_id: actionData.accoladeId,
                                 approve_status: actionData.status === 'approved' ? 'approved' : 'pending',
                                 response_comment: roComment,
-                                request_status: actionData.status === 'approved' ? 'closed' : 'open',
+                               
                                 approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
                             };
 
@@ -999,7 +1068,7 @@ const renderTable = () => {
                                 padding: 2px 6px;
                                 border-radius: 4px;
                                 box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-                            ">${req.member_ids.length * req.accolade_ids.length}</span>
+                            ">${Object.keys(JSON.parse(req.comment || '{}')).length}</span>
                         </div>
 
                         <style>
@@ -1687,59 +1756,287 @@ function applyFilters() {
     renderTable();
 }
 
+// async function handleViewAccoladeDetails(requisition) {
+//     try {
+//         // Fetch necessary data
+//         const [accoladesResponse, membersResponse, visitorsResponse] = await Promise.all([
+//             fetch('https://backend.bninewdelhi.com/api/accolades'),
+//             fetch('https://backend.bninewdelhi.com/api/members'),
+//             fetch('https://backend.bninewdelhi.com/api/getallvisitors')
+//         ]);
+
+//         const [allAccolades, allMembers, visitors] = await Promise.all([
+//             accoladesResponse.json(),
+//             membersResponse.json(),
+//             visitorsResponse.json()
+//         ]);
+
+//         // Create combinations array
+//         const combinations = [];
+//         requisition.member_ids.forEach(memberId => {
+//             let memberName;
+//             let isVisitor = false;
+
+//             if (memberId === 0) {
+//                 isVisitor = true;
+//                 const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+//                 memberName = visitor ? `${visitor.visitor_name} (Visitor)` : 'Unknown Visitor';
+//             } else {
+//                 const member = allMembers.find(m => m.member_id === memberId);
+//                 memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
+//             }
+            
+//             requisition.accolade_ids.forEach(accoladeId => {
+//                 const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
+//                 combinations.push({ memberId, memberName, accolade, isVisitor });
+//             });
+//         });
+
+//         // Group combinations by accolade
+//         const accoladeGroups = combinations.reduce((groups, combo) => {
+//             const key = combo.accolade.accolade_id;
+//             if (!groups[key]) {
+//                 groups[key] = {
+//                     accolade: combo.accolade,
+//                     members: []
+//                 };
+//             }
+//             groups[key].members.push({
+//                 name: combo.memberName,
+//                 isVisitor: combo.isVisitor
+//             });
+//             return groups;
+//         }, {});
+
+//         // Create HTML for each accolade group
+//         const accoladesHtml = Object.values(accoladeGroups).map(group => `
+//             <div class="accolade-card" style="
+//                 background: white;
+//                 border-radius: 16px;
+//                 margin-bottom: 24px;
+//                 box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);
+//                 overflow: hidden;
+//                 border: 1px solid rgba(0, 0, 0, 0.05);
+//                 position: relative;
+//             ">
+//                 <!-- Sticky Accolade Header -->
+//                 <div style="
+//                     background: ${group.accolade.accolade_type === 'Global' ? 
+//                         'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 
+//                         'linear-gradient(135deg, #ef4444, #b91c1c)'};
+//                     padding: 20px;
+//                     color: white;
+//                     position: sticky;
+//                     top: 0;
+//                     z-index: 10;
+//                     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+//                 ">
+//                     <div style="
+//                         display: flex;
+//                         justify-content: space-between;
+//                         align-items: center;
+//                         position: relative;
+//                     ">
+//                         <h3 style="
+//                             margin: 0;
+//                             font-size: 1.35rem;
+//                             font-weight: 600;
+//                             display: flex;
+//                             align-items: center;
+//                             gap: 12px;
+//                             color: white;
+//                         ">
+//                             <i class="ri-award-fill" style="font-size: 1.5rem;"></i>
+//                             ${group.accolade.accolade_name}
+//                             <span style="
+//                                 font-size: 0.9rem;
+//                                 opacity: 0.9;
+//                                 font-weight: normal;
+//                                 color: white;
+//                             ">(${group.members.length} members)</span>
+//                         </h3>
+//                         <div style="
+//                             background: rgba(255, 255, 255, 0.15);
+//                             padding: 6px 16px;
+//                             border-radius: 9999px;
+//                             font-size: 0.875rem;
+//                             color: white;
+//                             backdrop-filter: blur(4px);
+//                             border: 1px solid rgba(255, 255, 255, 0.2);
+//                             font-weight: 500;
+//                             letter-spacing: 0.5px;
+//                         ">
+//                             ${group.accolade.accolade_type}
+//                         </div>
+//                     </div>
+//                 </div>
+
+//                 <!-- Members List -->
+//                 <div style="padding: 20px;">
+//                     <div style="
+//                         display: flex;
+//                         flex-direction: column;
+//                         gap: 10px;
+//                     ">
+//                         ${group.members.map(member => `
+//                             <div style="
+//                                 display: flex;
+//                                 align-items: center;
+//                                 gap: 10px;
+//                                 padding: 12px;
+//                                 background: ${member.isVisitor ? 
+//                                     'linear-gradient(to right, #f0fdf4, #dcfce7)' : 
+//                                     'linear-gradient(to right, #f1f5f9, #f8fafc)'};
+//                                 border-radius: 10px;
+//                                 transition: transform 0.2s ease;
+//                                 border: 1px solid ${member.isVisitor ? '#86efac' : '#e2e8f0'};
+//                             "
+//                             onmouseover="this.style.transform='translateX(5px)'"
+//                             onmouseout="this.style.transform='translateX(0)'"
+//                             >
+//                                 <div style="
+//                                     background: ${member.isVisitor ? '#22c55e' : '#64748b'};
+//                                     color: white;
+//                                     width: 32px;
+//                                     height: 32px;
+//                                     border-radius: 50%;
+//                                     display: flex;
+//                                     align-items: center;
+//                                     justify-content: center;
+//                                 ">
+//                                     <i class="ri-${member.isVisitor ? 'user-follow-line' : 'user-line'}"></i>
+//                                 </div>
+//                                 <span style="
+//                                     color: ${member.isVisitor ? '#15803d' : '#1e293b'};
+//                                     font-weight: 500;
+//                                     flex-grow: 1;
+//                                 ">${member.name}</span>
+//                                 <span style="
+//                                     font-size: 0.8rem;
+//                                     color: ${member.isVisitor ? '#16a34a' : '#64748b'};
+//                                     background: ${member.isVisitor ? '#dcfce7' : '#f1f5f9'};
+//                                     padding: 4px 12px;
+//                                     border-radius: 9999px;
+//                                     border: 1px solid ${member.isVisitor ? '#86efac' : '#e2e8f0'};
+//                                 ">
+//                                     ${member.isVisitor ? 'Visitor' : 'Member'}
+//                                 </span>
+//                             </div>
+//                         `).join('')}
+//                     </div>
+//                 </div>
+//             </div>
+//         `).join('');
+
+//         // Show SweetAlert with a compact header
+//         Swal.fire({
+//             html: `
+//                 <div style="
+//                     margin: -20px -20px 0 -20px;
+//                     padding: 15px 20px;
+//                     border-bottom: 1px solid #e5e7eb;
+//                     background: linear-gradient(to right, #f8fafc, #ffffff);
+//                 ">
+//                     <h3 style="
+//                         margin: 0;
+//                         color: #2563eb;
+//                         font-size: 1.1rem;
+//                         font-weight: 600;
+//                         display: flex;
+//                         align-items: center;
+//                         gap: 8px;
+//                     ">
+//                         <i class="ri-award-fill"></i>
+//                         Accolade Details
+//                     </h3>
+//                 </div>
+//                 <div style="
+//                     max-height: 85vh;
+//                     overflow-y: auto;
+//                     padding: 0;
+//                     margin: 0 -20px -20px -20px;
+//                     scrollbar-width: thin;
+//                 ">
+//                     ${accoladesHtml}
+//                 </div>
+//             `,
+//             width: '650px',
+//             showCloseButton: true,
+//             showConfirmButton: false,
+//             padding: '20px',
+//             customClass: {
+//                 container: 'accolade-details-modal'
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Error in handleViewAccoladeDetails:', error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Error',
+//             text: 'Failed to load accolade details'
+//         });
+//     }
+// }
+
 async function handleViewAccoladeDetails(requisition) {
     try {
         // Fetch necessary data
-        const [accoladesResponse, membersResponse, visitorsResponse] = await Promise.all([
+        const [requisitionsResponse, accoladesResponse, membersResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
             fetch('https://backend.bninewdelhi.com/api/accolades'),
-            fetch('https://backend.bninewdelhi.com/api/members'),
-            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
+            fetch('https://backend.bninewdelhi.com/api/members')
         ]);
 
-        const [allAccolades, allMembers, visitors] = await Promise.all([
+        const [allRequisitions, allAccolades, allMembers] = await Promise.all([
+            requisitionsResponse.json(),
             accoladesResponse.json(),
-            membersResponse.json(),
-            visitorsResponse.json()
+            membersResponse.json()
         ]);
 
-        // Create combinations array
-        const combinations = [];
-        requisition.member_ids.forEach(memberId => {
-            let memberName;
-            let isVisitor = false;
+        // Find the specific requisition
+        const currentRequisition = allRequisitions.find(req => 
+            req.chapter_requisition_id === requisition.chapter_requisition_id
+        );
 
-            if (memberId === 0) {
-                isVisitor = true;
-                const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
-                memberName = visitor ? `${visitor.visitor_name} (Visitor)` : 'Unknown Visitor';
-            } else {
-                const member = allMembers.find(m => m.member_id === memberId);
-                memberName = member ? `${member.member_first_name} ${member.member_last_name}` : `Member ID: ${memberId}`;
+        if (!currentRequisition) {
+            throw new Error('Requisition not found');
+        }
+
+        // Parse the comment object which contains member_id and accolade_id pairs
+        const commentPairs = JSON.parse(currentRequisition.comment || '{}');
+        
+        // Create accolade groups from the comment pairs
+        const accoladeGroups = {};
+        
+        // Process each pair (e.g., "143_40", "143_13", etc.)
+        Object.keys(commentPairs).forEach(pair => {
+            const [memberId, accoladeId] = pair.split('_').map(Number);
+            
+            // If this accolade hasn't been processed yet, initialize its group
+            if (!accoladeGroups[accoladeId]) {
+                const accolade = allAccolades.find(a => a.accolade_id === accoladeId);
+                if (accolade) {
+                    accoladeGroups[accoladeId] = {
+                        accolade: accolade,
+                        members: []
+                    };
+                }
             }
             
-            requisition.accolade_ids.forEach(accoladeId => {
-                const accolade = allAccolades.find(acc => acc.accolade_id === accoladeId);
-                combinations.push({ memberId, memberName, accolade, isVisitor });
-            });
+            // Find and add the member to this accolade's group
+            if (accoladeGroups[accoladeId]) {
+                const member = allMembers.find(m => m.member_id === memberId);
+                if (member) {
+                    accoladeGroups[accoladeId].members.push({
+                        name: `${member.member_first_name} ${member.member_last_name}`,
+                        isVisitor: false
+                    });
+                }
+            }
         });
 
-        // Group combinations by accolade
-        const accoladeGroups = combinations.reduce((groups, combo) => {
-            const key = combo.accolade.accolade_id;
-            if (!groups[key]) {
-                groups[key] = {
-                    accolade: combo.accolade,
-                    members: []
-                };
-            }
-            groups[key].members.push({
-                name: combo.memberName,
-                isVisitor: combo.isVisitor
-            });
-            return groups;
-        }, {});
-
-        // Create HTML for each accolade group
+        // Create HTML for each accolade group (keeping your existing HTML structure)
         const accoladesHtml = Object.values(accoladeGroups).map(group => `
             <div class="accolade-card" style="
                 background: white;
@@ -1750,7 +2047,7 @@ async function handleViewAccoladeDetails(requisition) {
                 border: 1px solid rgba(0, 0, 0, 0.05);
                 position: relative;
             ">
-                <!-- Sticky Accolade Header -->
+                <!-- Your existing accolade header HTML -->
                 <div style="
                     background: ${group.accolade.accolade_type === 'Global' ? 
                         'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 
@@ -1815,18 +2112,16 @@ async function handleViewAccoladeDetails(requisition) {
                                 align-items: center;
                                 gap: 10px;
                                 padding: 12px;
-                                background: ${member.isVisitor ? 
-                                    'linear-gradient(to right, #f0fdf4, #dcfce7)' : 
-                                    'linear-gradient(to right, #f1f5f9, #f8fafc)'};
+                                background: linear-gradient(to right, #f1f5f9, #f8fafc);
                                 border-radius: 10px;
                                 transition: transform 0.2s ease;
-                                border: 1px solid ${member.isVisitor ? '#86efac' : '#e2e8f0'};
+                                border: 1px solid #e2e8f0;
                             "
                             onmouseover="this.style.transform='translateX(5px)'"
                             onmouseout="this.style.transform='translateX(0)'"
                             >
                                 <div style="
-                                    background: ${member.isVisitor ? '#22c55e' : '#64748b'};
+                                    background: #64748b;
                                     color: white;
                                     width: 32px;
                                     height: 32px;
@@ -1835,22 +2130,22 @@ async function handleViewAccoladeDetails(requisition) {
                                     align-items: center;
                                     justify-content: center;
                                 ">
-                                    <i class="ri-${member.isVisitor ? 'user-follow-line' : 'user-line'}"></i>
+                                    <i class="ri-user-line"></i>
                                 </div>
                                 <span style="
-                                    color: ${member.isVisitor ? '#15803d' : '#1e293b'};
+                                    color: #1e293b;
                                     font-weight: 500;
                                     flex-grow: 1;
                                 ">${member.name}</span>
                                 <span style="
                                     font-size: 0.8rem;
-                                    color: ${member.isVisitor ? '#16a34a' : '#64748b'};
-                                    background: ${member.isVisitor ? '#dcfce7' : '#f1f5f9'};
+                                    color: #64748b;
+                                    background: #f1f5f9;
                                     padding: 4px 12px;
                                     border-radius: 9999px;
-                                    border: 1px solid ${member.isVisitor ? '#86efac' : '#e2e8f0'};
+                                    border: 1px solid #e2e8f0;
                                 ">
-                                    ${member.isVisitor ? 'Visitor' : 'Member'}
+                                    Member
                                 </span>
                             </div>
                         `).join('')}
@@ -1859,7 +2154,7 @@ async function handleViewAccoladeDetails(requisition) {
             </div>
         `).join('');
 
-        // Show SweetAlert with a compact header
+        // Show SweetAlert with your existing modal structure
         Swal.fire({
             html: `
                 <div style="
