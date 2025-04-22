@@ -208,6 +208,19 @@
                         </select>
                       </div>
                       <div class="col-xl-6">
+                        <label for="accolade_price" class="form-label">Accolade Price</label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="accolade_price"
+                            name="accolade_price"
+                            placeholder="Enter accolade price"
+                            min="0"
+                            step="any"
+                            onchange="formatPrice(this)"
+                        />
+                    </div>
+                      <div class="col-xl-6">
                         <label for="ec" class="form-label"
                           >Eligibility & Condition</label
                         >

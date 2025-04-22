@@ -84,6 +84,14 @@ function displayAccolades(accolades) {
                     <div class="d-flex align-items-center">
                         <div class="ms-2">
                             <p class="fw-semibold mb-0 d-flex align-items-center">
+                                <a href="#">₹${accolade.accolade_price || 'N/A'}</a>
+                            </p>
+                        </div>
+                
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="ms-2">
+                            <p class="fw-semibold mb-0 d-flex align-items-center">
                                 <a href="#">${accolade.accolade_published_by || 'N/A'}</a>
                             </p>
                         </div>
@@ -172,6 +180,10 @@ function sortAccolades(column) {
             case 'name':
                 compareA = a.accolade_name?.toLowerCase() || '';
                 compareB = b.accolade_name?.toLowerCase() || '';
+                break;
+            case 'price':
+                compareA = parseFloat(a.accolade_price) || 0;
+                compareB = parseFloat(b.accolade_price) || 0;
                 break;
             case 'publisher':
                 compareA = a.accolade_published_by?.toLowerCase() || '';
