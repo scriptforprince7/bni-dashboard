@@ -601,7 +601,9 @@ const filteredTransactions = transactions.filter((transaction) => {
       console.log('Checking payment method for transaction:', transaction.order_id);
       console.log('Payment method structure:', transaction.payment_method);
 
-      if (transaction.payment_method?.cash?.payment_note === "Visitor Payment") {
+      if (transaction.payment_method?.cash?.payment_note === "Visitor Payment" || 
+        transaction.payment_method?.cash?.payment_note === "Meeting Payment" ||
+        transaction.payment_method?.cash?.payment_note === "Advance Meeting Payment") {
           console.log('✅ Cash payment detected for order:', transaction.order_id);
           actionButton = `
               <button class="btn btn-sm btn-success" disabled>

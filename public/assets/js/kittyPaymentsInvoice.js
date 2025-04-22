@@ -771,6 +771,31 @@ function showLoader() {
               });
           });
   
+          // Add this after member selection event listener
+          document.getElementById("include-gst").addEventListener("change", function() {
+            const taxableAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+            const cgstField = document.getElementById("cgst_amount");
+            const sgstField = document.getElementById("sgst_amount");
+            const grandTotalField = document.getElementById("grand_total");
+
+            if (this.checked) {
+              // Calculate GST (9% CGST + 9% SGST = 18% total)
+              const cgstAmount = (taxableAmount * 0.09).toFixed(2);
+              const sgstAmount = (taxableAmount * 0.09).toFixed(2);
+              const grandTotal = (taxableAmount + (parseFloat(cgstAmount) * 2)).toFixed(2);
+
+              // Update fields with GST
+              cgstField.value = `₹ ${cgstAmount}`;
+              sgstField.value = `₹ ${sgstAmount}`;
+              grandTotalField.value = `₹ ${grandTotal}`;
+            } else {
+              // Reset GST fields
+              cgstField.value = "-";
+              sgstField.value = "-";
+              grandTotalField.value = `₹ ${taxableAmount.toFixed(2)}`;
+            }
+          });
+  
           console.log("✅ Member dropdown update complete");
       }
       // Show all chapters by default
@@ -788,15 +813,27 @@ function showLoader() {
       const companyPhone = document.getElementById("company-phone");
       const companyGst = document.getElementById("company-gst");
   
-      // Populate company dropdown
+      // Clear existing options and add default option
+      companyDropdown.innerHTML = '<option value="">Select Company</option>';
+  
+      // Populate company dropdown - Only ADI CORPORATE TRAINING
       companies.forEach(company => {
-        const companyOption = document.createElement("option");
-        companyOption.value = company.company_id; // Assuming there's a company_id field
-        companyOption.textContent = company.company_name; // Assuming there's a company_name field
-        companyDropdown.appendChild(companyOption);
+        if (company.company_id === 1) {  // Only add ADI CORPORATE TRAINING
+          const companyOption = document.createElement("option");
+          companyOption.value = company.company_id;
+          companyOption.textContent = company.company_name;
+          companyOption.selected = true;  // Auto-select this option
+          companyDropdown.appendChild(companyOption);
+          
+          // Auto-fill the fields
+          companyAddress.value = company.company_address || "";
+          companyMail.value = company.company_email || "";
+          companyPhone.value = company.company_phone || "";
+          companyGst.value = company.company_gst || "";
+        }
       });
   
-      // Event listener to update fields on company selection
+      // Keep the change event listener
       companyDropdown.addEventListener("change", function() {
         const selectedCompany = companies.find(c => c.company_id == this.value);
         if (selectedCompany) {
@@ -1162,37 +1199,76 @@ function showLoader() {
 
                 if (selectedPaymentType === "partial") {
                     amountToPay = parseFloat(document.getElementById("partial-amount").value || 0);
-                    const gstOnPartial = amountToPay * 0.18; // 18% GST on partial amount
-                    const partialAmountWithGst = amountToPay + gstOnPartial;
+                    const includeGst = document.getElementById("include-gst").checked;
+                    let partialAmountWithGst = amountToPay;
+                    let gstOnPartial = 0;
+
+                    if (includeGst) {
+                        // Only calculate GST if checkbox is checked
+                        gstOnPartial = amountToPay * 0.18;
+                        partialAmountWithGst = amountToPay + gstOnPartial;
+                    }
+
+                    // Calculate remaining balance based on whether GST is included
                     remainingBalanceWithGst = grandTotal - partialAmountWithGst;
                     paymentType = "partial";
                     
                     console.log('💰 Partial Payment Details:', {
                         partialAmount: amountToPay,
+                        includeGst: includeGst,
                         gstAmount: gstOnPartial,
                         totalWithGst: partialAmountWithGst,
                         grandTotal,
                         remainingBalance: remainingBalanceWithGst
                     });
 
-                    // Store these values in invoiceData for later use
-                    invoiceData.partialAmountWithGst = partialAmountWithGst;
-                    invoiceData.gstOnPartial = gstOnPartial;
-
                     Object.assign(invoiceData, {
-                        order_amount: partialAmountWithGst,
+                        order_amount: partialAmountWithGst,  // Will be same as amountToPay if GST not included
                         partial_amount: amountToPay,
                         payment_type: "partial",
                         payment_note: "meeting-payments-partial",
                         remaining_balance_with_gst: remainingBalanceWithGst
                     });
 
-                    // Remove tax_amount for partial payments
-                    delete invoiceData.tax_amount;
+                    // Only include tax_amount if GST is included
+                    if (includeGst) {
+                        invoiceData.tax_amount = gstOnPartial;
+                    } else {
+                        delete invoiceData.tax_amount;
+                    }
                 } else if (selectedPaymentType === "advance") {
-                    amountToPay = parseFloat(document.getElementById("advance-amount").value || 0);
+                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
+                    const includeGst = document.getElementById("include-gst").checked;
+                    
+                    // Set payment type explicitly
                     paymentType = "advance";
-                    invoiceData.advance_payment = { amount: amountToPay };
+                    
+                    // Calculate amounts based on GST checkbox
+                    const advanceWithGST = includeGst ? advanceAmount * 1.18 : advanceAmount;
+                    const taxAmount = includeGst ? advanceAmount * 0.18 : 0;
+
+                    // Update invoice data
+                    Object.assign(invoiceData, {
+                        order_amount: advanceWithGST,
+                        payment_type: "advance",
+                        payment_note: "meeting-payments-advance",
+                        advance_amount: advanceAmount
+                    });
+
+                    // Only include tax if GST is checked
+                    if (includeGst) {
+                        invoiceData.tax_amount = taxAmount;
+                    } else {
+                        delete invoiceData.tax_amount;
+                    }
+
+                    console.log("💰 Advance Payment (First Section):", {
+                        amount: advanceAmount,
+                        withGST: includeGst,
+                        finalAmount: advanceWithGST,
+                        taxAmount: taxAmount,
+                        paymentType: paymentType
+                    });
                 }
 
                 // Adjust for credits
@@ -1229,7 +1305,7 @@ function showLoader() {
                             <p><strong>Member:</strong> ${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}</p>
                             <p><strong>Amount:</strong> ₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             <p><strong>Payment Type:</strong> ${paymentType}</p>
-                            <p><strong>Payment Method:</strong> ${paymentDetails.mode_of_payment}</p>
+                            ><strong>Payment Method:</strong> <strong>Cash</strong></p>
                             <p><strong>Tax Amount:</strong> ₹${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         </div>
                     `,
@@ -1255,12 +1331,13 @@ function showLoader() {
 
                 // Add advance payment handling before the API call
                 if (selectedPaymentType === "advance") {
-                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value) || 0;
+                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
+                    const includeGst = document.getElementById("include-gst").checked;
                     const grandTotal = parseFloat(document.getElementById("grand_total").value.replace(/[₹,\s]/g, '')) || 0;
 
-                    // Calculate advance amount with GST for both cases
-                    const advanceWithGST = advanceAmount * 1.18;
-                    const taxAmount = advanceAmount * 0.18; // Calculate tax amount (18% of advance amount)
+                    // Calculate amounts based on GST checkbox
+                    const advanceWithGST = includeGst ? advanceAmount * 1.18 : advanceAmount;
+                    const taxAmount = includeGst ? advanceAmount * 0.18 : 0;
 
                     if (grandTotal === 0) {
                         // Case 1: When grand total is zero
@@ -1268,8 +1345,8 @@ function showLoader() {
                             order_amount: advanceWithGST,
                             payment_type: "advance",
                             payment_note: "meeting-payments-advance",
-                            advance_amount: advanceWithGST,
-                            tax_amount: taxAmount // Add tax amount
+                            advance_amount: advanceAmount,
+                            tax_amount: includeGst ? taxAmount : undefined
                         });
                     } else if (advanceAmount > grandTotal) {
                         // Case 2: When advance is greater than grand total
@@ -1278,9 +1355,23 @@ function showLoader() {
                             payment_type: "advance",
                             payment_note: "meeting-payments-advance",
                             advance_amount: advanceAmount - grandTotal,
-                            tax_amount: taxAmount // Add tax amount
+                            tax_amount: includeGst ? taxAmount : undefined
                         });
                     }
+
+                    // Remove tax_amount if GST is not included
+                    if (!includeGst) {
+                        delete invoiceData.tax_amount;
+                    }
+
+                    console.log("💰 Advance Payment (Second Section):", {
+                        amount: advanceAmount,
+                        withGST: includeGst,
+                        finalAmount: advanceWithGST,
+                        taxAmount: taxAmount,
+                        grandTotal: grandTotal,
+                        paymentType: "advance"
+                    });
                 }
 
                 // Keep existing console log
