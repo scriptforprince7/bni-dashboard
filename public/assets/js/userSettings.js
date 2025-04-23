@@ -96,16 +96,16 @@ async function fetchCompanyInfo() {
         console.log('Token email:', decoded.email);
 
         // Fetch users and validate email
-        const usersResponse = await fetch('https://backend.bninewdelhi.com/api/getUsers');
-        const users = await usersResponse.json();
-        console.log('Checking authorization for email:', decoded.email);
+        // const usersResponse = await fetch('https://backend.bninewdelhi.com/api/getUsers');
+        // const users = await usersResponse.json();
+        // console.log('Checking authorization for email:', decoded.email);
         
-        const isAuthorized = users.some(user => user.email === decoded.email);
-        if (!isAuthorized) {
-            console.error('User not authorized');
-            toastr.error('You are not authorized to view these settings');
-            return;
-        }
+        // const isAuthorized = users.some(user => user.email === decoded.email);
+        // if (!isAuthorized) {
+        //     console.error('User not authorized');
+        //     toastr.error('You are not authorized to view these settings');
+        //     return;
+        // }
 
         // Fetch company info
         const response = await fetch('https://backend.bninewdelhi.com/api/company');

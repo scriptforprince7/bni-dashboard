@@ -1,4 +1,26 @@
-
+      <!-- Add this right after <body> tag -->
+        <script src="/assets/js/tokenUtils.js"></script>
+        <script>
+            (function checkAccess() {
+                try {
+                    const loginType = getUserLoginType();
+                    if (loginType !== 'ro_admin') {
+                        document.body.innerHTML = `
+                            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                                <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                                    <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                                    <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Access check failed:', error);
+                    window.location.href = '/';
+                }
+            })();
+        </script>
     <!-- header -->
     <%- include('../partials/header') %> 
     <!-- end header -->
