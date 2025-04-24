@@ -9,6 +9,7 @@ const itemsPerPage = 10;
 let isPaginationEnabled = true;
 let selectedRegion = null;
 let selectedChapter = null;
+let allMemberAccolades = [];
 
 // Function to fetch regions data
 async function fetchRegions() {
@@ -66,6 +67,20 @@ async function fetchAccolades() {
     }
 }
 
+// Function to fetch member accolades data
+async function fetchMemberAccolades() {
+    try {
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        if (!response.ok) throw new Error('Failed to fetch member accolades');
+        const data = await response.json();
+        allMemberAccolades = data;
+        return data;
+    } catch (error) {
+        console.error('Error fetching member accolades:', error);
+        return [];
+    }
+}
+
 // Function to format date
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -78,24 +93,32 @@ function formatDate(dateString) {
 }
 
 // Function to show accolade details popup
-function showAccoladeDetails(accoladeIds) {
+function showAccoladeDetails(accoladeIds, memberId) {
     if (!accoladeIds || accoladeIds.length === 0) return;
 
-    const accoladeDetails = accoladeIds.map(id => {
-        const accolade = allAccolades.find(acc => acc.accolade_id === id);
+    const memberAccolades = allMemberAccolades.filter(acc => 
+        acc.member_id === memberId && accoladeIds.includes(acc.accolade_id)
+    );
+
+    const accoladeDetails = memberAccolades.map(memberAcc => {
+        const accolade = allAccolades.find(acc => acc.accolade_id === memberAcc.accolade_id);
         if (!accolade) return '';
         return `
             <div class="accolade-detail">
                 <h5 class="text-primary">${accolade.accolade_name}</h5>
                 <div class="publish-date">
                     <i class="ti ti-calendar"></i>
-                    Issued on ${formatDate(accolade.accolade_publish_date)}
+                    Issued on ${formatDate(memberAcc.issue_date)}
                 </div>
                 
                 <p><strong>Item Type:</strong> ${accolade.item_type}</p>
-                
                 <p><strong>Status:</strong> <span class="badge ${accolade.accolade_status === 'active' ? 'bg-success' : 'bg-danger'}">${accolade.accolade_status}</span></p>
-                
+                ${memberAcc.given_date ? `
+                    <p><strong>Given Date:</strong> ${formatDate(memberAcc.given_date)}</p>
+                ` : ''}
+                ${memberAcc.comment ? `
+                    <p><strong>Comment:</strong> ${memberAcc.comment}</p>
+                ` : ''}
             </div>
         `;
     }).join('');
@@ -145,9 +168,16 @@ function populateChapterFilter() {
 }
 
 // Function to get accolade names for a member
-function getAccoladeNames(accoladeIds) {
-    if (!accoladeIds) return 'None';
-    return `<a href="#" class="text-primary accolade-link" onclick="showAccoladeDetails(${JSON.stringify(accoladeIds)})">${
+function getAccoladeNames(memberId) {
+    // Filter accolades for this member
+    const memberAccolades = allMemberAccolades.filter(acc => acc.member_id === memberId);
+    
+    if (!memberAccolades || memberAccolades.length === 0) return 'None';
+    
+    // Get unique accolade IDs for this member
+    const accoladeIds = [...new Set(memberAccolades.map(acc => acc.accolade_id))];
+    
+    return `<a href="#" class="text-primary accolade-link" onclick="showAccoladeDetails(${JSON.stringify(accoladeIds)}, ${memberId})">${
         accoladeIds
             .map(id => allAccolades.find(acc => acc.accolade_id === id)?.accolade_name)
             .filter(name => name)
@@ -190,16 +220,23 @@ function displayMembers() {
     const endIndex = isPaginationEnabled ? startIndex + itemsPerPage : filteredMembers.length;
     const membersToDisplay = filteredMembers.slice(startIndex, endIndex);
 
-    tableBody.innerHTML = membersToDisplay.map((member, index) => `
-        <tr class="align-middle">
-            <td class="fw-bold">${startIndex + index + 1}</td>
-            <td class="fw-bold text-primary">${member.member_first_name} ${member.member_last_name}</td>
-            <td class="fw-bold ">${allChapters.find(c => c.chapter_id === member.chapter_id)?.chapter_name || 'Unknown Chapter'}</td>
-            <td class="fw-bold">${member.accolades_id ? member.accolades_id.length : 0}</td>
-            <td class="fw-bold">${getAccoladeNames(member.accolades_id)}</td>
-            <td class="fw-bold ${member.member_status === 'active' ? 'text-success' : 'text-danger'}">${member.member_status}</td>
-        </tr>
-    `).join('');
+    tableBody.innerHTML = membersToDisplay.map((member, index) => {
+        // Count accolades for this member
+        const memberAccoladesCount = allMemberAccolades.filter(acc => 
+            acc.member_id === member.member_id
+        ).length;
+
+        return `
+            <tr class="align-middle">
+                <td class="fw-bold">${startIndex + index + 1}</td>
+                <td class="fw-bold text-primary">${member.member_first_name} ${member.member_last_name}</td>
+                <td class="fw-bold ">${allChapters.find(c => c.chapter_id === member.chapter_id)?.chapter_name || 'Unknown Chapter'}</td>
+                <td class="fw-bold">${memberAccoladesCount}</td>
+                <td class="fw-bold">${getAccoladeNames(member.member_id)}</td>
+                <td class="fw-bold ${member.member_status === 'active' ? 'text-success' : 'text-danger'}">${member.member_status}</td>
+            </tr>
+        `;
+    }).join('');
 
     updatePagination();
 }
@@ -279,7 +316,13 @@ function updatePagination() {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', async () => {
     // Fetch initial data
-    await Promise.all([fetchRegions(), fetchChapters(), fetchMembers(), fetchAccolades()]);
+    await Promise.all([
+        fetchRegions(), 
+        fetchChapters(), 
+        fetchMembers(), 
+        fetchAccolades(),
+        fetchMemberAccolades()
+    ]);
     
     // Populate initial filters
     populateRegionFilter();
