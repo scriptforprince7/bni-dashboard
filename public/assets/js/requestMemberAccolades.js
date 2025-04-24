@@ -80,8 +80,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             accoladeSelect.appendChild(option);
         });
 
-        // Check for existing accolade on selection
-        accoladeSelect.addEventListener('change', function() {
+        // Add this function at the top to fetch all member accolades
+        async function fetchAllMemberAccolades() {
+            try {
+                const response = await fetch(`https://backend.bninewdelhi.com/api/getAllMemberAccolades`);
+                if (!response.ok) throw new Error('Failed to fetch member accolades');
+                return await response.json();
+            } catch (error) {
+                console.error('❌ Error fetching member accolades:', error);
+                return [];
+            }
+        }
+
+        // Modify the accolade select event listener
+        accoladeSelect.addEventListener('change', async function() {
             const selectedAccoladeId = parseInt(this.value);
             console.log('🎯 Selected Accolade ID:', selectedAccoladeId);
             
@@ -95,8 +107,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             const selectedAccolade = availableAccolades.find(a => a.accolade_id === selectedAccoladeId);
             console.log('🏆 Selected Accolade Details:', selectedAccolade);
 
-            if (currentMember.accolades_id.includes(selectedAccoladeId)) {
-                console.log('⚠️ Accolade already assigned to member:', selectedAccoladeId);
+            // Fetch all member accolades
+            const allMemberAccolades = await fetchAllMemberAccolades();
+            console.log('📊 All Member Accolades:', allMemberAccolades);
+
+            // Check if this member already has this accolade
+            const existingAccolade = allMemberAccolades.find(accolade => 
+                accolade.member_id === currentMember.member_id && 
+                accolade.accolade_id === selectedAccoladeId
+            );
+
+            if (existingAccolade) {
+                console.log('⚠️ Accolade already assigned to member:', existingAccolade);
                 
                 Swal.fire({
                     title: '<span style="color: #f59e0b">Accolade Already Assigned</span>',

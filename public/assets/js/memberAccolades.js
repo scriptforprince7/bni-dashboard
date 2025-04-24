@@ -103,92 +103,59 @@ async function fetchMemberData() {
     try {
         showLoader();
         
-        // Step 1: Try getting member details from multiple sources
+        // Step 1: Get member_id from localStorage or token
         let member_id = localStorage.getItem('current_member_id');
-        let member_email = localStorage.getItem('current_member_email');
         const loginType = getUserLoginType();
         
         console.log('=== Starting Member Accolades ===');
-        console.log('Initial check from localStorage:', {
-            member_id: member_id,
-            member_email: member_email,
-            loginType: loginType
-        });
+        console.log('Initial check:', { member_id, loginType });
 
-        // Only get email from token if not found in localStorage and not ro_admin
-        if (!member_email && loginType !== 'ro_admin') {
-            member_email = getUserEmail();
-            console.log('Retrieved from token:', { member_email });
+        // If no member_id in localStorage and not ro_admin, get from token
+        if (!member_id && loginType !== 'ro_admin') {
+            const userEmail = getUserEmail();
+            const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+            const membersData = await membersResponse.json();
+            const member = membersData.find(m => m.member_email_address === userEmail);
+            member_id = member?.member_id;
         }
 
-        if (!member_email) {
-            console.error('No member email found from any source');
-            hideLoader();
-            return;
+        if (!member_id) {
+            throw new Error('No member ID found');
         }
 
-        // Fetch all required data in parallel
-        const [membersResponse, accoladesResponse, requisitionsResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/members'),
-            fetch('https://backend.bninewdelhi.com/api/accolades'),
-            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+        // Step 2: Fetch member accolades and all accolades in parallel
+        const [memberAccoladesResponse, accoladesResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
 
-        const [membersData, accoladesData, requisitionsData] = await Promise.all([
-            membersResponse.json(),
-            accoladesResponse.json(),
-            requisitionsResponse.json()
+        const [memberAccoladesData, accoladesData] = await Promise.all([
+            memberAccoladesResponse.json(),
+            accoladesResponse.json()
         ]);
 
         console.log('📊 Fetched Data:', {
-            members: membersData.length,
-            accolades: accoladesData.length,
-            requisitions: requisitionsData.length
+            memberAccolades: memberAccoladesData.length,
+            accolades: accoladesData.length
         });
 
-        // Find logged in member
-        const loggedInMember = membersData.find(member => member.member_email_address === member_email);
-        console.log('👤 Logged in member:', loggedInMember);
-
-        if (!loggedInMember) {
-            throw new Error('Member not found');
-        }
-
-        // Map accolades with requisition data
-        const memberAccolades = [];
-        for (const id of loggedInMember.accolades_id) {
-            const matchingAccolade = accoladesData.find(accolade => accolade.accolade_id === id);
-            if (matchingAccolade) {
-                // Initialize dates with '-'
-                matchingAccolade.accolade_publish_date = '-';
-                matchingAccolade.accolade_given_date = '-';
-
-                // Find matching requisition
-                const requisition = requisitionsData.find(req => 
-                    req.member_id === loggedInMember.member_id && 
-                    req.accolade_id === id
-                );
-                
-                console.log(`🔍 Checking requisition for accolade ${id}:`, requisition);
-
-                if (requisition) {
-                    // Add issued date if approved
-                    if (requisition.approved_date) {
-                        matchingAccolade.accolade_publish_date = formatDate(requisition.approved_date);
-                        console.log(`📅 Found issue date for accolade ${id}:`, matchingAccolade.accolade_publish_date);
-                    }
-
-                    // Add given date if closed and given
-                    if ( requisition.given_status === true) {
-                        matchingAccolade.accolade_given_date = formatDate(requisition.given_date);
-                        console.log(`🎁 Found given date for accolade ${id}:`, matchingAccolade.accolade_given_date);
-                    }
+        // Step 3: Filter accolades for current member and map with details
+        const memberAccolades = memberAccoladesData
+            .filter(ma => ma.member_id === parseInt(member_id))
+            .map(ma => {
+                const accoladeDetails = accoladesData.find(a => a.accolade_id === ma.accolade_id);
+                if (accoladeDetails) {
+                    return {
+                        ...accoladeDetails,
+                        accolade_publish_date: formatDate(ma.issue_date),
+                        accolade_given_date: formatDate(ma.given_date),
+                        count: ma.count,
+                        comment: ma.comment
+                    };
                 }
-
-                memberAccolades.push(matchingAccolade);
-                console.log(`✅ Added accolade ${id} with dates:`, matchingAccolade);
-            }
-        }
+                return null;
+            })
+            .filter(Boolean); // Remove any null values
 
         console.log(`📚 Total accolades processed: ${memberAccolades.length}`, memberAccolades);
 
@@ -212,15 +179,9 @@ function populateAccoladesTable(accolades) {
     }
 
     debugLog(`Populating table with ${accolades.length} accolades`);
-    console.log('📊 Accolades data to populate:', accolades);  // Add this log
-
-    // Clear existing rows
     tableBody.innerHTML = '';
 
-    // Add rows for each accolade
     accolades.forEach((accolade, index) => {
-        console.log(`🔄 Processing accolade for row ${index + 1}:`, accolade); // Add this log
-        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><span style="font-weight: 600">${index + 1}</span></td>
@@ -231,7 +192,7 @@ function populateAccoladesTable(accolades) {
                 >${accolade.accolade_name || 'N/A'}</span>
             </td>
             <td>${accolade.item_type || 'N/A'}</td>
-            <td><span style="font-weight: 600">1</span></td>
+            <td><span style="font-weight: 600">${accolade.count || 1}</span></td>
             <td>${accolade.accolade_published_by || 'N/A'}</td>
             <td><span style="font-weight: 600">${accolade.accolade_publish_date || '-'}</span></td>
             <td><span style="font-weight: 600">${accolade.accolade_given_date || '-'}</span></td>
@@ -248,7 +209,6 @@ function populateAccoladesTable(accolades) {
         `;
         
         tableBody.appendChild(row);
-        console.log(`✅ Added row ${index + 1}`); // Add this log
     });
 
     if (accolades.length === 0) {

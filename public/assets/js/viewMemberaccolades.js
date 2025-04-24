@@ -23,7 +23,7 @@ async function fetchMemberData() {
     try {
         showLoader();
         
-        // Get member email
+        // Get member email from token/localStorage
         const member_email = localStorage.getItem('current_member_email') || getUserEmail();
         debugLog('Using member email:', member_email);
 
@@ -31,25 +31,36 @@ async function fetchMemberData() {
             throw new Error('No member email found');
         }
 
-        // Fetch members data to get accolades array
+        // First fetch members data to get member_id
         const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const membersData = await membersResponse.json();
-        debugLog('Members data fetched:', membersData);
-
-        // Find logged in member
+        
+        // Find logged in member to get member_id
         const loggedInMember = membersData.find(member => member.member_email_address === member_email);
         if (!loggedInMember) {
             throw new Error('Member not found');
         }
+        const member_id = loggedInMember.member_id;
         debugLog('Found member:', loggedInMember);
 
-        // Get all accolades
+        // Get all accolades for display
         const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accoladesData = await accoladesResponse.json();
         debugLog('All accolades fetched:', accoladesData);
 
-        // Populate table with all accolades and member info
-        populateAccoladesTable(accoladesData, loggedInMember);
+        // Get member's earned accolades
+        const memberAccoladesResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const memberAccoladesData = await memberAccoladesResponse.json();
+        debugLog('Member accolades fetched:', memberAccoladesData);
+
+        // Filter accolades for this specific member
+        const memberEarnedAccolades = memberAccoladesData.filter(
+            accolade => accolade.member_id === member_id
+        );
+        debugLog('Member earned accolades:', memberEarnedAccolades);
+
+        // Populate table with data
+        populateAccoladesTable(accoladesData, memberEarnedAccolades);
 
     } catch (error) {
         console.error('Error:', error);
@@ -59,15 +70,14 @@ async function fetchMemberData() {
     }
 }
 
-async function populateAccoladesTable(accolades, loggedInMember) {
+async function populateAccoladesTable(allAccolades, memberEarnedAccolades) {
     const tableBody = document.querySelector('.chaptersTableBody tbody');
     if (!tableBody) {
         debugLog('Table body not found');
         return;
     }
 
-    debugLog(`Populating table with ${accolades.length} accolades`);
-    debugLog('Member accolades array:', loggedInMember.accolades_id);
+    debugLog(`Populating table with ${allAccolades.length} accolades`);
 
     // Counter for assigned accolades (green ticks)
     let assignedAccoladesCount = 0;
@@ -76,9 +86,11 @@ async function populateAccoladesTable(accolades, loggedInMember) {
     tableBody.innerHTML = '';
 
     // Add rows for each accolade
-    accolades.forEach((accolade, index) => {
-        // Check if this accolade is assigned to the member
-        const isAssigned = loggedInMember.accolades_id.includes(accolade.accolade_id);
+    allAccolades.forEach((accolade, index) => {
+        // Check if this accolade is earned by member
+        const isAssigned = memberEarnedAccolades.some(
+            earnedAccolade => earnedAccolade.accolade_id === accolade.accolade_id
+        );
         
         // Increment counter if accolade is assigned
         if (isAssigned) {
@@ -133,7 +145,7 @@ async function populateAccoladesTable(accolades, loggedInMember) {
         debugLog('Updated total assigned accolades count:', assignedAccoladesCount);
     }
 
-    if (accolades.length === 0) {
+    if (allAccolades.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No accolades found</td></tr>';
         debugLog('No accolades to display');
     }

@@ -2539,22 +2539,32 @@ function filterMembers(searchTerm) {
 // Add this function before the addAssignment function
 async function checkExistingAccolades(memberId, accoladeId) {
     try {
-        // Fetch members data
-        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
-        const members = await membersResponse.json();
-
-        // Find the member
-        const member = members.find(m => m.member_id === memberId);
+        // Fetch all member accolades from the new API
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const allMemberAccolades = await response.json();
         
-        if (!member) {
-            console.error('Member not found:', memberId);
-            return false;
+        console.log('🔍 Checking accolade assignment:', {
+            memberId,
+            accoladeId,
+            totalRecords: allMemberAccolades.length
+        });
+
+        // Check if there's any record matching both member_id and accolade_id
+        const existingAssignment = allMemberAccolades.find(record => 
+            record.member_id === memberId && 
+            record.accolade_id === accoladeId
+        );
+
+        if (existingAssignment) {
+            console.log('✅ Found existing assignment:', existingAssignment);
+            return true;
         }
 
-        // Check if the accolade exists in member's accolades_id array
-        return member.accolades_id.includes(accoladeId);
+        console.log('❌ No existing assignment found');
+        return false;
+
     } catch (error) {
-        console.error('Error checking existing accolades:', error);
+        console.error('❌ Error checking existing accolades:', error);
         return false;
     }
 }
