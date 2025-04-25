@@ -265,7 +265,12 @@ function updateTransactionsDisplay(transactionsToShow) {
     const transactionsBody = document.querySelector('.member-all-transactions');
     transactionsBody.innerHTML = '';
 
-    transactionsToShow.forEach((transaction, index) => {
+    // Sort transactions by date (most recent first)
+    const sortedTransactions = [...transactionsToShow].sort((a, b) => {
+        return new Date(b.payment_time) - new Date(a.payment_time);
+    });
+
+    sortedTransactions.forEach((transaction, index) => {
         const order = chapterOrders.find(order => order.order_id === transaction.order_id);
         const row = document.createElement('tr');
         
@@ -330,6 +335,8 @@ function getPaymentMethodDisplay(paymentMethod) {
 function getDisplayName(order) {
     if (order?.payment_note === 'visitor-payment') {
         return order.visitor_name || 'Unknown Visitor';
+    } else if (order?.payment_note === 'New Member Payment') {
+        return order.visitor_name || 'Unknown';
     }
     return order?.member_name || 'Unknown';
 }

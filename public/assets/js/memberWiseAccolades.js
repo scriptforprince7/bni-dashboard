@@ -4,6 +4,7 @@ let allMembers = [];
 let allAccolades = [];
 let selectedAccolades = [];
 let currentChapterId = null;
+let filteredMemberAccolades = [];
 
 // Function to show the loader
 function showLoader() {
@@ -17,25 +18,31 @@ function hideLoader() {
 
 // Fetch all accolades and populate the filter dropdown
 async function loadAccolades() {
-  const response = await fetch(accoladesApiUrl);
-  allAccolades = await response.json();
+    try {
+        const response = await fetch(accoladesApiUrl);
+        allAccolades = await response.json();
 
-  const filterDropdown = document.getElementById("accolades-filter");
-  filterDropdown.innerHTML = allAccolades
-    .map(
-      (accolade) => `
-      <li>
-        <label class="dropdown-item">
-          <input type="checkbox" value="${accolade.accolade_id}" /> ${accolade.accolade_name}
-        </label>
-      </li>`
-    )
-    .join("");
+        const filterDropdown = document.getElementById("accolades-filter");
+        filterDropdown.innerHTML = allAccolades
+            .map(accolade => `
+                <li>
+                    <label class="dropdown-item">
+                        <input type="checkbox" 
+                               value="${accolade.accolade_id}" 
+                               class="me-2"
+                               id="accolade-${accolade.accolade_id}"/>
+                        ${accolade.accolade_name}
+                    </label>
+                </li>
+            `).join("");
 
-  setupFilterListener();
+        setupFilterListener();
+    } catch (error) {
+        console.error('❌ Error loading accolades:', error);
+    }
 }
 
-// Add new function to get chapter details
+// Function to get chapter details
 async function getCurrentChapterDetails() {
     try {
         const loginType = getUserLoginType();
@@ -44,78 +51,92 @@ async function getCurrentChapterDetails() {
         let chapterEmail, chapterId;
 
         if (loginType === 'ro_admin') {
-            // For RO admin, get from localStorage
             chapterEmail = localStorage.getItem('current_chapter_email');
             chapterId = localStorage.getItem('current_chapter_id');
-            console.log('🔐 RO Admin - Chapter details from localStorage:', {
-                chapterEmail,
-                chapterId
-            });
+            console.log('🔐 RO Admin - Chapter details:', { chapterEmail, chapterId });
 
             if (chapterId) {
-                return {
-                    chapter_id: parseInt(chapterId),
-                    email_id: chapterEmail
-                };
+                return parseInt(chapterId);
             }
         } else {
-            // For chapter login, get from token
             chapterEmail = getUserEmail();
             console.log('🔑 Chapter email from token:', chapterEmail);
 
             const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chapters = await response.json();
-            console.log('📚 All chapters:', chapters);
-
+            
             const currentChapter = chapters.find(chapter =>
-              chapter.email_id === chapterEmail ||
-              chapter.vice_president_mail === chapterEmail ||
-              chapter.president_mail === chapterEmail ||
-              chapter.treasurer_mail === chapterEmail
-          );
-          
-            console.log('🎯 Matched chapter:', currentChapter);
+                chapter.email_id === chapterEmail ||
+                chapter.vice_president_mail === chapterEmail ||
+                chapter.president_mail === chapterEmail ||
+                chapter.treasurer_mail === chapterEmail
+            );
 
             if (currentChapter) {
-                return currentChapter;
+                return currentChapter.chapter_id;
             }
         }
 
-        console.error('❌ No chapter found');
-        return null;
+        throw new Error('No chapter found');
 
     } catch (error) {
-        console.error('❌ Error fetching chapter details:', error);
+        console.error('❌ Error getting chapter details:', error);
         return null;
     }
 }
 
-// Modify loadMembers function
+// Modified function to get all member accolades at once
+async function getAllMemberAccolades() {
+    try {
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const allMemberAccolades = await response.json();
+        console.log(`📊 Fetched all member accolades:`, allMemberAccolades.length);
+        return allMemberAccolades;
+    } catch (error) {
+        console.error('❌ Error fetching member accolades:', error);
+        return [];
+    }
+}
+
+// Modified loadMembers function
 async function loadMembers() {
     try {
         showLoader();
 
-        // First get chapter details
-        const chapterDetails = await getCurrentChapterDetails();
-        if (!chapterDetails) {
+        // Get chapter ID first
+        currentChapterId = await getCurrentChapterDetails();
+        if (!currentChapterId) {
             throw new Error('Unable to determine current chapter');
         }
 
-        currentChapterId = chapterDetails.chapter_id;
-        console.log('📍 Current chapter ID:', currentChapterId);
+        // Fetch all data in parallel
+        const [membersResponse, accoladesResponse, allMemberAccolades] = await Promise.all([
+            fetch(membersApiUrl),
+            fetch(accoladesApiUrl),
+            getAllMemberAccolades()
+        ]);
 
-        // Fetch all members
-        const response = await fetch(membersApiUrl);
-        const allMembersData = await response.json();
-        console.log('👥 All members:', allMembersData);
-
+        const [allMembersData, accoladesData] = await Promise.all([
+            membersResponse.json(),
+            accoladesResponse.json()
+        ]);
+        
         // Filter members by chapter_id
         allMembers = allMembersData.filter(member => member.chapter_id === currentChapterId);
-        console.log('👥 Filtered members for chapter:', allMembers);
+        allAccolades = accoladesData;
+        filteredMemberAccolades = allMemberAccolades; // Store all member accolades
 
-        renderTable(allMembers);
+        console.log('👥 Chapter members:', allMembers);
+        console.log('🏆 All accolades loaded:', allAccolades);
+
+        // Render table with all data
+        renderTable(allMembers, allMemberAccolades);
+        
+        // Setup search after data is loaded
+        setupSearch();
+
     } catch (error) {
-        console.error('❌ Error in loadMembers:', error);
+        console.error('❌ Error loading members:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -126,50 +147,73 @@ async function loadMembers() {
     }
 }
 
-// Update renderTable function to include chapter info in logs
-const renderTable = (members) => {
-    console.log(`🎨 Rendering table for chapter ${currentChapterId} with ${members.length} members`);
-    
+// Modified renderTable function
+function renderTable(members, allMemberAccolades) {
     const tableBody = document.getElementById("chaptersTableBody");
-    tableBody.innerHTML = members
-        .map((member, index) => {
-            console.log(`📊 Processing member ${member.member_first_name} with ${member.accolades_id.length} accolades`);
+    tableBody.innerHTML = ''; // Clear existing content
+
+    members.forEach((member, index) => {
+        try {
+            // Filter accolades for this member from the complete dataset
+            const memberAccolades = allMemberAccolades.filter(ma => ma.member_id === member.member_id);
             
-            const memberName = `${member.member_first_name} ${member.member_last_name}`;
-            const accoladeDetails = member.accolades_id.map(id => {
-                const accolade = allAccolades.find(a => a.accolade_id === Number(id));
-                return accolade ? { 
-                    name: accolade.accolade_name, 
-                    date: accolade.accolade_publish_date || 'Unknown Date' 
-                } : null;
+            // Map accolade details with full information
+            const accoladeDetails = memberAccolades.map(ma => {
+                const accolade = allAccolades.find(a => a.accolade_id === ma.accolade_id);
+                if (accolade) {
+                    return {
+                        name: accolade.accolade_name,
+                        issueDate: new Date(ma.issue_date).toLocaleDateString(),
+                        givenDate: ma.given_date ? new Date(ma.given_date).toLocaleDateString() : 'Not Given',
+                        count: ma.count || 1
+                    };
+                }
+                return null;
             }).filter(Boolean);
-            
-            console.log(`🏆 Accolades for ${memberName}:`, accoladeDetails);
 
+            const memberName = `${member.member_first_name} ${member.member_last_name}`;
             const accoladeCount = accoladeDetails.length;
-            const accoladeInfo = accoladeDetails.map(acc => `<li>${acc.name} (Issued: ${acc.date})</li>`).join('');
+            
+            // Create accolade info HTML
+            const accoladeInfo = accoladeDetails.map(acc => 
+                `<li>
+                    ${acc.name} 
+                    <br>
+                    <small>Issued: ${acc.issueDate}</small>
+                    <br>
+                    <small>Given: ${acc.givenDate}</small>
+                    <br>
+                    <small>Count: ${acc.count}</small>
+                </li>`
+            ).join('');
 
-            const statusBadge =
-                member.member_status === "active"
-                    ? `<span class="badge bg-success">Active</span>`
-                    : `<span class="badge bg-danger">Inactive</span>`;
-
-            return `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><b>${memberName}</b></td>
-                    <td>
-                        <span class="accolade-count" data-member="${memberName}" data-info="${accoladeInfo}">
-                            ${accoladeCount} Accolade(s)
-                        </span>
-                    </td>
-                    <td>${statusBadge}</td>
-                </tr>`;
-        })
-        .join("");
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><b>${memberName}</b></td>
+                <td>
+                    <span class="accolade-count" 
+                          data-member="${memberName}" 
+                          data-info="${accoladeInfo}"
+                          style="cursor: pointer; color: #2563eb;">
+                        ${accoladeCount} Accolade(s)
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${member.member_status === 'active' ? 'bg-success' : 'bg-danger'}">
+                        ${member.member_status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        } catch (error) {
+            console.error(`❌ Error processing member ${member.member_id}:`, error);
+        }
+    });
 
     setupModalListener();
-};
+}
 
 function setupModalListener() {
   document.querySelectorAll(".accolade-count").forEach((count) => {
@@ -196,77 +240,87 @@ function showAccoladePopup(details) {
   accoladeModal.show();
 }
 
-// Handle filter changes
+// Modified setupFilterListener function
 function setupFilterListener() {
-  document.querySelectorAll("#accolades-filter input").forEach((checkbox) => {
-    checkbox.addEventListener("change", (e) => {
-      const accoladeId = Number(e.target.value);
+    const checkboxes = document.querySelectorAll("#accolades-filter input[type='checkbox']");
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener("change", () => {
+            const selectedAccolades = Array.from(checkboxes)
+                .filter(cb => cb.checked)
+                .map(cb => parseInt(cb.value));
 
-      if (e.target.checked) {
-        selectedAccolades.push(accoladeId);
-      } else {
-        selectedAccolades = selectedAccolades.filter((id) => id !== accoladeId);
-      }
-
-      filterMembers();
+            filterMembersByAccolades(selectedAccolades);
+        });
     });
-  });
 }
 
-// Reset button functionality
+// New function to filter members by accolades
+function filterMembersByAccolades(selectedAccoladeIds) {
+    if (selectedAccoladeIds.length === 0) {
+        // If no accolades selected, show all members with their accolades
+        renderTable(allMembers, filteredMemberAccolades);
+        return;
+    }
+
+    // Filter member accolades that match selected accolade IDs
+    const matchingAccolades = filteredMemberAccolades.filter(ma => 
+        selectedAccoladeIds.includes(ma.accolade_id)
+    );
+
+    // Get unique member IDs that have the selected accolades
+    const matchingMemberIds = [...new Set(matchingAccolades.map(ma => ma.member_id))];
+
+    // Filter members
+    const filteredMembers = allMembers.filter(member => 
+        matchingMemberIds.includes(member.member_id)
+    );
+
+    renderTable(filteredMembers, matchingAccolades);
+}
+
+// Modified search function
+function setupSearch() {
+    const searchInput = document.getElementById("searchMember");
+    let searchTimeout;
+
+    searchInput.addEventListener("input", (e) => {
+        clearTimeout(searchTimeout);
+        
+        // Add debounce to prevent too many renders
+        searchTimeout = setTimeout(() => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                renderTable(allMembers, filteredMemberAccolades);
+                return;
+            }
+
+            const filteredMembers = allMembers.filter(member => {
+                const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
+                return fullName.includes(searchTerm);
+            });
+
+            renderTable(filteredMembers, filteredMemberAccolades);
+        }, 300); // 300ms debounce
+    });
+}
+
+// Modified reset filter function
 document.getElementById("reset-filters-btn").addEventListener("click", () => {
-    // Clear selected checkboxes
-    document.querySelectorAll("#accolades-filter input").forEach((checkbox) => {
-      checkbox.checked = false;
+    // Clear checkboxes
+    document.querySelectorAll("#accolades-filter input[type='checkbox']").forEach(checkbox => {
+        checkbox.checked = false;
     });
-  
-    // Reset selected accolades
-    selectedAccolades = [];
-  
-    // Reload all members
-    renderTable(allMembers);
-  });
-  
 
-// Filter members based on selected accolades
-function filterMembers() {
-  const filteredMembers = allMembers.filter((member) =>
-    selectedAccolades.every((accId) => member.accolades_id.includes(accId))
-  );
+    // Clear search
+    const searchInput = document.getElementById("searchMember");
+    if (searchInput) {
+        searchInput.value = '';
+    }
 
-  renderTable(filteredMembers.length ? filteredMembers : allMembers);
-}
-
-// Show Popup with Accolade Details
-function showAccoladePopup(target) {
-  const memberName = target.getAttribute("data-member");
-  const accoladeName = target.getAttribute("data-accolade");
-  const issueDate = target.getAttribute("data-date");
-
-  // Fill modal content
-  document.getElementById("modalTitle").textContent = `${memberName}'s Accolade`;
-  document.getElementById("modalBody").innerHTML = `
-    <p><strong>Member:</strong> ${memberName}</p>
-    <p><strong>Accolade:</strong> ${accoladeName}</p>
-    <p><strong>Issued Date:</strong> ${issueDate}</p>
-  `;
-
-  // Show the Bootstrap Modal
-  const accoladeModal = new bootstrap.Modal(document.getElementById("accoladeModal"));
-  accoladeModal.show();
-}
-
-// Search members by name
-document.getElementById("searchMember").addEventListener("input", (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredMembers = allMembers.filter((member) => {
-      const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
-      return fullName.includes(searchTerm);
-    });
-  
-    renderTable(filteredMembers);
-  });
-  
+    // Reset to original data
+    renderTable(allMembers, filteredMemberAccolades);
+});
 
 // Ensure accolades load first, then members
 async function loadEverything() {

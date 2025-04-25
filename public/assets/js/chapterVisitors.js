@@ -641,21 +641,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Initialize variables for chapter identification
         let chapterEmail, chapterId;
 
-        if (userEmail) {
-            chapterEmail = userEmail;
-            console.log('📧 Using user email:', chapterEmail);
-        } else if (loginType === 'ro_admin') {
-            // For RO admin, get chapter details from localStorage
-            chapterEmail = localStorage.getItem('current_chapter_email');
-            chapterId = localStorage.getItem('current_chapter_id');
-            console.log('🔐 RO Admin chapter details:', { chapterEmail, chapterId });
-        }
-
-        if (!chapterEmail && !chapterId) {
-            throw new Error('No valid chapter identification found');
-        }
-
-        // Fetch all required data
+        // Fetch all required data first
         const [visitorsResponse, regionsResponse, chaptersResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getallVisitors'),
             fetch('https://backend.bninewdelhi.com/api/regions'),
@@ -666,17 +652,40 @@ document.addEventListener('DOMContentLoaded', async function() {
         regions = await regionsResponse.json();
         chapters = await chaptersResponse.json();
 
-        // Filter visitors based on chapter
-        const visitors = allVisitors.filter(visitor => {
-            if (chapterId) {
-                return visitor.chapter_id === parseInt(chapterId);
-            } else {
-                const chapter = chapters.find(c => c.email_id === chapterEmail);
-                return visitor.chapter_id === chapter?.chapter_id;
+        // Modified chapter identification logic
+        if (loginType === 'ro_admin') {
+            chapterId = parseInt(localStorage.getItem('current_chapter_id'));
+            chapterEmail = localStorage.getItem('current_chapter_email');
+            console.log('🔐 RO Admin chapter details:', { chapterEmail, chapterId });
+        } else {
+            // For chapter login, check all possible email fields
+            const chapter = chapters.find(c => 
+                c.email_id === userEmail ||
+                c.vice_president_mail === userEmail ||
+                c.president_mail === userEmail ||
+                c.treasurer_mail === userEmail
+            );
+            
+            if (chapter) {
+                chapterId = chapter.chapter_id;
+                chapterEmail = userEmail;
+                console.log('📍 Found chapter:', { 
+                    chapterId, 
+                    chapterName: chapter.chapter_name,
+                    userEmail 
+                });
             }
-        });
+        }
+
+        if (!chapterId) {
+            throw new Error(`No chapter found for email: ${userEmail}`);
+        }
+
+        // Filter visitors based on chapter
+        const visitors = allVisitors.filter(visitor => visitor.chapter_id === chapterId);
 
         console.log('------------------------------------------------------');
+        console.log('🔍 Filtering with chapter_id:', chapterId);
         console.log('✅ Filtered chapter visitors:', visitors);
         console.log(`📊 Total visitors for chapter: ${visitors.length}`);
 
