@@ -650,20 +650,21 @@ async function submitBulkActions() {
                 memberId: parseInt(memberId),
                 accoladeId: parseInt(accoladeId),
                 status: action.status,
-                requisitionId: currentRequisition.chapter_requisition_id
+                requisitionId: currentRequisition.chapter_requisition_id,
+                skipRefresh: true  // Add this flag to skip individual refreshes
             });
         }
 
-        // Show success message
+        // Show single success message at the end
         await Swal.fire({
             icon: 'success',
             title: 'Success!',
-            text: 'Changes processed successfully',
+            text: 'All changes processed successfully',
             timer: 2000,
             showConfirmButton: false
         });
 
-        // Refresh the data
+        // Refresh the data once at the end
         loadData();
 
     } catch (error) {
@@ -675,10 +676,12 @@ async function submitBulkActions() {
         });
     }
 }
+
 // Function to handle requisition action
 async function handleRequisitionAction(data) {
     try {
         const actionData = typeof data === 'string' ? JSON.parse(data) : data;
+        const skipRefresh = actionData.skipRefresh || false;  // Get the flag
         console.log('🎯 Action Data:', actionData);
 
         const key = `${actionData.memberId}_${actionData.accoladeId}`;
@@ -716,16 +719,17 @@ async function handleRequisitionAction(data) {
                 throw new Error('Chapter requisition update failed');
             }
 
-            // Show success message for visitor
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: `Visitor requisition ${actionData.status} successfully`,
-                timer: 2000,
-                showConfirmButton: false
-            }).then(() => {
-                loadData(); // Refresh the data
-            });
+            // Only show message and refresh if not bulk action
+            if (!skipRefresh) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: `Visitor requisition ${actionData.status} successfully`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                loadData();
+            }
 
         } else {
             // Original member flow
@@ -869,34 +873,27 @@ async function handleRequisitionAction(data) {
                     }
                 }
 
-                // Show success message
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: `Requisition ${actionData.status} successfully`,
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
+                // Only show message and refresh if not bulk action
+                if (!skipRefresh) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: `Requisition ${actionData.status} successfully`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                     loadData();
-                });
+                }
 
             } catch (error) {
                 console.error('❌ API Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to update requisition: ' + error.message
-                });
+                throw error; // Propagate error to be handled by submitBulkActions
             }
         }
 
     } catch (error) {
         console.error('❌ Error in handleRequisitionAction:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An unexpected error occurred while updating the requisition'
-        });
+        throw error; // Propagate error to be handled by submitBulkActions
     }
 }
 

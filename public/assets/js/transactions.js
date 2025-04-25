@@ -656,7 +656,7 @@ const filteredTransactions = transactions.filter((transaction) => {
       return order?.visitor_name || "Unknown Visitor";
   }
 
-        if (linkType === "New Member Payment") {
+        if (order?.payment_note === "New Member Payment") {
             console.log('🆕 New Member Payment Detected:', {
                 'Visitor Name': order?.visitor_name || 'Not Available',
                 'Member Name': order?.member_name || 'Not Available',
