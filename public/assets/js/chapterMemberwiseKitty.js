@@ -211,7 +211,7 @@ if (
 });
 
 // Subtract total write-off
-totalPendingAmount -= totalWriteoffAmount;
+// totalPendingAmount -= totalWriteoffAmount;
 
 console.log('💰 Total Pending Amount for chapter:', {
 chapterId: loggedInChapter.chapter_id,

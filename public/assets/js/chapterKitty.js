@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
     });
     
-    pendingAmount -= totalWriteoffAmount || 0;
+    // pendingAmount -= totalWriteoffAmount || 0;
     
     console.log("Total Late Payment:", totalLatePayment);
     console.log("--------------------------------", pendingAmount);
