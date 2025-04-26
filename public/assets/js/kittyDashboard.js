@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPayments(); // Call fetchPayments when the document is fully loaded
 });
 
+
+
 function formatInIndianStyle(number) {
   return new Intl.NumberFormat('en-IN').format(number);
 }
@@ -15,6 +17,8 @@ const monthNames = [
 let allKittys = []; // Store all kitty payments globally
 let filteredKittys = []; // Store filtered kitty payments globally after region/chapter filtering
 let allCredits = []; // Store all credit notes globally
+let allOrders = []; // Store all orders globally
+let allTransactions = []; // Store all transactions globally
 let allvisi = [];
 let allTotal = 0;
 let allreceived = 0;
@@ -37,7 +41,7 @@ function hideLoader() {
 async function fetchPayments() {
   try {
     showLoader();
-    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, visiPayment, writeOffs] = await Promise.all([ 
+    const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, writeOffs] = await Promise.all([ 
       fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments').then(res => res.json()),
@@ -48,10 +52,12 @@ async function fetchPayments() {
       fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getAllVisitors').then(res => res.json()),
       fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff').then(res => res.json())
     ]);
-    allvisi= visiPayment;
+    
+    // Store orders and transactions globally
+    allOrders = orders;
+    allTransactions = transactions;
 
     // Calculate total write-off amount (default view)
     totalWriteOffAmount = writeOffs.reduce((sum, writeOff) => {
@@ -368,9 +374,27 @@ function displayPayments(kittys) {
         return sum + parseFloat(credit.credit_amount || 0);
       }, 0);
 
-      const visitorAmount = allvisi.filter(visi => visi.chapter_id === kitty.chapter_id);
-      const visitorAmountTotal = visitorAmount.reduce((sum, visitor) => {
-        return sum + parseFloat(visitor.sub_total || 0);
+      // Filter visitor orders for this chapter
+      const visitorOrders = allOrders.filter(order => 
+        order.chapter_id === kitty.chapter_id && 
+        order.universal_link_id === 5 && 
+        order.payment_note === 'visitor-payment'
+      );
+
+      // Calculate total visitor amount from successful transactions
+      const visitorAmountTotal = visitorOrders.reduce((sum, order) => {
+        // Find successful transactions for this order
+        const successfulTransactions = allTransactions.filter(trans => 
+          trans.order_id === order.order_id && 
+          trans.payment_status === 'SUCCESS'
+        );
+        
+        // Sum up the order amounts for successful transactions
+        const orderTotal = successfulTransactions.reduce((transSum, trans) => 
+          transSum + parseFloat(trans.payment_amount || 0), 0
+        );
+        
+        return sum + orderTotal;
       }, 0);
 
       totalvisi += parseInt(visitorAmountTotal);
