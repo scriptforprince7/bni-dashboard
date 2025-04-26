@@ -36,6 +36,14 @@ document.addEventListener("DOMContentLoaded", async function () {
         document.getElementById("hotel_published_by").value = hotel.hotel_published_by;
         document.getElementById("hotel_phone").value = hotel.hotel_phone;
         document.getElementById("hotel_email").value = hotel.hotel_email;
+
+        document.getElementById("bank_name").value = hotel.bank_name;
+        document.getElementById("ifsc_code").value = hotel.ifsc_code;
+        document.getElementById("account_no").value = hotel.account_no;
+        document.getElementById("account_type").value = hotel.account_type;
+        document.getElementById("hotel_gst").value = hotel.hotel_gst;
+        document.getElementById("hotel_bank_proof").value = hotel.hotel_bank_proof;
+
         document.getElementById("date_of_publishing").value = hotel.date_of_publishing.split("T")[0]; // Format Date
         document.getElementById("hotel_status").value = hotel.is_active ? "Active" : "Inactive";
 
@@ -68,6 +76,12 @@ document.addEventListener("DOMContentLoaded", async function () {
                     hotel_published_by: document.getElementById("hotel_published_by").value,
                     hotel_phone: document.getElementById("hotel_phone").value,
                     hotel_email: document.getElementById("hotel_email").value,
+                    bank_name: document.getElementById("bank_name").value,
+                    ifsc_code: document.getElementById("ifsc_code").value,
+                    account_no: document.getElementById("account_no").value,
+                    account_type: document.getElementById("account_type").value,
+                    hotel_gst: document.getElementById("hotel_gst").value,
+                    hotel_bank_proof: document.getElementById("hotel_bank_proof").value,
                     date_of_publishing: document.getElementById("date_of_publishing").value,
                     hotel_status: document.getElementById("hotel_status").value === "Active"
                 };
