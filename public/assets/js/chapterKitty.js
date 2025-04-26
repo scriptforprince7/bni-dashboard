@@ -326,15 +326,62 @@ document.addEventListener("DOMContentLoaded", async function () {
       available_fund,
     });
     console.log("Logged-in chapter ID:", chapterId);
-    const allvisi = await fetch("https://backend.bninewdelhi.com/api/getAllVisitors").then(response => response.json());
-
-    const visitorAmount = allvisi.filter(visi => visi.chapter_id === chapterId);
-      const visitorAmountTotal = visitorAmount.reduce((sum, visitor) => {
-        return sum + parseFloat(visitor.sub_total || 0);
-      }, 0);
-
-
-      document.querySelector('#total_V_amount').textContent = `₹ ${visitorAmountTotal}`;
+    let visitorAmountTotal = 0;
+    async function fetchVisitorAmountTotal(chapterId) {
+      try {
+        // Fetch all orders
+        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+        const allOrders = await ordersResponse.json();
+    
+        // Filter orders based on chapter_id, universal_link_id, and payment_note
+        const filteredOrders = allOrders.filter(order =>
+          order.chapter_id == chapterId &&    // Use == not === because API may return string
+          order.universal_link_id == 5 &&
+          order.payment_note === 'visitor-payment'
+        );
+    
+        // Fetch all transactions
+        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
+        const allTransactions = await transactionsResponse.json();
+    
+        // Find successful order IDs
+        const successfulOrderIds = new Set(
+          allTransactions
+            .filter(txn => txn.payment_status === 'SUCCESS')
+            .map(txn => txn.order_id)   // Assuming transaction has 'order_id'
+        );
+    
+        // Filter successful orders
+        const successfulOrders = filteredOrders.filter(order =>
+          successfulOrderIds.has(order.order_id)
+        );
+    
+        // Sum the order_amount of successful orders
+        const visitorAmountTotal = successfulOrders.reduce((sum, order) => {
+          return sum + parseFloat(order.order_amount || 0);
+        }, 0);
+    
+        console.log("Visitor Amount Total:", visitorAmountTotal); // Check if it comes correctly
+    
+        // Update the DOM safely
+        const amountElement = document.querySelector('#total_V_amount');
+        if (amountElement) {
+          amountElement.textContent = `₹ ${visitorAmountTotal}`;
+        } else {
+          console.error("Element #total_V_amount not found");
+        }
+    
+      } catch (error) {
+        console.error("Error fetching visitor amount total:", error);
+      }
+    }
+    
+    // Now call this function safely after DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchVisitorAmountTotal(chapterId);  // Make sure chapterId is defined
+    });
+    
+    
 
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
