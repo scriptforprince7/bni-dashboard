@@ -583,8 +583,8 @@ function hideLoader() {
     }
   }
 
-  // Function to populate vendor dropdown
-  async function populateVendorDropdown() {
+  // Function to populate vendor dropdown based on selected chapter
+  async function populateVendorDropdown(selectedChapterId = null) {
     try {
       const vendors = await fetchVendors();
       const vendorDropdown = document.getElementById('vendor');
@@ -592,16 +592,32 @@ function hideLoader() {
       // Clear existing options
       vendorDropdown.innerHTML = '<option value="">Select Vendor</option>';
       
+      // Filter vendors by chapter_id if a chapter is selected
+      let filteredVendors = vendors;
+      if (selectedChapterId) {
+        filteredVendors = vendors.filter(vendor => 
+          vendor.chapter_id === parseInt(selectedChapterId)
+        );
+      }
+      
       // Sort vendors by name
-      vendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+      filteredVendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
       
       // Add vendor options
-      vendors.forEach(vendor => {
+      filteredVendors.forEach(vendor => {
         const option = document.createElement('option');
         option.value = vendor.vendor_id;
         option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
         vendorDropdown.appendChild(option);
       });
+
+      // If no vendors found for the selected chapter
+      if (selectedChapterId && filteredVendors.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No vendors found for this chapter";
+        vendorDropdown.appendChild(option);
+      }
     } catch (error) {
       console.error('Error populating vendor dropdown:', error);
       Swal.fire('Error!', 'Failed to load vendors', 'error');
@@ -618,8 +634,8 @@ function hideLoader() {
         // Populate vendor details fields
         document.getElementById('vendor_company_name').value = selectedVendor.vendor_company_name || 'N/A';
         document.getElementById('vendor_company_address').value = selectedVendor.vendor_company_address || 'N/A';
-        document.getElementById('vendor_phone').value = selectedVendor.vendor_phone || 'N/A';
-        document.getElementById('vendor_email').value = selectedVendor.vendor_email || 'N/A';
+        document.getElementById('vendor_phone').value = selectedVendor.phone_number || 'N/A';
+        document.getElementById('vendor_email').value = selectedVendor.email_id || 'N/A';
         document.getElementById('vendor_company_gst').value = selectedVendor.vendor_company_gst || 'N/A';
         document.getElementById('vendor_bank_name').value = selectedVendor.vendor_bank_name || 'N/A';
         document.getElementById('vendor_account').value = selectedVendor.vendor_account || 'N/A';
@@ -643,6 +659,21 @@ function hideLoader() {
     if (selectedVendorId) {
       handleVendorSelection(selectedVendorId);
     } else {
+      vendorDetailsSection.style.display = 'none';
+    }
+  });
+
+  // Add event listener for chapter selection
+  document.getElementById('chapter').addEventListener('change', function() {
+    const selectedChapterId = this.value;
+    const expenseType = document.getElementById('expense_type');
+    const selectedExpenseType = expenseType.options[expenseType.selectedIndex].textContent;
+    const vendorDetailsSection = document.getElementById('vendorDetailsSection');
+
+    // Only update vendor dropdown if expense type is not "Meeting Hotel Expenses"
+    if (selectedExpenseType !== 'Meeting Hotel Expenses') {
+      populateVendorDropdown(selectedChapterId);
+      // Hide vendor details when chapter changes
       vendorDetailsSection.style.display = 'none';
     }
   });
@@ -770,51 +801,57 @@ function hideLoader() {
         <form id="addVendorForm" class="text-start">
           <div class="mb-3">
             <label for="vendor_name" class="form-label">Vendor Name</label>
-            <input type="text" class="form-control" id="vendor_name" required>
+            <input type="text" class="form-control" id="vendor_name">
           </div>
-          <div class="mb-3">
-            <label for="vendor_phone" class="form-label">Phone Number</label>
-            <input type="tel" class="form-control" id="vendor_phone" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number" required>
-          </div>
-          <div class="mb-3">
-            <label for="vendor_email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="vendor_email" required>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone_number" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone_number">
+            </div>
+            <div class="col-md-6">
+              <label for="email_id" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email_id">
+            </div>
           </div>
           <div class="mb-3">
             <label for="vendor_company_name" class="form-label">Company Name</label>
-            <input type="text" class="form-control" id="vendor_company_name" required>
+            <input type="text" class="form-control" id="vendor_company_name">
           </div>
           <div class="mb-3">
             <label for="vendor_company_address" class="form-label">Company Address</label>
-            <textarea class="form-control" id="vendor_company_address" rows="2" required></textarea>
+            <textarea class="form-control" id="vendor_company_address" rows="2"></textarea>
           </div>
           <div class="mb-3">
             <label for="vendor_company_gst" class="form-label">Company GST</label>
-            <input type="text" class="form-control" id="vendor_company_gst" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" required>
+            <input type="text" class="form-control" id="vendor_company_gst">
           </div>
-          <div class="mb-3">
-            <label for="vendor_account" class="form-label">Account Number</label>
-            <input type="text" class="form-control" id="vendor_account" pattern="[0-9]+" required>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_bank_name" class="form-label">Bank Name</label>
+              <input type="text" class="form-control" id="vendor_bank_name">
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account" class="form-label">Account Number</label>
+              <input type="text" class="form-control" id="vendor_account">
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="vendor_bank_name" class="form-label">Bank Name</label>
-            <input type="text" class="form-control" id="vendor_bank_name" required>
-          </div>
-          <div class="mb-3">
-            <label for="vendor_ifsc_code" class="form-label">IFSC Code</label>
-            <input type="text" class="form-control" id="vendor_ifsc_code" pattern="^[A-Z]{4}0[A-Z0-9]{6}$" required>
-          </div>
-          <div class="mb-3">
-            <label for="vendor_account_type" class="form-label">Account Type</label>
-            <select class="form-control" id="vendor_account_type" required>
-              <option value="">Select Account Type</option>
-              <option value="Savings">Savings</option>
-              <option value="Current">Current</option>
-            </select>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_ifsc_code" class="form-label">IFSC Code</label>
+              <input type="text" class="form-control" id="vendor_ifsc_code">
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account_type" class="form-label">Account Type</label>
+              <select class="form-control" id="vendor_account_type">
+                <option value="">Select Account Type</option>
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+              </select>
+            </div>
           </div>
           <div class="mb-3">
             <label for="vendor_status" class="form-label">Status</label>
-            <select class="form-control" id="vendor_status" required>
+            <select class="form-control" id="vendor_status">
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
@@ -824,56 +861,37 @@ function hideLoader() {
       showCancelButton: true,
       confirmButtonText: 'Add Vendor',
       cancelButtonText: 'Cancel',
-      width: '600px',
-      preConfirm: () => {
-        const form = document.getElementById('addVendorForm');
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return false;
-        }
+      width: '800px',
+      customClass: {
+        container: 'add-vendor-popup'
+      },
+      didOpen: () => {
+        // Add input masks for uppercase conversion
+        const gstInput = document.getElementById('vendor_company_gst');
+        gstInput.addEventListener('input', function() {
+          this.value = this.value.toUpperCase();
+        });
 
+        const ifscInput = document.getElementById('vendor_ifsc_code');
+        ifscInput.addEventListener('input', function() {
+          this.value = this.value.toUpperCase();
+        });
+      },
+      preConfirm: () => {
         // Get form values
         const vendorData = {
-          vendor_name: document.getElementById('vendor_name').value,
-          vendor_phone: document.getElementById('vendor_phone').value,
-          vendor_email: document.getElementById('vendor_email').value,
-          vendor_company_name: document.getElementById('vendor_company_name').value,
-          vendor_company_address: document.getElementById('vendor_company_address').value,
-          vendor_company_gst: document.getElementById('vendor_company_gst').value,
-          vendor_account: document.getElementById('vendor_account').value,
-          vendor_bank_name: document.getElementById('vendor_bank_name').value,
-          vendor_ifsc_code: document.getElementById('vendor_ifsc_code').value,
-          vendor_account_type: document.getElementById('vendor_account_type').value,
-          vendor_status: document.getElementById('vendor_status').value
+          vendor_name: document.getElementById('vendor_name').value || '',
+          phone_number: document.getElementById('phone_number').value || '',
+          email_id: document.getElementById('email_id').value || '',
+          vendor_company_name: document.getElementById('vendor_company_name').value || '',
+          vendor_company_address: document.getElementById('vendor_company_address').value || '',
+          vendor_company_gst: document.getElementById('vendor_company_gst').value || '',
+          vendor_account: document.getElementById('vendor_account').value || '',
+          vendor_bank_name: document.getElementById('vendor_bank_name').value || '',
+          vendor_ifsc_code: document.getElementById('vendor_ifsc_code').value || '',
+          vendor_account_type: document.getElementById('vendor_account_type').value || '',
+          vendor_status: document.getElementById('vendor_status').value || 'active'
         };
-
-        // Validate phone number format
-        const phonePattern = /^[0-9]{10}$/;
-        if (!phonePattern.test(vendorData.vendor_phone)) {
-          Swal.showValidationMessage('Please enter a valid 10-digit phone number');
-          return false;
-        }
-
-        // Validate email format
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(vendorData.vendor_email)) {
-          Swal.showValidationMessage('Please enter a valid email address');
-          return false;
-        }
-
-        // Validate GST format
-        const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-        if (!gstPattern.test(vendorData.vendor_company_gst)) {
-          Swal.showValidationMessage('Please enter a valid GST number');
-          return false;
-        }
-
-        // Validate IFSC format
-        const ifscPattern = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-        if (!ifscPattern.test(vendorData.vendor_ifsc_code)) {
-          Swal.showValidationMessage('Please enter a valid IFSC code');
-          return false;
-        }
 
         return vendorData;
       }
@@ -892,7 +910,13 @@ function hideLoader() {
 
         if (response.ok) {
           const data = await response.json();
-          await Swal.fire('Success!', data.message || 'Vendor added successfully', 'success');
+          await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: data.message || 'Vendor added successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
           // Refresh vendor dropdown
           await populateVendorDropdown();
         } else {
