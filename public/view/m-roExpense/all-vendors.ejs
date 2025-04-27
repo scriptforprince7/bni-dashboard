@@ -102,6 +102,14 @@
                  </li>
                </ul>
              </div>
+
+             <!-- Add Chapter Filter Dropdown -->
+             <div class="dropdown me-2">
+               <select id="chapterFilter" class="form-select form-select-sm" style="min-width: 200px;">
+                 <option value="">All Chapters</option>
+                 <!-- Chapters will be populated dynamically -->
+               </select>
+             </div>
              
              <button
                   class="btn btn-outline-light border"
@@ -125,7 +133,9 @@
                  <th scope="col" style="border: 1px solid grey;">Contact Info</th>
                  <th scope="col" style="border: 1px solid grey;">Address</th>
                  <th scope="col" style="border: 1px solid grey;">GST No.</th>
+                 <th scope="col" style="border: 1px solid grey;">Chapter</th>
                  <th scope="col" style="border: 1px solid grey;">Status</th>
+                 <th scope="col" style="border: 1px solid grey;">Ledger</th>
                  <th scope="col" style="border: 1px solid grey;">Actions</th>
                </tr>
              </thead>
@@ -218,4 +228,162 @@
   .add-vendor-popup .form-control:valid {
     border-color: #198754;
   }
-</style> 
+
+  /* Vendor Ledger Modal Styles */
+  .vendor-info {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .vendor-name {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .vendor-company {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+  }
+
+  .vendor-contact {
+    font-size: 0.875rem;
+    color: #777;
+  }
+
+  .total-expenses, .last-expense {
+    font-size: 0.875rem;
+    color: #444;
+  }
+
+  .total-expenses .amount {
+    color: #d01f2f;
+    font-weight: 600;
+  }
+
+  #vendorLedgerTable {
+    border: 1px solid #dee2e6;
+  }
+
+  #vendorLedgerTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  #vendorLedgerTable td {
+    vertical-align: middle;
+  }
+
+  .payment-status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .payment-status-paid {
+    background-color: #198754;
+    color: white;
+  }
+
+  .payment-status-pending {
+    background-color: #ffc107;
+    color: #000;
+  }
+
+  .view-bill-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Animation for modal */
+  .modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+  }
+
+  .modal.show .modal-dialog {
+    transform: none;
+  }
+
+  /* Ledger button styles */
+  .view-ledger-btn {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+    min-width: 120px;
+  }
+
+  .view-ledger-btn:hover {
+    background-color: #138496;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .view-ledger-btn i {
+    font-size: 14px;
+    vertical-align: middle;
+  }
+</style>
+
+<!-- Add Vendor Ledger Modal -->
+<div class="modal fade" id="vendorLedgerModal" tabindex="-1" aria-labelledby="vendorLedgerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="vendorLedgerModalLabel">Vendor Expense History</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="vendor-info mb-4">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="vendor-name mb-2"></h6>
+              <p class="vendor-company mb-1"></p>
+              <p class="vendor-contact mb-1"></p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="total-expenses mb-2">
+                <strong>Total Expenses:</strong> <span class="amount"></span>
+              </div>
+              <div class="last-expense mb-2">
+                <strong>Last Expense:</strong> <span class="date"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover" id="vendorLedgerTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Expense Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>GST</th>
+                <th>Total Amount</th>
+                <th>Payment Status</th>
+                <th>Bill</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Expense history will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <div id="noExpensesMessage" class="text-center py-4" style="display: none;">
+          <p class="text-muted">No expenses found for this vendor.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="exportLedgerBtn">Export Ledger</button>
+      </div>
+    </div>
+  </div>
+</div> 

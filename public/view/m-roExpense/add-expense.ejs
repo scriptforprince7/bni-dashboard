@@ -590,37 +590,106 @@ function hideLoader() {
       const vendorDropdown = document.getElementById('vendor');
       
       // Clear existing options
-      vendorDropdown.innerHTML = '<option value="">Select Vendor</option>';
+      vendorDropdown.innerHTML = `
+        <option value="">Select Vendor</option>
+        <option value="all">All Vendors</option>
+        <option disabled>──────────</option>
+      `;
       
-      // Filter vendors by chapter_id if a chapter is selected
+      // Filter vendors by chapter_id if a chapter is selected and "All Vendors" is not selected
       let filteredVendors = vendors;
-      if (selectedChapterId) {
+      if (selectedChapterId && selectedChapterId !== 'all') {
         filteredVendors = vendors.filter(vendor => 
           vendor.chapter_id === parseInt(selectedChapterId)
         );
-      }
-      
-      // Sort vendors by name
-      filteredVendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
-      
-      // Add vendor options
-      filteredVendors.forEach(vendor => {
-        const option = document.createElement('option');
-        option.value = vendor.vendor_id;
-        option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
-        vendorDropdown.appendChild(option);
-      });
 
-      // If no vendors found for the selected chapter
-      if (selectedChapterId && filteredVendors.length === 0) {
+        // Add a subheading for chapter vendors if any exist
+        if (filteredVendors.length > 0) {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = 'Chapter Vendors';
+          vendorDropdown.appendChild(optgroup);
+          
+          // Add chapter vendors
+          filteredVendors.forEach(vendor => {
+            const option = document.createElement('option');
+            option.value = vendor.vendor_id;
+            option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+            optgroup.appendChild(option);
+          });
+        }
+
+        // Add a separator and option to show other vendors
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.textContent = '──────────';
+        vendorDropdown.appendChild(separator);
+
+        // Add option to show other vendors
+        const showOthersOption = document.createElement('option');
+        showOthersOption.value = 'show_others';
+        showOthersOption.textContent = '➕ Show Other Chapter Vendors';
+        vendorDropdown.appendChild(showOthersOption);
+
+      } else {
+        // If no chapter selected or "All Vendors" is selected, show all vendors
+        vendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+        vendors.forEach(vendor => {
+          const option = document.createElement('option');
+          option.value = vendor.vendor_id;
+          option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+          vendorDropdown.appendChild(option);
+        });
+      }
+
+      // If no vendors found at all
+      if (vendors.length === 0) {
         const option = document.createElement('option');
         option.value = "";
-        option.textContent = "No vendors found for this chapter";
+        option.textContent = "No vendors found";
         vendorDropdown.appendChild(option);
       }
     } catch (error) {
       console.error('Error populating vendor dropdown:', error);
       Swal.fire('Error!', 'Failed to load vendors', 'error');
+    }
+  }
+
+  // Function to show other chapter vendors
+  async function showOtherChapterVendors() {
+    try {
+      const vendors = await fetchVendors();
+      const vendorDropdown = document.getElementById('vendor');
+      const selectedChapterId = document.getElementById('chapter').value;
+
+      // Remove the "Show Other Chapter Vendors" option
+      const showOthersOption = vendorDropdown.querySelector('option[value="show_others"]');
+      if (showOthersOption) {
+        showOthersOption.remove();
+      }
+
+      // Add other vendors in a separate group
+      const otherVendors = vendors.filter(vendor => 
+        vendor.chapter_id !== parseInt(selectedChapterId)
+      );
+
+      if (otherVendors.length > 0) {
+        const otherOptgroup = document.createElement('optgroup');
+        otherOptgroup.label = 'Other Chapter Vendors';
+        vendorDropdown.appendChild(otherOptgroup);
+
+        // Sort other vendors by name
+        otherVendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+
+        otherVendors.forEach(vendor => {
+          const option = document.createElement('option');
+          option.value = vendor.vendor_id;
+          option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+          otherOptgroup.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error('Error showing other chapter vendors:', error);
+      Swal.fire('Error!', 'Failed to load other vendors', 'error');
     }
   }
 
@@ -651,12 +720,17 @@ function hideLoader() {
     }
   }
 
-  // Add event listener for vendor selection
+  // Add event listener for vendor dropdown
   document.getElementById('vendor').addEventListener('change', function() {
     const selectedVendorId = this.value;
     const vendorDetailsSection = document.getElementById('vendorDetailsSection');
     
-    if (selectedVendorId) {
+    if (selectedVendorId === 'show_others') {
+      // Show other chapter vendors
+      showOtherChapterVendors();
+      // Reset selection to first option
+      this.selectedIndex = 0;
+    } else if (selectedVendorId && selectedVendorId !== 'all') {
       handleVendorSelection(selectedVendorId);
     } else {
       vendorDetailsSection.style.display = 'none';
@@ -795,140 +869,175 @@ function hideLoader() {
 
   // Function to add new vendor
   const addNewVendor = async () => {
-    const result = await Swal.fire({
-      title: 'Add New Vendor',
-      html: `
-        <form id="addVendorForm" class="text-start">
-          <div class="mb-3">
-            <label for="vendor_name" class="form-label">Vendor Name</label>
-            <input type="text" class="form-control" id="vendor_name">
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="phone_number" class="form-label">Phone Number</label>
-              <input type="tel" class="form-control" id="phone_number">
+    // First fetch chapters for the dropdown
+    try {
+      const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+      const chapters = await chaptersResponse.json();
+      
+      // Sort chapters alphabetically
+      chapters.sort((a, b) => a.chapter_name.localeCompare(b.chapter_name));
+      
+      // Create chapter options HTML
+      const chapterOptions = chapters.map(chapter => 
+        `<option value="${chapter.chapter_id}">${chapter.chapter_name}</option>`
+      ).join('');
+
+      const result = await Swal.fire({
+        title: 'Add New Vendor',
+        html: `
+          <form id="addVendorForm" class="text-start">
+            <div class="mb-3">
+              <label for="vendor_name" class="form-label">Vendor Name</label>
+              <input type="text" class="form-control" id="vendor_name">
             </div>
-            <div class="col-md-6">
-              <label for="email_id" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email_id">
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="vendor_company_name" class="form-label">Company Name</label>
-            <input type="text" class="form-control" id="vendor_company_name">
-          </div>
-          <div class="mb-3">
-            <label for="vendor_company_address" class="form-label">Company Address</label>
-            <textarea class="form-control" id="vendor_company_address" rows="2"></textarea>
-          </div>
-          <div class="mb-3">
-            <label for="vendor_company_gst" class="form-label">Company GST</label>
-            <input type="text" class="form-control" id="vendor_company_gst">
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="vendor_bank_name" class="form-label">Bank Name</label>
-              <input type="text" class="form-control" id="vendor_bank_name">
-            </div>
-            <div class="col-md-6">
-              <label for="vendor_account" class="form-label">Account Number</label>
-              <input type="text" class="form-control" id="vendor_account">
-            </div>
-          </div>
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="vendor_ifsc_code" class="form-label">IFSC Code</label>
-              <input type="text" class="form-control" id="vendor_ifsc_code">
-            </div>
-            <div class="col-md-6">
-              <label for="vendor_account_type" class="form-label">Account Type</label>
-              <select class="form-control" id="vendor_account_type">
-                <option value="">Select Account Type</option>
-                <option value="Savings">Savings</option>
-                <option value="Current">Current</option>
+            <div class="mb-3">
+              <label for="chapter_id" class="form-label">Choose Chapter</label>
+              <select class="form-control" id="chapter_id" required>
+                <option value="">Select Chapter</option>
+                ${chapterOptions}
               </select>
             </div>
-          </div>
-          <div class="mb-3">
-            <label for="vendor_status" class="form-label">Status</label>
-            <select class="form-control" id="vendor_status">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-        </form>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Add Vendor',
-      cancelButtonText: 'Cancel',
-      width: '800px',
-      customClass: {
-        container: 'add-vendor-popup'
-      },
-      didOpen: () => {
-        // Add input masks for uppercase conversion
-        const gstInput = document.getElementById('vendor_company_gst');
-        gstInput.addEventListener('input', function() {
-          this.value = this.value.toUpperCase();
-        });
-
-        const ifscInput = document.getElementById('vendor_ifsc_code');
-        ifscInput.addEventListener('input', function() {
-          this.value = this.value.toUpperCase();
-        });
-      },
-      preConfirm: () => {
-        // Get form values
-        const vendorData = {
-          vendor_name: document.getElementById('vendor_name').value || '',
-          phone_number: document.getElementById('phone_number').value || '',
-          email_id: document.getElementById('email_id').value || '',
-          vendor_company_name: document.getElementById('vendor_company_name').value || '',
-          vendor_company_address: document.getElementById('vendor_company_address').value || '',
-          vendor_company_gst: document.getElementById('vendor_company_gst').value || '',
-          vendor_account: document.getElementById('vendor_account').value || '',
-          vendor_bank_name: document.getElementById('vendor_bank_name').value || '',
-          vendor_ifsc_code: document.getElementById('vendor_ifsc_code').value || '',
-          vendor_account_type: document.getElementById('vendor_account_type').value || '',
-          vendor_status: document.getElementById('vendor_status').value || 'active'
-        };
-
-        return vendorData;
-      }
-    });
-
-    if (result.isConfirmed) {
-      try {
-        showLoader();
-        const response = await fetch('http://localhost:5000/api/addVendor', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(result.value)
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          await Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: data.message || 'Vendor added successfully',
-            timer: 2000,
-            showConfirmButton: false
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="phone_number" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="phone_number">
+              </div>
+              <div class="col-md-6">
+                <label for="email_id" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email_id">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="vendor_company_name" class="form-label">Company Name</label>
+              <input type="text" class="form-control" id="vendor_company_name">
+            </div>
+            <div class="mb-3">
+              <label for="vendor_company_address" class="form-label">Company Address</label>
+              <textarea class="form-control" id="vendor_company_address" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="vendor_company_gst" class="form-label">Company GST</label>
+              <input type="text" class="form-control" id="vendor_company_gst">
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="vendor_bank_name" class="form-label">Bank Name</label>
+                <input type="text" class="form-control" id="vendor_bank_name">
+              </div>
+              <div class="col-md-6">
+                <label for="vendor_account" class="form-label">Account Number</label>
+                <input type="text" class="form-control" id="vendor_account">
+              </div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="vendor_ifsc_code" class="form-label">IFSC Code</label>
+                <input type="text" class="form-control" id="vendor_ifsc_code">
+              </div>
+              <div class="col-md-6">
+                <label for="vendor_account_type" class="form-label">Account Type</label>
+                <select class="form-control" id="vendor_account_type">
+                  <option value="">Select Account Type</option>
+                  <option value="Savings">Savings</option>
+                  <option value="Current">Current</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="vendor_status" class="form-label">Status</label>
+              <select class="form-control" id="vendor_status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </form>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Add Vendor',
+        cancelButtonText: 'Cancel',
+        width: '800px',
+        customClass: {
+          container: 'add-vendor-popup'
+        },
+        didOpen: () => {
+          // Add input masks for uppercase conversion
+          const gstInput = document.getElementById('vendor_company_gst');
+          gstInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
           });
-          // Refresh vendor dropdown
-          await populateVendorDropdown();
-        } else {
-          const errorData = await response.json();
-          Swal.fire('Error!', errorData.message || 'Failed to add vendor', 'error');
+
+          const ifscInput = document.getElementById('vendor_ifsc_code');
+          ifscInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+          });
+        },
+        preConfirm: () => {
+          const chapterId = document.getElementById('chapter_id').value;
+          if (!chapterId) {
+            Swal.showValidationMessage('Please select a chapter');
+            return false;
+          }
+
+          // Get form values
+          const vendorData = {
+            vendor_name: document.getElementById('vendor_name').value || '',
+            chapter_id: parseInt(chapterId),
+            phone_number: document.getElementById('phone_number').value || '',
+            email_id: document.getElementById('email_id').value || '',
+            vendor_company_name: document.getElementById('vendor_company_name').value || '',
+            vendor_company_address: document.getElementById('vendor_company_address').value || '',
+            vendor_company_gst: document.getElementById('vendor_company_gst').value || '',
+            vendor_account: document.getElementById('vendor_account').value || '',
+            vendor_bank_name: document.getElementById('vendor_bank_name').value || '',
+            vendor_ifsc_code: document.getElementById('vendor_ifsc_code').value || '',
+            vendor_account_type: document.getElementById('vendor_account_type').value || '',
+            vendor_status: document.getElementById('vendor_status').value || 'active'
+          };
+
+          // Log the data being sent
+          console.log('Sending vendor data:', vendorData);
+
+          return vendorData;
         }
-      } catch (error) {
-        console.error('Error adding vendor:', error);
-        Swal.fire('Error!', 'Failed to add vendor. Please try again.', 'error');
-      } finally {
-        hideLoader();
+      });
+
+      if (result.isConfirmed && result.value) {
+        try {
+          showLoader();
+          const response = await fetch('http://localhost:5000/api/addVendor', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(result.value)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            await Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: data.message || 'Vendor added successfully',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            // Refresh vendor dropdown with current chapter selection
+            const currentChapterId = document.getElementById('chapter').value;
+            await populateVendorDropdown(currentChapterId);
+          } else {
+            const errorData = await response.json();
+            Swal.fire('Error!', errorData.message || 'Failed to add vendor', 'error');
+          }
+        } catch (error) {
+          console.error('Error adding vendor:', error);
+          Swal.fire('Error!', 'Failed to add vendor. Please try again.', 'error');
+        } finally {
+          hideLoader();
+        }
       }
+    } catch (error) {
+      console.error('Error fetching chapters:', error);
+      Swal.fire('Error!', 'Failed to load chapters. Please try again.', 'error');
     }
   };
 

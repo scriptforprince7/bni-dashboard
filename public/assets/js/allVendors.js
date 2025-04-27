@@ -3,6 +3,7 @@ let allVendors = [];
 let filteredVendors = [];
 let entriesPerPage = 10;
 let currentPage = 1;
+let chapters = []; // Store chapters data globally
 
 // Function to show the loader
 function showLoader() {
@@ -27,6 +28,115 @@ const updateVendorStats = (vendors) => {
   statsButtons[2].querySelector('b').textContent = inactiveVendors;
 };
 
+// Function to format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+// Function to format currency
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount);
+};
+
+// Function to view vendor ledger
+const viewVendorLedger = async (vendorId) => {
+  try {
+    showLoader();
+    
+    // Find vendor details
+    const vendor = allVendors.find(v => v.vendor_id === parseInt(vendorId));
+    if (!vendor) throw new Error('Vendor not found');
+
+    // Fetch vendor's expenses
+    const response = await fetch(`http://localhost:5000/api/allExpenses`);
+    if (!response.ok) throw new Error('Failed to fetch expenses');
+    const allExpenses = await response.json();
+
+    // Filter expenses for this vendor
+    const vendorExpenses = allExpenses.filter(expense => expense.vendor_id === parseInt(vendorId));
+
+    // Update modal with vendor information
+    document.querySelector('.vendor-name').textContent = vendor.vendor_name;
+    document.querySelector('.vendor-company').textContent = vendor.vendor_company_name;
+    document.querySelector('.vendor-contact').textContent = `${vendor.phone_number} | ${vendor.email_id}`;
+
+    // Calculate total expenses
+    const totalAmount = vendorExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    document.querySelector('.total-expenses .amount').textContent = formatCurrency(totalAmount);
+
+    // Get last expense date
+    const lastExpense = vendorExpenses.length > 0 
+      ? formatDate(vendorExpenses[vendorExpenses.length - 1].bill_date)
+      : 'No expenses';
+    document.querySelector('.last-expense .date').textContent = lastExpense;
+
+    // Populate expense history table
+    const tableBody = document.querySelector('#vendorLedgerTable tbody');
+    tableBody.innerHTML = '';
+
+    if (vendorExpenses.length === 0) {
+      document.getElementById('vendorLedgerTable').style.display = 'none';
+      document.getElementById('noExpensesMessage').style.display = 'block';
+    } else {
+      document.getElementById('vendorLedgerTable').style.display = 'table';
+      document.getElementById('noExpensesMessage').style.display = 'none';
+
+      vendorExpenses.forEach(expense => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${formatDate(expense.bill_date)}</td>
+          <td>${expense.expense_type}</td>
+          <td>${expense.description}</td>
+          <td>${formatCurrency(expense.amount)}</td>
+          <td>${expense.withGST ? `${expense.gstPercentage}% (${formatCurrency(expense.gstAmount)})` : 'N/A'}</td>
+          <td>${formatCurrency(expense.totalAmount || expense.amount)}</td>
+          <td>
+            <span class="payment-status-badge payment-status-${expense.payment_status}">
+              ${expense.payment_status.toUpperCase()}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary view-bill-btn" onclick="window.open('/uploads/${expense.bill_file}', '_blank')">
+              View Bill
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('vendorLedgerModal'));
+    modal.show();
+
+  } catch (error) {
+    console.error('Error viewing vendor ledger:', error);
+    Swal.fire('Error!', 'Failed to load vendor ledger', 'error');
+  } finally {
+    hideLoader();
+  }
+};
+
+// Function to export vendor ledger
+const exportVendorLedger = async () => {
+  try {
+    // Implementation for exporting ledger to Excel/PDF
+    // This can be added later based on requirements
+    Swal.fire('Coming Soon!', 'Export functionality will be available soon.', 'info');
+  } catch (error) {
+    console.error('Error exporting ledger:', error);
+    Swal.fire('Error!', 'Failed to export ledger', 'error');
+  }
+};
+
 // Function to display vendors in the table
 const displayVendors = (vendors) => {
   const tableBody = document.getElementById("expensesTableBody");
@@ -35,7 +145,7 @@ const displayVendors = (vendors) => {
   if (vendors.length === 0) {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="8" class="text-center">No vendors found</td>
+      <td colspan="10" class="text-center">No vendors found</td>
     `;
     tableBody.appendChild(row);
     return;
@@ -57,10 +167,16 @@ const displayVendors = (vendors) => {
       </td>
       <td style="border: 1px solid grey;"><b>${vendor.vendor_company_address}</b></td>
       <td style="border: 1px solid grey;"><b>${vendor.vendor_company_gst}</b></td>
+      <td style="border: 1px solid grey;"><b>${vendor.chapter_name || 'N/A'}</b></td>
       <td style="border: 1px solid grey;">
         <span class="badge bg-${vendor.vendor_status === 'active' ? 'success' : 'danger'}">
           ${vendor.vendor_status.toUpperCase()}
         </span>
+      </td>
+      <td style="border: 1px solid grey; text-align: center;">
+        <button class="btn btn-sm btn-info view-ledger-btn" onclick="viewVendorLedger(${vendor.vendor_id})">
+          <i class="ri-file-list-3-line me-1"></i>View Ledger
+        </button>
       </td>
       <td style="border: 1px solid grey;">
         <button class="btn btn-sm btn-primary edit-vendor" data-vendor-id="${vendor.vendor_id}">
@@ -170,14 +286,66 @@ const deleteVendor = async (vendorId) => {
   }
 };
 
+// Function to populate chapter filter dropdown
+const populateChapterFilter = (chapters) => {
+  const chapterFilter = document.getElementById('chapterFilter');
+  chapterFilter.innerHTML = '<option value="">All Chapters</option>';
+  
+  // Sort chapters alphabetically
+  chapters.sort((a, b) => a.chapter_name.localeCompare(b.chapter_name));
+  
+  chapters.forEach(chapter => {
+    const option = document.createElement('option');
+    option.value = chapter.chapter_id;
+    option.textContent = chapter.chapter_name;
+    chapterFilter.appendChild(option);
+  });
+};
+
+// Function to filter vendors by chapter
+const filterVendorsByChapter = (chapterId) => {
+  if (!chapterId) {
+    // If no chapter selected, show all vendors
+    filteredVendors = [...allVendors];
+  } else {
+    // Filter vendors by selected chapter
+    filteredVendors = allVendors.filter(vendor => 
+      vendor.chapter_id === parseInt(chapterId)
+    );
+  }
+  
+  currentPage = 1; // Reset to first page
+  updateVendorStats(filteredVendors); // Update stats for filtered vendors
+  displayVendors(filteredVendors);
+};
+
 // Function to fetch vendors
 const fetchVendors = async () => {
   try {
     showLoader();
+    
+    // Fetch chapters first
+    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    chapters = await chaptersResponse.json();
+    
+    // Populate chapter filter dropdown
+    populateChapterFilter(chapters);
+    
+    // Create a map of chapter_id to chapter_name for quick lookup
+    const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
+    
+    // Fetch vendors
     const response = await fetch('http://localhost:5000/api/getAllVendors');
     if (!response.ok) throw new Error('Failed to fetch vendors');
     
-    allVendors = await response.json();
+    const vendors = await response.json();
+    
+    // Add chapter_name to each vendor
+    allVendors = vendors.map(vendor => ({
+      ...vendor,
+      chapter_name: vendor.chapter_id ? chapterMap.get(vendor.chapter_id) : 'N/A'
+    }));
+    
     filteredVendors = [...allVendors];
     
     // Update stats and display vendors
@@ -377,6 +545,11 @@ document.addEventListener('DOMContentLoaded', () => {
     this.setAttribute('data-filter', newSort);
     this.textContent = newSort === 'ascending' ? 'Ascending' : 'Descending';
     sortVendors(newSort);
+  });
+
+  // Chapter filter listener
+  document.getElementById('chapterFilter').addEventListener('change', function() {
+    filterVendorsByChapter(this.value);
   });
 
   // Delete button listener
