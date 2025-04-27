@@ -86,7 +86,6 @@
          <div class="card-title">All Expenses</div>
          <div class="d-flex gap-3 align-items-center flex-wrap">
            <div class="btn-group">
-
              <div class="dropdown me-2" >
                <a
                  href="javascript:void(0);"
@@ -101,10 +100,16 @@
                  <li>
                    <a class="dropdown-item filter-option" id="sortButton" href="javascript:void(0);" data-filter="ascending">Ascending</a>
                  </li>
-                 
                </ul>
              </div>
-             
+
+             <!-- Add Chapter Filter Dropdown -->
+             <div class="dropdown me-2">
+               <select id="chapterFilter" class="form-select form-select-sm" style="min-width: 200px;">
+                 <option value="all">All Chapters</option>
+                 <!-- Chapters will be populated dynamically -->
+               </select>
+             </div>
              
              <button
                   class="btn btn-outline-light border"
@@ -133,6 +138,7 @@
                  <th scope="col" style="border: 1px solid grey;">Payment Status</th>
                  <th scope="col" style="border: 1px solid grey;">Bill Date</th>
                  <th scope="col" style="border: 1px solid grey;">View Bill</th>
+                 <th scope="col" style="border: 1px solid grey;">View Receipt</th>
                  <th scope="col" style="border: 1px solid grey;">Actions</th>
                </tr>
              </thead>

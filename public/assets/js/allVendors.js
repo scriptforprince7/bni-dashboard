@@ -56,7 +56,7 @@ const viewVendorLedger = async (vendorId) => {
     if (!vendor) throw new Error('Vendor not found');
 
     // Fetch vendor's expenses
-    const response = await fetch(`http://localhost:5000/api/allExpenses`);
+    const response = await fetch(`https://backend.bninewdelhi.com/api/allExpenses`);
     if (!response.ok) throw new Error('Failed to fetch expenses');
     const allExpenses = await response.json();
 
@@ -265,7 +265,7 @@ const deleteVendor = async (vendorId) => {
   if (result.isConfirmed) {
     try {
       showLoader();
-      const response = await fetch(`http://localhost:5000/api/vendor/${vendorId}`, {
+      const response = await fetch(`https://backend.bninewdelhi.com/api/vendor/${vendorId}`, {
         method: 'DELETE'
       });
 
@@ -335,7 +335,7 @@ const fetchVendors = async () => {
     const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
     
     // Fetch vendors
-    const response = await fetch('http://localhost:5000/api/getAllVendors');
+    const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
     if (!response.ok) throw new Error('Failed to fetch vendors');
     
     const vendors = await response.json();
@@ -361,175 +361,206 @@ const fetchVendors = async () => {
 
 // Function to add new vendor
 const addNewVendor = async () => {
-  const result = await Swal.fire({
-    title: 'Add New Vendor',
-    html: `
-      <form id="addVendorForm" class="text-start">
-        <div class="mb-3">
-          <label for="vendor_name" class="form-label">Vendor Name*</label>
-          <input type="text" class="form-control" id="vendor_name" required>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="phone_number" class="form-label">Phone Number*</label>
-            <input type="tel" class="form-control" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number" required>
+  try {
+    // Fetch chapters for dropdown
+    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    const chapters = await chaptersResponse.json();
+    
+    // Sort chapters alphabetically
+    chapters.sort((a, b) => a.chapter_name.localeCompare(b.chapter_name));
+    
+    // Create chapter options HTML
+    const chapterOptions = chapters.map(chapter => 
+      `<option value="${chapter.chapter_id}">${chapter.chapter_name}</option>`
+    ).join('');
+
+    const result = await Swal.fire({
+      title: 'Add New Vendor',
+      html: `
+        <form id="addVendorForm" class="text-start">
+          <div class="mb-3">
+            <label for="vendor_name" class="form-label">Vendor Name*</label>
+            <input type="text" class="form-control" id="vendor_name" required>
           </div>
-          <div class="col-md-6">
-            <label for="email_id" class="form-label">Email*</label>
-            <input type="email" class="form-control" id="email_id" required>
-          </div>
-        </div>
-        <div class="mb-3">
-          <label for="vendor_company_name" class="form-label">Company Name*</label>
-          <input type="text" class="form-control" id="vendor_company_name" required>
-        </div>
-        <div class="mb-3">
-          <label for="vendor_company_address" class="form-label">Company Address*</label>
-          <textarea class="form-control" id="vendor_company_address" rows="2" required></textarea>
-        </div>
-        <div class="mb-3">
-          <label for="vendor_company_gst" class="form-label">Company GST*</label>
-          <input type="text" class="form-control" id="vendor_company_gst" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Please enter a valid GST number" required>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="vendor_bank_name" class="form-label">Bank Name*</label>
-            <input type="text" class="form-control" id="vendor_bank_name" required>
-          </div>
-          <div class="col-md-6">
-            <label for="vendor_account" class="form-label">Account Number*</label>
-            <input type="text" class="form-control" id="vendor_account" pattern="[0-9]+" title="Please enter only numbers" required>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="vendor_ifsc_code" class="form-label">IFSC Code*</label>
-            <input type="text" class="form-control" id="vendor_ifsc_code" pattern="^[A-Z]{4}0[A-Z0-9]{6}$" title="Please enter a valid IFSC code" required>
-          </div>
-          <div class="col-md-6">
-            <label for="vendor_account_type" class="form-label">Account Type*</label>
-            <select class="form-control" id="vendor_account_type" required>
-              <option value="">Select Account Type</option>
-              <option value="Savings">Savings</option>
-              <option value="Current">Current</option>
+          <div class="mb-3">
+            <label for="chapter_id" class="form-label">Choose Chapter*</label>
+            <select class="form-control" id="chapter_id" required>
+              <option value="">Select Chapter</option>
+              ${chapterOptions}
             </select>
           </div>
-        </div>
-        <div class="mb-3">
-          <label for="vendor_status" class="form-label">Status*</label>
-          <select class="form-control" id="vendor_status" required>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <small class="text-muted">* Required fields</small>
-      </form>
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Add Vendor',
-    cancelButtonText: 'Cancel',
-    width: '800px',
-    customClass: {
-      container: 'add-vendor-popup'
-    },
-    didOpen: () => {
-      // Add input masks and validation
-      const gstInput = document.getElementById('vendor_company_gst');
-      gstInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-      });
-
-      const ifscInput = document.getElementById('vendor_ifsc_code');
-      ifscInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-      });
-    },
-    preConfirm: () => {
-      const form = document.getElementById('addVendorForm');
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return false;
-      }
-
-      // Get form values
-      const vendorData = {
-        vendor_name: document.getElementById('vendor_name').value,
-        phone_number: document.getElementById('phone_number').value,
-        email_id: document.getElementById('email_id').value,
-        vendor_company_name: document.getElementById('vendor_company_name').value,
-        vendor_company_address: document.getElementById('vendor_company_address').value,
-        vendor_company_gst: document.getElementById('vendor_company_gst').value,
-        vendor_account: document.getElementById('vendor_account').value,
-        vendor_bank_name: document.getElementById('vendor_bank_name').value,
-        vendor_ifsc_code: document.getElementById('vendor_ifsc_code').value,
-        vendor_account_type: document.getElementById('vendor_account_type').value,
-        vendor_status: document.getElementById('vendor_status').value
-      };
-
-      // Validate GST format
-      const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-      if (!gstPattern.test(vendorData.vendor_company_gst)) {
-        Swal.showValidationMessage('Please enter a valid GST number');
-        return false;
-      }
-
-      // Validate IFSC format
-      const ifscPattern = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-      if (!ifscPattern.test(vendorData.vendor_ifsc_code)) {
-        Swal.showValidationMessage('Please enter a valid IFSC code');
-        return false;
-      }
-
-      // Validate phone number
-      const phonePattern = /^[0-9]{10}$/;
-      if (!phonePattern.test(vendorData.phone_number)) {
-        Swal.showValidationMessage('Please enter a valid 10-digit phone number');
-        return false;
-      }
-
-      // Validate email
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(vendorData.email_id)) {
-        Swal.showValidationMessage('Please enter a valid email address');
-        return false;
-      }
-
-      return vendorData;
-    }
-  });
-
-  if (result.isConfirmed) {
-    try {
-      showLoader();
-      const response = await fetch('http://localhost:5000/api/addVendor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(result.value)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        await Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: data.message || 'Vendor added successfully',
-          timer: 2000,
-          showConfirmButton: false
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone_number" class="form-label">Phone Number*</label>
+              <input type="tel" class="form-control" id="phone_number" pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email_id" class="form-label">Email*</label>
+              <input type="email" class="form-control" id="email_id" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="vendor_company_name" class="form-label">Company Name*</label>
+            <input type="text" class="form-control" id="vendor_company_name" required>
+          </div>
+          <div class="mb-3">
+            <label for="vendor_company_address" class="form-label">Company Address*</label>
+            <textarea class="form-control" id="vendor_company_address" rows="2" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="vendor_company_gst" class="form-label">Company GST*</label>
+            <input type="text" class="form-control" id="vendor_company_gst" pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$" title="Please enter a valid GST number" required>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_bank_name" class="form-label">Bank Name*</label>
+              <input type="text" class="form-control" id="vendor_bank_name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account" class="form-label">Account Number*</label>
+              <input type="text" class="form-control" id="vendor_account" pattern="[0-9]+" title="Please enter only numbers" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_ifsc_code" class="form-label">IFSC Code*</label>
+              <input type="text" class="form-control" id="vendor_ifsc_code" pattern="^[A-Z]{4}0[A-Z0-9]{6}$" title="Please enter a valid IFSC code" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account_type" class="form-label">Account Type*</label>
+              <select class="form-control" id="vendor_account_type" required>
+                <option value="">Select Account Type</option>
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="vendor_status" class="form-label">Status*</label>
+            <select class="form-control" id="vendor_status" required>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <small class="text-muted">* Required fields</small>
+        </form>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Add Vendor',
+      cancelButtonText: 'Cancel',
+      width: '800px',
+      customClass: {
+        container: 'add-vendor-popup'
+      },
+      didOpen: () => {
+        // Add input masks and validation
+        const gstInput = document.getElementById('vendor_company_gst');
+        gstInput.addEventListener('input', function() {
+          this.value = this.value.toUpperCase();
         });
-        // Refresh vendors list
-        await fetchVendors();
-      } else {
-        const errorData = await response.json();
-        Swal.fire('Error!', errorData.message || 'Failed to add vendor', 'error');
+
+        const ifscInput = document.getElementById('vendor_ifsc_code');
+        ifscInput.addEventListener('input', function() {
+          this.value = this.value.toUpperCase();
+        });
+      },
+      preConfirm: () => {
+        const form = document.getElementById('addVendorForm');
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return false;
+        }
+
+        const chapterId = document.getElementById('chapter_id').value;
+        if (!chapterId) {
+          Swal.showValidationMessage('Please select a chapter');
+          return false;
+        }
+
+        // Get form values
+        const vendorData = {
+          vendor_name: document.getElementById('vendor_name').value,
+          chapter_id: parseInt(chapterId),
+          phone_number: document.getElementById('phone_number').value,
+          email_id: document.getElementById('email_id').value,
+          vendor_company_name: document.getElementById('vendor_company_name').value,
+          vendor_company_address: document.getElementById('vendor_company_address').value,
+          vendor_company_gst: document.getElementById('vendor_company_gst').value,
+          vendor_account: document.getElementById('vendor_account').value,
+          vendor_bank_name: document.getElementById('vendor_bank_name').value,
+          vendor_ifsc_code: document.getElementById('vendor_ifsc_code').value,
+          vendor_account_type: document.getElementById('vendor_account_type').value,
+          vendor_status: document.getElementById('vendor_status').value
+        };
+
+        // Validate GST format
+        const gstPattern = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        if (!gstPattern.test(vendorData.vendor_company_gst)) {
+          Swal.showValidationMessage('Please enter a valid GST number');
+          return false;
+        }
+
+        // Validate IFSC format
+        const ifscPattern = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+        if (!ifscPattern.test(vendorData.vendor_ifsc_code)) {
+          Swal.showValidationMessage('Please enter a valid IFSC code');
+          return false;
+        }
+
+        // Validate phone number
+        const phonePattern = /^[0-9]{10}$/;
+        if (!phonePattern.test(vendorData.phone_number)) {
+          Swal.showValidationMessage('Please enter a valid 10-digit phone number');
+          return false;
+        }
+
+        // Validate email
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(vendorData.email_id)) {
+          Swal.showValidationMessage('Please enter a valid email address');
+          return false;
+        }
+
+        return vendorData;
       }
-    } catch (error) {
-      console.error('Error adding vendor:', error);
-      Swal.fire('Error!', 'Failed to add vendor. Please try again.', 'error');
-    } finally {
-      hideLoader();
+    });
+
+    if (result.isConfirmed && result.value) {
+      try {
+        showLoader();
+        const response = await fetch('https://backend.bninewdelhi.com/api/addVendor', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(result.value)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: data.message || 'Vendor added successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          // Refresh vendors list
+          await fetchVendors();
+        } else {
+          const errorData = await response.json();
+          Swal.fire('Error!', errorData.message || 'Failed to add vendor', 'error');
+        }
+      } catch (error) {
+        console.error('Error adding vendor:', error);
+        Swal.fire('Error!', 'Failed to add vendor. Please try again.', 'error');
+      } finally {
+        hideLoader();
+      }
     }
+  } catch (error) {
+    console.error('Error in add vendor process:', error);
+    Swal.fire('Error!', 'Failed to initialize add vendor form', 'error');
   }
 };
 

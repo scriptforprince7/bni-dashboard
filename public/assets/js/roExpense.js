@@ -4,9 +4,53 @@ let filteredExpenses = []; // To store filtered expenses based on search
 let entriesPerPage = 10; // Number of entries to display per page
 let currentPage = 1; // For pagination
 let expenseTypes = []; // Store expense types mapping
+let allChapters = []; // Store all chapters
 
 // Define base URL at the top of your file
 const BILL_BASE_URL = 'https://backend.bninewdelhi.com';
+
+// Function to populate chapter filter dropdown
+const populateChapterFilter = async () => {
+  const chapterFilter = document.getElementById('chapterFilter');
+  
+  // Sort chapters alphabetically
+  allChapters.sort((a, b) => a.chapter_name.localeCompare(b.chapter_name));
+  
+  // Clear existing options except "All Chapters"
+  chapterFilter.innerHTML = '<option value="all">All Chapters</option>';
+  
+  // Add chapter options
+  allChapters.forEach(chapter => {
+    const option = document.createElement('option');
+    option.value = chapter.chapter_name;
+    option.textContent = chapter.chapter_name;
+    chapterFilter.appendChild(option);
+  });
+};
+
+// Function to filter expenses by chapter
+const filterExpensesByChapter = (chapterName) => {
+  if (chapterName === 'all') {
+    filteredExpenses = [...allExpenses];
+  } else {
+    filteredExpenses = allExpenses.filter(expense => expense.chapter_id === chapterName);
+  }
+  
+  // Update display with filtered expenses
+  const startIndex = 0;
+  const endIndex = entriesPerPage;
+  currentPage = 1; // Reset to first page when filtering
+  displayExpenses(filteredExpenses.slice(startIndex, endIndex));
+  
+  // Update expense totals for filtered expenses
+  updateExpenseTotals(filteredExpenses);
+};
+
+// Add event listener for chapter filter
+document.getElementById('chapterFilter').addEventListener('change', (event) => {
+  const selectedChapter = event.target.value;
+  filterExpensesByChapter(selectedChapter);
+});
 
 // Function to show the loader
 function showLoader() {
@@ -54,6 +98,12 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log('All chapters:', chapters);
+    
+    // Store chapters globally
+    allChapters = chapters;
+    
+    // Populate chapter filter dropdown
+    await populateChapterFilter();
 
     // Find user's chapter based on email
     const userChapter = chapters.find(chapter =>
@@ -61,12 +111,10 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       chapter.vice_president_mail === userEmail ||
       chapter.president_mail === userEmail ||
       chapter.treasurer_mail === userEmail
-  );
+    );
   
-  console.log('Found user chapter:', userChapter);
-  
-    console.log('User chapter details:', userChapter);
-
+    console.log('Found user chapter:', userChapter);
+    
     if (!userChapter && getUserLoginType() !== 'ro_admin') {
       console.log('No matching chapter found for user email');
       hideLoader();
@@ -275,10 +323,17 @@ function displayExpenses(expenses) {
     // Construct the bill URL
     const billUrl = `${BILL_BASE_URL}/api/uploads/expenses/${filename}`;
     
-    console.log('Bill Details:', {
+    // Get receipt filename and construct receipt URL
+    const receiptFilename = expense.upload_receipt.split('/').pop();
+    const receiptUrl = `${BILL_BASE_URL}/api/uploads/expenses/${receiptFilename}`;
+    
+    console.log('Document Details:', {
       originalUploadBill: expense.upload_bill,
-      extractedFilename: filename,
-      constructedUrl: billUrl
+      extractedBillFilename: filename,
+      constructedBillUrl: billUrl,
+      originalUploadReceipt: expense.upload_receipt,
+      extractedReceiptFilename: receiptFilename,
+      constructedReceiptUrl: receiptUrl
     });
 
     row.innerHTML = `
@@ -295,6 +350,12 @@ function displayExpenses(expenses) {
       <td style="border: 1px solid grey;">
         <a href="${billUrl}" target="_blank" style="text-decoration: underline; color: blue">
           View Bill
+          <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
+        </a>
+      </td>
+      <td style="border: 1px solid grey;">
+        <a href="${receiptUrl}" target="_blank" style="text-decoration: underline; color: blue">
+          View Receipt
           <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
         </a>
       </td>
