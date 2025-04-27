@@ -133,6 +133,43 @@
                           </div>
                         </div>
 
+                        <!-- Hotel Selection Section (Initially Hidden) -->
+                        <div id="hotelSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label for="hotel" class="form-label">Select Hotel</label>
+                              <a href="/h/add-hotel" class="btn btn-danger btn-sm">+ Add New Hotel</a>
+                            </div>
+                            <select class="form-control" name="hotel" id="hotel">
+                              <option value="">Select Hotel</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <!-- Hotel Details Section (Initially Hidden) -->
+                        <div id="hotelDetailsSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Bank Name</label>
+                            <input type="text" class="form-control" id="bank_name" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">IFSC Code</label>
+                            <input type="text" class="form-control" id="ifsc_code" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="account_no" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Type</label>
+                            <input type="text" class="form-control" id="account_type" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Hotel GST</label>
+                            <input type="text" class="form-control" id="hotel_gst" readonly />
+                          </div>
+                        </div>
+
                         <div id="membershipFeesContainer" class="container">
                           <div class="row">
                             <div class="col-xl-4 col-md-4">
@@ -151,6 +188,30 @@
                                 <label class="form-check-label" for="withGST" style="cursor: pointer; user-select: none;">
                                   With GST
                                 </label>
+                              </div>
+
+                              <!-- GST Calculation Fields (Initially Hidden) -->
+                              <div id="gstCalculationFields" style="display: none;" class="mt-3">
+                                <div class="row">
+                                  <div class="col-4">
+                                    <label class="form-label" for="gstPercentage">GST %</label>
+                                    <select class="form-control" id="gstPercentage" name="gstPercentage">
+                                      <option value="5">5%</option>
+                                      <option value="9">9%</option>
+                                      <option value="12">12%</option>
+                                      <option value="18" selected>18%</option>
+                                      <option value="28">28%</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label" for="gstAmount">GST Amount</label>
+                                    <input type="number" class="form-control" id="gstAmount" name="gstAmount" readonly />
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label" for="totalAmount">Total Amount</label>
+                                    <input type="number" class="form-control" id="totalAmount" name="totalAmount" readonly />
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
@@ -201,8 +262,23 @@
 </div>
 <!-- End::content -->
 
+<!-- Include necessary scripts in correct order -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/assets/js/tokenUtils.js"></script>
+<!-- <script src="/assets/js/expense.js"></script> -->
+
 <script>
 document.addEventListener("DOMContentLoaded", async function () {
+
+  // Function to show the loader
+function showLoader() {
+  document.getElementById("loader").style.display = "flex"; // Show loader
+}
+
+// Function to hide the loader
+function hideLoader() {
+  document.getElementById("loader").style.display = "none"; // Hide loader
+}
   // First get the login type and email from token
   const loginType = getUserLoginType();
   const userEmail = getUserEmail();
@@ -232,9 +308,141 @@ document.addEventListener("DOMContentLoaded", async function () {
       option.textContent = expense.expense_name;
       expenseTypeDropdown.appendChild(option);
     });
+
+    // Add event listener for expense type change
+    expenseTypeDropdown.addEventListener('change', async function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const hotelSection = document.getElementById('hotelSection');
+      const hotelDetailsSection = document.getElementById('hotelDetailsSection');
+      
+      // Check if the selected expense type is "Meeting Hotel Expenses"
+      if (selectedOption.textContent === 'Meeting Hotel Expenses') {
+        console.log('Meeting Hotel Expenses selected - showing hotel section');
+        await populateHotelDropdown();
+        hotelSection.style.display = 'block';
+      } else {
+        console.log('Different expense type selected - hiding hotel sections');
+        hotelSection.style.display = 'none';
+        hotelDetailsSection.style.display = 'none';
+      }
+    });
+
   } catch (error) {
     console.error("Error fetching expense types:", error);
   }
+
+  // Function to fetch hotels
+  async function fetchHotels() {
+    try {
+      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
+      if (!response.ok) throw new Error('Failed to fetch hotels');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching hotels:', error);
+      throw error;
+    }
+  }
+
+  // Function to populate hotel dropdown
+  async function populateHotelDropdown() {
+    try {
+      const hotels = await fetchHotels();
+      const hotelDropdown = document.getElementById('hotel');
+      
+      // Clear existing options
+      hotelDropdown.innerHTML = '<option value="">Select Hotel</option>';
+      
+      // Sort hotels by name
+      hotels.sort((a, b) => a.hotel_name.localeCompare(b.hotel_name));
+      
+      // Add hotel options
+      hotels.forEach(hotel => {
+        const option = document.createElement('option');
+        option.value = hotel.hotel_id;
+        option.textContent = hotel.hotel_name;
+        hotelDropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error populating hotel dropdown:', error);
+      Swal.fire('Error!', 'Failed to load hotels', 'error');
+    }
+  }
+
+  // Function to handle hotel selection
+  async function handleHotelSelection(hotelId) {
+    try {
+      const hotels = await fetchHotels();
+      const selectedHotel = hotels.find(hotel => hotel.hotel_id === parseInt(hotelId));
+      
+      if (selectedHotel) {
+        // Populate hotel details fields
+        document.getElementById('bank_name').value = selectedHotel.bank_name || 'N/A';
+        document.getElementById('ifsc_code').value = selectedHotel.ifsc_code || 'N/A';
+        document.getElementById('account_no').value = selectedHotel.account_no || 'N/A';
+        document.getElementById('account_type').value = selectedHotel.account_type || 'N/A';
+        document.getElementById('hotel_gst').value = selectedHotel.hotel_gst || 'N/A';
+        
+        // Show hotel details section
+        document.getElementById('hotelDetailsSection').style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error handling hotel selection:', error);
+      Swal.fire('Error!', 'Failed to load hotel details', 'error');
+    }
+  }
+
+  // Add event listener for hotel selection
+  document.getElementById('hotel').addEventListener('change', function() {
+    const selectedHotelId = this.value;
+    const hotelDetailsSection = document.getElementById('hotelDetailsSection');
+    
+    if (selectedHotelId) {
+      handleHotelSelection(selectedHotelId);
+    } else {
+      hotelDetailsSection.style.display = 'none';
+    }
+  });
+
+  // GST Calculation Logic
+  const withGSTCheckbox = document.getElementById('withGST');
+  const amountInput = document.getElementById('amount');
+  const gstCalculationFields = document.getElementById('gstCalculationFields');
+  const gstPercentageSelect = document.getElementById('gstPercentage');
+  const gstAmountInput = document.getElementById('gstAmount');
+  const totalAmountInput = document.getElementById('totalAmount');
+
+  // Function to calculate GST and total
+  function calculateGST() {
+    const amount = parseFloat(amountInput.value) || 0;
+    const gstPercentage = parseFloat(gstPercentageSelect.value) / 100;
+
+    if (withGSTCheckbox.checked) {
+      const gstAmount = amount * gstPercentage;
+      const totalAmount = amount + gstAmount;
+
+      // Update the fields with formatted numbers
+      gstAmountInput.value = gstAmount.toFixed(2);
+      totalAmountInput.value = totalAmount.toFixed(2);
+      gstCalculationFields.style.display = 'block';
+    } else {
+      gstCalculationFields.style.display = 'none';
+      gstAmountInput.value = '';
+      totalAmountInput.value = '';
+    }
+  }
+
+  // Add event listeners for GST calculation
+  withGSTCheckbox.addEventListener('change', calculateGST);
+  amountInput.addEventListener('input', function() {
+    if (withGSTCheckbox.checked) {
+      calculateGST();
+    }
+  });
+  gstPercentageSelect.addEventListener('change', function() {
+    if (withGSTCheckbox.checked) {
+      calculateGST();
+    }
+  });
 
   // Fetch and populate chapters dropdown
   try {
@@ -347,6 +555,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         chapter_id: selectedChapterId,
         amount: parseFloat(document.getElementById('amount').value),
         withGST: document.getElementById('withGST').checked,
+        gstPercentage: document.getElementById('withGST').checked ? parseFloat(document.getElementById('gstPercentage').value) : 0,
+        gstAmount: document.getElementById('withGST').checked ? parseFloat(document.getElementById('gstAmount').value) : 0,
+        totalAmount: document.getElementById('withGST').checked ? parseFloat(document.getElementById('totalAmount').value) : parseFloat(document.getElementById('amount').value),
         payment_status: document.getElementById('payment_status').value,
         bill_date: document.getElementById('bill_date').value,
         bill_no: document.getElementById('bill_no').value,
@@ -361,10 +572,15 @@ document.addEventListener("DOMContentLoaded", async function () {
     try {
         showLoader();
         
-        // Add GST value to formData
+        // Add GST-related values to formData
         formData.append('withGST', document.getElementById('withGST').checked);
+        if (document.getElementById('withGST').checked) {
+            formData.append('gstPercentage', document.getElementById('gstPercentage').value);
+            formData.append('gstAmount', document.getElementById('gstAmount').value);
+            formData.append('totalAmount', document.getElementById('totalAmount').value);
+        }
 
-        const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
+        const response = await fetch("http://localhost:5000/api/addExpense", {
             method: "POST",
             body: formData, // FormData now includes withGST value
         });
@@ -409,8 +625,5 @@ function arraysEqual(a, b) {
   return true;
 }
 </script>
-
-<script src="../../assets/js/expense.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <%- include('../partials/footer') %>

@@ -1,4 +1,4 @@
-// let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
+// let apiUrl = "http://localhost:5000/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let entriesPerPage = 10; // Number of entries to display per page
@@ -57,7 +57,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     });
 
     // Fetch all expenses first
-    const response = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+    const response = await fetch("http://localhost:5000/api/allExpenses");
     if (!response.ok) throw new Error("Network response was not ok");
     const allExpensesData = await response.json();
     console.log('📊 All expenses before filtering:', allExpensesData);
@@ -83,7 +83,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       console.log('✅ Filtered expenses for RO Admin:', allExpenses);
     } else if (userType !== 'ro_admin') {
       // For chapter users, fetch their chapter details
-      const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+      const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
       const chapters = await chaptersResponse.json();
       const userChapter = chapters.find(chapter =>
         chapter.email_id === userEmail ||
@@ -110,7 +110,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
 
     // Fetch expense types for mapping
     const expenseTypesResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/expenseType"
+      "http://localhost:5000/api/expenseType"
     );
     if (!expenseTypesResponse.ok) {
       throw new Error("Failed to fetch expense types");
@@ -208,7 +208,7 @@ const AddExpenseType = async () => {
         showLoader(); // Show loading indicator
 
         // Call the API to add the expense (replace with the actual API endpoint)
-        const response = await fetch(`https://backend.bninewdelhi.com/api/expenseType`, {
+        const response = await fetch(`http://localhost:5000/api/expenseType`, {
           method: 'POST', // Use POST to add an expense
           headers: {
             'Content-Type': 'application/json',
@@ -331,7 +331,7 @@ const deleteExpense = async (expense_id) => {
       showLoader();
 
       const response = await fetch(
-        `https://backend.bninewdelhi.com/api/expense/${expense_id}`,
+        `http://localhost:5000/api/expense/${expense_id}`,
         {
           method: "DELETE",
         }
@@ -395,7 +395,7 @@ document.getElementById("sortButton").addEventListener("click", () => {
 });
 
 // Initial fetch when page loads
-window.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async function () {
   console.log('Page loaded - fetching expenses');
   console.log('User login type:', getUserLoginType());
   console.log('User email:', getUserEmail());
@@ -407,4 +407,100 @@ window.addEventListener("DOMContentLoaded", async () => {
   const button = document.getElementById("sortButton");
   button.textContent = "↑ (A-Z)";
   button.setAttribute("data-sort", "asc");
+
+  // First get the login type and email from token
+  const loginType = getUserLoginType();
+  const userEmail = getUserEmail();
+  
+  console.log('Current user details:', {
+    loginType: loginType,
+    email: userEmail
+  });
+
+  // Function to handle hotel selection
+  const handleHotelSelection = async (hotelId) => {
+    try {
+      const hotels = await fetchHotels();
+      const selectedHotel = hotels.find(hotel => hotel.hotel_id === parseInt(hotelId));
+      
+      if (selectedHotel) {
+        // Populate hotel details fields
+        document.getElementById('bank_name').value = selectedHotel.bank_name || 'N/A';
+        document.getElementById('ifsc_code').value = selectedHotel.ifsc_code || 'N/A';
+        document.getElementById('account_no').value = selectedHotel.account_no || 'N/A';
+        document.getElementById('account_type').value = selectedHotel.account_type || 'N/A';
+        document.getElementById('hotel_gst').value = selectedHotel.hotel_gst || 'N/A';
+        
+        // Show hotel details section
+        document.getElementById('hotelDetailsSection').style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error handling hotel selection:', error);
+      Swal.fire('Error!', 'Failed to load hotel details', 'error');
+    }
+  };
+
+  // Function to fetch hotels
+  const fetchHotels = async () => {
+    try {
+      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
+      if (!response.ok) throw new Error('Failed to fetch hotels');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching hotels:', error);
+      throw error;
+    }
+  };
+
+  // Function to populate hotel dropdown
+  const populateHotelDropdown = async () => {
+    try {
+      const hotels = await fetchHotels();
+      const hotelDropdown = document.getElementById('hotel');
+      
+      // Clear existing options except the first one
+      hotelDropdown.innerHTML = '<option value="">Select Hotel</option>';
+      
+      // Sort hotels by name
+      hotels.sort((a, b) => a.hotel_name.localeCompare(b.hotel_name));
+      
+      // Add hotel options
+      hotels.forEach(hotel => {
+        const option = document.createElement('option');
+        option.value = hotel.hotel_id;
+        option.textContent = hotel.hotel_name;
+        hotelDropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error populating hotel dropdown:', error);
+      Swal.fire('Error!', 'Failed to load hotels', 'error');
+    }
+  };
+
+  // Handle expense type change
+  document.getElementById('expense_type').addEventListener('change', async function() {
+    const expenseTypeSelect = document.getElementById('expense_type');
+    const selectedOption = expenseTypeSelect.options[expenseTypeSelect.selectedIndex];
+    const hotelSection = document.getElementById('hotelSection');
+    const hotelDetailsSection = document.getElementById('hotelDetailsSection');
+    
+    // Check if the selected expense type is "Meeting Hotel Expenses"
+    if (selectedOption.textContent === 'Meeting Hotel Expenses') {
+      await populateHotelDropdown();
+      hotelSection.style.display = 'block';
+    } else {
+      hotelSection.style.display = 'none';
+      hotelDetailsSection.style.display = 'none';
+    }
+  });
+
+  // Handle hotel selection change
+  document.getElementById('hotel').addEventListener('change', function() {
+    const selectedHotelId = this.value;
+    if (selectedHotelId) {
+      handleHotelSelection(selectedHotelId);
+    } else {
+      document.getElementById('hotelDetailsSection').style.display = 'none';
+    }
+  });
 });
