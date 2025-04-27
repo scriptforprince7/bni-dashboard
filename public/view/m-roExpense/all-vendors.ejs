@@ -1,0 +1,221 @@
+<script src="/assets/js/tokenUtils.js"></script>
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+ 
+ <!-- header -->
+ <%- include('../partials/header') %> 
+ <!-- end header -->
+<!-- Loader -->
+<div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+<img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+ <!-- sidebar -->
+
+ <%- include('../partials/sidebar') %>
+
+ <!-- end sidebar -->
+
+ <!-- Start::app-content -->
+ <div class="main-content app-content">
+   <div class="container-fluid">
+     <!-- Page Header -->
+     <div
+       class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+     >
+       <div>
+         <nav>
+           <ol class="breadcrumb mb-1">
+             <li class="breadcrumb-item">
+               <a href="javascript:void(0);" style="color: #d01f2f"
+                 >Vendors Management</a
+               >
+             </li>
+             <li class="breadcrumb-item 989178547 " aria-current="page">
+               View All Vendors
+             </li>
+           </ol>
+         </nav>
+         <h1 class="page-title fw-medium fs-18 mb-0">
+           Manage All Vendors
+         </h1>
+       </div>
+       <div class="btn-list">
+         <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+           Total Vendors <br />
+           <span> <b>0</b></span> 
+         </button>
+         <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+           Active Vendors <br />
+           <span> <b>0</b></span> 
+         </button>
+         <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+           Inactive Vendors <br />
+           <span> <b>0</b></span> 
+         </button>
+        <button class="btn btn-danger btn-wave me-0" id="exportVendorsBtn">
+         <i class="ri-share-forward-line me-1"></i> Export Vendors
+       </button>
+       </div>
+     </div>
+     <!-- Page Header Close -->
+
+     <!-- Start::row-1 -->
+     <div class="card custom-card" style="background-color: gainsboro">
+       <div class="card-header justify-content-between">
+         <div class="card-title">All Vendors</div>
+         <div class="d-flex gap-3 align-items-center flex-wrap">
+           <div class="btn-group">
+             <div class="dropdown me-2" >
+               <a
+                 href="javascript:void(0);"
+                 class="btn btn-sm btn-light text-muted dropdown-toggle"
+                 data-bs-toggle="dropdown"
+                 aria-expanded="false"
+               >
+                 <i class="ti ti-sort-descending-2 me-1"></i>
+                 Sort
+               </a>
+               <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
+                 <li>
+                   <a class="dropdown-item" id="sortButton" href="javascript:void(0);" data-filter="ascending">Ascending</a>
+                 </li>
+               </ul>
+             </div>
+             
+             <button
+                  class="btn btn-outline-light border"
+                  type="button"
+                  id="addNewExpenseBtn"
+                  data-region-id="123" 
+                >
+                  + Add New Vendor
+             </button> 
+           </div>
+         </div>
+       </div>
+       <div class="card-body p-0">
+         <div class="table-responsive">
+           <table class="table table-hover text-nowrap" style="border: 1px solid grey">
+             <thead>
+               <tr>
+                 <th scope="col" style="border: 1px solid grey;">S.No.</th>
+                 <th scope="col" style="border: 1px solid grey;">Vendor Name</th>
+                 <th scope="col" style="border: 1px solid grey;">Company Name</th>
+                 <th scope="col" style="border: 1px solid grey;">Contact Info</th>
+                 <th scope="col" style="border: 1px solid grey;">Address</th>
+                 <th scope="col" style="border: 1px solid grey;">GST No.</th>
+                 <th scope="col" style="border: 1px solid grey;">Status</th>
+                 <th scope="col" style="border: 1px solid grey;">Actions</th>
+               </tr>
+             </thead>
+             <tbody id="expensesTableBody">
+               <!-- Vendors will be dynamically populated here -->
+             </tbody>
+           </table>
+         </div>
+       </div>
+       <div class="card-footer border-top-0">
+         <div class="d-flex align-items-center flex-wrap overflow-auto">
+           <div class="mb-2 mb-sm-0">
+             Showing <b>0</b> to <b>0</b> of <b>0</b> entries
+           </div>
+           <div class="ms-auto">
+             <ul class="pagination mb-0 overflow-auto">
+               <!-- Pagination will be dynamically populated here -->
+             </ul>
+           </div>
+         </div>
+       </div>
+     </div>
+     <!--End::row-1 -->
+   </div>
+ </div>
+ <!-- End::content  -->
+
+ <script src="../../assets/js/allVendors.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+ <%- include('../partials/footer') %>
+
+<style>
+  /* Ensuring that the modal body has padding */
+  .modal-body {
+    padding: 20px;
+  }
+
+  /* Custom styles for the add vendor popup */
+  .add-vendor-popup .swal2-popup {
+    padding: 2rem;
+  }
+
+  .add-vendor-popup .swal2-content {
+    padding: 1rem 0;
+  }
+
+  .add-vendor-popup #addVendorForm {
+    text-align: left;
+  }
+
+  .add-vendor-popup .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .add-vendor-popup .form-control {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+  }
+
+  .add-vendor-popup .form-control:focus {
+    border-color: #d01f2f;
+    box-shadow: 0 0 0 0.2rem rgba(208, 31, 47, 0.25);
+  }
+
+  .add-vendor-popup .text-muted {
+    color: #6c757d;
+    font-size: 0.875rem;
+  }
+
+  .add-vendor-popup .swal2-actions {
+    margin-top: 1.5rem;
+  }
+
+  .add-vendor-popup .swal2-confirm {
+    background-color: #d01f2f !important;
+  }
+
+  .add-vendor-popup .swal2-cancel {
+    background-color: #6c757d !important;
+  }
+
+  /* Validation styles */
+  .add-vendor-popup .form-control:invalid {
+    border-color: #dc3545;
+  }
+
+  .add-vendor-popup .form-control:valid {
+    border-color: #198754;
+  }
+</style> 
