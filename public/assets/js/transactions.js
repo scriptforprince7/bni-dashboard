@@ -676,7 +676,7 @@ const filteredTransactions = transactions.filter((transaction) => {
       row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${formattedDate}</td>
-                <td><img src="https://www.kindpng.com/picc/m/78-786207_user-avatar-png-user-avatar-icon-png-transparent.png" alt="Card" width="20" height="20">${
+                <td><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMRBqTeY-dTImnv-0qS4j32of8dVtWelSEMw&s" alt="Card" width="20" height="20">${
                   getMemberName(order, universalLinkName)
                 }</td>
                 <td><b><em>${chapterName}</em></b></td>
