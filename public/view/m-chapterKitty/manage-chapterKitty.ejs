@@ -121,6 +121,21 @@
             .popins {
               font-family: Poppins;
             }
+            .sort-icons {
+              display: inline-flex;
+              flex-direction: row;
+              align-items: center;
+              gap: 0;
+              margin-left: -5px;
+            }
+            .sort-icon {
+              line-height: 1;
+              margin: 0;
+              padding: 0;
+            }
+            .sort-icon + .sort-icon {
+              margin-left: 2px; /* just a tiny gap between up and down */
+            }
           </style>
 
 <div class="row">
@@ -710,21 +725,69 @@
                     <table class="table text-nowrap">
                       <thead>
                         <tr>
-                          <th scope="col">S.No.</th>
-                          <th scope="col">Date</th>
-                          <th scope="col">Member Name</th>
-                          <th scope="col">Amount</th>
-                          <th scope="col">Payment Method</th>
-                          <th scope="col">Order ID</th>
-                          <th scope="col">Transaction ID</th>
-                          <th scope="col">PG Status</th>
-                          <th scope="col">Gateway</th>
-                          <!-- <th scope="col">Settlement Status</th>
-                          <th scope="col">Tranfer UTR</th>
-                          <th scope="col">Tranfer Time</th>
-                          <th scope="col">IRN</th>
-                          <th scope="col">QR Code</th>
-                          <th scope="col">E-Invoice Status</th> -->
+                          <th scope="col">
+                            S.No.
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="0" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="0" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Date
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="1" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="1" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Member Name
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="2" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="2" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Amount
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="3" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="3" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Payment Method
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="4" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="4" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Order ID
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="5" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="5" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Transaction ID
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="6" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="6" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            PG Status
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="7" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="7" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
+                          <th scope="col">
+                            Gateway
+                            <span class="sort-icons" style="display: inline-flex; flex-direction: row; align-items: center; margin-left: 2px; gap: 0;">
+                              <i class="ti ti-arrow-up sort-icon" data-sort="asc" data-column="8" style="font-size: 1em; opacity: 0.5; margin: 0; padding: 0;"></i>
+                              <i class="ti ti-arrow-down sort-icon" data-sort="desc" data-column="8" style="font-size: 1em; opacity: 0.5; margin: 0 0 0 2px; padding: 0;"></i>
+                            </span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody id="paymentsTableBody">

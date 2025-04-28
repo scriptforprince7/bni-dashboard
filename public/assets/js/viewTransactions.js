@@ -194,7 +194,35 @@ async function displayTransactionDetails(order) {
         const paymentMethodSpan = document.querySelector('.payment-method');
 
         if (paymentType && paymentDate && paymentAmount && taxAmount && totalAmount && paymentMethodSpan) {
-            const date = new Date(order.created_at).toISOString().split('T')[0];
+            // Fetch payment date and time from transaction API using order_id
+            let date = "N/A";
+            let time = "N/A";
+            try {
+                // Fetch all transactions and find the one for this order_id
+                const txnResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+                if (txnResponse.ok) {
+                    const allTransactions = await txnResponse.json();
+                    const transaction = allTransactions.find(txn => txn.order_id === order.order_id);
+                    if (transaction && transaction.payment_time) {
+                        const dt = new Date(transaction.payment_time);
+                        // Format date as d/mm/yy
+                        const day = dt.getDate();
+                        const month = dt.getMonth() + 1;
+                        const year = dt.getFullYear().toString().slice(-2);
+                        date = `${day}/${month < 10 ? '0' : ''}${month}/${year}`;
+                        // Format time as h:mm am/pm
+                        let hours = dt.getHours();
+                        const minutes = dt.getMinutes().toString().padStart(2, '0');
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12; // the hour '0' should be '12'
+                        time = `${hours}:${minutes} ${ampm}`;
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching transaction for payment date/time:", err);
+            }
+
             const tax = parseFloat(order.tax) || 0;
             const orderAmount = parseFloat(order.order_amount) || 0;
             const baseAmount = orderAmount - tax;
@@ -260,7 +288,7 @@ async function displayTransactionDetails(order) {
 
             // Set all values
             paymentType.innerHTML = descriptionHTML;
-            paymentDate.textContent = date;
+            paymentDate.textContent = `${date} ${time}`;
             paymentAmount.textContent = `₹${baseAmount.toFixed(2)}`;
             taxAmount.textContent = `₹${tax.toFixed(2)}`;
             totalAmount.textContent = `₹${orderAmount.toFixed(2)}`;

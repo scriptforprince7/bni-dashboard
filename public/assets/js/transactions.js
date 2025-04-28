@@ -546,7 +546,7 @@ const filteredTransactions = transactions.filter((transaction) => {
       }
 
       // Calculate GST (amount × 18/118)
-      const gstAmount = Math.round((totalTransactionAmount * 18) / 118);
+      const gstAmount = Math.round((totalTransactionAmount * 18) / 100);
       console.log('💰 GST Amount:', gstAmount);
 
       // Calculate base amount (total amount - GST amount)
@@ -1410,7 +1410,7 @@ async function calculateExpenseBaseAmount() {
     console.log('💰 Total Sum of Expenses:', totalAmount);
     const calculation = (totalAmount * 18);
     console.log('📊 After multiplying by 18:', calculation);
-    const finalAmount = Math.round(calculation / 118);
+    const finalAmount = Math.round(calculation / 100);
     console.log('🎯 Final Base Amount:', finalAmount);
     
     // Make sure the element exists

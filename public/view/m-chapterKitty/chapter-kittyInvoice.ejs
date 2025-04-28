@@ -146,6 +146,7 @@
                                         <img 
                                             id="dynamic-logo2"
                                             alt="BNI Logo" 
+                                            src="../../assets/images/bni.jpg"
                                             onerror="this.onerror=null; this.src='../../assets/images/bni-new-logo.jpg'; console.log('⚠️ Logo load failed, using fallback');"
                                         />
                                         <img 
@@ -154,6 +155,9 @@
                                             class="verified-icon"
                                         />
                                     </div>
+                                    <h2 style="text-align:center; font-weight: bold; margin-top: 10px; letter-spacing: 2px; font-size: 1.5rem; color: #c71717;">
+                                        ADI CORPORATE TRAINING
+                                    </h2>
                                 </div>
                             </div>
                             
@@ -278,8 +282,12 @@
                     </div>
                 </div>
                 <div class="card-footer d-flex" style="padding-left: 6%; margin-bottom: 10px; gap: 10px;">
-                    <button id="downloadInvoice" class="btn btn-sm btn-danger" style="width: 270px;" onclick="window.print()">
-                        Download <i class="ri-download-2-line ms-1 align-middle"></i>
+                    <button 
+                        onclick="printInvoiceSection()" 
+                        class="btn btn-sm btn-danger" 
+                        style="width: 270px;"
+                    >
+                        Print/Download
                     </button>
                     <a href="https://dashboard.bninewdelhi.com/ck/manage-chapterKitty" class="btn btn-sm btn-danger" style="width: 270px;">
                         Back to Transactions
@@ -294,68 +302,142 @@
     </div>
     <!-- End::content  -->
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Starting logo initialization...');
-            
-            const logoElement = document.getElementById("dynamic-logo");
-            
-            const loadLogo = async (url) => {
-                return new Promise((resolve, reject) => {
-                    logoElement.onload = () => {
-                        console.log('✅ Logo loaded:', url);
-                        logoElement.classList.add('loaded');
-                        resolve(true);
-                        
-                    };
-                    logoElement.onerror = () => {
-                        console.error('❌ Failed to load:', url);
-                        reject(new Error('Logo load failed'));
-                    };
-                    logoElement.src = url;
-                });
-            };
-
-            try {
-                const response = await fetch("https://backend.bninewdelhi.com/api/getDisplayLogo");
-                console.log('📥 API Response:', response.status);
-
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-                const data = await response.json();
-                
-                if (data?.[0]?.display_image_name) {
-                    const imagePath = `https://backend.bninewdelhi.com/uploads/dynamicLogo/${data[0].display_image_name}`;
-                    console.log('🖼️ Loading logo from:', imagePath);
-                    
-                    await loadLogo(imagePath);
-                    
-                    console.log('🎯 Logo loaded successfully:', {
-                        width: logoElement.naturalWidth,
-                        height: logoElement.naturalHeight,
-                        visible: true
-                    });
-
-                    // document.getElementById("dynamic-logo").src = imagePath;
-
-                    console.log("hello-----------------------> " + imagePath);
-                    document.getElementById("dynamic-logo2").src = imagePath;
-
-
-
-                    logoElement.classList.add('loaded');
-                }
-            } catch (error) {
-                console.error('❌ Error:', error);
-                await loadLogo('../../assets/images/bni-new-logo.jpg');
-            }
-        });
-    </script>
-
     <script src="../../assets/js/chapterKittyInvoice.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <script>
+        function printInvoiceSection() {
+          const invoice = document.getElementById('invoice-POS').innerHTML;
+          const win = window.open('', '', 'width=900,height=650');
+          win.document.write(`
+            <html>
+              <head>
+                <title>Print Invoice</title>
+                <link rel="stylesheet" href="/view/m-transactions/receipt.css">
+                <style>
+                  body {
+                    background: #fff !important;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    min-height: 100vh;
+                  }
+                  #invoice-POS {
+                    margin: 40px auto !important;
+                    padding: 20px 0 20px 0 !important;
+                    width: 100% !important;
+                    max-width: 800px !important;
+                    background: #fff !important;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                  }
+                  .table-responsive {
+                    width: 100% !important;
+                    overflow-x: auto;
+                  }
+                  table {
+                    border-collapse: collapse !important;
+                    width: 100% !important;
+                    margin-bottom: 1rem;
+                    background-color: #fff;
+                    table-layout: fixed;
+                    word-break: break-word;
+                  }
+                  th, td {
+                    border: 1px solid #222 !important;
+                    padding: 8px 12px !important;
+                    text-align: left;
+                    font-size: 14px;
+                    word-break: break-word;
+                    max-width: 180px;
+                    overflow-wrap: break-word;
+                  }
+                  thead th {
+                    background: #f8f9fa !important;
+                    font-weight: bold;
+                  }
+                  tfoot td {
+                    font-weight: bold;
+                    background: #f8f9fa !important;
+                  }
+                  tbody tr:nth-child(even) {
+                    background: #f6f6f6 !important;
+                  }
+                  img {
+                    max-width: 200px !important;
+                    height: auto !important;
+                    display: block;
+                    margin: 0 auto 10px auto;
+                    page-break-inside: avoid;
+                  }
+                  @media print {
+                    body {
+                      margin: 0 !important;
+                      padding: 0 !important;
+                      background: #fff !important;
+                      display: flex;
+                      justify-content: center;
+                      align-items: flex-start;
+                    }
+                    #invoice-POS {
+                      margin: 0 auto !important;
+                      padding: 10mm !important;
+                      width: 100% !important;
+                      max-width: 800px !important;
+                      background: #fff !important;
+                      box-sizing: border-box;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                    }
+                    .table-responsive {
+                      width: 100% !important;
+                      overflow-x: auto;
+                    }
+                    table {
+                      width: 100% !important;
+                      border-collapse: collapse !important;
+                      table-layout: fixed;
+                      word-break: break-word;
+                    }
+                    th, td {
+                      border: 1px solid #222 !important;
+                      padding: 8px 12px !important;
+                      text-align: left;
+                      font-size: 14px;
+                      word-break: break-word;
+                      max-width: 180px;
+                      overflow-wrap: break-word;
+                    }
+                    .card-footer, .sidebar, header, .d-print-none {
+                      display: none !important;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                <div id="invoice-POS">
+                  ${invoice}
+                </div>
+                <script>
+                  window.onload = function() {
+                    window.print();
+                    window.onafterprint = function() { window.close(); }
+                  }
+                <\/script>
+              </body>
+            </html>
+          `);
+          win.document.close();
+        }
+        </script>
+        
    
 
       <!-- Footer opened -->

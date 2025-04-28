@@ -1124,6 +1124,85 @@ document.addEventListener("DOMContentLoaded", async function () {
           noResultsMsg.remove();
         }
       });
+
+    // Render recent successful payments
+    renderRecentSuccessfulPayments(allTransactions, allOrders, document.getElementById("paymentsTableBody"));
+
+    // --- Add sorting logic for table headers with icons ---
+    const table = document.getElementById('paymentsTableBody').closest('table');
+    if (!table) return;
+
+    // Helper: get cell value
+    function getCellValue(row, idx) {
+      const cell = row.children[idx];
+      if (!cell) return '';
+      // Remove HTML tags for icon columns
+      return cell.textContent.trim();
+    }
+
+    // Helper: compare function for sorting
+    function comparer(idx, type, asc) {
+      return function (a, b) {
+        let v1 = getCellValue(asc ? a : b, idx);
+        let v2 = getCellValue(asc ? b : a, idx);
+
+        // Numeric sort for amount columns
+        if (type === 'number') {
+          v1 = parseFloat(v1.replace(/[^0-9.]/g, '')) || 0;
+          v2 = parseFloat(v2.replace(/[^0-9.]/g, '')) || 0;
+          return v1 - v2;
+        }
+        // Date sort for date columns (assume dd/mm/yyyy)
+        if (type === 'date') {
+          const parseDate = (str) => {
+            const [d, m, y] = str.split('/');
+            return new Date(`20${y.length === 2 ? y : y.slice(-2)}`, m - 1, d);
+          };
+          return parseDate(v1) - parseDate(v2);
+        }
+        // String sort
+        return v1.localeCompare(v2);
+      };
+    }
+
+    // Add click event to sort icons
+    table.querySelectorAll('th').forEach((th, idx) => {
+      const sortIcons = th.querySelector('.sort-icons');
+      if (!sortIcons) return;
+
+      // Detect column type
+      let type = 'string';
+      const headerText = th.textContent.toLowerCase();
+      if (headerText.includes('date')) type = 'date';
+      if (headerText.includes('amount') || headerText.includes('total')) type = 'number';
+
+      // Up arrow (ascending)
+      const up = sortIcons.querySelector('.ti-arrow-up');
+      if (up) {
+        up.style.cursor = 'pointer';
+        up.addEventListener('click', function (e) {
+          e.stopPropagation();
+          sortTable(idx, type, true);
+        });
+      }
+      // Down arrow (descending)
+      const down = sortIcons.querySelector('.ti-arrow-down');
+      if (down) {
+        down.style.cursor = 'pointer';
+        down.addEventListener('click', function (e) {
+          e.stopPropagation();
+          sortTable(idx, type, false);
+        });
+      }
+    });
+
+    function sortTable(idx, type, asc) {
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
+      rows.sort(comparer(idx, type, asc));
+      // Remove all rows and re-append in sorted order
+      rows.forEach(row => tbody.appendChild(row));
+    }
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
     console.error("Error details:", {
@@ -1194,3 +1273,79 @@ document.addEventListener('DOMContentLoaded', function() {
     exportBtn.addEventListener('click', exportTableToCSV);
   }
 });
+
+/**
+ * Renders table rows for recent successful payments, sorted by payment_time (most recent first).
+ * @param {Array} transactions - Array of transaction objects
+ * @param {Array} orders - Array of order objects
+ * @param {HTMLElement} tableBody - The table body element to render into
+ */
+function renderRecentSuccessfulPayments(transactions, orders, tableBody) {
+  // Only consider orders with chapter_id === 2
+  const ordersForChapter2 = orders.filter(order => String(order.chapter_id) === "2");
+  const orderIdsForChapter2 = new Set(ordersForChapter2.map(order => order.order_id));
+
+  // Filter for only "SUCCESS" transactions AND order_id in chapter 2
+  const successful = transactions.filter(
+    txn => orderIdsForChapter2.has(txn.order_id)
+  );
+
+  // Sort by payment_time (most recent first)
+  successful.sort((a, b) => {
+    const dateA = a.payment_time ? new Date(a.payment_time) : new Date(0);
+    const dateB = b.payment_time ? new Date(b.payment_time) : new Date(0);
+    return dateB - dateA;
+  });
+
+  // Clear the table body
+  tableBody.innerHTML = "";
+
+  // Render rows
+  successful.forEach((txn, idx) => {
+    // Find the associated order (guaranteed to be chapter_id === 2)
+    const order = ordersForChapter2.find(order => order.order_id === txn.order_id);
+
+    // Determine payment method and icon
+    let paymentMethod = "N/A";
+    let paymentImage = "";
+    if (txn.payment_method) {
+      if (txn.payment_method.upi) {
+        paymentMethod = "UPI";
+        paymentImage =
+          '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
+      } else if (txn.payment_method.card) {
+        paymentMethod = "Card";
+        paymentImage =
+          '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
+      } else if (txn.payment_method.netbanking) {
+        paymentMethod = "Net Banking";
+        paymentImage =
+          '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
+      } else if (txn.payment_method.wallet) {
+        paymentMethod = "Wallet";
+        paymentImage =
+          '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+      }
+    }
+
+    // Format date
+    const formattedDate = txn.payment_time
+      ? new Date(txn.payment_time).toLocaleDateString("en-IN", { timeZone: "UTC" })
+      : "N/A";
+
+    // Render the row
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${idx + 1}</td>
+      <td style="font-weight: 600">${formattedDate}</td>
+      <td style="font-weight: 600">${order && order.member_name ? order.member_name : "N/A"}</td>
+      <td><b>₹${txn.payment_amount}</b><br><a href="/ck/chapter-kittyInvoice?order_id=${txn.order_id}" class="fw-medium text-success">View</a></td>
+      <td style="font-weight: 600">${paymentImage} ${paymentMethod}</td>
+      <td style="font-weight: 500; font-style: italic">${txn.order_id || "N/A"}</td>
+      <td><b>${txn.cf_payment_id}</b></td>
+      <td><span class="${getPgStatusBadge(txn.payment_status)}">${txn.payment_status}</span></td>
+      <td><b>${order && order.payment_gateway_id ? getGatewayName(order.payment_gateway_id) : "N/A"}</b></td>
+    `;
+    tableBody.appendChild(row);
+  });
+}

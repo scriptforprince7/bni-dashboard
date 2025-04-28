@@ -1,0 +1,1 @@
+console.log("newMemberInvoice.js loaded");
