@@ -1,0 +1,531 @@
+<script src="../../assets/js/tokenUtils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin' && loginType !== 'chapter') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin and Chapter can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+<%- include('../partials/chapter-sidebar') %>
+<!-- end sidebar -->
+
+<!-- Loader -->
+<div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+  <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Start::app-content -->
+<div class="main-content app-content">
+  <div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
+      <div>
+        <nav>
+          <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+              <a href="javascript:void(0);" style="color: #d01f2f">Expenses Management</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Manage Vendors
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          Manage Chapter Vendors
+        </h1>
+      </div>
+      <div class="btn-list">
+        <button id="addNewVendorBtn" class="btn btn-danger btn-wave me-0">
+          <i class="ri-add-line me-1"></i> Add New Vendor
+        </button>
+      </div>
+    </div>
+    <!-- Page Header Close -->
+
+    <!-- Start::row-1 -->
+    <div class="card custom-card" style="background-color: gainsboro">
+      <div class="card-header justify-content-between">
+        <div class="card-title">All Vendors</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover text-nowrap" style="border: 1px solid grey">
+            <thead>
+              <tr>
+                <th scope="col" style="border: 1px solid grey;">S.No.</th>
+                <th scope="col" style="border: 1px solid grey;">Vendor Name</th>
+                <th scope="col" style="border: 1px solid grey;">Company Name</th>
+                <th scope="col" style="border: 1px solid grey;">Phone Number</th>
+                <th scope="col" style="border: 1px solid grey;">Email</th>
+                <th scope="col" style="border: 1px solid grey;">GST</th>
+                <th scope="col" style="border: 1px solid grey;">Bank Details</th>
+                <th scope="col" style="border: 1px solid grey;">Status</th>
+                <th scope="col" style="border: 1px solid grey;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendorsTableBody">
+              <!-- Vendors will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add New Vendor Modal -->
+<div class="modal fade" id="addVendorModal" tabindex="-1" aria-labelledby="addVendorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addVendorModalLabel">Add New Vendor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addVendorForm">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_name" class="form-label">Vendor Name</label>
+              <input type="text" class="form-control" id="vendor_name" name="vendor_name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_company_name" class="form-label">Company Name</label>
+              <input type="text" class="form-control" id="vendor_company_name_modal" name="vendor_company_name" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_company_address" class="form-label">Company Address</label>
+              <input type="text" class="form-control" id="vendor_company_address_modal" name="vendor_company_address" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_company_gst" class="form-label">Company GST</label>
+              <input type="text" class="form-control" id="vendor_company_gst_modal" name="vendor_company_gst">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone_number" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email_id" class="form-label">Email ID</label>
+              <input type="email" class="form-control" id="email_id" name="email_id" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_bank_name" class="form-label">Bank Name</label>
+              <input type="text" class="form-control" id="vendor_bank_name_modal" name="vendor_bank_name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account" class="form-label">Account Number</label>
+              <input type="text" class="form-control" id="vendor_account_modal" name="vendor_account" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_ifsc_code" class="form-label">IFSC Code</label>
+              <input type="text" class="form-control" id="vendor_ifsc_code_modal" name="vendor_ifsc_code" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account_type" class="form-label">Account Type</label>
+              <select class="form-control" id="vendor_account_type_modal" name="vendor_account_type" required>
+                <option value="">Select Account Type</option>
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveVendorBtn">Save Vendor</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Vendor Ledger Modal Styles */
+  .vendor-info {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .vendor-name {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .vendor-company {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+  }
+
+  .vendor-contact {
+    font-size: 0.875rem;
+    color: #777;
+  }
+
+  .total-expenses, .last-expense {
+    font-size: 0.875rem;
+    color: #444;
+  }
+
+  .total-expenses .amount {
+    color: #d01f2f;
+    font-weight: 600;
+  }
+
+  #vendorLedgerTable {
+    border: 1px solid #dee2e6;
+  }
+
+  #vendorLedgerTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  #vendorLedgerTable td {
+    vertical-align: middle;
+  }
+
+  .payment-status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .payment-status-paid {
+    background-color: #198754;
+    color: white;
+  }
+
+  .payment-status-pending {
+    background-color: #ffc107;
+    color: #000;
+  }
+
+  .view-bill-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+</style>
+
+<!-- Add Vendor Ledger Modal -->
+<div class="modal fade" id="vendorLedgerModal" tabindex="-1" aria-labelledby="vendorLedgerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="vendorLedgerModalLabel">Vendor Expense History</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="vendor-info mb-4">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="vendor-name mb-2"></h6>
+              <p class="vendor-company mb-1"></p>
+              <p class="vendor-contact mb-1"></p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="total-expenses mb-2">
+                <strong>Total Expenses:</strong> <span class="amount"></span>
+              </div>
+              <div class="last-expense mb-2">
+                <strong>Last Expense:</strong> <span class="date"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover" id="vendorLedgerTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Expense Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>GST</th>
+                <th>Total Amount</th>
+                <th>Payment Status</th>
+                <th>Bill</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Expense history will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <div id="noExpensesMessage" class="text-center py-4" style="display: none;">
+          <p class="text-muted">No expenses found for this vendor.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="exportLedgerBtn">Export Ledger</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Define helper functions in global scope
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+}
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount);
+}
+
+function showLoader() {
+  document.getElementById("loader").style.display = "flex";
+}
+
+function hideLoader() {
+  document.getElementById("loader").style.display = "none";
+}
+
+// Define loadVendorLedger in global scope
+async function loadVendorLedger(vendorId) {
+  try {
+    showLoader();
+    
+    // Fetch vendor details
+    const vendorsResponse = await fetch('http://localhost:5000/api/getAllVendors');
+    const vendors = await vendorsResponse.json();
+    const vendor = vendors.find(v => v.vendor_id === parseInt(vendorId));
+
+    if (!vendor) {
+      throw new Error('Vendor not found');
+    }
+
+    // Fetch vendor's expenses
+    const expensesResponse = await fetch(`http://localhost:5000/api/vendor-expenses/${vendorId}`);
+    const expensesData = await expensesResponse.json();
+
+    // Ensure expenses is an array
+    const expenses = Array.isArray(expensesData) ? expensesData : 
+                    expensesData.expenses ? expensesData.expenses : [];
+
+    console.log('Fetched expenses:', expenses); // Debug log
+
+    // Update vendor info in modal
+    document.querySelector('.vendor-name').textContent = vendor.vendor_name;
+    document.querySelector('.vendor-company').textContent = vendor.vendor_company_name;
+    document.querySelector('.vendor-contact').textContent = `${vendor.phone_number} | ${vendor.email_id}`;
+
+    // Calculate totals - with type checking
+    const totalAmount = expenses.length > 0 ? 
+      expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0) : 0;
+    document.querySelector('.total-expenses .amount').textContent = formatCurrency(totalAmount);
+
+    // Get last expense date
+    let lastExpense = 'No expenses';
+    if (expenses.length > 0) {
+      const validDates = expenses
+        .filter(exp => exp.bill_date)
+        .sort((a, b) => new Date(b.bill_date) - new Date(a.bill_date));
+      
+      if (validDates.length > 0) {
+        lastExpense = formatDate(validDates[0].bill_date);
+      }
+    }
+    document.querySelector('.last-expense .date').textContent = lastExpense;
+
+    // Populate expense table
+    const tableBody = document.getElementById('vendorLedgerTable').querySelector('tbody');
+    tableBody.innerHTML = '';
+
+    if (!expenses.length) {
+      document.getElementById('noExpensesMessage').style.display = 'block';
+      document.getElementById('vendorLedgerTable').style.display = 'none';
+    } else {
+      document.getElementById('noExpensesMessage').style.display = 'none';
+      document.getElementById('vendorLedgerTable').style.display = 'table';
+
+      expenses.forEach(expense => {
+        // Ensure all required fields exist
+        const safeExpense = {
+          bill_date: expense.bill_date || 'N/A',
+          expense_type_name: expense.expense_type_name || 'N/A',
+          description: expense.description || 'N/A',
+          amount: expense.amount || 0,
+          withGST: expense.withGST || false,
+          gstPercentage: expense.gstPercentage || 0,
+          totalAmount: expense.totalAmount || expense.amount || 0,
+          payment_status: expense.payment_status || 'pending',
+          upload_bill: expense.upload_bill || '#'
+        };
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${formatDate(safeExpense.bill_date)}</td>
+          <td>${safeExpense.expense_type_name}</td>
+          <td>${safeExpense.description}</td>
+          <td>${formatCurrency(safeExpense.amount)}</td>
+          <td>${safeExpense.withGST ? `${safeExpense.gstPercentage}%` : 'N/A'}</td>
+          <td>${formatCurrency(safeExpense.totalAmount)}</td>
+          <td>
+            <span class="badge bg-${safeExpense.payment_status === 'paid' ? 'success' : 'warning'}">
+              ${safeExpense.payment_status}
+            </span>
+          </td>
+          <td>
+            <a href="${safeExpense.upload_bill}" target="_blank" class="btn btn-sm btn-info view-bill-btn">
+              <i class="ri-file-text-line"></i> View
+            </a>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Show the modal
+    const vendorLedgerModal = document.getElementById('vendorLedgerModal');
+    const bootstrapModal = new bootstrap.Modal(vendorLedgerModal);
+    bootstrapModal.show();
+
+  } catch (error) {
+    console.error('Error loading vendor ledger:', error);
+    Swal.fire('Error!', 'Failed to load vendor ledger', 'error');
+  } finally {
+    hideLoader();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async function() {
+  // Get user details
+  const userEmail = getUserEmail();
+  const userType = getUserLoginType();
+  let currentChapterId = null;
+
+  // Get chapter ID for the logged-in user
+  async function getCurrentChapterId() {
+    try {
+      const response = await fetch("http://localhost:5000/api/chapters");
+      const chapters = await response.json();
+      const userChapter = chapters.find(chapter =>
+        chapter.email_id === userEmail ||
+        chapter.vice_president_mail === userEmail ||
+        chapter.president_mail === userEmail ||
+        chapter.treasurer_mail === userEmail
+      );
+      return userChapter ? userChapter.chapter_id : null;
+    } catch (error) {
+      console.error('Error getting chapter ID:', error);
+      return null;
+    }
+  }
+
+  // Function to fetch and display vendors
+  async function loadVendors() {
+    try {
+      showLoader();
+      
+      // Get current chapter ID if not already set
+      if (!currentChapterId) {
+        currentChapterId = await getCurrentChapterId();
+      }
+
+      const response = await fetch('http://localhost:5000/api/getAllVendors');
+      const vendors = await response.json();
+
+      // Filter vendors for current chapter
+      const chapterVendors = vendors.filter(vendor => vendor.chapter_id === currentChapterId);
+
+      const tableBody = document.getElementById('vendorsTableBody');
+      tableBody.innerHTML = '';
+
+      chapterVendors.forEach((vendor, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="border: 1px solid grey;">${index + 1}</td>
+          <td style="border: 1px solid grey;"><b>${vendor.vendor_name}</b></td>
+          <td style="border: 1px solid grey;"><b>${vendor.vendor_company_name}</b></td>
+          <td style="border: 1px solid grey;"><b>${vendor.phone_number}</b></td>
+          <td style="border: 1px solid grey;"><b>${vendor.email_id}</b></td>
+          <td style="border: 1px solid grey;"><b>${vendor.vendor_company_gst || 'N/A'}</b></td>
+          <td style="border: 1px solid grey;">
+            <b>Bank: ${vendor.vendor_bank_name}</b><br>
+            <b>A/C: ${vendor.vendor_account}</b><br>
+            <b>IFSC: ${vendor.vendor_ifsc_code}</b>
+          </td>
+          <td style="border: 1px solid grey;">
+            <span class="badge bg-${vendor.vendor_status === 'active' ? 'success' : 'warning'}">
+              ${vendor.vendor_status}
+            </span>
+          </td>
+          <td style="border: 1px solid grey;">
+            <div class="btn-group">
+              <button class="btn btn-sm btn-primary edit-vendor" data-vendor-id="${vendor.vendor_id}">
+                <i class="ri-edit-line me-1"></i>Edit
+              </button>
+              <button class="btn btn-sm btn-${vendor.vendor_status === 'active' ? 'warning' : 'success'} toggle-status" data-vendor-id="${vendor.vendor_id}" data-current-status="${vendor.vendor_status}">
+                <i class="ri-${vendor.vendor_status === 'active' ? 'close-circle-line' : 'check-line'} me-1"></i>${vendor.vendor_status === 'active' ? 'Deactivate' : 'Activate'}
+              </button>
+              <button type="button" class="btn btn-sm btn-info" onclick="loadVendorLedger(${vendor.vendor_id})">
+                <i class="ri-file-list-line me-1"></i>View Ledger
+              </button>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    } catch (error) {
+      console.error('Error loading vendors:', error);
+      Swal.fire('Error!', 'Failed to load vendors', 'error');
+    } finally {
+      hideLoader();
+    }
+  }
+
+  // Export Ledger button handler
+  document.getElementById('exportLedgerBtn').addEventListener('click', function() {
+    Swal.fire('Coming Soon!', 'Export functionality will be available soon.', 'info');
+  });
+
+  // Initial load of vendors
+  await loadVendors();
+});
+</script>
+
+<%- include('../partials/footer') %> 

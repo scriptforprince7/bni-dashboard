@@ -14,6 +14,9 @@ exports.manageExpenseTypes = (req, res) => {
 exports.addExpenseType = (req, res) => {
     res.render('m-expense/add-expense-type', { title: 'Add Expense Type' });
 };
+exports.manageVendors = (req, res) => {
+    res.render('m-expense/manage-vendors', { title: 'Manage Vendors' });
+};
 
 
 
