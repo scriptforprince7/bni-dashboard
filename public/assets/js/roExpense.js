@@ -278,14 +278,7 @@ const AddExpenseType = async () => {
   }
 };
 
-document.getElementById('addNewExpenseBtn').addEventListener('click', (event) => {
-  console.log("Button clicked");
-// Get the region_id from the button's data attribute
-const region_name = event.target.getAttribute('data-region-id');
-console.log("Region Name:", region_name); // Log the region name from button's data attribute
-// Call AddExpense function with the region_name
-AddExpenseType();
-});
+
 
 // Function to display expenses in the table
 function displayExpenses(expenses) {

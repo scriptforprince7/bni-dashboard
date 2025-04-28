@@ -187,16 +187,138 @@
                           </div>
                         </div>
 
+                        <!-- Hotel Selection Section (Initially Hidden) -->
+                        <div id="hotelSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label for="hotel" class="form-label">Select Hotel</label>
+                              <a href="/h/add-hotel" class="btn btn-danger btn-sm">+ Add New Hotel</a>
+                            </div>
+                            <select class="form-control" name="hotel" id="hotel">
+                              <option value="">Select Hotel</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <!-- Hotel Details Section (Initially Hidden) -->
+                        <div id="hotelDetailsSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Bank Name</label>
+                            <input type="text" class="form-control" id="bank_name" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">IFSC Code</label>
+                            <input type="text" class="form-control" id="ifsc_code" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="account_no" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Type</label>
+                            <input type="text" class="form-control" id="account_type" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Hotel GST</label>
+                            <input type="text" class="form-control" id="hotel_gst" readonly />
+                          </div>
+                        </div>
+
+                        <!-- Vendor Selection Section (Initially Hidden) -->
+                        <div id="vendorSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label for="vendor" class="form-label">Select Vendor</label>
+                              <button type="button" class="btn btn-danger btn-sm" id="addNewVendorBtn">+ Add New Vendor</button>
+                            </div>
+                            <select class="form-control" name="vendor" id="vendor">
+                              <option value="">Select Vendor</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <!-- Vendor Details Section (Initially Hidden) -->
+                        <div id="vendorDetailsSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="vendor_company_name" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Company Address</label>
+                            <input type="text" class="form-control" id="vendor_company_address" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="vendor_phone" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="text" class="form-control" id="vendor_email" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Company GST</label>
+                            <input type="text" class="form-control" id="vendor_company_gst" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Bank Name</label>
+                            <input type="text" class="form-control" id="vendor_bank_name" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="vendor_account" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">IFSC Code</label>
+                            <input type="text" class="form-control" id="vendor_ifsc_code" readonly />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Type</label>
+                            <input type="text" class="form-control" id="vendor_account_type" readonly />
+                          </div>
+                        </div>
+
                         <div id="membershipFeesContainer" class="container">
                           <div class="row">
                             <div class="col-xl-4 col-md-4">
                               <label class="form-label" for="amount">Amount</label>
                               <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" required />
-                              <div class="form-check mt-2">
-                                  <input class="form-check-input" type="checkbox" id="withGST" name="withGST">
-                                  <label class="form-check-label" for="withGST">
-                                      with GST
-                                  </label>
+                              
+                              <!-- Added GST Checkbox -->
+                              <div class="form-check mt-2" style="margin-left: 4px;">
+                                <input 
+                                  type="checkbox" 
+                                  class="form-check-input" 
+                                  id="withGST" 
+                                  name="withGST"
+                                  style="cursor: pointer;"
+                                />
+                                <label class="form-check-label" for="withGST" style="cursor: pointer; user-select: none;">
+                                  With GST
+                                </label>
+                              </div>
+
+                              <!-- GST Calculation Fields (Initially Hidden) -->
+                              <div id="gstCalculationFields" style="display: none;" class="mt-3">
+                                <div class="row">
+                                  <div class="col-4">
+                                    <label class="form-label" for="gstPercentage">GST %</label>
+                                    <select class="form-control" id="gstPercentage" name="gstPercentage">
+                                      <option value="5">5%</option>
+                                      <option value="9">9%</option>
+                                      <option value="12">12%</option>
+                                      <option value="18" selected>18%</option>
+                                      <option value="28">28%</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label" for="gstAmount">GST Amount</label>
+                                    <input type="number" class="form-control" id="gstAmount" name="gstAmount" readonly />
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label" for="totalAmount">Total Amount</label>
+                                    <input type="number" class="form-control" id="totalAmount" name="totalAmount" readonly />
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
@@ -216,15 +338,19 @@
                           </div>
 
                           <div class="row">
-                            <div class="col-xl-4">
+                            <div class="col-xl-3">
                               <label for="upload_bill" class="form-label">Upload Bill</label>
                               <input type="file" class="form-control" id="upload_bill" name="upload_bill" />
                             </div>
-                            <div class="col-xl-4">
+                            <div class="col-xl-3">
+                              <label for="upload_receipt" class="form-label">Upload Receipt</label>
+                              <input type="file" class="form-control" id="upload_receipt" name="upload_receipt" />
+                            </div>
+                            <div class="col-xl-3">
                               <label for="bill_no" class="form-label">Bill No.</label>
                               <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20" required/>
                             </div>
-                            <div class="col-xl-4">
+                            <div class="col-xl-3">
                               <label for="transaction_no" class="form-label">Transaction No.</label>
                               <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" required />
                             </div>
@@ -254,6 +380,81 @@
     <div id="formMessage"></div>
   </div>
 </div>
+
+<!-- Add New Vendor Modal -->
+<div class="modal fade" id="addVendorModal" tabindex="-1" aria-labelledby="addVendorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addVendorModalLabel">Add New Vendor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addVendorForm">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_name" class="form-label">Vendor Name</label>
+              <input type="text" class="form-control" id="vendor_name" name="vendor_name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_company_name" class="form-label">Company Name</label>
+              <input type="text" class="form-control" id="vendor_company_name_modal" name="vendor_company_name" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_company_address" class="form-label">Company Address</label>
+              <input type="text" class="form-control" id="vendor_company_address_modal" name="vendor_company_address" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_company_gst" class="form-label">Company GST</label>
+              <input type="text" class="form-control" id="vendor_company_gst_modal" name="vendor_company_gst">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone_number" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email_id" class="form-label">Email ID</label>
+              <input type="email" class="form-control" id="email_id" name="email_id" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_bank_name" class="form-label">Bank Name</label>
+              <input type="text" class="form-control" id="vendor_bank_name_modal" name="vendor_bank_name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account" class="form-label">Account Number</label>
+              <input type="text" class="form-control" id="vendor_account_modal" name="vendor_account" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="vendor_ifsc_code" class="form-label">IFSC Code</label>
+              <input type="text" class="form-control" id="vendor_ifsc_code_modal" name="vendor_ifsc_code" required>
+            </div>
+            <div class="col-md-6">
+              <label for="vendor_account_type" class="form-label">Account Type</label>
+              <select class="form-control" id="vendor_account_type_modal" name="vendor_account_type" required>
+                <option value="">Select Account Type</option>
+                <option value="Savings">Savings</option>
+                <option value="Current">Current</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveVendorBtn">Save Vendor</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- End::content -->
 
 <script>
@@ -261,15 +462,309 @@ document.addEventListener("DOMContentLoaded", async function () {
   // First get the login type and email from token
   const loginType = getUserLoginType();
   const userEmail = getUserEmail();
+
+  function showLoader() {
+  document.getElementById("loader").style.display = "flex"; // Show loader
+}
+
+// Function to hide the loader
+function hideLoader() {
+  document.getElementById("loader").style.display = "none"; // Hide loader
+}
   
   console.log('Current user details:', {
     loginType: loginType,
     email: userEmail
   });
 
+  // Function to fetch hotels
+  async function fetchHotels() {
+    try {
+      const response = await fetch('http://localhost:5000/api/getHotels');
+      if (!response.ok) throw new Error('Failed to fetch hotels');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching hotels:', error);
+      throw error;
+    }
+  }
+
+  // Function to populate hotel dropdown
+  async function populateHotelDropdown() {
+    try {
+      const hotels = await fetchHotels();
+      const hotelDropdown = document.getElementById('hotel');
+      
+      // Clear existing options
+      hotelDropdown.innerHTML = '<option value="">Select Hotel</option>';
+      
+      // Sort hotels by name
+      hotels.sort((a, b) => a.hotel_name.localeCompare(b.hotel_name));
+      
+      // Add hotel options
+      hotels.forEach(hotel => {
+        const option = document.createElement('option');
+        option.value = hotel.hotel_id;
+        option.textContent = hotel.hotel_name;
+        hotelDropdown.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error populating hotel dropdown:', error);
+      Swal.fire('Error!', 'Failed to load hotels', 'error');
+    }
+  }
+
+  // Function to handle hotel selection
+  async function handleHotelSelection(hotelId) {
+    try {
+      const hotels = await fetchHotels();
+      const selectedHotel = hotels.find(hotel => hotel.hotel_id === parseInt(hotelId));
+      
+      if (selectedHotel) {
+        // Populate hotel details fields
+        document.getElementById('bank_name').value = selectedHotel.bank_name || 'N/A';
+        document.getElementById('ifsc_code').value = selectedHotel.ifsc_code || 'N/A';
+        document.getElementById('account_no').value = selectedHotel.account_no || 'N/A';
+        document.getElementById('account_type').value = selectedHotel.account_type || 'N/A';
+        document.getElementById('hotel_gst').value = selectedHotel.hotel_gst || 'N/A';
+        
+        // Show hotel details section
+        document.getElementById('hotelDetailsSection').style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error handling hotel selection:', error);
+      Swal.fire('Error!', 'Failed to load hotel details', 'error');
+    }
+  }
+
+  // Function to fetch vendors
+  async function fetchVendors() {
+    try {
+      const response = await fetch('http://localhost:5000/api/getAllVendors');
+      if (!response.ok) throw new Error('Failed to fetch vendors');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+      throw error;
+    }
+  }
+
+  // Function to populate vendor dropdown based on selected chapter
+  async function populateVendorDropdown(selectedChapterId = null, showAll = false) {
+    try {
+      const vendors = await fetchVendors();
+      const vendorDropdown = document.getElementById('vendor');
+      const currentVendorSelection = vendorDropdown.value; // Store current selection
+      
+      // Clear existing options
+      vendorDropdown.innerHTML = '<option value="">Select Vendor</option>';
+      
+      // Add "All Vendors" option only if a chapter is selected
+      if (selectedChapterId && selectedChapterId !== 'all') {
+        vendorDropdown.innerHTML += '<option value="all">All Vendors</option>';
+      }
+      vendorDropdown.innerHTML += '<option disabled>──────────</option>';
+      
+      if (showAll) {
+        // Show all vendors, potentially grouped
+        console.log('Populating with ALL vendors');
+        const chapterVendors = selectedChapterId && selectedChapterId !== 'all' 
+          ? vendors.filter(v => v.chapter_id === parseInt(selectedChapterId)) 
+          : [];
+        const otherVendors = vendors.filter(v => !chapterVendors.some(cv => cv.vendor_id === v.vendor_id));
+
+        // Add Chapter Vendors first if a chapter was selected
+        if (chapterVendors.length > 0) {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = 'Chapter Vendors';
+          chapterVendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+          chapterVendors.forEach(vendor => {
+            const option = document.createElement('option');
+            option.value = vendor.vendor_id;
+            option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+            optgroup.appendChild(option);
+          });
+          vendorDropdown.appendChild(optgroup);
+        }
+
+        // Add Other Vendors
+        if (otherVendors.length > 0) {
+          const otherOptgroup = document.createElement('optgroup');
+          otherOptgroup.label = chapterVendors.length > 0 ? 'Other Vendors' : 'All Vendors'; // Adjust label if no chapter vendors
+          otherVendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+          otherVendors.forEach(vendor => {
+            const option = document.createElement('option');
+            option.value = vendor.vendor_id;
+            option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+            otherOptgroup.appendChild(option);
+          });
+          vendorDropdown.appendChild(otherOptgroup);
+        }
+        
+      } else if (selectedChapterId && selectedChapterId !== 'all') {
+        // Show only chapter vendors + "Show Others" option
+        console.log(`Populating vendors for chapter: ${selectedChapterId}`);
+        const chapterVendors = vendors.filter(vendor => 
+          vendor.chapter_id === parseInt(selectedChapterId)
+        );
+
+        if (chapterVendors.length > 0) {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = 'Chapter Vendors';
+          chapterVendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+          chapterVendors.forEach(vendor => {
+            const option = document.createElement('option');
+            option.value = vendor.vendor_id;
+            option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+            optgroup.appendChild(option);
+          });
+          vendorDropdown.appendChild(optgroup);
+        }
+
+        // Check if there are vendors outside the current chapter
+        const hasOtherVendors = vendors.some(v => v.chapter_id !== parseInt(selectedChapterId));
+
+        if (hasOtherVendors) {
+          const separator = document.createElement('option');
+          separator.disabled = true;
+          separator.textContent = '──────────';
+          vendorDropdown.appendChild(separator);
+
+          const showOthersOption = document.createElement('option');
+          showOthersOption.value = 'show_others';
+          showOthersOption.textContent = '➕ Show Other Chapter Vendors';
+          vendorDropdown.appendChild(showOthersOption);
+        } else if (chapterVendors.length === 0) {
+          vendorDropdown.innerHTML += '<option disabled>No vendors found for this chapter.</option>';
+        }
+
+      } else {
+        // Show all vendors (case when no chapter selected or "All Vendors" initially selected)
+        console.log('Populating with all vendors (initial/no chapter)');
+        vendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+        vendors.forEach(vendor => {
+          const option = document.createElement('option');
+          option.value = vendor.vendor_id;
+          option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+          vendorDropdown.appendChild(option);
+        });
+      }
+
+      // Restore selection if possible
+      if (vendorDropdown.querySelector(`option[value="${currentVendorSelection}"]`)) {
+          vendorDropdown.value = currentVendorSelection;
+      }
+
+    } catch (error) {
+      console.error('Error populating vendor dropdown:', error);
+      Swal.fire('Error!', 'Failed to load vendors', 'error');
+    }
+  }
+
+  // Function to handle vendor selection
+  async function handleVendorSelection(vendorId) {
+    try {
+      const vendors = await fetchVendors();
+      const selectedVendor = vendors.find(vendor => vendor.vendor_id === parseInt(vendorId));
+      
+      if (selectedVendor) {
+        // Populate vendor details fields
+        document.getElementById('vendor_company_name').value = selectedVendor.vendor_company_name || 'N/A';
+        document.getElementById('vendor_company_address').value = selectedVendor.vendor_company_address || 'N/A';
+        document.getElementById('vendor_phone').value = selectedVendor.phone_number || 'N/A';
+        document.getElementById('vendor_email').value = selectedVendor.email_id || 'N/A';
+        document.getElementById('vendor_company_gst').value = selectedVendor.vendor_company_gst || 'N/A';
+        document.getElementById('vendor_bank_name').value = selectedVendor.vendor_bank_name || 'N/A';
+        document.getElementById('vendor_account').value = selectedVendor.vendor_account || 'N/A';
+        document.getElementById('vendor_ifsc_code').value = selectedVendor.vendor_ifsc_code || 'N/A';
+        document.getElementById('vendor_account_type').value = selectedVendor.vendor_account_type || 'N/A';
+        
+        // Show vendor details section
+        document.getElementById('vendorDetailsSection').style.display = 'flex';
+      }
+    } catch (error) {
+      console.error('Error handling vendor selection:', error);
+      Swal.fire('Error!', 'Failed to load vendor details', 'error');
+    }
+  }
+
+  // Add event listener for expense type change
+  document.getElementById('expense_type').addEventListener('change', async function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const hotelSection = document.getElementById('hotelSection');
+    const hotelDetailsSection = document.getElementById('hotelDetailsSection');
+    const vendorSection = document.getElementById('vendorSection');
+    const vendorDetailsSection = document.getElementById('vendorDetailsSection');
+    
+    // Check if the selected expense type is "Meeting Hotel Expenses"
+    if (selectedOption.textContent === 'Meeting Hotel Expenses') {
+      console.log('Meeting Hotel Expenses selected - showing hotel section');
+      await populateHotelDropdown();
+      hotelSection.style.display = 'block';
+      vendorSection.style.display = 'none';
+      vendorDetailsSection.style.display = 'none';
+    } else {
+      console.log('Different expense type selected - showing vendor section');
+      const selectedChapterId = document.getElementById('chapter').value;
+      await populateVendorDropdown(selectedChapterId, false);
+      hotelSection.style.display = 'none';
+      hotelDetailsSection.style.display = 'none';
+      vendorSection.style.display = 'block';
+    }
+  });
+
+  // Add event listener for hotel selection
+  document.getElementById('hotel').addEventListener('change', function() {
+    const selectedHotelId = this.value;
+    const hotelDetailsSection = document.getElementById('hotelDetailsSection');
+    
+    if (selectedHotelId) {
+      handleHotelSelection(selectedHotelId);
+    } else {
+      hotelDetailsSection.style.display = 'none';
+    }
+  });
+
+  // Add event listener for vendor selection
+  document.getElementById('vendor').addEventListener('change', function() {
+    const selectedVendorId = this.value;
+    const vendorDetailsSection = document.getElementById('vendorDetailsSection');
+    
+    if (selectedVendorId === 'show_others') {
+      // Show other chapter vendors
+      const selectedChapterId = document.getElementById('chapter').value;
+      // Call populateVendorDropdown to show all vendors, grouped
+      populateVendorDropdown(selectedChapterId, true);
+      // Don't reset selection, let the full list show
+    } else if (selectedVendorId === 'all') {
+      // Show all vendors (ungrouped)
+      populateVendorDropdown(null, true);
+      vendorDetailsSection.style.display = 'none';
+    } else if (selectedVendorId && selectedVendorId !== 'all') {
+      handleVendorSelection(selectedVendorId);
+    } else {
+      vendorDetailsSection.style.display = 'none';
+    }
+  });
+
+  // Add event listener for chapter selection
+  document.getElementById('chapter').addEventListener('change', function() {
+    const selectedChapterId = this.value;
+    const expenseType = document.getElementById('expense_type');
+    const selectedExpenseType = expenseType.options[expenseType.selectedIndex].textContent;
+    const vendorDetailsSection = document.getElementById('vendorDetailsSection');
+
+    // Only update vendor dropdown if expense type is not "Meeting Hotel Expenses"
+    if (selectedExpenseType !== 'Meeting Hotel Expenses') {
+      populateVendorDropdown(selectedChapterId, false); // Revert to chapter-specific view
+      // Hide vendor details when chapter changes
+      vendorDetailsSection.style.display = 'none';
+    }
+  });
+
   // Add this new code to prefill submitted_by field
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("http://localhost:5000/api/chapters");
     const chapters = await response.json();
     
     // Find matching chapter by email
@@ -298,7 +793,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Fetch data for "Type of Expense"
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
+    const response = await fetch("http://localhost:5000/api/expenseType");
     const data = await response.json();
     console.log("Expense Types:", data);
     const expenseTypeDropdown = document.getElementById("expense_type");
@@ -323,7 +818,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Fetch and populate chapters dropdown
   try {
     console.log('Fetching chapters data...');
-    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("http://localhost:5000/api/chapters");
     const chapters = await response.json();
     console.log("All available chapters:", chapters);
 
@@ -386,75 +881,198 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   const addExpenseButton = document.getElementById("addExpenseButton");
 
+  // GST Calculation Logic
+  const withGSTCheckbox = document.getElementById('withGST');
+  const amountInput = document.getElementById('amount');
+  const gstCalculationFields = document.getElementById('gstCalculationFields');
+  const gstPercentageSelect = document.getElementById('gstPercentage');
+  const gstAmountInput = document.getElementById('gstAmount');
+  const totalAmountInput = document.getElementById('totalAmount');
+
+  // Function to calculate GST and total
+  function calculateGST() {
+    const amount = parseFloat(amountInput.value) || 0;
+    const gstPercentage = parseFloat(gstPercentageSelect.value) / 100;
+
+    if (withGSTCheckbox.checked) {
+      const gstAmount = amount * gstPercentage;
+      const totalAmount = amount + gstAmount;
+
+      // Update the fields with formatted numbers
+      gstAmountInput.value = gstAmount.toFixed(2);
+      totalAmountInput.value = totalAmount.toFixed(2);
+      gstCalculationFields.style.display = 'block';
+    } else {
+      gstCalculationFields.style.display = 'none';
+      gstAmountInput.value = '';
+      totalAmountInput.value = '';
+    }
+  }
+
+  // Add event listeners for GST calculation
+  withGSTCheckbox.addEventListener('change', calculateGST);
+  amountInput.addEventListener('input', function() {
+    if (withGSTCheckbox.checked) {
+      calculateGST();
+    }
+  });
+  gstPercentageSelect.addEventListener('change', function() {
+    if (withGSTCheckbox.checked) {
+      calculateGST();
+    }
+  });
+
   addExpenseButton.addEventListener("click", async function () {
-    const form = document.getElementById("addExpenseForm");
-    const formData = new FormData(form);
-
-    // Get selected chapter and convert ID to number
-    const selectedChapter = document.getElementById("chapter");
-    const selectedChapterId = parseInt(selectedChapter.value, 10);
-    
-    // Validate chapter selection
-    if (!selectedChapterId || isNaN(selectedChapterId)) {
-      Swal.fire('Error!', 'Please select a valid chapter', 'error');
-      console.error('Invalid chapter selection:', {
-        originalValue: selectedChapter.value,
-        parsedValue: selectedChapterId
-      });
-      return;
-    }
-
-    const selectedPaymentStatus = document.getElementById('payment_status').value;
-   
-    if (selectedPaymentStatus !== "paid" && selectedPaymentStatus !== "pending") {
-      console.log("selectedPaymentStatus", selectedPaymentStatus);
-      Swal.fire('Error!', 'Please select a valid payment status', 'error');
-      return;
-    }
-
-    // Remove existing chapter_id from formData if it exists
-    formData.delete('chapter_id');
-    // Add the numeric chapter_id
-    formData.append('chapter_id', selectedChapterId);
-
-    // Add GST checkbox value to formData
-    formData.append('withGST', document.getElementById('withGST').checked);
-
-    // Debug: Log all form data and selected chapter
-    console.log('Chapter Selection:', {
-      originalValue: selectedChapter.value,
-      convertedId: selectedChapterId,
-      chapterName: selectedChapter.options[selectedChapter.selectedIndex].text
-    });
-
-    // Log all form data for verification
-    const formDataObject = {
-      expense_type: parseInt(document.getElementById('expense_type').value, 10),
-      expense_type_name: document.getElementById('expense_type').options[document.getElementById('expense_type').selectedIndex].text,
-      submitted_by: document.getElementById('submitted_by').value,
-      description: document.getElementById('description').value,
-      chapter_id: selectedChapterId, // Now using the converted number
-      chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
-      amount: parseFloat(document.getElementById('amount').value),
-      withGST: document.getElementById('withGST').checked, // Added GST value
-      payment_status: document.getElementById('payment_status').value,
-      bill_date: document.getElementById('bill_date').value,
-      bill_no: document.getElementById('bill_no').value,
-      transaction_no: document.getElementById('transaction_no').value,
-      upload_bill: document.getElementById('upload_bill').files[0]?.name || 'No file selected',
-      payment_mode: document.getElementById('payment_mode').value
-    };
-
-    console.log('Complete Form Data:', formDataObject);
-    console.log('FormData entries:');
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
-    }
-
     try {
-      showLoader();
+      const form = document.getElementById("addExpenseForm");
+      const formData = new FormData();
 
-      const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
+      // Get selected chapter and convert ID to number
+      const selectedChapter = document.getElementById("chapter");
+      const selectedChapterId = parseInt(selectedChapter.value, 10);
+      
+      // Validate chapter selection
+      if (!selectedChapterId || isNaN(selectedChapterId)) {
+        Swal.fire('Error!', 'Please select a valid chapter', 'error');
+        console.error('Invalid chapter selection:', {
+          originalValue: selectedChapter.value,
+          parsedValue: selectedChapterId
+        });
+        return;
+      }
+
+      // Validate payment status
+      const selectedPaymentStatus = document.getElementById('payment_status').value;
+      if (selectedPaymentStatus !== "paid" && selectedPaymentStatus !== "pending") {
+        console.log("selectedPaymentStatus", selectedPaymentStatus);
+        Swal.fire('Error!', 'Please select a valid payment status', 'error');
+        return;
+      }
+
+      // Validate expense type
+      const expenseType = document.getElementById('expense_type');
+      const selectedExpenseType = expenseType.options[expenseType.selectedIndex].textContent;
+      if (!expenseType.value) {
+        Swal.fire('Error!', 'Please select an expense type', 'error');
+        return;
+      }
+
+      // Validate amount
+      const amount = document.getElementById('amount').value;
+      if (!amount || parseFloat(amount) <= 0) {
+        Swal.fire('Error!', 'Please enter a valid amount', 'error');
+        return;
+      }
+
+      // Validate bill date
+      const billDate = document.getElementById('bill_date').value;
+      if (!billDate) {
+        Swal.fire('Error!', 'Please select a bill date', 'error');
+        return;
+      }
+
+      // Validate bill number
+      const billNo = document.getElementById('bill_no').value;
+      if (!billNo) {
+        Swal.fire('Error!', 'Please enter a bill number', 'error');
+        return;
+      }
+
+      // Validate transaction number
+      const transactionNo = document.getElementById('transaction_no').value;
+      if (!transactionNo) {
+        Swal.fire('Error!', 'Please enter a transaction number', 'error');
+        return;
+      }
+
+      // Validate payment mode
+      const paymentMode = document.getElementById('payment_mode').value;
+      if (!paymentMode) {
+        Swal.fire('Error!', 'Please select a payment mode', 'error');
+        return;
+      }
+
+      // Validate file uploads
+      const billFile = document.getElementById('upload_bill').files[0];
+      if (!billFile) {
+        Swal.fire('Error!', 'Please upload a bill', 'error');
+        return;
+      }
+
+      // Add basic form fields
+      formData.append('expense_type', expenseType.value);
+      formData.append('submitted_by', document.getElementById('submitted_by').value);
+      formData.append('description', document.getElementById('description').value);
+      formData.append('chapter_id', selectedChapterId);
+      formData.append('amount', amount);
+      formData.append('payment_status', selectedPaymentStatus);
+      formData.append('bill_date', billDate);
+      formData.append('bill_no', billNo);
+      formData.append('transaction_no', transactionNo);
+      formData.append('payment_mode', paymentMode);
+
+      // Add files
+      formData.append('upload_bill', billFile);
+      const receiptFile = document.getElementById('upload_receipt').files[0];
+      if (receiptFile) {
+        formData.append('upload_receipt', receiptFile);
+      }
+
+      // Add GST details if applicable
+      const withGST = document.getElementById('withGST').checked;
+      formData.append('withGST', withGST);
+      
+      if (withGST) {
+        const gstPercentage = document.getElementById('gstPercentage').value;
+        const gstAmount = document.getElementById('gstAmount').value;
+        const totalAmount = document.getElementById('totalAmount').value;
+        
+        formData.append('gstPercentage', gstPercentage);
+        formData.append('gstAmount', gstAmount);
+        formData.append('totalAmount', totalAmount);
+      } else {
+        formData.append('totalAmount', amount);
+      }
+
+      // Add vendor or hotel details based on expense type
+      if (selectedExpenseType === 'Meeting Hotel Expenses') {
+        const selectedHotel = document.getElementById('hotel').value;
+        if (!selectedHotel) {
+          Swal.fire('Error!', 'Please select a hotel', 'error');
+          return;
+        }
+        formData.append('hotel_id', selectedHotel);
+      } else {
+        const selectedVendor = document.getElementById('vendor').value;
+        if (!selectedVendor || selectedVendor === 'show_others') {
+          Swal.fire('Error!', 'Please select a vendor', 'error');
+          return;
+        }
+        formData.append('vendor_id', selectedVendor);
+      }
+
+      // Debug logging
+      console.log('Form Data Object:', {
+        expense_type: parseInt(expenseType.value, 10),
+        expense_type_name: selectedExpenseType,
+        submitted_by: document.getElementById('submitted_by').value,
+        description: document.getElementById('description').value,
+        chapter_id: selectedChapterId,
+        chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
+        amount: parseFloat(amount),
+        withGST: withGST,
+        payment_status: selectedPaymentStatus,
+        bill_date: billDate,
+        bill_no: billNo,
+        transaction_no: transactionNo,
+        upload_bill: billFile.name,
+        upload_receipt: receiptFile ? receiptFile.name : 'No file selected',
+        payment_mode: paymentMode
+      });
+
+      // Show loader and make API call
+      showLoader();
+      const response = await fetch("http://localhost:5000/api/addExpense", {
         method: "POST",
         body: formData,
       });
@@ -477,11 +1095,135 @@ document.addEventListener("DOMContentLoaded", async function () {
       } else {
         const errorResponse = await response.json();
         console.error('API Error Response:', errorResponse);
-        Swal.fire('Failed!', errorResponse.message, 'error');
+        Swal.fire('Failed!', errorResponse.message || 'Failed to add expense', 'error');
       }
     } catch (error) {
       console.error('Error adding expense:', error);
       Swal.fire('Error!', 'Failed to add expense. Please try again.', 'error');
+    } finally {
+      hideLoader();
+    }
+  });
+
+  // Add New Vendor Button Click Handler
+  document.getElementById('addNewVendorBtn').addEventListener('click', function() {
+    // Get the selected chapter ID
+    const selectedChapterId = document.getElementById('chapter').value;
+    
+    if (!selectedChapterId) {
+      Swal.fire('Error!', 'Please select a chapter first', 'error');
+      return;
+    }
+    
+    // Show the modal
+    const vendorModal = new bootstrap.Modal(document.getElementById('addVendorModal'));
+    vendorModal.show();
+  });
+
+  // Save Vendor Button Click Handler
+  document.getElementById('saveVendorBtn').addEventListener('click', async function() {
+    try {
+      // Get the selected chapter ID
+      const selectedChapterId = document.getElementById('chapter').value;
+      
+      if (!selectedChapterId) {
+        Swal.fire('Error!', 'Please select a chapter first', 'error');
+        return;
+      }
+
+      // Get all form fields and ensure proper data types
+      const vendorData = {
+        vendor_name: document.getElementById('vendor_name').value.trim(),
+        vendor_company_name: document.getElementById('vendor_company_name_modal').value.trim(),
+        vendor_company_address: document.getElementById('vendor_company_address_modal').value.trim(),
+        vendor_company_gst: document.getElementById('vendor_company_gst_modal').value.trim() || 'NA',
+        phone_number: document.getElementById('phone_number').value.trim(),
+        email_id: document.getElementById('email_id').value.trim(),
+        vendor_bank_name: document.getElementById('vendor_bank_name_modal').value.trim(),
+        vendor_account: document.getElementById('vendor_account_modal').value.trim(),
+        vendor_ifsc_code: document.getElementById('vendor_ifsc_code_modal').value.trim(),
+        vendor_account_type: document.getElementById('vendor_account_type_modal').value,
+        vendor_status: 'active', // Set default status
+        chapter_id: selectedChapterId
+      };
+
+      // Debug log the collected data
+      console.log('Collected vendor data:', vendorData);
+
+      // Validate required fields
+      const requiredFields = {
+        'Vendor Name': vendorData.vendor_name,
+        'Company Name': vendorData.vendor_company_name,
+        'Company Address': vendorData.vendor_company_address,
+        'Phone Number': vendorData.phone_number,
+        'Email': vendorData.email_id,
+        'Bank Name': vendorData.vendor_bank_name,
+        'Account Number': vendorData.vendor_account,
+        'IFSC Code': vendorData.vendor_ifsc_code,
+        'Account Type': vendorData.vendor_account_type
+      };
+
+      // Check for empty required fields
+      const emptyFields = Object.entries(requiredFields)
+        .filter(([_, value]) => !value)
+        .map(([key]) => key);
+
+      if (emptyFields.length > 0) {
+        Swal.fire('Error!', `Please fill in the following required fields: ${emptyFields.join(', ')}`, 'error');
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(vendorData.email_id)) {
+        Swal.fire('Error!', 'Please enter a valid email address', 'error');
+        return;
+      }
+
+      // Validate phone number (assuming Indian format)
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(vendorData.phone_number)) {
+        Swal.fire('Error!', 'Please enter a valid 10-digit phone number', 'error');
+        return;
+      }
+
+      showLoader();
+
+      // Send data as JSON instead of FormData
+      const response = await fetch('http://localhost:5000/api/addVendor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(vendorData)
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        // Close the modal
+        const vendorModal = bootstrap.Modal.getInstance(document.getElementById('addVendorModal'));
+        vendorModal.hide();
+        
+        // Show success message
+        Swal.fire({
+          title: 'Success!',
+          text: result.message,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+        
+        // Reset the form
+        document.getElementById('addVendorForm').reset();
+        
+        // Refresh vendor dropdown with new vendor
+        await populateVendorDropdown(selectedChapterId);
+      } else {
+        throw new Error(result.message || 'Failed to add vendor');
+      }
+    } catch (error) {
+      console.error('Error adding vendor:', error);
+      Swal.fire('Error!', error.message || 'Failed to add vendor. Please try again.', 'error');
     } finally {
       hideLoader();
     }
@@ -500,7 +1242,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 // }
 </script>
 
-<script src="../../assets/js/expense.js"></script>
+<!-- <script src="../../assets/js/expense.js"></script> -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <%- include('../partials/footer') %>

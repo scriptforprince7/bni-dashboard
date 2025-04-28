@@ -5,6 +5,9 @@ let entriesPerPage = 10; // Number of entries to display per page
 let currentPage = 1; // For pagination
 let expenseTypes = []; // Store expense types mapping
 
+// Define base URL at the top of your file
+const BILL_BASE_URL = 'https://backend.bninewdelhi.com';
+
 // Function to show the loader
 function showLoader() {
   document.getElementById("loader").style.display = "flex"; // Show loader
@@ -255,7 +258,7 @@ function displayExpenses(expenses) {
     console.log('No expenses to display');
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="8" class="text-center">No expenses found</td>
+      <td colspan="10" class="text-center">No expenses found</td>
     `;
     tableBody.appendChild(row);
     return;
@@ -277,13 +280,25 @@ function displayExpenses(expenses) {
     const billDate = new Date(expense.bill_date);
     const formattedBillDate = billDate.toLocaleDateString();
 
+    // Get just the filename from upload_bill (remove any path if present)
+    const filename = expense.upload_bill.split('/').pop(); // This will get just the filename
+    
+    // Construct the bill URL
+    const billUrl = `${BILL_BASE_URL}/api/uploads/expenses/${filename}`;
+    
+    // Get receipt filename and construct receipt URL
+    const receiptFilename = expense.upload_receipt.split('/').pop();
+    const receiptUrl = `${BILL_BASE_URL}/api/uploads/expenses/${receiptFilename}`;
+
     console.log('Creating row for expense:', {
       id: expense.expense_id,
       type: expenseName,
       submittedBy: expense.submitted_by,
       amount: expense.amount,
       status: expense.payment_status,
-      date: formattedBillDate
+      date: formattedBillDate,
+      billUrl: billUrl,
+      receiptUrl: receiptUrl
     });
 
     row.innerHTML = `
@@ -296,6 +311,18 @@ function displayExpenses(expenses) {
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
+      <td style="border: 1px solid grey;">
+        <a href="${billUrl}" target="_blank" style="text-decoration: underline; color: blue">
+          View Bill
+          <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
+        </a>
+      </td>
+      <td style="border: 1px solid grey;">
+        <a href="${receiptUrl}" target="_blank" style="text-decoration: underline; color: blue">
+          View Receipt
+          <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
+        </a>
+      </td>
       <td style="border: 1px solid grey">
         <a href="/exp/edit-expense/?expense_id=${expense.expense_id}" class="badge" style="background-color: #10b981; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); transition: all 0.3s ease; hover: {opacity: 0.9};">Edit Bill</a>
         <span class="badge bg-danger delete-btn" style="cursor:pointer; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); font-weight: bold;" data-expense-id="${expense.expense_id}">Delete</span>
