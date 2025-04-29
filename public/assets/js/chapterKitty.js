@@ -1126,7 +1126,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       });
 
     // Render recent successful payments
-    renderRecentSuccessfulPayments(allTransactions, allOrders, document.getElementById("paymentsTableBody"));
+    renderRecentSuccessfulPayments(allTransactions, allOrders, document.getElementById("paymentsTableBody"), chapter_id);
 
     // --- Add sorting logic for table headers with icons ---
     const table = document.getElementById('paymentsTableBody').closest('table');
@@ -1280,15 +1280,25 @@ document.addEventListener('DOMContentLoaded', function() {
  * @param {Array} orders - Array of order objects
  * @param {HTMLElement} tableBody - The table body element to render into
  */
-function renderRecentSuccessfulPayments(transactions, orders, tableBody) {
-  // Only consider orders with chapter_id === 2
-  const ordersForChapter2 = orders.filter(order => String(order.chapter_id) === "2");
-  const orderIdsForChapter2 = new Set(ordersForChapter2.map(order => order.order_id));
+function renderRecentSuccessfulPayments(transactions, orders, tableBody, chapter_id) {
+  console.log("Starting renderRecentSuccessfulPayments with chapter_id:", chapter_id); // Debug log
 
-  // Filter for only "SUCCESS" transactions AND order_id in chapter 2
+  if (!chapter_id) {
+    console.error("No chapter_id provided to renderRecentSuccessfulPayments");
+    return;
+  }
+
+  // Filter orders for current chapter
+  const ordersForChapter = orders.filter(order => String(order.chapter_id) === String(chapter_id));
+  console.log("Filtered orders:", ordersForChapter.length); // Debug log
+
+  const orderIdsForChapter = new Set(ordersForChapter.map(order => order.order_id));
+
+  // Filter for SUCCESS transactions with order_id in current chapter
   const successful = transactions.filter(
-    txn => orderIdsForChapter2.has(txn.order_id)
+    txn => orderIdsForChapter.has(txn.order_id)
   );
+  console.log("Successful transactions:", successful.length); // Debug log
 
   // Sort by payment_time (most recent first)
   successful.sort((a, b) => {
@@ -1300,52 +1310,146 @@ function renderRecentSuccessfulPayments(transactions, orders, tableBody) {
   // Clear the table body
   tableBody.innerHTML = "";
 
-  // Render rows
-  successful.forEach((txn, idx) => {
-    // Find the associated order (guaranteed to be chapter_id === 2)
-    const order = ordersForChapter2.find(order => order.order_id === txn.order_id);
+  if (successful.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td colspan="9" class="text-center">No transactions found</td>
+    `;
+    tableBody.appendChild(row);
+    return;
+  }
 
-    // Determine payment method and icon
+  // Rest of your existing rendering code...
+  successful.forEach((txn, idx) => {
+    const order = ordersForChapter.find(order => order.order_id === txn.order_id);
+    console.log("Processing transaction:", txn.order_id); // Debug log
+
+    // Enhanced payment method detection logic
     let paymentMethod = "N/A";
     let paymentImage = "";
+    
+    console.log("Full transaction object:", txn); // Debug log
+    console.log("Payment method data:", txn.payment_method); // Debug log
+
     if (txn.payment_method) {
-      if (txn.payment_method.upi) {
-        paymentMethod = "UPI";
-        paymentImage =
-          '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
-      } else if (txn.payment_method.card) {
-        paymentMethod = "Card";
-        paymentImage =
-          '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
-      } else if (txn.payment_method.netbanking) {
-        paymentMethod = "Net Banking";
-        paymentImage =
-          '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
-      } else if (txn.payment_method.wallet) {
-        paymentMethod = "Wallet";
-        paymentImage =
-          '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+      // First try to parse if it's a string
+      let paymentMethodObj = txn.payment_method;
+      if (typeof txn.payment_method === 'string') {
+        try {
+          paymentMethodObj = JSON.parse(txn.payment_method);
+        } catch (e) {
+          console.log("Payment method is string but not JSON:", txn.payment_method);
+        }
+      }
+
+      // Now check for payment method
+      if (typeof paymentMethodObj === 'object') {
+        if (paymentMethodObj.upi || txn.payment_type === 'upi') {
+          paymentMethod = "UPI";
+          paymentImage = '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
+        } else if (paymentMethodObj.card || txn.payment_type === 'card') {
+          paymentMethod = "Card";
+          paymentImage = '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
+        } else if (paymentMethodObj.netbanking || txn.payment_type === 'netbanking') {
+          paymentMethod = "Net Banking";
+          paymentImage = '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
+        } else if (paymentMethodObj.wallet || txn.payment_type === 'wallet') {
+          paymentMethod = "Wallet";
+          paymentImage = '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+        }
+      } else {
+        // If payment_method is a direct string
+        switch(txn.payment_method.toLowerCase()) {
+          case 'upi':
+            paymentMethod = "UPI";
+            paymentImage = '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
+            break;
+          case 'card':
+            paymentMethod = "Card";
+            paymentImage = '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
+            break;
+          case 'netbanking':
+            paymentMethod = "Net Banking";
+            paymentImage = '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
+            break;
+          case 'wallet':
+            paymentMethod = "Wallet";
+            paymentImage = '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+            break;
+        }
       }
     }
 
-    // Format date
-    const formattedDate = txn.payment_time
-      ? new Date(txn.payment_time).toLocaleDateString("en-IN", { timeZone: "UTC" })
-      : "N/A";
+    // Also check payment_type if payment_method didn't give us anything
+    if (paymentMethod === "N/A" && txn.payment_type) {
+      switch(txn.payment_type.toLowerCase()) {
+        case 'upi':
+          paymentMethod = "UPI";
+          paymentImage = '<img src="https://economictimes.indiatimes.com/thumb/msid-74960608,width-1200,height-900,resizemode-4,imgsize-49172/upi-twitter.jpg?from=mdr" alt="UPI" width="30" height="30">';
+          break;
+        case 'card':
+          paymentMethod = "Card";
+          paymentImage = '<img src="https://www.investopedia.com/thmb/F8CKM3YkF1fmnRCU2g4knuK0eDY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/MClogo-c823e495c5cf455c89ddfb0e17fc7978.jpg" alt="Card" width="20" height="20">';
+          break;
+        case 'netbanking':
+          paymentMethod = "Net Banking";
+          paymentImage = '<img src="https://cdn.prod.website-files.com/64199d190fc7afa82666d89c/648b63af41676287e601542d_regular-bank-transfer.png" alt="Net Banking" width="20" height="20">';
+          break;
+        case 'wallet':
+          paymentMethod = "Wallet";
+          paymentImage = '<img src="https://ibsintelligence.com/wp-content/uploads/2024/01/digital-wallet-application-mobile-internet-banking-online-payment-security-via-credit-card_228260-825.jpg" alt="Wallet" width="20" height="20">';
+          break;
+      }
+    }
 
-    // Render the row
+    // Render row...
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${idx + 1}</td>
-      <td style="font-weight: 600">${formattedDate}</td>
-      <td style="font-weight: 600">${order && order.member_name ? order.member_name : "N/A"}</td>
+      <td style="font-weight: 600">${new Date(txn.payment_time).toLocaleDateString("en-IN", { timeZone: "UTC" })}</td>
+      <td style="font-weight: 600">${order?.member_name || "N/A"}</td>
       <td><b>₹${txn.payment_amount}</b><br><a href="/ck/chapter-kittyInvoice?order_id=${txn.order_id}" class="fw-medium text-success">View</a></td>
       <td style="font-weight: 600">${paymentImage} ${paymentMethod}</td>
       <td style="font-weight: 500; font-style: italic">${txn.order_id || "N/A"}</td>
       <td><b>${txn.cf_payment_id}</b></td>
       <td><span class="${getPgStatusBadge(txn.payment_status)}">${txn.payment_status}</span></td>
-      <td><b>${order && order.payment_gateway_id ? getGatewayName(order.payment_gateway_id) : "N/A"}</b></td>
+      <td><b>${order?.payment_gateway_id ? getGatewayName(order.payment_gateway_id) : "N/A"}</b></td>
     `;
     tableBody.appendChild(row);
+  });
+
+  // Initialize sorting
+  const table = tableBody.closest('table');
+  if (table) {
+    initializeTableSorting(table);
+  }
+}
+
+// Add this function to handle table sorting
+function initializeTableSorting(table) {
+  if (!table) return;
+
+  table.querySelectorAll('th').forEach((th, idx) => {
+    const sortIcons = th.querySelector('.sort-icons');
+    if (!sortIcons) return;
+
+    // Detect column type
+    let type = 'string';
+    const headerText = th.textContent.toLowerCase();
+    if (headerText.includes('date')) type = 'date';
+    if (headerText.includes('amount')) type = 'number';
+
+    // Add click handlers for sort icons
+    const up = sortIcons.querySelector('.ti-arrow-up');
+    const down = sortIcons.querySelector('.ti-arrow-down');
+
+    if (up) {
+      up.style.cursor = 'pointer';
+      up.addEventListener('click', () => sortTable(table, idx, type, true));
+    }
+    if (down) {
+      down.style.cursor = 'pointer';
+      down.addEventListener('click', () => sortTable(table, idx, type, false));
+    }
   });
 }
