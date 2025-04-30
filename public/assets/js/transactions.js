@@ -70,7 +70,7 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
           dropdownToggle.textContent = selectedText;
         }
   
-        console.log(`Selected Value from ${dropdown.id}:`, selectedValue);
+        // console.log(`Selected Value from ${dropdown.id}:`, selectedValue);
       });
     });
   };
@@ -335,7 +335,7 @@ const filters = {
 };
 
 // Show filters in the console for debugging
-console.log(filters);
+// console.log(filters);
 
 
 // Filter transactions based on the region_id
@@ -356,7 +356,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         isValid = false;
       }
     } else {
-      console.log(`No matching order found for transaction ${transaction.order_id}`);
+      // console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
   }
 
@@ -373,7 +373,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         isValid = false;
       }
     } else {
-      console.log(`No matching order found for transaction ${transaction.order_id}`);
+      // console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
   }
 
@@ -390,7 +390,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         isValid = false;
       }
     } else {
-      console.log(`No matching order found for transaction ${transaction.order_id}`);
+      // console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
   }
 
@@ -407,7 +407,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         isValid = false;
       }
     } else {
-      console.log(`No matching order found for transaction ${transaction.order_id}`);
+      // console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
   }
 
@@ -424,7 +424,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         isValid = false;
       }
     } else {
-      console.log(`No matching order found for transaction ${transaction.order_id}`);
+      // console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
   }
 
@@ -441,7 +441,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         isValid = false;
       }
     } else {
-      console.log(`No matching order found for transaction ${transaction.order_id}`);
+      // console.log(`No matching order found for transaction ${transaction.order_id}`);
     }
   }
 
@@ -598,13 +598,13 @@ const filteredTransactions = transactions.filter((transaction) => {
       let qrcodeValue = '<em>Not Applicable</em>';
       let cancelIrnValue = '<em>Not Applicable</em>';
 
-      console.log('Checking payment method for transaction:', transaction.order_id);
-      console.log('Payment method structure:', transaction.payment_method);
+      // console.log('Checking payment method for transaction:', transaction.order_id);
+      // console.log('Payment method structure:', transaction.payment_method);
 
       if (transaction.payment_method?.cash?.payment_note === "Visitor Payment" || 
         transaction.payment_method?.cash?.payment_note === "Meeting Payment" ||
         transaction.payment_method?.cash?.payment_note === "Advance Meeting Payment") {
-          console.log('✅ Cash payment detected for order:', transaction.order_id);
+          // console.log('✅ Cash payment detected for order:', transaction.order_id);
           actionButton = `
               <button class="btn btn-sm btn-success" disabled>
                   <i class="ti ti-check me-1"></i>
@@ -624,7 +624,7 @@ const filteredTransactions = transactions.filter((transaction) => {
           irnValue = '<em>Cash Payment</em>';
           qrcodeValue = '<em>Cash Payment</em>';
       } else {
-          console.log('🔄 Non-cash payment detected for order:', transaction.order_id);
+          // console.log('🔄 Non-cash payment detected for order:', transaction.order_id);
           actionButton = `
               <a href="#" data-transaction-id="${transaction.order_id}" 
                  class="btn btn-sm btn-outline-danger btn-wave waves-light track-settlement">
@@ -1009,13 +1009,13 @@ const filteredTransactions = transactions.filter((transaction) => {
 
     // Add this right after the table population loop ends
     function autoClickTrackSettlements() {
-        console.log('🚀 Starting auto-click process after table population');
+        // console.log('🚀 Starting auto-click process after table population');
         
         window.isAutoTracking = true;
-        console.log('🔄 Setting auto-tracking flag');
+        // console.log('🔄 Setting auto-tracking flag');
         
         const buttons = document.querySelectorAll('.track-settlement');
-        console.log(`📊 Found ${buttons.length} track settlement buttons`);
+        // console.log(`📊 Found ${buttons.length} track settlement buttons`);
         
         // First click all buttons
         buttons.forEach((button, index) => {
@@ -1027,7 +1027,7 @@ const filteredTransactions = transactions.filter((transaction) => {
                 const today = new Date();
                 const todayString = today.toLocaleDateString('en-GB');
                 
-                console.log(`Checking: Table date: ${dateInTable}, Today: ${todayString}`);
+                // console.log(`Checking: Table date: ${dateInTable}, Today: ${todayString}`);
                 
                 const currentText = button.textContent.trim();
 
@@ -1048,15 +1048,15 @@ const filteredTransactions = transactions.filter((transaction) => {
 
         // Wait for IRNs to load, then check them
         setTimeout(() => {
-            console.log('[CHECK] Starting IRN verification after delay');
+            // console.log('[CHECK] Starting IRN verification after delay');
             
             const irnCells = document.querySelectorAll('.irn');
             irnCells.forEach((irnCell, index) => {
                 const currentIrn = irnCell.textContent.trim();
-                console.log(`[IRN ${index + 1}] Current value:`, currentIrn);
+                // console.log(`[IRN ${index + 1}] Current value:`, currentIrn);
                 
                 if (currentIrn && currentIrn !== 'Not Applicable' && currentIrn !== 'Not Available') {
-                    console.log(`[COMPARE] Checking IRN against cancelled list:`, currentIrn);
+                    // console.log(`[COMPARE] Checking IRN against cancelled list:`, currentIrn);
                     
                     const isCancelled = cancelledIrnData.some(item => {
                         const matches = item.irn === currentIrn;
@@ -1086,12 +1086,12 @@ const filteredTransactions = transactions.filter((transaction) => {
 
         setTimeout(() => {
             window.isAutoTracking = false;
-            console.log('✅ Auto-tracking completed');
+            // console.log('✅ Auto-tracking completed');
         }, (buttons.length * 1000) + 6000);
     }
 
     // Call the function immediately after table population
-    console.log('📋 Table populated, initiating auto-click');
+    // console.log('📋 Table populated, initiating auto-click');
     autoClickTrackSettlements();
 
     // Display the totals
@@ -1169,14 +1169,14 @@ const filteredTransactions = transactions.filter((transaction) => {
             document.getElementById('not_settle_transaction').textContent = pendingInvoices;
             document.getElementById('cancelled_irns').textContent = cancelledIrns;
             
-            console.log('📊 Transaction Counts Updated:', {
-                ' Total Transactions': totalTransactions,
-                '✅ Generated Invoices': generatedInvoices,
-                '⏳ Pending Invoices': pendingInvoices,
-                '❌ Cancelled IRNs': cancelledIrns,
-                '🔢 Max Serial Found': maxSerialNumber,
-                '⏰ Updated At': new Date().toLocaleTimeString()
-            });
+            // console.log('📊 Transaction Counts Updated:', {
+            //     ' Total Transactions': totalTransactions,
+            //     '✅ Generated Invoices': generatedInvoices,
+            //     '⏳ Pending Invoices': pendingInvoices,
+            //     '❌ Cancelled IRNs': cancelledIrns,
+            //     '🔢 Max Serial Found': maxSerialNumber,
+            //     '⏰ Updated At': new Date().toLocaleTimeString()
+            // });
         } catch (error) {
             console.error('Error in counting transactions:', error);
         }
@@ -1265,17 +1265,9 @@ const filteredTransactions = transactions.filter((transaction) => {
                         const loadingSwal = Swal.fire({
                             title: "Fetching IRN and QR code",
                             html: "Please wait while we fetch the IRN and QR code...",
-                            timer: 2000,
-                            timerProgressBar: true,
+                            allowOutsideClick: false,
                             didOpen: () => {
                                 Swal.showLoading();
-                                const timer = Swal.getPopup().querySelector("b");
-                                timerInterval = setInterval(() => {
-                                    timer.textContent = `${Swal.getTimerLeft()}`;
-                                }, 4000);
-                            },
-                            willClose: () => {
-                                clearInterval(timerInterval);
                             }
                         });
 
@@ -1292,9 +1284,19 @@ const filteredTransactions = transactions.filter((transaction) => {
                             );
                             const responseData = await backendResponse.json();
 
+                            // Close the loading dialog
+                            if (loadingSwal) {
+                                loadingSwal.close();
+                            }
+
                             if (backendResponse.ok) {
                                 // Success response handling
-                                Swal.fire("Success", responseData.message, "success");
+                                await Swal.fire({
+                                    title: "Success",
+                                    text: responseData.message || "IRN generated successfully",
+                                    icon: "success",
+                                    confirmButtonText: "OK"
+                                });
 
                                 // Fetch IRN and QR code details after successful generation
                                 const einvoiceResponse = await fetch(
@@ -1333,14 +1335,28 @@ const filteredTransactions = transactions.filter((transaction) => {
                                 } else {
                                     transactionRow.querySelector(".qrcode").innerHTML = "<em>Not Applicable</em>";
                                 }
+                            } else {
+                                // Handle non-ok response
+                                await Swal.fire({
+                                    title: "Error",
+                                    text: responseData.message || "Failed to generate IRN",
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                });
                             }
                         } catch (error) {
                             console.error("Error generating invoice:", error);
-                            Swal.fire(
-                                "Error",
-                                "There was an issue connecting to the server. Please try again later.",
-                                "error"
-                            );
+                            // Close loading dialog if it's still open
+                            if (loadingSwal) {
+                                loadingSwal.close();
+                            }
+                            
+                            await Swal.fire({
+                                title: "Error",
+                                text: "There was an issue connecting to the server. Please try again later.",
+                                icon: "error",
+                                confirmButtonText: "OK"
+                            });
                         }
                     }
                 });
