@@ -648,7 +648,7 @@ const filteredTransactions = transactions.filter((transaction) => {
         const linkType = universalLinkName?.trim();
 
         // Check for Visitor Payment in payment_note
-    if (order?.payment_note === "Visitor Payment") {
+    if (order?.payment_note === "visitor-payment") {
       console.log('👥 Visitor Payment Detected from Note:', {
           'Visitor Name': order?.visitor_name || 'Not Available',
           'Order ID': order?.order_id
