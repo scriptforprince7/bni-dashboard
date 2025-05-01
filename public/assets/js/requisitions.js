@@ -1243,6 +1243,19 @@ async function showRequisitionForm() {
                                 <i class="ri-award-line me-2" style="color: #6366f1;"></i>
                                 Select Accolades
                             </label>
+                            <!-- Add this search bar below -->
+                            <div style="margin-bottom: 10px; position: relative;">
+                                <input 
+                                    type="text" 
+                                    id="accoladeSearchInput"
+                                    placeholder="Search accolades..."
+                                    style="width: 100%; padding: 8px 12px; padding-left: 35px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95em; transition: all 0.2s ease; background-color: white;"
+                                    oninput="filterAccolades(this.value)"
+                                    onfocus="this.style.borderColor='#818cf8'"
+                                    onblur="this.style.borderColor='#e2e8f0'"
+                                >
+                                <i class="ri-search-line" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                            </div>
                             <div class="accolade-checkbox-container" style="
                                 height: 200px;
                                 overflow-y: auto;
@@ -1547,19 +1560,25 @@ async function showRequisitionForm() {
                     </div>
                 </div>
 
-                <!-- Add Button -->
                 <button onclick="addAssignment()" class="btn btn-primary w-100" style="margin: 10px 0;">
                     <i class="ri-add-line me-1"></i> Add Selection
                 </button>
 
-                <!-- Assignments List -->
-                <div id="assignmentsList" style="
-                    max-height: 300px;
-                    overflow-y: auto;
-                    padding: 10px;
-                    background: #f8fafc;
-                    border-radius: 8px;
-                "></div>
+<!-- Loader for Add Selection -->
+<div id="addSelectionLoader" style="display:none; text-align:center; margin:10px 0;">
+  <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+  <span style="margin-left:8px; color:#2563eb; font-weight:500;">Adding selection...</span>
+</div>
+
+<!-- Assignments List -->
+<div id="assignmentsList" style="
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+"></div>
+
             </div>
         `;
 
@@ -1633,84 +1652,93 @@ async function showRequisitionForm() {
 
         // Add assignment handling function
         window.addAssignment = async function() {
-            // Get selections from top dropdowns (Method 1)
-            const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
-                .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
-            const selectedMembers = Array.from(document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked'))
-                .map(checkbox => members.find(m => m.member_id === parseInt(checkbox.value)));
+            // Show loader
+            const loader = document.getElementById('addSelectionLoader');
+            if (loader) loader.style.display = 'block';
 
-            // Get selections from requisitions (Method 2)
-            const selectedItems = Array.from(document.querySelectorAll('.payment-item input[type="checkbox"]:checked'))
-                .map(checkbox => {
-                    const requisitionId = parseInt(checkbox.dataset.requisitionId);
-                    const requisition = allRequisitions.find(r => r.member_request_id === requisitionId);
-                    return {
-                        accolade: accolades.find(a => a.accolade_id === requisition.accolade_id),
-                        member: members.find(m => m.member_id === requisition.member_id)
-                    };
-                });
+            try {
+                // Get selections from top dropdowns (Method 1)
+                const selectedAccolades = Array.from(document.querySelectorAll('.accolade-checkbox:checked'))
+                    .map(checkbox => accolades.find(a => a.accolade_id === parseInt(checkbox.value)));
+                const selectedMembers = Array.from(document.querySelectorAll('.member-checkbox-container input[type="checkbox"]:checked'))
+                    .map(checkbox => members.find(m => m.member_id === parseInt(checkbox.value)));
 
-            // Handle Method 1: Regular selection
-            if (selectedAccolades.length > 0) {
-                if (selectedMembers.length === 0) {
-                    Swal.showValidationMessage('Please select at least one member');
-                    return;
+                // Get selections from requisitions (Method 2)
+                const selectedItems = Array.from(document.querySelectorAll('.payment-item input[type="checkbox"]:checked'))
+                    .map(checkbox => {
+                        const requisitionId = parseInt(checkbox.dataset.requisitionId);
+                        const requisition = allRequisitions.find(r => r.member_request_id === requisitionId);
+                        return {
+                            accolade: accolades.find(a => a.accolade_id === requisition.accolade_id),
+                            member: members.find(m => m.member_id === requisition.member_id)
+                        };
+                    });
+
+                // Handle Method 1: Regular selection
+                if (selectedAccolades.length > 0) {
+                    if (selectedMembers.length === 0) {
+                        Swal.showValidationMessage('Please select at least one member');
+                        return;
+                    }
+
+                    // Check each member-accolade combination
+                    for (const member of selectedMembers) {
+                        for (const accolade of selectedAccolades) {
+                            const hasAccolade = await checkExistingAccolades(member.member_id, accolade.accolade_id);
+                            
+                            if (hasAccolade) {
+                                // Show custom toast notification for existing accolade
+                                showCustomToast(`${member.member_first_name} ${member.member_last_name} already has ${accolade.accolade_name}`, 'warning');
+                                continue; // Skip this combination
+                            }
+
+                            assignments.push({
+                                sno: currentSno++,
+                                accolade,
+                                member,
+                                comment: ''
+                            });
+                        }
+                    }
                 }
 
-                // Check each member-accolade combination
-                for (const member of selectedMembers) {
-                    for (const accolade of selectedAccolades) {
-                        const hasAccolade = await checkExistingAccolades(member.member_id, accolade.accolade_id);
+                // Handle Method 2: Requisition selection
+                for (const item of selectedItems) {
+                    if (item.accolade && item.member) {
+                        const hasAccolade = await checkExistingAccolades(item.member.member_id, item.accolade.accolade_id);
                         
                         if (hasAccolade) {
                             // Show custom toast notification for existing accolade
-                            showCustomToast(`${member.member_first_name} ${member.member_last_name} already has ${accolade.accolade_name}`, 'warning');
+                            showCustomToast(`${item.member.member_first_name} ${item.member.member_last_name} already has ${item.accolade.accolade_name}`, 'warning');
                             continue; // Skip this combination
                         }
 
                         assignments.push({
                             sno: currentSno++,
-                            accolade,
-                            member,
+                            accolade: item.accolade,
+                            member: item.member,
                             comment: ''
                         });
                     }
                 }
-            }
 
-            // Handle Method 2: Requisition selection
-            for (const item of selectedItems) {
-                if (item.accolade && item.member) {
-                    const hasAccolade = await checkExistingAccolades(item.member.member_id, item.accolade.accolade_id);
-                    
-                    if (hasAccolade) {
-                        // Show custom toast notification for existing accolade
-                        showCustomToast(`${item.member.member_first_name} ${item.member.member_last_name} already has ${item.accolade.accolade_name}`, 'warning');
-                        continue; // Skip this combination
-                    }
-
-                    assignments.push({
-                        sno: currentSno++,
-                        accolade: item.accolade,
-                        member: item.member,
-                        comment: ''
-                    });
+                // Validate if any assignments were added
+                if (selectedAccolades.length === 0 && selectedItems.length === 0) {
+                    Swal.showValidationMessage('Please select either accolades or requisitions');
+                    return;
                 }
+
+                // Render assignments and reset checkboxes
+                renderAssignments();
+                document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
+                document.querySelectorAll('.member-checkbox-container input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+                document.querySelectorAll('.payment-item input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
+
+                console.log('✅ Added new assignments:', assignments);
+            } finally {
+                // Hide loader
+                if (loader) loader.style.display = 'none';
             }
-
-            // Validate if any assignments were added
-            if (selectedAccolades.length === 0 && selectedItems.length === 0) {
-                Swal.showValidationMessage('Please select either accolades or requisitions');
-                return;
-            }
-
-            // Render assignments and reset checkboxes
-            renderAssignments();
-            document.querySelectorAll('.accolade-checkbox').forEach(checkbox => checkbox.checked = false);
-            document.querySelectorAll('.member-checkbox-container input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-            document.querySelectorAll('.payment-item input[type="checkbox"]').forEach(checkbox => checkbox.checked = false);
-
-            console.log('✅ Added new assignments:', assignments);
         };
 
         // Add render assignments function
@@ -2567,4 +2595,21 @@ async function checkExistingAccolades(memberId, accoladeId) {
         console.error('❌ Error checking existing accolades:', error);
         return false;
     }
+}
+
+function filterAccolades(searchTerm) {
+    const accoladeItems = document.querySelectorAll('.accolade-checkbox-item');
+    let hasVisibleAccolades = false;
+
+    searchTerm = searchTerm.toLowerCase().trim();
+
+    accoladeItems.forEach(item => {
+        const label = item.querySelector('label');
+        const accoladeName = label.textContent.toLowerCase();
+        const shouldShow = accoladeName.includes(searchTerm);
+        item.style.display = shouldShow ? 'flex' : 'none';
+        if (shouldShow) hasVisibleAccolades = true;
+    });
+
+    // Optionally, show a "No accolades found" message if you want
 }

@@ -198,25 +198,20 @@ async function displayTransactionDetails(order) {
             let date = "N/A";
             let time = "N/A";
             try {
-                // Fetch all transactions and find the one for this order_id
                 const txnResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
                 if (txnResponse.ok) {
                     const allTransactions = await txnResponse.json();
                     const transaction = allTransactions.find(txn => txn.order_id === order.order_id);
                     if (transaction && transaction.payment_time) {
-                        const dt = new Date(transaction.payment_time);
-                        // Format date as d/mm/yy
-                        const day = dt.getDate();
-                        const month = dt.getMonth() + 1;
-                        const year = dt.getFullYear().toString().slice(-2);
-                        date = `${day}/${month < 10 ? '0' : ''}${month}/${year}`;
-                        // Format time as h:mm am/pm
-                        let hours = dt.getHours();
-                        const minutes = dt.getMinutes().toString().padStart(2, '0');
-                        const ampm = hours >= 12 ? 'PM' : 'AM';
-                        hours = hours % 12;
-                        hours = hours ? hours : 12; // the hour '0' should be '12'
-                        time = `${hours}:${minutes} ${ampm}`;
+                        const [dateStr, timeStr] = transaction.payment_time.split('T');
+                        // Convert only the time to 12-hour format
+                        const [hours, minutes, seconds] = timeStr.replace('.000Z', '').split(':');
+                        const hour = parseInt(hours);
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        const twelveHour = hour % 12 || 12;
+                        const formattedTime = `${twelveHour}:${minutes}:${seconds} ${ampm}`;
+                        
+                        paymentDate.innerHTML = `<strong>Date:</strong> ${dateStr}<br><strong>Time:</strong> ${formattedTime}`;
                     }
                 }
             } catch (err) {
@@ -288,7 +283,6 @@ async function displayTransactionDetails(order) {
 
             // Set all values
             paymentType.innerHTML = descriptionHTML;
-            paymentDate.textContent = `${date} ${time}`;
             paymentAmount.textContent = `₹${baseAmount.toFixed(2)}`;
             taxAmount.textContent = `₹${tax.toFixed(2)}`;
             totalAmount.textContent = `₹${orderAmount.toFixed(2)}`;

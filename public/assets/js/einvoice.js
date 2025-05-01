@@ -303,3 +303,28 @@ if (err) {
   localStorage.setItem(qrCodeKey, url);
 }
 });
+
+// Fetch document numbers and update invoice number
+async function fetchAndUpdateInvoiceNumber(orderId) {
+  try {
+    const response = await fetch("https://backend.bninewdelhi.com/api/getAllDocNumbers");
+    const docNumbers = await response.json();
+    
+    // Find the matching document number for the current order ID
+    const matchingDoc = docNumbers.find(doc => doc.order_id === orderId);
+    
+    if (matchingDoc) {
+      document.querySelector(".invoice_number").textContent = matchingDoc.doc_no;
+    } else {
+      console.log("No matching document number found for order ID:", orderId);
+      document.querySelector(".invoice_number").textContent = "N/A";
+    }
+  } catch (error) {
+    console.error("Error fetching document numbers:", error);
+    document.querySelector(".invoice_number").textContent = "N/A";
+  }
+}
+
+// Add this line after the invoiceData is retrieved
+const orderId = invoiceData.orderId.order_id;
+fetchAndUpdateInvoiceNumber(orderId);

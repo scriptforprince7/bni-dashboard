@@ -15,6 +15,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 hotel_published_by: document.getElementById("hotel_published_by").value.trim(),
                 hotel_email: document.getElementById("hotel_email").value.trim(),
                 hotel_phone: document.getElementById("hotel_phone").value.trim(),
+                // hotel_gst_cert: document.getElementById("hotel_gst_cert").value.trim(),
+                hotel_bank_name: document.getElementById("hotel_bank_name").value.trim(),
+                hotel_account_number: document.getElementById("hotel_account_number").value.trim(),
+                hotel_ifsc_code: document.getElementById("hotel_ifsc_code").value.trim(),
+                hotel_account_type: document.getElementById("hotel_account_type").value.trim(),
+                hotel_gst: document.getElementById("hotel_gst").value.trim(),
+
+                hotel_alternative_phone: document.getElementById("hotel_alternative_phone").value.trim(),
+                beneficiary_name: document.getElementById("beneficiary_name").value.trim(),
+                swift_code: document.getElementById("swift_code").value.trim(),
                 date_of_publishing: document.getElementById("date_of_publishing").value || new Date().toISOString().split("T")[0], // Default to today
             };
 

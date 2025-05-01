@@ -46,6 +46,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         document.getElementById("date_of_publishing").value = hotel.date_of_publishing.split("T")[0]; // Format Date
         document.getElementById("hotel_status").value = hotel.is_active ? "Active" : "Inactive";
+        document.getElementById("hotel_alternative_phone").value = hotel.hotel_alternative_phone;
+        document.getElementById("beneficiary_name").value = hotel.beneficiary_name;
+        document.getElementById("swift_code").value = hotel.swift_code;
 
     } catch (error) {
         console.error("Error fetching hotels:", error);
@@ -83,7 +86,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                     hotel_gst: document.getElementById("hotel_gst").value,
                     hotel_bank_proof: document.getElementById("hotel_bank_proof").value,
                     date_of_publishing: document.getElementById("date_of_publishing").value,
-                    hotel_status: document.getElementById("hotel_status").value === "Active"
+                    hotel_status: document.getElementById("hotel_status").value === "Active",
+                    hotel_alternative_phone: document.getElementById("hotel_alternative_phone").value,
+                    beneficiary_name: document.getElementById("beneficiary_name").value,
+                    swift_code: document.getElementById("swift_code").value,
                 };
 
                 try {

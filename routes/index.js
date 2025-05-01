@@ -34,6 +34,7 @@ const accoladesChapterRoutes = require('./r-accoladesChapter/accoladesChapterRou
 const chapterTransactionRoutes = require('./r-chapterTransaction/chapterTransactionRoutes');
 const eoiManagementRoutes = require('./r-eoiManagement/eoiManagementRoutes');
 const chapterEoiRoutes = require('./r-chapterEoi/chapterEoiRoutes');
+const linkRoutes = require('./r-links/linksRoutes');
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -66,6 +67,8 @@ router.use('/h', hotelRoutes);
 router.use('/trans', chapterTransactionRoutes);
 router.use('/eoi', eoiManagementRoutes);
 router.use('/chap-eoi', chapterEoiRoutes);
+router.use('/links', linkRoutes);
+
 
 
 

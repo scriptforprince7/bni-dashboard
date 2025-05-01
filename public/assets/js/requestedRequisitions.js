@@ -206,6 +206,7 @@ async function handleAccoladesClick(requisition) {
                 <div style="
                     margin-bottom: 20px;
                     display: flex;
+                    
                     justify-content: space-between;
                     align-items: center;
                     padding: 16px;
@@ -266,24 +267,30 @@ async function handleAccoladesClick(requisition) {
                             Decline Selected
                         </button>
                     </div>
-                    <button 
-                        onclick="submitBulkActions()"
-                        class="btn"
-                        style="
-                            padding: 8px 24px;
-                            border-radius: 6px;
-                            background: #2563eb;
-                            color: white;
-                            border: none;
-                            font-weight: 500;
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        "
-                    >
-                        <i class="ri-save-line"></i>
-                        Submit Status
-                    </button>
+                   <button 
+    onclick="submitBulkActions()"
+    class="btn"
+    style="
+        padding: 8px 24px;
+        border-radius: 6px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    "
+>
+    <i class="ri-save-line"></i>
+    Submit Status
+</button>
+
+<!-- Loader for Submit Status -->
+<div id="submitStatusLoader" style="display:none; text-align:center; margin:20px 0;">
+  <span class="spinner-border text-primary" style="width:3rem; height:3rem;" role="status" aria-hidden="true"></span>
+  <div style="margin-top:12px; color:#2563eb; font-weight:600; font-size:1.2rem;">Submitting status, please wait...</div>
+</div>
                 </div>
                 <div class="request-details-container" style="
                     width: 100%;
@@ -430,38 +437,65 @@ async function handleAccoladesClick(requisition) {
                                                 gap: 8px;
                                                 justify-content: center;
                                             ">
-                                                <button 
-                                                    onclick="handleBulkAction('${key}', 'declined')"
-                                                    class="action-btn decline-btn"
-                                                    data-key="${key}"
-                                                    style="
-                                                        padding: 6px 12px;
-                                                        border-radius: 6px;
-                                                        border: none;
-                                                        background: ${combo.currentStatus === 'declined' ? '#fecaca' : '#fee2e2'};
-                                                        color: #dc2626;
-                                                        cursor: pointer;
-                                                        opacity: ${combo.currentStatus === 'declined' ? '0.7' : '1'};
-                                                    "
-                                                >
-                                                    <i class="ri-close-circle-line"></i>
-                                                </button>
-                                                <button 
-                                                    onclick="handleBulkAction('${key}', 'approved')"
-                                                    class="action-btn approve-btn"
-                                                    data-key="${key}"
-                                                    style="
-                                                        padding: 6px 12px;
-                                                        border-radius: 6px;
-                                                        border: none;
-                                                        background: ${combo.currentStatus === 'approved' ? '#bbf7d0' : '#dcfce7'};
-                                                        color: #16a34a;
-                                                        cursor: pointer;
-                                                        opacity: ${combo.currentStatus === 'approved' ? '0.7' : '1'};
-                                                    "
-                                                >
-                                                    <i class="ri-checkbox-circle-line"></i>
-                                                </button>
+                                               <button 
+    onclick="handleBulkAction('${key}', 'declined')"
+    class="action-btn decline-btn"
+    data-key="${key}"
+    style="
+        padding: 8px 18px;
+        border-radius: 999px;
+        border: none;
+        background: ${combo.currentStatus === 'declined'
+            ? 'linear-gradient(90deg, #e5e7eb 60%, #f3f4f6 100%)'
+            : 'linear-gradient(90deg, #f87171 0%, #ef4444 100%)'};
+        color: ${combo.currentStatus === 'declined' ? '#9ca3af' : '#fff'};
+        cursor: ${combo.currentStatus === 'declined' ? 'not-allowed' : 'pointer'};
+        opacity: ${combo.currentStatus === 'declined' ? '0.7' : '1'};
+        filter: ${combo.currentStatus === 'declined' ? 'grayscale(1)' : 'none'};
+        box-shadow: 0 2px 8px rgba(239,68,68,0.08);
+        font-weight: 600;
+        font-size: 0.98em;
+        transition: all 0.2s;
+        margin-right: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    "
+    ${combo.currentStatus === 'declined' ? 'disabled' : ''}
+>
+    <i class="ri-close-circle-line" style="font-size: 1.2em;"></i>
+    Decline
+</button>
+<button 
+    onclick="handleBulkAction('${key}', 'approved')"
+    class="action-btn approve-btn"
+    data-key="${key}"
+    style="
+        padding: 8px 18px;
+        border-radius: 999px;
+        border: none;
+        background: ${combo.currentStatus === 'approved'
+            ? 'linear-gradient(90deg, #e5e7eb 60%, #f3f4f6 100%)'
+            : 'linear-gradient(90deg, #34d399 0%, #2563eb 100%)'};
+        color: ${combo.currentStatus === 'approved' ? '#9ca3af' : '#fff'};
+        cursor: ${combo.currentStatus === 'approved' ? 'not-allowed' : 'pointer'};
+        opacity: ${combo.currentStatus === 'approved' ? '0.7' : '1'};
+        filter: ${combo.currentStatus === 'approved' ? 'grayscale(1)' : 'none'};
+        box-shadow: 0 2px 8px rgba(52,211,153,0.08);
+        font-weight: 600;
+        font-size: 0.98em;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    "
+    ${combo.currentStatus === 'approved' ? 'disabled' : ''}
+>
+    <i class="ri-checkbox-circle-line" style="font-size: 1.2em;"></i>
+    Approve
+</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -471,7 +505,7 @@ async function handleAccoladesClick(requisition) {
                     </table>
                 </div>
             `,
-            width: '94%',
+            width: '100%',
             showCloseButton: true,
             showConfirmButton: false,
             padding: '24px',
@@ -634,6 +668,10 @@ async function submitBulkActions() {
 
 // New simplified version
 async function submitBulkActions() {
+    // Show loader
+    const loader = document.getElementById('submitStatusLoader');
+    if (loader) loader.style.display = 'block';
+
     try {
         console.log('🎯 Starting Simplified Submit Actions');
         console.log('📦 Selected Actions:', selectedActions);
@@ -674,6 +712,9 @@ async function submitBulkActions() {
             title: 'Error',
             text: 'Failed to process changes: ' + error.message
         });
+    } finally {
+        // Hide loader
+        if (loader) loader.style.display = 'none';
     }
 }
 
@@ -1230,10 +1271,7 @@ const renderTable = () => {
                                     font-weight: 500;
                                 "
                             >
-                                <option value="${PICKUP_STATUSES.PENDING}" 
-                                    ${req.pick_up_status_ro === PICKUP_STATUSES.PENDING ? 'selected' : ''}>
-                                    Yet to be Ready
-                                </option>
+                                
                                 <option value="${PICKUP_STATUSES.READY}"
                                     ${req.pick_up_status_ro === PICKUP_STATUSES.READY ? 'selected' : ''}>
                                     Ready for Pickup
@@ -1242,10 +1280,7 @@ const renderTable = () => {
                                     ${req.pick_up_status_ro === PICKUP_STATUSES.PICKED ? 'selected' : ''}>
                                     Picked Up
                                 </option>
-                                <option value="${PICKUP_STATUSES.FAILED}"
-                                    ${req.pick_up_status_ro === PICKUP_STATUSES.FAILED ? 'selected' : ''}>
-                                    Pickup Failed
-                                </option>
+                               
                             </select>
                             <div style="display: flex; gap: 8px; align-items: center;">
                                 <button 
@@ -1320,18 +1355,40 @@ const renderTable = () => {
                             ${pickupButtonText}
                         </button>
                     </td>
-                    <td style="font-weight: bold; padding: 16px;">
-                        <span class="badge" style="
-                            background: ${req.request_status.toLowerCase() === 'open' ? '#dcfce7' : '#fee2e2'};
-                            color: ${req.request_status.toLowerCase() === 'open' ? '#16a34a' : '#dc2626'};
-                            padding: 6px 12px;
-                            border-radius: 9999px;
-                            font-weight: 500;
-                            font-size: 0.875rem;
-                        ">
-                            ${req.request_status.toLowerCase() === 'open' ? 'Active' : 'Inactive'}
-                        </span>
-                    </td>
+                <td style="font-weight: bold; padding: 16px;">
+    <span class="badge" style="
+        background: ${req.request_status.toLowerCase() === 'open' ? '#dcfce7' : '#fee2e2'};
+        color: ${req.request_status.toLowerCase() === 'open' ? '#16a34a' : '#dc2626'};
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-weight: 500;
+        font-size: 0.875rem;
+    ">
+        ${
+            req.request_status.toLowerCase() !== 'open'
+                ? 'Inactive'
+                : (() => {
+                    // Parse approve_status and given_status
+                    let approved = 0, given = 0;
+                    try {
+                        const approveStatus = typeof req.approve_status === 'string'
+                            ? JSON.parse(req.approve_status)
+                            : req.approve_status || {};
+                        const givenStatus = typeof req.given_status === 'string'
+                            ? JSON.parse(req.given_status)
+                            : req.given_status || {};
+                        approved = Object.values(approveStatus).filter(v => v === 'approved').length;
+                        given = Object.keys(givenStatus).length;
+                    } catch (e) {}
+                    if (approved === 0) return 'Not Given';
+                    if (given === 0) return 'Not Given';
+                    if (given === approved) return 'Completed';
+                    if (given > 0 && given < approved) return 'Given to Specific';
+                    return 'Not Given';
+                })()
+        }
+    </span>
+</td>
                 </tr>`;
         })
         .join("");

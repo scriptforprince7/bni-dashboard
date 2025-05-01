@@ -374,26 +374,20 @@ function displayPayments(kittys) {
         return sum + parseFloat(credit.credit_amount || 0);
       }, 0);
 
-      // Filter visitor orders for this chapter
+      // Calculate visitor payments for this chapter
       const visitorOrders = allOrders.filter(order => 
         order.chapter_id === kitty.chapter_id && 
         order.universal_link_id === 5 && 
         order.payment_note === 'visitor-payment'
       );
-
-      // Calculate total visitor amount from successful transactions
       const visitorAmountTotal = visitorOrders.reduce((sum, order) => {
-        // Find successful transactions for this order
         const successfulTransactions = allTransactions.filter(trans => 
           trans.order_id === order.order_id && 
           trans.payment_status === 'SUCCESS'
         );
-        
-        // Sum up the order amounts for successful transactions
         const orderTotal = successfulTransactions.reduce((transSum, trans) => 
           transSum + parseFloat(trans.payment_amount || 0), 0
         );
-        
         return sum + orderTotal;
       }, 0);
 
@@ -429,15 +423,67 @@ function displayPayments(kittys) {
   allTotal = parseFloat(grandTotalAvailableFund) + parseFloat(allreceived) - parseFloat(grandTotalPaidExpenses) + parseFloat(totalvisi) ;
 
 
-  // Update the Total Available Fund display
+  // Calculate the available fund for only the currently displayed (filtered) entries
+  let filteredTotalAvailableFund = 0;
+  let filteredTotalReceived = 0;
+  let filteredTotalPaidExpenses = 0;
+  let filteredTotalVisitor = 0;
+
+  kittys.forEach(kitty => {
+    const availableFund = parseFloat(kitty.available_fund || 0);
+    filteredTotalAvailableFund += availableFund;
+    filteredTotalReceived += parseFloat(kitty.receivedPayments || 0);
+    filteredTotalPaidExpenses += parseFloat(kitty.totalExpenses || 0);
+
+    // Calculate visitor payments for this chapter
+    const visitorOrders = allOrders.filter(order => 
+      order.chapter_id === kitty.chapter_id && 
+      order.universal_link_id === 5 && 
+      order.payment_note === 'visitor-payment'
+    );
+    const visitorAmountTotal = visitorOrders.reduce((sum, order) => {
+      const successfulTransactions = allTransactions.filter(trans => 
+        trans.order_id === order.order_id && 
+        trans.payment_status === 'SUCCESS'
+      );
+      const orderTotal = successfulTransactions.reduce((transSum, trans) => 
+        transSum + parseFloat(trans.payment_amount || 0), 0
+      );
+      return sum + orderTotal;
+    }, 0);
+    filteredTotalVisitor += visitorAmountTotal;
+  });
+
+  // This is the total for only the filtered/visible entries
+  const filteredAllTotal = filteredTotalAvailableFund + filteredTotalReceived - filteredTotalPaidExpenses + filteredTotalVisitor;
+
+  // Update the Total Available Fund display for filtered data
   const totalAvailableFundElement = document.querySelector('.total_Available_amount');
   if (totalAvailableFundElement) {
     console.log('Updating Total Available Fund display...');
-    totalAvailableFundElement.textContent = `₹ ${formatInIndianStyle(allTotal)}`;
+    totalAvailableFundElement.textContent = `₹ ${formatInIndianStyle(filteredAllTotal)}`;
     
     console.log('Total Available Fund display updated successfully');
   } else {
     console.error('Total Available Fund element not found in DOM');
+  }
+
+  // Calculate filtered total pending for only the visible/filtered entries
+  const filteredTotalPending = kittys.reduce((sum, kitty) => sum + parseFloat(kitty.totalPending || 0), 0);
+
+  // Update the Total Kitty Amount Pending display for filtered data
+  const totalKittyExpenseElement = document.querySelector('#totalKittyExpense');
+  if (totalKittyExpenseElement) {
+    totalKittyExpenseElement.textContent = `₹ ${formatInIndianStyle(filteredTotalPending)}`;
+  }
+
+  // Calculate filtered total late payments for only the visible/filtered entries
+  const filteredTotalLatePayment = kittys.reduce((sum, kitty) => sum + parseInt(kitty.latePayment || 0), 0);
+
+  // Update the No. of Late Payment display for filtered data
+  const totalLateAmountElement = document.querySelector('#total_late_amount');
+  if (totalLateAmountElement) {
+    totalLateAmountElement.textContent = filteredTotalLatePayment;
   }
 
   // Update expense totals displays
@@ -445,8 +491,6 @@ function displayPayments(kittys) {
   document.querySelector('.total_pExpense_amount').textContent = `₹ ${formatInIndianStyle(grandTotalPendingExpenses)}`;
   document.querySelector('.total_Exnse_amount').textContent = `₹ ${formatInIndianStyle(grandTotalCreditNoteAmount)}`;
   document.querySelector('#totalKittyAmountReceived').textContent = `₹ ${formatInIndianStyle(allreceived)}`;
-  document.querySelector('#totalKittyExpense').textContent =  `₹ ${formatInIndianStyle(allpending)}`;
-  document.querySelector('#total_late_amount').textContent = totalLatePayment;
   document.querySelector('#total_V_amount').textContent = `₹ ${formatInIndianStyle(totalvisi)}`;
   
 }
@@ -686,4 +730,28 @@ document.addEventListener('DOMContentLoaded', function() {
       handleSort(column);
     });
   });
+
+  // Reset Filter Button Logic
+  const resetBtn = document.getElementById('reset-filters-btn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      // Clear selected chapter
+      selectedChapterId = null;
+
+      // Remove active class from dropdowns
+      const activeRegion = document.querySelector('#region-filter .dropdown-item.active');
+      if (activeRegion) activeRegion.classList.remove('active');
+      const activeChapter = document.querySelector('#chapter-filter .dropdown-item.active');
+      if (activeChapter) activeChapter.classList.remove('active');
+
+      // Reset dropdown button text
+      const regionButton = document.querySelector('.region-button');
+      if (regionButton) regionButton.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i>Choose Region`;
+      const chapterButton = document.querySelector('.chapter-button');
+      if (chapterButton) chapterButton.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i>Choose Chapter`;
+
+      // Show all entries again
+      displayPayments(allKittys);
+    });
+  }
 });
