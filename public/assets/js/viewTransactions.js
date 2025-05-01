@@ -52,11 +52,20 @@ async function fetchAllOrders() {
                 console.log('Visitor Email:', order.visitor_email);
                 console.log('Visitor Company:', order.visitor_company);
                 console.log('Visitor GSTIN:', order.visitor_gstin);
+                console.log('Invited by:', order.member_name);
 
                 document.getElementById('member-name').textContent = order.visitor_name || "N/A";
                 document.getElementById('customer-email').textContent = order.visitor_email || "N/A";
                 document.getElementById('company-name').textContent = order.visitor_company || "N/A";
                 document.getElementById('company-gst').textContent = order.visitor_gstin || "N/A";
+                
+                // Show and populate the Invited by field
+                const invitedByField = document.getElementById('invited-by-field');
+                const invitedByName = document.getElementById('invited-by-name');
+                if (invitedByField && invitedByName) {
+                    invitedByField.style.display = 'block';
+                    invitedByName.textContent = order.member_name || "N/A";
+                }
             } 
             // Check for New Member Payment case
             else if (order.payment_note === "New Member Payment") {
@@ -86,6 +95,14 @@ async function fetchAllOrders() {
                 document.getElementById('company-gst').textContent = order.gstin || "N/A";
             }
             document.getElementById('order-number').textContent = order.order_id || "N/A";
+
+            // Add this new code to fetch and display chapter name
+            if (order.chapter_id) {
+                const chapterName = await fetchChapterName(order.chapter_id);
+                document.getElementById('chapter-name').textContent = chapterName;
+            } else {
+                document.getElementById('chapter-name').textContent = 'N/A';
+            }
         } else {
             console.error('Order not found');
         }
@@ -594,3 +611,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Add this new function to fetch chapter name
+async function fetchChapterName(chapterId) {
+    try {
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const chapters = await response.json();
+        const chapter = chapters.find(ch => ch.chapter_id === chapterId);
+        return chapter ? chapter.chapter_name : 'N/A';
+    } catch (error) {
+        console.error('Error fetching chapter name:', error);
+        return 'N/A';
+    }
+}

@@ -57,6 +57,8 @@ async function fetchAllOrders() {
                 document.getElementById('customer-email').textContent = order.visitor_email || "N/A";
                 document.getElementById('company-name').textContent = order.visitor_company || "N/A";
                 document.getElementById('company-gst').textContent = order.visitor_gstin || "N/A";
+                document.getElementById("invited-by-field").style.display = "block";
+                document.getElementById("inviter-name").textContent = order.member_name || "N/A";
             } else {
                 // Directly use order data to set member details
                 console.log('Setting member details from order API:');
@@ -70,6 +72,7 @@ async function fetchAllOrders() {
                 document.getElementById('customer-email').textContent = order.customer_email || "N/A";
                 document.getElementById('company-name').textContent = order.company || "N/A";
                 document.getElementById('company-gst').textContent = order.gstin || "N/A";
+                document.getElementById("invited-by-field").style.display = "none";
             }
             document.getElementById('order-number').textContent = order.order_id || "N/A";
         } else {
@@ -329,18 +332,62 @@ async function displayTransactionDetails(order) {
     }
 }
 
-// Function to display order details
-function displayOrderDetails(order, transaction) {
+// Add this new function at the top level of your file
+async function fetchChapterName(chapterId) {
+    try {
+        console.log('Fetching chapter name for chapter_id:', chapterId);
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const chapters = await response.json();
+        console.log('All chapters:', chapters);
+        
+        const chapter = chapters.find(ch => ch.chapter_id === parseInt(chapterId));
+        console.log('Found chapter:', chapter);
+        
+        if (chapter) {
+            console.log('Returning chapter name:', chapter.chapter_name);
+            return chapter.chapter_name;
+        } else {
+            console.log('No chapter found for ID:', chapterId);
+            return 'N/A';
+        }
+    } catch (error) {
+        console.error('Error fetching chapter name:', error);
+        return 'N/A';
+    }
+}
+
+// Modify the displayOrderDetails function
+async function displayOrderDetails(order, transaction) {
     console.log('DisplayOrderDetails called with:', { order, transaction });
 
     try {
         // Log order details
         console.log('Order ID:', order?.order_id);
+        console.log('Chapter ID:', order?.chapter_id);
         console.log('Member Name:', order?.member_name);
         console.log('Customer Email:', order?.customer_email);
         console.log('Company:', order?.company);
         console.log('GSTIN:', order?.gstin);
         
+        // Fetch and set chapter name first
+        if (order?.chapter_id) {
+            console.log('Fetching chapter name for chapter_id:', order.chapter_id);
+            const chapterName = await fetchChapterName(order.chapter_id);
+            const chapterNameElement = document.getElementById('chapter-name');
+            if (chapterNameElement) {
+                chapterNameElement.textContent = chapterName;
+                console.log('Successfully set chapter name to:', chapterName);
+            } else {
+                console.error('Chapter name element not found in DOM');
+            }
+        } else {
+            console.log('No chapter_id found in order');
+            document.getElementById('chapter-name').textContent = 'N/A';
+        }
+
         // Populate member details
         const memberName = document.getElementById('member-name');
         const customerEmail = document.getElementById('customer-email');

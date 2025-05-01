@@ -6,6 +6,7 @@ let selectedMethod = null;
 let total_pending_expense = 0;
 let total_paid_expense = 0;
 let pendingAmount = 0;
+let visitorAmountTotal = 0;
 
 // Function to populate Gateway filter dropdown
 async function populateGatewayFilter() {
@@ -326,62 +327,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       available_fund,
     });
     console.log("Logged-in chapter ID:", chapterId);
-    let visitorAmountTotal = 0;
-    async function fetchVisitorAmountTotal(chapterId) {
-      try {
-        // Fetch all orders
-        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
-        const allOrders = await ordersResponse.json();
-    
-        // Filter orders based on chapter_id, universal_link_id, and payment_note
-        const filteredOrders = allOrders.filter(order =>
-          order.chapter_id == chapterId &&    // Use == not === because API may return string
-          order.universal_link_id == 5 &&
-          order.payment_note === 'visitor-payment'
-        );
-    
-        // Fetch all transactions
-        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
-        const allTransactions = await transactionsResponse.json();
-    
-        // Find successful order IDs
-        const successfulOrderIds = new Set(
-          allTransactions
-            .filter(txn => txn.payment_status === 'SUCCESS')
-            .map(txn => txn.order_id)   // Assuming transaction has 'order_id'
-        );
-    
-        // Filter successful orders
-        const successfulOrders = filteredOrders.filter(order =>
-          successfulOrderIds.has(order.order_id)
-        );
-    
-        // Sum the order_amount of successful orders
-        const visitorAmountTotal = successfulOrders.reduce((sum, order) => {
-          return sum + parseFloat(order.order_amount || 0);
-        }, 0);
-    
-        console.log("Visitor Amount Total:", visitorAmountTotal); // Check if it comes correctly
-    
-        // Update the DOM safely
-        const amountElement = document.querySelector('#total_V_amount');
-        if (amountElement) {
-          amountElement.textContent = `₹ ${visitorAmountTotal}`;
-        } else {
-          console.error("Element #total_V_amount not found");
-        }
-    
-      } catch (error) {
-        console.error("Error fetching visitor amount total:", error);
-      }
-    }
-    
-    // Now call this function safely after DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      fetchVisitorAmountTotal(chapterId);  // Make sure chapterId is defined
-    });
-    
-    
+
+    // After you have the chapterId
+    console.log('🔄 Fetching visitor amount for chapter:', chapterId);
+    visitorAmountTotal = await fetchVisitorAmountTotal(chapterId);
+    console.log('✅ Visitor amount fetched:', visitorAmountTotal);
 
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
@@ -684,9 +634,18 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <tr>
                     <td>${serialNumber}</td>
                     <td style="font-weight: 600">${transactionDate}</td>
-                    <td style="font-weight: 600">${
-                      order.member_name || "N/A"
-                    }</td>
+                    <td style="font-weight: 600">
+                        ${order?.payment_note === "visitor-payment" ? 
+                            `<div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span>${order.visitor_name || "N/A"}</span>
+                                <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
+                                    <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
+                                    Invited by - ${order.member_name || "N/A"}
+                                </span>
+                            </div>` 
+                            : 
+                            order?.member_name || "N/A"
+                        }</td>
                     <td><b>${
                       transaction.payment_amount
                     }</b><br><a href="/ck/chapter-kittyInvoice?order_id=${
@@ -958,9 +917,18 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <tr>
                     <td>${serialNumber}</td>
                     <td style="font-weight: 600">${transactionDate}</td>
-                    <td style="font-weight: 600">${
-                      order.member_name || "N/A"
-                    }</td>
+                    <td style="font-weight: 600">
+                        ${order?.payment_note === "visitor-payment" ? 
+                            `<div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span>${order.visitor_name || "N/A"}</span>
+                                <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
+                                    <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
+                                    Invited by - ${order.member_name || "N/A"}
+                                </span>
+                            </div>` 
+                            : 
+                            order?.member_name || "N/A"
+                        }</td>
                     <td><b>${
                       transaction.payment_amount
                     }</b><br><a href="/ck/chapter-kittyInvoice?order_id=${
@@ -1407,7 +1375,18 @@ function renderRecentSuccessfulPayments(transactions, orders, tableBody, chapter
     row.innerHTML = `
       <td>${idx + 1}</td>
       <td style="font-weight: 600">${new Date(txn.payment_time).toLocaleDateString("en-IN", { timeZone: "UTC" })}</td>
-      <td style="font-weight: 600">${order?.member_name || "N/A"}</td>
+      <td style="font-weight: 600">
+        ${order?.payment_note === "visitor-payment" ? 
+            `<div style="display: flex; flex-direction: column; gap: 4px;">
+                <span>${order.visitor_name || "N/A"}</span>
+                <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
+                    <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
+                    Invited by - ${order.member_name || "N/A"}
+                </span>
+            </div>` 
+            : 
+            order?.member_name || "N/A"
+        }</td>
       <td><b>₹${txn.payment_amount}</b><br><a href="/ck/chapter-kittyInvoice?order_id=${txn.order_id}" class="fw-medium text-success">View</a></td>
       <td style="font-weight: 600">${paymentImage} ${paymentMethod}</td>
       <td style="font-weight: 500; font-style: italic">${txn.order_id || "N/A"}</td>
@@ -1453,3 +1432,103 @@ function initializeTableSorting(table) {
     }
   });
 }
+
+// First, define the function
+async function fetchVisitorAmountTotal(chapterId) {
+    console.log('🚀 Starting fetchVisitorAmountTotal');
+    console.log('📍 Chapter ID received:', chapterId);
+    
+    if (!chapterId) {
+        console.error('❌ No chapter ID provided!');
+        return 0;
+    }
+
+    try {
+        // 1. Fetch Orders
+        console.log('📥 Fetching orders...');
+        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+        const allOrders = await ordersResponse.json();
+        console.log('📦 Total orders:', allOrders.length);
+
+        // 2. Filter Visitor Orders
+        const filteredOrders = allOrders.filter(order => {
+            const matches = order.chapter_id == chapterId && order.payment_note === 'visitor-payment';
+            console.log(`Order ${order.order_id}:`, {
+                chapter_id: order.chapter_id,
+                payment_note: order.payment_note,
+                matches: matches
+            });
+            return matches;
+        });
+        
+        console.log('🎯 Filtered visitor orders:', filteredOrders.length);
+
+        // 3. Fetch Transactions
+        console.log('💳 Fetching transactions...');
+        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
+        const allTransactions = await transactionsResponse.json();
+        console.log('Total transactions:', allTransactions.length);
+
+        // 4. Get Successful Orders
+        const successfulOrders = filteredOrders.filter(order => {
+            const transaction = allTransactions.find(t => 
+                t.order_id === order.order_id && 
+                t.payment_status === 'SUCCESS'
+            );
+            if (transaction) {
+                console.log(`✅ Found successful transaction for order ${order.order_id}`);
+            }
+            return transaction;
+        });
+
+        console.log('💫 Successful visitor orders:', successfulOrders.length);
+
+        // 5. Calculate Total
+        const visitorAmountTotal = successfulOrders.reduce((sum, order) => {
+            const amount = parseFloat(order.order_amount || 0);
+            console.log(`💰 Adding amount ${amount} from order ${order.order_id}`);
+            return sum + amount;
+        }, 0);
+
+        console.log('📊 Final visitor amount total:', visitorAmountTotal);
+
+        // 6. Update UI
+        const amountElement = document.querySelector('#total_V_amount');
+        if (amountElement) {
+            amountElement.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    
+                    <span>₹ ${visitorAmountTotal.toLocaleString('en-IN', {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2
+                    })}</span>
+                </div>
+            `;
+            console.log('✨ UI updated successfully');
+        } else {
+            console.error('❌ Element #total_V_amount not found');
+        }
+
+        return visitorAmountTotal;
+
+    } catch (error) {
+        console.error('❌ Error:', error);
+        return 0;
+    }
+}
+
+// Now, let's make sure it's called at the right time
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🏁 DOM Content Loaded');
+    
+    // Get chapter ID from localStorage
+    const chapterId = localStorage.getItem('current_chapter_id');
+    console.log('📌 Retrieved chapter ID from localStorage:', chapterId);
+    
+    if (chapterId) {
+        console.log('🚀 Calling fetchVisitorAmountTotal with chapter ID:', chapterId);
+        fetchVisitorAmountTotal(chapterId);
+    } else {
+        console.error('❌ No chapter ID found in localStorage');
+    }
+});
