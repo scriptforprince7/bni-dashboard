@@ -137,12 +137,89 @@ function updateChapterCounts() {
     updateReLaunchChaptersCount();
 }
 
-// Function to display chapters
+// Move this function OUTSIDE displayChapters, so it can accept pre-fetched data
+const calculateTotalAvailableFund = (chapterData, expenses, allOrders, allTransactions) => {
+    try {
+        // 1. Base available fund
+        const available_fund = parseFloat(chapterData.available_fund) || 0;
+
+        // 2. Paid Expenses
+        let total_paid_expense = 0;
+        if (Array.isArray(expenses)) {
+            expenses.forEach((expense) => {
+                if (expense.payment_status === "paid" && expense.chapter_id === chapterData.chapter_id) {
+                    total_paid_expense += parseFloat(expense.amount) || 0;
+                }
+            });
+        }
+
+        // 3. Visitor Amount
+        let visitorAmountTotal = 0;
+        const visitorOrders = allOrders.filter(order => 
+            order.chapter_id === chapterData.chapter_id && 
+            order.payment_note === "visitor-payment"
+        );
+        visitorOrders.forEach(order => {
+            const transaction = allTransactions.find(tran => 
+                tran.order_id === order.order_id && 
+                tran.payment_status === "SUCCESS"
+            );
+            if (transaction) {
+                visitorAmountTotal += parseFloat(order.order_amount) || 0;
+            }
+        });
+
+        // 4. Kitty Payments
+        let ReceivedAmount = 0;
+        const kittyBillIds = allOrders
+            .filter(order => order.chapter_id === chapterData.chapter_id && order.universal_link_id === 4 && order.kitty_bill_id)
+            .map(order => order.kitty_bill_id);
+        const latestKittyBillId = kittyBillIds.length > 0 ? kittyBillIds[kittyBillIds.length - 1] : null;
+
+        const kittyOrders = allOrders.filter(order => 
+            order.chapter_id === chapterData.chapter_id &&
+            order.universal_link_id === 4 &&
+            (
+                order.payment_note === "meeting-payments" ||
+                order.payment_note === "meeting-payments-opening-only"
+            ) &&
+            (
+                (latestKittyBillId ? order.kitty_bill_id === latestKittyBillId : true) ||
+                order.kitty_bill_id === null
+            )
+        );
+        kittyOrders.forEach(order => {
+            const transaction = allTransactions.find(tran => 
+                tran.order_id === order.order_id && 
+                tran.payment_status === "SUCCESS"
+            );
+            if (transaction) {
+                const payamount = Math.ceil(
+                    parseFloat(transaction.payment_amount) -
+                    (parseFloat(transaction.payment_amount) * 18) / 118
+                );
+                ReceivedAmount += parseFloat(payamount);
+            }
+        });
+
+        // 5. Final Calculation
+        const totalAvailable = parseFloat(available_fund) - 
+                             parseFloat(total_paid_expense) + 
+                             parseFloat(visitorAmountTotal) +
+                             parseFloat(ReceivedAmount);
+
+        return totalAvailable;
+    } catch (error) {
+        return parseFloat(chapterData.available_fund) || 0;
+    }
+};
+
+// Update displayChapters to fetch all data once and process in-memory
 async function displayChapters(chapters) {
     console.log("📊 Displaying chapters:", chapters);
     const tableBody = document.getElementById("chaptersTableBody");
     const totalEntries = chapters.length;
-    
+
     // Update total entries display and counters
     document.getElementById("totalEntries").textContent = totalEntries;
     document.getElementById("total-chapters-count").textContent = totalEntries;
@@ -158,7 +235,14 @@ async function displayChapters(chapters) {
             console.error('❌ Error fetching members:', error);
             document.getElementById("memberTotal").innerHTML = '<b>0</b>';
         });
-    
+
+    // Fetch all required data ONCE
+    const [expenses, allOrders, allTransactions] = await Promise.all([
+        fetch("https://backend.bninewdelhi.com/api/allExpenses").then(r => r.json()),
+        fetch("https://backend.bninewdelhi.com/api/allOrders").then(r => r.json()),
+        fetch("https://backend.bninewdelhi.com/api/allTransactions").then(r => r.json())
+    ]);
+
     // Calculate pagination
     const start = (currentPage - 1) * entriesPerPage;
     const end = showingAll ? chapters.length : start + entriesPerPage;
@@ -179,7 +263,7 @@ async function displayChapters(chapters) {
     for (const chapter of chaptersToShow) {
         const membersCount = getMemberCountForChapter(chapter.chapter_id);
         const regionName = getRegionNameById(chapter.region_id);
-        
+
         // Update status counters
         const cleanStatus = chapter.chapter_status.replace(/['"]+/g, '').toLowerCase().trim();
         if(cleanStatus === 'running') {
@@ -187,12 +271,10 @@ async function displayChapters(chapters) {
         } else {
             inactive_total++;
         }
-        
-        // Calculate total available fund
-        console.log('💰 Calculating available fund for:', chapter.chapter_name);
-        const totalAvailable = await calculateTotalAvailableFund(chapter);
-        console.log('✅ Fund calculation complete:', totalAvailable);
-        
+
+        // Calculate total available fund (now in-memory, no await)
+        const totalAvailable = calculateTotalAvailableFund(chapter, expenses, allOrders, allTransactions);
+
         const row = document.createElement("tr");
         row.innerHTML = `
             <td style="border: 1px solid grey;">${showingAll ? chapters.indexOf(chapter) + 1 : start + chapters.indexOf(chapter) + 1}</td>
@@ -770,98 +852,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-// Add this function at the top with other utility functions
-const calculateTotalAvailableFund = async (chapterData) => {
-    try {
-        console.log('🏁 Starting fund calculation for chapter:', chapterData.chapter_name);
-
-        // 1. Base available fund
-        const available_fund = parseFloat(chapterData.available_fund) || 0;
-        console.log('💰 Base available fund:', available_fund);
-
-        // 2. Get Paid Expenses
-        console.log('📊 Fetching expenses...');
-        const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
-        const expenses = await expenseResponse.json();
-        let total_paid_expense = 0;
-        if (Array.isArray(expenses)) {
-            expenses.forEach((expense) => {
-                if (expense.payment_status === "paid" && expense.chapter_id === chapterData.chapter_id) {
-                    total_paid_expense += parseFloat(expense.amount) || 0;
-                }
-            });
-        }
-        console.log('💸 Total paid expenses:', total_paid_expense);
-
-        // 3. Get Visitor Amount
-        console.log('🏃 Fetching visitors...');
-        const visitorResponse = await fetch("https://backend.bninewdelhi.com/api/getAllVisitors");
-        const visitors = await visitorResponse.json();
-        let visitorAmountTotal = 0;
-        if (Array.isArray(visitors)) {
-            const chapterVisitors = visitors.filter(visitor => visitor.chapter_id === chapterData.chapter_id);
-            visitorAmountTotal = chapterVisitors.reduce((sum, visitor) => 
-                sum + (parseFloat(visitor.sub_total) || 0), 0);
-        }
-        console.log('👥 Total visitor amount:', visitorAmountTotal);
-
-        // 4. Get Kitty Payments through Orders and Transactions
-        console.log('🏦 Fetching orders and transactions...');
-        const [ordersResponse, transactionsResponse] = await Promise.all([
-            fetch("https://backend.bninewdelhi.com/api/allOrders"),
-            fetch("https://backend.bninewdelhi.com/api/allTransactions")
-        ]);
-
-        const [allOrders, allTransactions] = await Promise.all([
-            ordersResponse.json(),
-            transactionsResponse.json()
-        ]);
-
-        // Filter relevant orders
-        const chapterOrders = allOrders.filter(order => 
-            order.chapter_id === chapterData.chapter_id && 
-            order.universal_link_id === 4 &&
-            order.payment_note === "meeting-payments"
-        );
-
-        // Calculate ReceivedAmount
-        let ReceivedAmount = 0;
-        chapterOrders.forEach(order => {
-            const transaction = allTransactions.find(tran => tran.order_id === order.order_id);
-            if (transaction && transaction.payment_status === "SUCCESS") {
-                // Remove 18% GST and round up
-                const payamount = Math.ceil(
-                    parseFloat(transaction.payment_amount) -
-                    (parseFloat(transaction.payment_amount) * 18) / 118
-                );
-                ReceivedAmount += parseFloat(payamount);
-            }
-        });
-        console.log('💵 Received kitty amount (after GST):', ReceivedAmount);
-
-        // 5. Calculate final amount
-        const totalAvailable = parseFloat(available_fund) - 
-                             parseFloat(total_paid_expense) + 
-                             parseFloat(visitorAmountTotal) + 
-                             parseFloat(ReceivedAmount);
-
-        console.log('🎯 Final calculation:', {
-            available_fund,
-            total_paid_expense,
-            visitorAmountTotal,
-            ReceivedAmount,
-            totalAvailable
-        });
-
-        return totalAvailable;
-
-    } catch (error) {
-        console.error('❌ Error calculating fund:', error);
-        console.error('📝 Error details:', {
-            chapter: chapterData.chapter_name,
-            chapter_id: chapterData.chapter_id,
-            error_message: error.message
-        });
-        return parseFloat(chapterData.available_fund) || 0;
-    }
-};

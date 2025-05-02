@@ -4085,7 +4085,21 @@
 
               chapterTransactions.forEach(transaction => {
                   const order = chapterOrders.find(o => o.order_id === transaction.order_id);
-                  const memberName = order ? order.member_name || 'Unknown Member' : 'Unknown Member';
+                  
+                  // Determine what name to display based on payment_note
+                  let nameDisplay;
+                  if (order?.payment_note === "visitor-payment") {
+                      nameDisplay = `
+                          <div style="display: flex; flex-direction: column; gap: 4px;">
+                              <span>${order.visitor_name || "N/A"}</span>
+                              <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
+                                  <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
+                                  Invited by - ${order.member_name || "N/A"}
+                              </span>
+                          </div>`;
+                  } else {
+                      nameDisplay = order?.member_name || "Unknown Member";
+                  }
 
                   const row = `
                       <tr>
@@ -4093,7 +4107,7 @@
                               <div class="d-flex align-items-center gap-2">
                                   <div class="lh-1"></div>
                                   <div class="fw-medium">
-                                      ${memberName}<br />₹${parseFloat(transaction.payment_amount).toLocaleString('en-IN')}
+                                      ${nameDisplay}<br />₹${parseFloat(transaction.payment_amount).toLocaleString('en-IN')}
                                   </div>
                               </div>
                           </td>

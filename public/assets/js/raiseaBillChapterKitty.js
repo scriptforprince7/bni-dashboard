@@ -212,7 +212,7 @@ const fetchKittyPayments = async () => {
             if (totalBillAmountElement) totalBillAmountElement.disabled = true;
             if (btnSubmit) {
                 btnSubmit.disabled = true;
-                 btnSubmit.textContent = 'Bill already raised for current Quarter';
+                 btnSubmit.textContent = 'Bill already raised';
                 }
             if (dateInput) dateInput.disabled = true;
 
