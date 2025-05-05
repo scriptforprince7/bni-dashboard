@@ -632,7 +632,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     <td>${serialNumber}</td>
                     <td style="font-weight: 600">${transactionDate}</td>
                     <td style="font-weight: 600">
-                        ${order?.payment_note === "visitor-payment" ? 
+                        ${(order?.payment_note === "visitor-payment" || order?.payment_note === "Visitor Payment") ? 
                             `<div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span>${order.visitor_name || "N/A"}</span>
                                 <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
@@ -912,7 +912,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     <td>${serialNumber}</td>
                     <td style="font-weight: 600">${transactionDate}</td>
                     <td style="font-weight: 600">
-                        ${order?.payment_note === "visitor-payment" ? 
+                        ${(order?.payment_note === "visitor-payment" || order?.payment_note === "Visitor Payment") ? 
                             `<div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span>${order.visitor_name || "N/A"}</span>
                                 <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
@@ -1396,7 +1396,7 @@ function renderRecentSuccessfulPayments(transactions, orders, tableBody, chapter
       <td>${idx + 1}</td>
       <td style="font-weight: 600">${new Date(txn.payment_time).toLocaleDateString("en-IN", { timeZone: "UTC" })}</td>
       <td style="font-weight: 600">
-        ${order?.payment_note === "visitor-payment" ? 
+        ${(order?.payment_note === "visitor-payment" || order?.payment_note === "Visitor Payment") ? 
             `<div style="display: flex; flex-direction: column; gap: 4px;">
                 <span>${order.visitor_name || "N/A"}</span>
                 <span style="font-size: 0.85em; color: #666; display: flex; align-items: center;">
@@ -1471,8 +1471,8 @@ async function fetchVisitorAmountTotal(chapterId) {
         console.log('📦 Total orders:', allOrders.length);
 
         // 2. Filter Visitor Orders
-        const filteredOrders = allOrders.filter(order => {
-            const matches = order.chapter_id == chapterId && order.payment_note === 'visitor-payment';
+        const visitorOrders = allOrders.filter(order => {
+            const matches = order.chapter_id == chapterId && (order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment");
             console.log(`Order ${order.order_id}:`, {
                 chapter_id: order.chapter_id,
                 payment_note: order.payment_note,
@@ -1481,7 +1481,7 @@ async function fetchVisitorAmountTotal(chapterId) {
             return matches;
         });
         
-        console.log('🎯 Filtered visitor orders:', filteredOrders.length);
+        console.log('🎯 Filtered visitor orders:', visitorOrders.length);
 
         // 3. Fetch Transactions
         console.log('💳 Fetching transactions...');
@@ -1490,7 +1490,7 @@ async function fetchVisitorAmountTotal(chapterId) {
         console.log('Total transactions:', allTransactions.length);
 
         // 4. Get Successful Orders
-        const successfulOrders = filteredOrders.filter(order => {
+        const successfulOrders = visitorOrders.filter(order => {
             const transaction = allTransactions.find(t => 
                 t.order_id === order.order_id && 
                 t.payment_status === 'SUCCESS'
@@ -1586,11 +1586,15 @@ async function calculateTotalReceivedAmount(chapterId, allOrders, allTransaction
 async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund, expenses) {
   let totalManualAmount = parseFloat(available_fund || 0);  // Start with available_fund
   
-  // Filter orders for the chapter
+  // Filter orders for the chapter - include both meeting and visitor payments
   const chapterOrders = allOrders.filter(order =>
     order.chapter_id === chapterId &&
-    (order.payment_note === "meeting-payments" ||
-     order.payment_note === "meeting-payments-opening-only")
+    (
+      order.payment_note === "meeting-payments" ||
+      order.payment_note === "meeting-payments-opening-only" ||
+      order.payment_note === "visitor-payment" ||
+      order.payment_note === "Visitor Payment"
+    )
   );
 
   // Calculate total from successful cash transactions
@@ -1616,6 +1620,14 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
         );
         totalManualAmount += parseFloat(payamount);
       }
+
+      // Log for debugging
+      console.log(`Added ${order.payment_note} payment:`, {
+        orderId: order.order_id,
+        amount: transaction.payment_amount,
+        hasTax: orderHasTax,
+        addedAmount: orderHasTax ? transaction.payment_amount : payamount
+      });
     }
   });
 
