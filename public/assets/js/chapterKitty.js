@@ -1602,11 +1602,20 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
     );
 
     if (transaction) {
-      const payamount = Math.ceil(
-        parseFloat(transaction.payment_amount) -
-        (parseFloat(transaction.payment_amount) * 18) / 118
-      );
-      totalManualAmount += parseFloat(payamount);
+      // Check if order has tax
+      const orderHasTax = parseFloat(order.tax || 0) > 0;
+      
+      if (orderHasTax) {
+        // If order has tax, use full amount including GST
+        totalManualAmount += parseFloat(transaction.payment_amount || 0);
+      } else {
+        // If no tax, calculate amount without GST
+        const payamount = Math.ceil(
+          parseFloat(transaction.payment_amount) -
+          (parseFloat(transaction.payment_amount) * 18) / 118
+        );
+        totalManualAmount += parseFloat(payamount);
+      }
     }
   });
 
