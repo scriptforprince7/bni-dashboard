@@ -647,8 +647,10 @@ const filteredTransactions = transactions.filter((transaction) => {
         // Trim the universalLinkName to handle any extra spaces
         const linkType = universalLinkName?.trim();
 
-        // Check for Visitor Payment in payment_note
-        if (order?.payment_note === "visitor-payment" || order?.payment_note === "Visitor Payment") {
+        if (
+          order?.payment_note === "visitor-payment" ||
+          order?.payment_note === "Visitor Payment"
+      ) {
           return `
               <div style="display: flex; flex-direction: column; gap: 4px;">
                   <span style="font-weight: 500;">${order?.visitor_name || "Unknown Visitor"}</span>
@@ -663,7 +665,14 @@ const filteredTransactions = transactions.filter((transaction) => {
                   ` : ''}
               </div>
           `;
-                  }
+      }
+      if (order?.payment_note === "New Member Payment") {
+          return `
+              <div>
+                  <span style="font-weight: 100;">${order?.visitor_name || "Unknown Visitor"}</span>
+              </div>
+          `;
+      }
 
         // For all other cases, return just the member name
         return order?.member_name || "Unknown";
