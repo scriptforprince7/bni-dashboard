@@ -9,3 +9,8 @@ exports.addExpense = (req, res) => {
 exports.allVendors = (req, res) => {
     res.render('m-roExpense/all-vendors', { title: 'All Vendors' });
 };
+
+exports.editExpense = (req, res) => {
+    res.render('m-roExpense/edit-expense', { title: 'Edit Expense' });
+};
+

@@ -6,5 +6,6 @@ const roExpenseController = require('../../controllers/c-roExpense/roExpense');
 router.get('/view-expenses', roExpenseController.viewExpense);
 router.get('/add-expense', roExpenseController.addExpense);
 router.get('/all-vendors', roExpenseController.allVendors);
+router.get('/edit-expense', roExpenseController.editExpense);
 
 module.exports = router;
