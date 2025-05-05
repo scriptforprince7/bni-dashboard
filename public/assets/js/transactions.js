@@ -648,22 +648,22 @@ const filteredTransactions = transactions.filter((transaction) => {
         const linkType = universalLinkName?.trim();
 
         // Check for Visitor Payment in payment_note
-        if (order?.payment_note === "visitor-payment") {
-            return `
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-weight: 500;">${order?.visitor_name || "Unknown Visitor"}</span>
-                    ${order?.member_name ? `
-                        <div style="display: flex; align-items: center; font-size: 0.85em; color: black;">
-                            Invited by - 
-                            <div style="display: flex; align-items: center; margin-left: 4px;">
-                                <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
-                                ${order.member_name}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
+        if (order?.payment_note === "visitor-payment" || order?.payment_note === "Visitor Payment") {
+          return `
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-weight: 500;">${order?.visitor_name || "Unknown Visitor"}</span>
+                  ${order?.member_name ? `
+                      <div style="display: flex; align-items: center; font-size: 0.85em; color: black;">
+                          Invited by - 
+                          <div style="display: flex; align-items: center; margin-left: 4px;">
+                              <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
+                              ${order.member_name}
+                          </div>
+                      </div>
+                  ` : ''}
+              </div>
+          `;
+                  }
 
         // For all other cases, return just the member name
         return order?.member_name || "Unknown";
