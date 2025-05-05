@@ -1169,7 +1169,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // After fetching orders and transactions
-    const manualPaymentAmount = await calculateManualPayments(chapterId, allOrders, allTransactions, available_fund);
+    const manualPaymentAmount = await calculateManualPayments(
+      chapterId, 
+      allOrders, 
+      allTransactions, 
+      available_fund,
+      expenses  // Use the existing expenses variable that was fetched earlier
+    );
     
     // Update the manual funds display
     const manualFundsElement = document.querySelector('.manual-funds-amount');
@@ -1577,7 +1583,7 @@ async function calculateTotalReceivedAmount(chapterId, allOrders, allTransaction
 }
 
 // Function to calculate manual/cash payments
-async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund) {
+async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund, expenses) {
   let totalManualAmount = parseFloat(available_fund || 0);  // Start with available_fund
   
   // Filter orders for the chapter
@@ -1602,6 +1608,18 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
       );
       totalManualAmount += parseFloat(payamount);
     }
+  });
+
+  // Subtract cash expenses
+  const cashExpenses = expenses.filter(expense => 
+    expense.chapter_id === chapterId && 
+    expense.mode_of_payment === "cash" &&
+    expense.payment_status === "paid" &&
+    expense.delete_status === 0
+  );
+
+  cashExpenses.forEach(expense => {
+    totalManualAmount -= parseFloat(expense.amount || 0);
   });
 
   return totalManualAmount;
