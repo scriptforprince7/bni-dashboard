@@ -1169,13 +1169,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // After fetching orders and transactions
-    const manualPaymentAmount = await calculateManualPayments(chapterId, allOrders, allTransactions);
+    const manualPaymentAmount = await calculateManualPayments(chapterId, allOrders, allTransactions, available_fund);
     
     // Update the manual funds display
     const manualFundsElement = document.querySelector('.manual-funds-amount');
     if (manualFundsElement) {
       manualFundsElement.textContent = indianCurrencyFormatter.format(manualPaymentAmount);
     }
+
+    // Calculate total available amount
+    totalAvailableAmount = parseFloat(visitorAmountTotal) +
+                          parseFloat(totalReceivedAmount) -
+                          parseFloat(total_paid_expense);
+
+    // Update UI with total available amount
+    document.querySelector("#total_available_amount").textContent =
+      indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
     console.error("Error details:", {
@@ -1568,8 +1577,8 @@ async function calculateTotalReceivedAmount(chapterId, allOrders, allTransaction
 }
 
 // Function to calculate manual/cash payments
-async function calculateManualPayments(chapterId, allOrders, allTransactions) {
-  let totalManualAmount = 0;
+async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund) {
+  let totalManualAmount = parseFloat(available_fund || 0);  // Start with available_fund
   
   // Filter orders for the chapter
   const chapterOrders = allOrders.filter(order =>
