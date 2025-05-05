@@ -484,11 +484,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const chapterOrders = allOrders.filter(
           (order) =>
             order.chapter_id === chapterId &&
-            order.universal_link_id === 4 &&
-            (order.kitty_bill_id === chapterKittyPayment?.kitty_bill_id ||
-              order.kitty_bill_id === null) &&
             (order.payment_note === "meeting-payments" ||
-              order.payment_note === "meeting-payments-opening-only")
+             order.payment_note === "meeting-payments-opening-only")
         );
 
         document.getElementById("totalKittyDetails").textContent =
@@ -670,18 +667,18 @@ document.addEventListener("DOMContentLoaded", async function () {
           console.log("ReceivedAmount:", ReceivedAmount);
           const totalKittyAmountReceived = ReceivedAmount;
 
-          let availableAmount =
-            parseFloat(available_fund) -
-            parseFloat(total_paid_expense) +
-            parseFloat(ReceivedAmount) + parseFloat(visitorAmountTotal);
-          const formattedAvailableAmount =
-            indianCurrencyFormatter.format(availableAmount);
-          document.getElementById("totalKittyAmountReceived").textContent =
-            indianCurrencyFormatter.format(
-              parseFloat(totalKittyAmountReceived)
-            );
+          let totalReceivedAmount = ReceivedAmount;
+          let totalPendingMiscellaneousAmount = MiscellaneousAmount;
+
+          // Calculate total available amount independent of kitty bill
+          let totalAvailableAmount = parseFloat(available_fund) - 
+                                    parseFloat(total_paid_expense) + 
+                                    parseFloat(visitorAmountTotal) +
+                                    parseFloat(totalReceivedAmount);
+
+          // Update UI with total available amount
           document.querySelector("#total_available_amount").textContent =
-            formattedAvailableAmount;
+            indianCurrencyFormatter.format(totalAvailableAmount);
 
           return;
         }
@@ -765,11 +762,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     const chapterOrders = allOrders.filter(
       (order) =>
         order.chapter_id === chapterId &&
-        order.universal_link_id === 4 &&
-        (order.kitty_bill_id === kitty_bill_id ||
-          order.kitty_bill_id === null) &&
         (order.payment_note === "meeting-payments" ||
-          order.payment_note === "meeting-payments-opening-only")
+         order.payment_note === "meeting-payments-opening-only")
     );
 
     if (chapterOrders.length === 0) {
@@ -962,25 +956,29 @@ document.addEventListener("DOMContentLoaded", async function () {
     const formattedKittyReceived = indianCurrencyFormatter.format(
       totalKittyAmountReceived
     );
-    // const formattedKittyPending = indianCurrencyFormatter.format(totalKittyAmountPending);
     const formattedMiscellaneousAmount = indianCurrencyFormatter.format(
       totalPendingMiscellaneousAmount
     );
     const formattedTotalPaidExpense =
       indianCurrencyFormatter.format(total_paid_expense);
-    let availableAmount =
-      parseFloat(available_fund) -
-      parseFloat(total_paid_expense) + parseFloat(visitorAmountTotal) +
-      parseFloat(ReceivedAmount);
-    const formattedAvailableAmount =
-      indianCurrencyFormatter.format(availableAmount);
+    
+    let totalReceivedAmount = ReceivedAmount;
+    
+    // Calculate total available amount independent of kitty bill
+    let totalAvailableAmount = parseFloat(available_fund) - 
+                              parseFloat(total_paid_expense) + 
+                              parseFloat(visitorAmountTotal) +
+                              parseFloat(totalReceivedAmount);
+
+    // Update UI with total available amount
+    document.querySelector("#total_available_amount").textContent =
+      indianCurrencyFormatter.format(totalAvailableAmount);
 
     // Step 9: Update the UI with fetched values
     document.querySelector(".total_bill_amount").textContent =
       formattedBillAmount;
     document.querySelector(".total_kitty_amount_received").textContent =
       formattedKittyReceived;
-    // document.querySelector('.total_kitty_amount_pending').textContent = formattedKittyPending;
     document.querySelector(".bill_type").textContent = bill_type;
     document.querySelector(".description").textContent = description;
     document.querySelector(".total_weeks").textContent = total_weeks;
@@ -991,8 +989,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       formattedTotalPaidExpense;
     document.querySelector("#total_pexpense_amount").textContent =
       indianCurrencyFormatter.format(total_pending_expense);
-    document.querySelector("#total_available_amount").textContent =
-      formattedAvailableAmount;
     document.querySelector("#total_credit_amount").textContent =
       indianCurrencyFormatter.format(totalCreditAmount);
     document.querySelector("#no_of_late_payment").textContent =
@@ -1170,6 +1166,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       rows.sort(comparer(idx, type, asc));
       // Remove all rows and re-append in sorted order
       rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // After fetching orders and transactions
+    const manualPaymentAmount = await calculateManualPayments(chapterId, allOrders, allTransactions);
+    
+    // Update the manual funds display
+    const manualFundsElement = document.querySelector('.manual-funds-amount');
+    if (manualFundsElement) {
+      manualFundsElement.textContent = indianCurrencyFormatter.format(manualPaymentAmount);
     }
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
@@ -1532,3 +1537,63 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('❌ No chapter ID found in localStorage');
     }
 });
+
+// Function to calculate total received amount from all kitty payments
+async function calculateTotalReceivedAmount(chapterId, allOrders, allTransactions) {
+  let totalReceived = 0;
+  
+  // Filter orders only by chapter and payment note
+  const kittyOrders = allOrders.filter(order =>
+    order.chapter_id === chapterId &&
+    (order.payment_note === "meeting-payments" ||
+     order.payment_note === "meeting-payments-opening-only")
+  );
+
+  // Calculate total received from successful transactions
+  kittyOrders.forEach(order => {
+    const transaction = allTransactions.find(
+      tran => tran.order_id === order.order_id && tran.payment_status === "SUCCESS"
+    );
+
+    if (transaction) {
+      const payamount = Math.ceil(
+        parseFloat(transaction.payment_amount) -
+        (parseFloat(transaction.payment_amount) * 18) / 118
+      );
+      totalReceived += parseFloat(payamount);
+    }
+  });
+
+  return totalReceived;
+}
+
+// Function to calculate manual/cash payments
+async function calculateManualPayments(chapterId, allOrders, allTransactions) {
+  let totalManualAmount = 0;
+  
+  // Filter orders for the chapter
+  const chapterOrders = allOrders.filter(order =>
+    order.chapter_id === chapterId &&
+    (order.payment_note === "meeting-payments" ||
+     order.payment_note === "meeting-payments-opening-only")
+  );
+
+  // Calculate total from successful cash transactions
+  chapterOrders.forEach(order => {
+    const transaction = allTransactions.find(
+      tran => tran.order_id === order.order_id && 
+              tran.payment_status === "SUCCESS" &&
+              tran.payment_method?.cash
+    );
+
+    if (transaction) {
+      const payamount = Math.ceil(
+        parseFloat(transaction.payment_amount) -
+        (parseFloat(transaction.payment_amount) * 18) / 118
+      );
+      totalManualAmount += parseFloat(payamount);
+    }
+  });
+
+  return totalManualAmount;
+}
