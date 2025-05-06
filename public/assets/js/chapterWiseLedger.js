@@ -88,6 +88,9 @@ function initializeFilters() {
     document.getElementById('typeFilterBtn').innerHTML = '<i class="ri-filter-line me-1"></i> Type';
     applyFilters();
   });
+
+  // Add export button event listener
+  document.getElementById('exportLedger').addEventListener('click', exportToExcel);
 }
 
 function applyFilters() {
@@ -218,6 +221,73 @@ function updateFilteredTotals(visibleRows) {
       </div>
     </div>
   `;
+}
+
+// Add this function at the top level of your file
+function exportToExcel() {
+  // Get only visible rows
+  const tbody = document.getElementById('ledger-body');
+  const visibleRows = Array.from(tbody.getElementsByTagName('tr'))
+    .filter(row => row.style.display !== 'none');
+
+  // Create Excel data
+  let excelData = [
+    ['S.No.', 'Date', 'Description', 'Total Amount', 'Debit (Dr.)', 'Credit (Cr.)', 'GST', 'Balance']
+  ];
+
+  visibleRows.forEach(row => {
+    const rowData = Array.from(row.cells).map(cell => {
+      // Get text content without HTML tags
+      const text = cell.textContent.trim();
+      // Remove currency symbol and commas from amounts
+      if (text.includes('₹')) {
+        return text.replace('₹', '').replace(/,/g, '').trim();
+      }
+      return text;
+    });
+    excelData.push(rowData);
+  });
+
+  // Get summary data
+  const kittyAmount = document.getElementById('total-kitty-amount').textContent.replace('₹', '').replace(/,/g, '').trim();
+  const visitorElement = document.getElementById('total-visitor-amount');
+  const visitorTotal = visitorElement.querySelector('div').firstChild.textContent.trim().replace('₹', '').replace(/,/g, '');
+  const visitorCash = visitorElement.querySelector('div div span:first-child').textContent.replace('Cash:', '').replace('₹', '').replace(/,/g, '').trim();
+  const visitorOnline = visitorElement.querySelector('div div span:last-child').textContent.replace('Online:', '').replace('₹', '').replace(/,/g, '').trim();
+  
+  const expenseElement = document.getElementById('total-expense-amount');
+  const expenseTotal = expenseElement.querySelector('div').firstChild.textContent.trim().replace('₹', '').replace(/,/g, '');
+  const expenseCash = expenseElement.querySelector('div div span:first-child').textContent.replace('Cash:', '').replace('₹', '').replace(/,/g, '').trim();
+  const expenseOnline = expenseElement.querySelector('div div span:last-child').textContent.replace('Online:', '').replace('₹', '').replace(/,/g, '').trim();
+
+  // Add summary section
+  excelData.push([]);  // Empty row for spacing
+  excelData.push(['Summary']);
+  excelData.push(['Total Meeting Fees', kittyAmount]);
+  excelData.push(['Total Visitor Payments', visitorTotal]);
+  excelData.push(['- Cash Visitor Payments', visitorCash]);
+  excelData.push(['- Online Visitor Payments', visitorOnline]);
+  excelData.push(['Total Expenses', expenseTotal]);
+  excelData.push(['- Cash Expenses', expenseCash]);
+  excelData.push(['- Online Expenses', expenseOnline]);
+
+  // Create worksheet
+  const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+  // Set column widths
+  const colWidths = [10, 15, 40, 15, 15, 15, 15, 15];
+  ws['!cols'] = colWidths.map(width => ({ width }));
+
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Chapter Ledger');
+
+  // Get current date for filename
+  const date = new Date();
+  const dateStr = date.toISOString().split('T')[0];
+
+  // Generate Excel file
+  XLSX.writeFile(wb, `Chapter_Ledger_${dateStr}.xlsx`);
 }
 
 (async function generateChapterLedger() {
