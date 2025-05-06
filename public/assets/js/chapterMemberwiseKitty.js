@@ -77,8 +77,7 @@ async function fetchMemberWiseKitty() {
         ch.vice_president_mail === chapterEmail ||
         ch.president_mail === chapterEmail ||
         ch.treasurer_mail === chapterEmail
-    );
-    
+      );
       console.log('🏢 Chapter details:', loggedInChapter);
     }
 
@@ -428,3 +427,122 @@ document.addEventListener('DOMContentLoaded', function() {
     exportBtn.addEventListener('click', exportTableToCSV);
   }
 });
+
+// Add sorting functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const tableHeaders = document.querySelectorAll('.sortable');
+  
+  tableHeaders.forEach(header => {
+    header.addEventListener('click', function() {
+      // Remove active class from all headers
+      tableHeaders.forEach(h => {
+        h.classList.remove('asc', 'desc');
+        h.querySelector('.sort-icon').className = 'ti ti-arrows-sort sort-icon';
+      });
+
+      // Toggle sort direction
+      if (this.classList.contains('asc')) {
+        this.classList.remove('asc');
+        this.classList.add('desc');
+        this.querySelector('.sort-icon').className = 'ti ti-sort-descending sort-icon';
+      } else {
+        this.classList.remove('desc');
+        this.classList.add('asc');
+        this.querySelector('.sort-icon').className = 'ti ti-sort-ascending sort-icon';
+      }
+
+      // Get the column index
+      const columnIndex = Array.from(this.parentNode.children).indexOf(this);
+      
+      // Call sorting function
+      sortTable(columnIndex, this.classList.contains('asc'));
+    });
+  });
+});
+
+// Function to sort table data
+function sortTable(columnIndex, ascending) {
+  const table = document.querySelector('table');
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+
+  // Sort the rows
+  rows.sort((a, b) => {
+    const aValue = a.children[columnIndex].textContent.trim();
+    const bValue = b.children[columnIndex].textContent.trim();
+
+    // Special handling for S.No. column
+    if (columnIndex === 0) {
+      const aNum = parseInt(aValue);
+      const bNum = parseInt(bValue);
+      return ascending ? aNum - bNum : bNum - aNum;
+    }
+
+    // Handle currency values (columns with ₹ symbol)
+    if (aValue.includes('₹') || bValue.includes('₹')) {
+      const aNum = parseFloat(aValue.replace(/[₹,\s]/g, ''));
+      const bNum = parseFloat(bValue.replace(/[₹,\s]/g, ''));
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return ascending ? aNum - bNum : bNum - aNum;
+      }
+    }
+
+    // Handle numeric values without currency symbol
+    const aNum = parseFloat(aValue.replace(/[^0-9.-]+/g, ''));
+    const bNum = parseFloat(bValue.replace(/[^0-9.-]+/g, ''));
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return ascending ? aNum - bNum : bNum - aNum;
+    }
+
+    // For text values (like names), sort alphabetically
+    return ascending ? 
+      aValue.localeCompare(bValue) : 
+      bValue.localeCompare(aValue);
+  });
+
+  // Reorder the rows in the table
+  rows.forEach(row => tbody.appendChild(row));
+
+  // Update S.No. column after sorting
+  rows.forEach((row, index) => {
+    row.children[0].innerHTML = `<strong>${index + 1}</strong>`;
+  });
+}
+
+// Add styles for sorting
+const style = document.createElement('style');
+style.textContent = `
+  .sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transition: background-color 0.2s;
+  }
+
+  .sortable:hover {
+    background-color: #f8f9fa;
+  }
+
+  .sort-icon {
+    margin-left: 5px;
+    font-size: 14px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+
+  .sortable:hover .sort-icon {
+    opacity: 1;
+  }
+
+  .sortable.asc .sort-icon {
+    opacity: 1;
+    color: #6259ca;
+  }
+
+  .sortable.desc .sort-icon {
+    opacity: 1;
+    color: #6259ca;
+    transform: rotate(180deg);
+  }
+`;
+document.head.appendChild(style);

@@ -19,6 +19,10 @@ const categoryDropdown = document.getElementById("category-filter");
 const accoladesDropdown = document.getElementById("accolades-filter");
 const statusDropdown = document.getElementById("status-filter");
 
+// Add these variables at the top with other global variables
+let currentSortColumn = null;
+let isAscending = true;
+
 function showLoader() { 
   document.getElementById('loader').style.display = 'flex';
 }
@@ -442,12 +446,16 @@ async function getChapterForUser(email) {
       if (!response.ok) throw new Error('Network response was not ok');
       const chapters = await response.json();
       
-      return chapters.find(chapter =>
-          chapter.email_id === email ||
-          chapter.vice_president_mail === email ||
-          chapter.president_mail === email ||
-          chapter.treasurer_mail === email
+      // Find chapter where the email matches any of the leadership positions
+      const userChapter = chapters.find(chapter => 
+          chapter.email_id?.toLowerCase() === email?.toLowerCase() ||
+          chapter.vice_president_mail?.toLowerCase() === email?.toLowerCase() ||
+          chapter.president_mail?.toLowerCase() === email?.toLowerCase() ||
+          chapter.treasurer_mail?.toLowerCase() === email?.toLowerCase()
       );
+
+      console.log("Found chapter for user:", userChapter);
+      return userChapter;
   } catch (error) {
       console.error('Error fetching chapter for user:', error);
       return null;
@@ -464,96 +472,107 @@ const updateTotalMembersCount = () => {
 
 
 function displayMembers(members) {
-    console.log("🎯 Displaying Members:", {
-        total: members.length,
-        currentPage,
-        entriesPerPage
-    });
-
-    const tableBody = document.querySelector('.table tbody');
-    if (!tableBody) {
-        console.error("❌ Table body element not found!");
-        return;
-    }
-    
-    tableBody.innerHTML = '';
-
-    if (members.length === 0) {
-        console.log("ℹ️ No members to display");
-        const noDataRow = document.createElement("tr");
-        noDataRow.innerHTML = `
-            <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
-        `;
-        tableBody.appendChild(noDataRow);
-        return;
-    }
-
-    members.forEach((member, index) => {
-        console.log(`📋 Rendering member ${index + 1}:`, {
-            name: `${member.member_first_name} ${member.member_last_name}`,
-            company: member.member_company_name,
-            status: member.member_status
+    try {
+        console.log("🎯 Displaying Members:", {
+            total: members.length,
+            currentPage,
+            entriesPerPage
         });
 
-        const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
-        const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
+        const tableBody = document.querySelector('.table tbody');
+        if (!tableBody) {
+            throw new Error("Table body element not found");
+        }
         
-        // Add photo URL handling like in script.js
-        const photoUrl = member.member_photo 
-            ? `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`
-            : null;
-        
-        console.log('Photo processing for member:', {
-            name: fullName,
-            hasPhoto: !!member.member_photo,
-            photoUrl: photoUrl || 'Using default avatar',
-            photoName: member.member_photo || 'No photo available'
-        });
+        tableBody.innerHTML = '';
 
-        const row = document.createElement('tr');
-        row.classList.add('order-list');
-        
-        row.innerHTML = `
-            <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
-            <td style="border: 1px solid grey;">
-                <div class="d-flex align-items-center">
-                    <span class="avatar avatar-sm me-2 avatar-rounded">
-                        <img 
-                            src="${photoUrl || 'https://cdn-icons-png.flaticon.com/512/194/194828.png'}" 
-                            alt="${fullName || 'avatar'}" 
-                            onerror="console.log('Image failed to load, using default avatar for:', '${fullName}'); this.src='https://cdn-icons-png.flaticon.com/512/194/194828.png';"
-                        />
-                    </span>
-                    <a href="#" onclick="handleMemberClick('${member.member_email_address}', '${member.member_id}')">${fullName}</a>
-                </div>
-            </td>
-            <td style="border: 1px solid grey;">
-                <div class="d-flex align-items-center">
-                    <b>${member.member_email_address}</b>
-                </div>
-            </td>
-            <td style="border: 1px solid grey;">${member.member_phone_number}</td>
+        if (members.length === 0) {
+            const noDataRow = document.createElement("tr");
+            noDataRow.innerHTML = `
+                <td colspan="10" style="text-align: center; font-weight: bold;">No data available</td>
+            `;
+            tableBody.appendChild(noDataRow);
+            return;
+        }
+
+        members.forEach((member, index) => {
+            console.log(`📋 Rendering member ${index + 1}:`, {
+                name: `${member.member_first_name} ${member.member_last_name}`,
+                company: member.member_company_name,
+                status: member.member_status
+            });
+
+            const fullName = `${member.member_first_name} ${member.member_last_name || ''}`;
+            const formattedDate = member.member_induction_date ? member.member_induction_date.substring(0, 10) : 'N/A';
             
-            <td class="fw-semibold" style="border: 1px solid grey;">${formatDate(member.member_induction_date)}</td>
-            <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formatDate(member.member_renewal_date)}</td>
-            <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>
-            <td style="border: 1px solid grey;">
-                <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
-                    ${member.member_status}
-                </span>
-            </td>
-            <td style="border: 1px solid grey">
-                <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
-                    <a href="/cm/editchaptermember/?member_id=${member.member_id}" style="cursor:pointer; color:white;">Edit</a>
-                </span>
-                <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
-                    Delete
-                </span>
-            </td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
+            // Add photo URL handling like in script.js
+            const photoUrl = member.member_photo 
+                ? `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`
+                : null;
+            
+            console.log('Photo processing for member:', {
+                name: fullName,
+                hasPhoto: !!member.member_photo,
+                photoUrl: photoUrl || 'Using default avatar',
+                photoName: member.member_photo || 'No photo available'
+            });
+
+            const row = document.createElement('tr');
+            row.classList.add('order-list');
+            
+            row.innerHTML = `
+                <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
+                <td style="border: 1px solid grey;">
+                    <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2 avatar-rounded">
+                            <img 
+                                src="${photoUrl || 'https://cdn-icons-png.flaticon.com/512/194/194828.png'}" 
+                                alt="${fullName || 'avatar'}" 
+                                onerror="console.log('Image failed to load, using default avatar for:', '${fullName}'); this.src='https://cdn-icons-png.flaticon.com/512/194/194828.png';"
+                            />
+                        </span>
+                        <a href="#" onclick="handleMemberClick('${member.member_email_address}', '${member.member_id}')">${fullName}</a>
+                    </div>
+                </td>
+                <td style="border: 1px solid grey;">
+                    <div class="d-flex align-items-center">
+                        <b>${member.member_email_address}</b>
+                    </div>
+                </td>
+                <td style="border: 1px solid grey;">${member.member_phone_number}</td>
+                
+                <td class="fw-semibold" style="border: 1px solid grey;">${formatDate(member.member_induction_date)}</td>
+                <td class="fw-semibold" style="border: 1px solid grey; color:#d01f2f;">${formatDate(member.member_renewal_date)}</td>
+                <td class="fw-semibold" style="border: 1px solid grey;">${member.member_current_membership}</td>
+                <td style="border: 1px solid grey;">
+                    <span class="badge bg-${member.member_status === 'active' ? 'success' : 'danger'}">
+                        ${member.member_status}
+                    </span>
+                </td>
+                <td style="border: 1px solid grey">
+                    <span class="badge bg-warning text-light" style="cursor:pointer; color:white;">
+                        <a href="/cm/editchaptermember/?member_id=${member.member_id}" style="cursor:pointer; color:white;">Edit</a>
+                    </span>
+                    <span class="badge bg-danger text-light delete-btn" style="cursor:pointer; color:white;" data-member-id="${member.member_id}">
+                        Delete
+                    </span>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+
+        // Initialize sort handlers after displaying members
+        initializeSortHandlers();
+    } catch (error) {
+        console.error('Error in displayMembers:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Display Error',
+            text: 'There was an error displaying the members. Please try again.',
+            confirmButtonColor: '#d01f2f'
+        });
+    }
 }
 
 // Function to filter members based on search input
@@ -674,23 +693,28 @@ function displayChapters(chapters) {
     tableBody.appendChild(row);
   });
 }
+
+// Add this function to get member ID from URL
+function getMemberIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('member_id') || null;
+}
+
 // Call fetchMembers on page load
 window.addEventListener('DOMContentLoaded', async () => {
-  showLoader(); // Show loader immediately on page load
+    showLoader(); // Show loader immediately on page load
 
-  const memberId = getMemberIdFromUrl(); // Get the member ID from the URL
-  console.log('Member ID:', memberId); // Check if the memberId is being extracted correctly
+    try {
+        const memberId = getMemberIdFromUrl(); // Get the member ID from the URL
+        console.log('Member ID:', memberId); // Check if the memberId is being extracted correctly
 
-  try {
-    await fetchMembers(); // Wait for data to be fetched
-  } catch (error) {
-    console.error("Failed to fetch member data:", error);
-  } finally {
-    hideLoader(); // Hide loader after data is fetched, whether successful or not
-  }
+        await fetchMembers(); // Wait for data to be fetched
+    } catch (error) {
+        console.error("Failed to fetch member data:", error);
+    } finally {
+        hideLoader(); // Hide loader after data is fetched, whether successful or not
+    }
 });
-window.onload = fetchMembers;
-
 
 const deleteMember = async (member_id) => {
   // Show confirmation using SweetAlert
@@ -772,6 +796,126 @@ function handleMemberClick(memberEmail, memberId) {
     
     // Redirect to member dashboard
     window.location.href = `/d/member-dashboard/?member_id=${memberId}`;
+}
+
+// Add this function to sort members
+function sortMembers(column) {
+    try {
+        console.log(`Sorting by ${column}, direction: ${isAscending ? 'ascending' : 'descending'}`);
+        
+        // Toggle sort direction if clicking the same column
+        if (currentSortColumn === column) {
+            isAscending = !isAscending;
+        } else {
+            currentSortColumn = column;
+            isAscending = true;
+        }
+
+        // Update sort icons
+        document.querySelectorAll('.ti-arrows-sort').forEach(icon => {
+            icon.className = 'ti ti-arrows-sort';
+        });
+
+        const activeIcon = document.querySelector(`[data-sort="${column}"] .ti-arrows-sort`);
+        if (activeIcon) {
+            activeIcon.className = isAscending ? 'ti ti-sort-ascending' : 'ti ti-sort-descending';
+        }
+
+        // Sort the filtered members
+        filteredMembers.sort((a, b) => {
+            try {
+                let valueA, valueB;
+
+                switch(column) {
+                    case 'member_details':
+                        valueA = `${a.member_first_name || ''} ${a.member_last_name || ''}`.toLowerCase();
+                        valueB = `${b.member_first_name || ''} ${b.member_last_name || ''}`.toLowerCase();
+                        break;
+                    case 'email':
+                        valueA = (a.member_email_address || '').toLowerCase();
+                        valueB = (b.member_email_address || '').toLowerCase();
+                        break;
+                    case 'phone':
+                        valueA = a.member_phone_number || '';
+                        valueB = b.member_phone_number || '';
+                        break;
+                    case 'induction_date':
+                    case 'renewal_date':
+                        valueA = a[`member_${column}`] ? new Date(a[`member_${column}`]) : new Date(0);
+                        valueB = b[`member_${column}`] ? new Date(b[`member_${column}`]) : new Date(0);
+                        break;
+                    case 'membership':
+                        valueA = (a.member_current_membership || '').toLowerCase();
+                        valueB = (b.member_current_membership || '').toLowerCase();
+                        break;
+                    case 'status':
+                        valueA = (a.member_status || '').toLowerCase();
+                        valueB = (b.member_status || '').toLowerCase();
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (valueA < valueB) return isAscending ? -1 : 1;
+                if (valueA > valueB) return isAscending ? 1 : -1;
+                return 0;
+            } catch (error) {
+                console.error('Error comparing values:', error);
+                return 0;
+            }
+        });
+
+        // Update the display
+        displayMembers(filteredMembers.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage));
+    } catch (error) {
+        console.error('Error in sortMembers:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Sorting Error',
+            text: 'There was an error sorting the members. Please try again.',
+            confirmButtonColor: '#d01f2f'
+        });
+    }
+}
+
+// Add this function to initialize sort handlers
+function initializeSortHandlers() {
+    try {
+        const sortableColumns = {
+            'member_details': 'Member Details',
+            'email': 'Member Email I\'d',
+            'phone': 'Phone Number',
+            'induction_date': 'Induction Date',
+            'renewal_date': 'Renewal Date',
+            'membership': 'Membership (in years)',
+            'status': 'Status'
+        };
+
+        // Add click handlers to each sortable column
+        Object.entries(sortableColumns).forEach(([column, label]) => {
+            const header = Array.from(document.querySelectorAll('th')).find(th => 
+                th.textContent.trim().includes(label)
+            );
+            
+            if (header) {
+                header.setAttribute('data-sort', column);
+                header.style.cursor = 'pointer';
+                
+                // Add click handler
+                header.addEventListener('click', () => {
+                    sortMembers(column);
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Error initializing sort handlers:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Initialization Error',
+            text: 'There was an error initializing the sorting functionality. Please refresh the page.',
+            confirmButtonColor: '#d01f2f'
+        });
+    }
 }
 
 

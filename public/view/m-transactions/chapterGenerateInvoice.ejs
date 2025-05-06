@@ -2,6 +2,11 @@
 <%- include('../partials/header') %>
 <!-- end header -->
 
+<!-- Add Toastify CSS and JS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+
 <!-- sidebar -->
 <style>
   /* Style for dropdown menu to enable scrolling */
@@ -61,7 +66,79 @@ background-color: #555; /* Darker shade on hover */
     transform: translateY(0);
   }
 }
+
+.payment-type-options {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.payment-type-options .form-check {
+  margin-right: 20px;
+  display: inline-block;
+}
+
+.payment-type-options .form-check-input:checked + .form-check-label {
+  font-weight: bold;
+  color: #6259ca;
+}
+
+#new-member-details-form .form-label i {
+  color: #6259ca;
+  font-size: 1.1em;
+}
+#new-member-details-form .card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(98,89,202,0.08);
+}
+#new-member-details-form input.form-control {
+  border-radius: 8px;
+}
 </style>
+
+<!-- Add ToastContainer div -->
+<div id="toast-container"></div>
+
+<!-- Initialize Toastify -->
+<script>
+// Initialize toast configuration
+window.toast = {
+  error: function(message) {
+    Toastify({
+      text: message,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: "#ff6b6b",
+      close: true,
+      stopOnFocus: true
+    }).showToast();
+  },
+  success: function(message) {
+    Toastify({
+      text: message,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: "#51cf66",
+      close: true,
+      stopOnFocus: true
+    }).showToast();
+  },
+  warning: function(message) {
+    Toastify({
+      text: message,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      backgroundColor: "#fcc419",
+      close: true,
+      stopOnFocus: true
+    }).showToast();
+  }
+};
+</script>
 
 <%- include('../partials/chapter-sidebar') %>
 
@@ -126,6 +203,203 @@ background-color: #555; /* Darker shade on hover */
       <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
     </div>
     
+    <div id="membership-dropdown-container"></div>
+    <!-- Add this after the chapterDropdown UL -->
+    <div id="payment-type-radio-container"></div>
+
+    <!-- Payment Type Options (for meeting payments) -->
+    <div id="payment-type-options" class="payment-type-options" style="display: none;">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="paymentType" id="fullPaymentOption" value="full" checked>
+            <label class="form-check-label" for="fullPaymentOption">Full Payment</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="paymentType" id="partialPaymentOption" value="partial">
+            <label class="form-check-label" for="partialPaymentOption">Partial Payment</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="paymentType" id="advancePaymentOption" value="advance">
+            <label class="form-check-label" for="advancePaymentOption">Advance Payment</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div id="kitty-bill-type" style="display: none;">
+            <div class="alert alert-info mb-0 py-2">
+              <p class="mb-0"><strong>Bill Type:</strong> <span id="bill-type"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Visitor/Member Details Form (Visible only for id=1) -->
+<div id="new-member-details-form" style="display: none; margin-top: 24px;">
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h5 class="mb-4" style="font-weight: 600;">
+        <i class="ti ti-user me-2"></i> New Member Details
+      </h5>
+      <form class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-user me-1"></i>Name</label>
+          <input type="text" class="form-control" id="nm-name" placeholder="Enter Name" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-mail me-1"></i>Email</label>
+          <input type="email" class="form-control" id="nm-email" placeholder="Enter Email" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-tag me-1"></i>Category</label>
+          <input type="text" class="form-control" id="nm-category" placeholder="Enter Category" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-calendar me-1"></i>Date</label>
+          <input type="date" class="form-control" id="nm-date" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-phone me-1"></i>Mobile Number</label>
+          <input type="tel" class="form-control" id="nm-mobile" placeholder="Enter Mobile Number" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-building me-1"></i>Company Name</label>
+          <input type="text" class="form-control" id="nm-company-name" placeholder="Enter Company Name" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-file-text me-1"></i>Company GSTIN</label>
+          <input type="text" class="form-control" id="nm-company-gstin" placeholder="Enter GSTIN" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-map-pin me-1"></i>Company Address</label>
+          <input type="text" class="form-control" id="nm-company-address" placeholder="Enter Company Address" autocomplete="off">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+    <!-- Detailed Kitty Bill Info (Moved to top) -->
+    <div id="kitty-bill-info" style="display: none;" class="mb-3">
+      <div class="alert alert-info">
+        <h6 class="mb-2">Kitty Bill Details</h6>
+        <div class="row">
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Description:</strong> <span id="bill-description"></span></p>
+          </div>
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Amount:</strong> <span id="bill-amount"></span></p>
+          </div>
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Due Date:</strong> <span id="bill-due-date"></span></p>
+          </div>
+          <div class="col-md-3">
+            <p class="mb-1"><strong>Penalty Fee:</strong> <span id="bill-penalty"></span></p>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col-md-12">
+            <p class="mb-0">Bill Status: <span id="bill-status"></span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Kitty Bill Message -->
+    <div id="no-kitty-bill-message" style="display: none;" class="mb-3">
+      <div class="alert alert-warning">
+        <h6 class="mb-0">No kitty bill raised for this chapter</h6>
+      </div>
+    </div>
+
+    <!-- Chapter Selection Message (Only for meeting payments) -->
+    <div id="chapter-selection-message" class="mb-3" style="display: none;">
+      <div class="alert alert-info">
+        <h6 class="mb-0">Please select a chapter to view kitty bill details</h6>
+      </div>
+    </div>
+
+    <!-- After the existing billing section and before the table -->
+    <div id="visitor-details-section" style="display: none;" class="mt-4 mb-4">
+      <div class="row">
+        <div class="col-xl-6">
+          <div class="card custom-card">
+            <div class="card-body">
+              <div class="row gy-3">
+                <div class="col-xl-12">
+                  <label class="form-label">Visitor Name</label>
+                  <input type="text" class="form-control form-control-light" id="visitor-name" placeholder="Enter Visitor Name">
+                </div>
+                <div class="col-xl-12">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control form-control-light" id="visitor-email" placeholder="Enter Email">
+                </div>
+                <div class="col-xl-12">
+                  <label class="form-label">Visitor Mobile Number</label>
+                  <input type="tel" class="form-control form-control-light" id="visitor-mobile" placeholder="Enter Mobile Number">
+                </div>
+                <div class="col-xl-12">
+                  <label class="form-label">Member Address</label>
+                  <textarea class="form-control form-control-light" id="visitor-address" rows="3" placeholder="Enter Address"></textarea>
+                </div>
+                <div class="col-xl-12">
+                  <label class="form-label">Category</label>
+                  <input 
+                    type="text" 
+                    class="form-control form-control-light" 
+                    id="visitor-category" 
+                    placeholder="Enter Visitor Category"
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-6">
+          <div class="card custom-card">
+            <div class="card-body">
+              <div class="row gy-3">
+                <div class="col-xl-12">
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="has-gst">
+                    <label class="form-check-label" for="has-gst">Has GST</label>
+                  </div>
+                </div>
+                <!-- GST Fields (Initially Hidden) -->
+                <div id="gst-fields" style="display: none;">
+                  <div class="col-xl-12">
+                    <div class="mb-3">
+                      <label class="form-label">Company GSTIN</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control form-control-light" id="company-gstin" placeholder="Enter GSTIN">
+                        <button class="btn btn-primary" type="button" id="get-gst-details">
+                          Get GST Details
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xl-12">
+                    <div class="mb-3">
+                      <label class="form-label">Company Name</label>
+                      <input type="text" class="form-control form-control-light" id="visitor-company-name" placeholder="Enter Company Name">
+                    </div>
+                  </div>
+                  <div class="col-xl-12">
+                    <div class="mb-3">
+                      <label class="form-label">Company Address</label>
+                      <textarea class="form-control form-control-light" id="visitor-company-address" rows="3" placeholder="Company Address"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-xl-12">
+                  <label class="form-label">Date</label>
+                  <input type="date" class="form-control form-control-light" id="visitor-date">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Start::row-1 -->
     <div class="row">
@@ -194,7 +468,7 @@ background-color: #555; /* Darker shade on hover */
                     </div>
                   </div>
                   <div
-                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3"
+                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3" id="billing-to-col"
                   >
                     <p class="dw-semibold mb-2">Billing To :</p>
                     <div class="row gy-2">
@@ -264,20 +538,28 @@ background-color: #555; /* Darker shade on hover */
                       <tr>
                         <td>
                           <input
-                  type="date"
+                          type="datetime-local"
                   class="form-control form-control-light"
                   id="invoice-date-issued"
                   placeholder="Choose date"
                 />
                         </td>
                         <td>
-                          <textarea
-                            rows="1"
-                            class="form-control form-control-light"
-                            placeholder="Enter Description"
-                            name="particulars"
-                            id="particulars"
-                          ></textarea>
+                          <div id="particulars-container">
+                            <textarea
+                              rows="1"
+                              class="form-control form-control-light"
+                              placeholder="Enter Description"
+                              name="particulars"
+                              id="particulars"
+                            ></textarea>
+                            <div id="kitty-bill-particulars" style="display: none;">
+                              <div class="alert alert-info mt-2">
+                                <p class="mb-1"><strong>Bill Type:</strong> <span id="particulars-bill-type"></span></p>
+                                <p class="mb-1"><strong>Description:</strong> <span id="particulars-bill-description"></span></p>
+                              </div>
+                            </div>
+                          </div>
                         </td>
                         <td>
                           <input
@@ -334,6 +616,15 @@ background-color: #555; /* Darker shade on hover */
                               </tr>
                               <tr>
                                 <th scope="row">
+                                  <div class="fw-medium d-flex align-items-center">
+                                    <input type="checkbox" id="include-gst" class="form-check-input me-2">
+                                    <label for="include-gst">Include GST</label>
+                                  </div>
+                                </th>
+                                <td></td>
+                              </tr>
+                              <tr>
+                                <th scope="row">
                                   <div class="fw-medium">
                                     Add CGST (9%)
                                     :
@@ -366,6 +657,20 @@ background-color: #555; /* Darker shade on hover */
                                   />
                                 </td>
                               </tr>
+                              <!-- Add Partial Payment Field -->
+                              <tr id="partial-payment-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fw-medium">Partial Amount :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input"
+                                    placeholder="Enter Partial Amount"
+                                    id="partial-amount"
+                                  />
+                                </td>
+                              </tr>
                               <tr>
                                 <th scope="row">
                                   <div class="fs-14 fw-medium">Grand Total :</div>
@@ -378,6 +683,36 @@ background-color: #555; /* Darker shade on hover */
                                     value="-"
                                     id="grand_total"
                                     readonly
+                                  />
+                                </td>
+                              </tr>
+                              
+                              <!-- Partial Payment Fields (Hidden by default) -->
+                              <tr id="remaining-balance-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Remaining Balance :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light"
+                                    id="remaining-balance"
+                                    readonly
+                                  />
+                                </td>
+                              </tr>
+                              
+                              <!-- Advance Payment Fields (Hidden by default) -->
+                              <tr id="advance-amount-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fs-14 fw-medium">Advance Amount :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="number"
+                                    class="form-control form-control-light"
+                                    id="advance-amount"
+                                    placeholder="Enter advance amount"
                                   />
                                 </td>
                               </tr>
@@ -394,11 +729,11 @@ background-color: #555; /* Darker shade on hover */
           <div
             class="card-footer d-flex align-items-center justify-content-between gap-2"
           >
-            <button class="btn btn-danger">
+            <button class="btn btn-danger" id="submit_invoice">
               Make Invoice
               <i
                 class="ri-send-plane-2-line ms-1 align-middle d-inline-block submit_invoice"
-                id="submit_invoice"
+                
               ></i>
             </button>
           </div>
@@ -519,38 +854,107 @@ background-color: #555; /* Darker shade on hover */
     <!--End::row-1 -->
   </div>
 </div>
-<script src="../../assets/js/cashInvoice2.js"></script>
+
+<!-- Move all script tags to the end, just before closing body tag -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Add a check to prevent both scripts from loading simultaneously -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.isNewMemberPayment) {
+      const billingToCol = document.getElementById('billing-to-col');
+      if (billingToCol) billingToCol.style.display = 'none';
+    }
+  });
+</script>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') === '4') {
+        // Load only kittyPaymentsInvoice.js for meeting payments
+        document.write('<script src="../../assets/js/kittyPaymentsInvoice.js"><\/script>');
+    } 
+     else if (urlParams.get('id') === '5') {
+        // Load cashInvoice.js for other cases
+        document.write('<script src="../../assets/js/chapterCashInvoice.js"><\/script>');
+    }else{
+      // Load newMemberPayment.js for other cases
+      document.write('<script src="../../assets/js/newMemberPayment.js"><\/script>');
+    }
+</script>
+
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', async function() {
+  // Payment method handling
   const paymentMethods = document.getElementsByName('paymentMethod');
   const upiFields = document.getElementById('upiFields');
   const bankFields = document.getElementById('bankFields');
   const chequeFields = document.getElementById('chequeFields');
   const impsFields = document.getElementById('impsFields');
 
-  paymentMethods.forEach(method => {
-    method.addEventListener('change', function() {
-      // Hide all payment fields first
-      upiFields.style.display = 'none';
-      bankFields.style.display = 'none';
-      chequeFields.style.display = 'none';
-      impsFields.style.display = 'none';
+  if (paymentMethods.length > 0) {
+    paymentMethods.forEach(method => {
+      method.addEventListener('change', function() {
+        // Hide all payment fields first
+        if (upiFields) upiFields.style.display = 'none';
+        if (bankFields) bankFields.style.display = 'none';
+        if (chequeFields) chequeFields.style.display = 'none';
+        if (impsFields) impsFields.style.display = 'none';
 
-      // Show relevant fields based on selection
-      if (this.id === 'upiOption') {
-        upiFields.style.display = 'block';
-      } else if (this.id === 'bankOption') {
-        bankFields.style.display = 'block';
-      } else if (this.id === 'chequeOption') {
-        chequeFields.style.display = 'block';
-      } else if (this.id === 'impsOption') {
-        impsFields.style.display = 'block';
-      }
+        // Show relevant fields based on selection
+        if (this.id === 'upiOption' && upiFields) {
+          upiFields.style.display = 'block';
+        } else if (this.id === 'bankOption' && bankFields) {
+          bankFields.style.display = 'block';
+        } else if (this.id === 'chequeOption' && chequeFields) {
+          chequeFields.style.display = 'block';
+        } else if (this.id === 'impsOption' && impsFields) {
+          impsFields.style.display = 'block';
+        }
+      });
     });
-  });
+  }
+
+  // Payment type handling (Full, Partial, Advance)
+  const paymentTypes = document.getElementsByName('paymentType');
+  const partialPaymentRow = document.getElementById('partial-payment-row');
+  const remainingBalanceRow = document.getElementById('remaining-balance-row');
+  const advanceAmountRow = document.getElementById('advance-amount-row');
+
+  if (paymentTypes.length > 0) {
+    paymentTypes.forEach(type => {
+      type.addEventListener('change', function() {
+        // Hide all payment type sections first
+        if (partialPaymentRow) partialPaymentRow.style.display = 'none';
+        if (remainingBalanceRow) remainingBalanceRow.style.display = 'none';
+        if (advanceAmountRow) advanceAmountRow.style.display = 'none';
+
+        // Show relevant section based on selection
+        if (this.id === 'partialPaymentOption') {
+          if (partialPaymentRow) partialPaymentRow.style.display = 'table-row';
+          if (remainingBalanceRow) remainingBalanceRow.style.display = 'table-row';
+        } else if (this.id === 'advancePaymentOption') {
+          if (advanceAmountRow) advanceAmountRow.style.display = 'table-row';
+        }
+      });
+    });
+  }
+
+ 
 });
 </script>
 
+
+
 <%- include('../partials/footer') %>
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') === '1') {
+      // Show the new member details form
+      document.getElementById('new-member-details-form').style.display = 'block';
+    }
+  });
+</script>
+  
