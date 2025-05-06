@@ -230,11 +230,40 @@ function exportToExcel() {
   const visibleRows = Array.from(tbody.getElementsByTagName('tr'))
     .filter(row => row.style.display !== 'none');
 
+  // Get opening and closing balance
+  const openingBalance = ledgerData[0].credit; // First entry is opening balance
+  const closingBalance = ledgerData[ledgerData.length - 1].balance; // Last entry's balance
+
+  // Count unique members and visitors
+  const uniqueMembers = new Set();
+  const uniqueVisitors = new Set();
+  visibleRows.forEach(row => {
+    const description = row.cells[2].innerHTML;
+    if (description.includes('Meeting Fee')) {
+      const memberName = description.split('-')[1].split('<')[0].trim();
+      uniqueMembers.add(memberName);
+    } else if (description.includes('Visitor Fee')) {
+      const visitorName = description.match(/Visitor Fee - ([^<]+)/);
+      if (visitorName && visitorName[1] && visitorName[1] !== 'N/A') {
+        uniqueVisitors.add(visitorName[1].trim());
+      }
+    }
+  });
+
   // Create Excel data
   let excelData = [
+    ['Chapter Ledger Summary'],
+    [''],
+    ['Opening Balance', formatCurrency(openingBalance)],
+    ['Closing Balance', formatCurrency(closingBalance)],
+    ['Total Members', uniqueMembers.size],
+    ['Total Visitors', uniqueVisitors.size],
+    [''],
+    ['Transaction Details'],
     ['S.No.', 'Date', 'Description', 'Total Amount', 'Debit (Dr.)', 'Credit (Cr.)', 'GST', 'Balance']
   ];
 
+  // Add transaction rows
   visibleRows.forEach(row => {
     const rowData = Array.from(row.cells).map(cell => {
       // Get text content without HTML tags
@@ -262,7 +291,7 @@ function exportToExcel() {
 
   // Add summary section
   excelData.push([]);  // Empty row for spacing
-  excelData.push(['Summary']);
+  excelData.push(['Financial Summary']);
   excelData.push(['Total Meeting Fees', kittyAmount]);
   excelData.push(['Total Visitor Payments', visitorTotal]);
   excelData.push(['- Cash Visitor Payments', visitorCash]);
@@ -270,6 +299,23 @@ function exportToExcel() {
   excelData.push(['Total Expenses', expenseTotal]);
   excelData.push(['- Cash Expenses', expenseCash]);
   excelData.push(['- Online Expenses', expenseOnline]);
+
+  // Add member and visitor lists if any
+  if (uniqueMembers.size > 0) {
+    excelData.push([]);
+    excelData.push(['Member List']);
+    Array.from(uniqueMembers).sort().forEach((member, index) => {
+      excelData.push([index + 1, member]);
+    });
+  }
+
+  if (uniqueVisitors.size > 0) {
+    excelData.push([]);
+    excelData.push(['Visitor List']);
+    Array.from(uniqueVisitors).sort().forEach((visitor, index) => {
+      excelData.push([index + 1, visitor]);
+    });
+  }
 
   // Create worksheet
   const ws = XLSX.utils.aoa_to_sheet(excelData);
