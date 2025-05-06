@@ -863,31 +863,39 @@ document.addEventListener("DOMContentLoaded", async function() {
       });
     }
 
-    // // Handle payment method changes
-    // const paymentMethods = document.getElementsByName('paymentMethod');
-    // const upiFields = document.getElementById('upiFields');
-    // const bankFields = document.getElementById('bankFields');
-    // const chequeFields = document.getElementById('chequeFields');
+    // GST Checkbox logic
+    const includeGstCheckbox = document.getElementById('include-gst');
+    const taxableAmountInput = document.getElementById('taxable-total-amount');
+    const cgstInput = document.getElementById('cgst_amount');
+    const sgstInput = document.getElementById('sgst_amount');
+    const grandTotalInput = document.getElementById('grand_total');
 
-    // paymentMethods.forEach(method => {
-    //   method.addEventListener('change', function() {
-    //     // Hide all payment fields first
-    //     upiFields.style.display = 'none';
-    //     bankFields.style.display = 'none';
-    //     chequeFields.style.display = 'none';
+    function updateGrandTotalWithGST() {
+        const taxable = parseFloat(taxableAmountInput.value.replace(/[₹,\s]/g, '')) || 0;
+        let cgst = 0, sgst = 0;
 
-    //     // Show relevant fields based on selection
-    //     if (this.id === 'upiOption') {
-    //       upiFields.style.display = 'block';
-    //     } else if (this.id === 'bankOption') {
-    //       bankFields.style.display = 'block';
-    //     } else if (this.id === 'chequeOption') {
-    //       chequeFields.style.display = 'block';
-    //     }
+        if (includeGstCheckbox.checked) {
+            // Calculate GST (18% of taxable), split into CGST/SGST
+            const gst = +(taxable * 0.18).toFixed(2);
+            cgst = +(gst / 2).toFixed(2);
+            sgst = +(gst / 2).toFixed(2);
+            cgstInput.value = `₹ ${cgst.toFixed(2)}`;
+            sgstInput.value = `₹ ${sgst.toFixed(2)}`;
+            grandTotalInput.value = `₹ ${(taxable + cgst + sgst).toFixed(2)}`;
+        } else {
+            // Remove GST
+            cgstInput.value = "₹ 0.00";
+            sgstInput.value = "₹ 0.00";
+            grandTotalInput.value = `₹ ${taxable.toFixed(2)}`;
+        }
+    }
 
-    //     console.log('💳 Payment Method Changed:', this.id);
-    //   });
-    // });
+    // Attach listeners
+    if (includeGstCheckbox) includeGstCheckbox.addEventListener('change', updateGrandTotalWithGST);
+    if (taxableAmountInput) taxableAmountInput.addEventListener('input', updateGrandTotalWithGST);
+
+    // Initial call to set correct value on page load
+    updateGrandTotalWithGST();
 
     // Add submit handler for the invoice form
     const submitButton = document.getElementById('submit_invoice');
