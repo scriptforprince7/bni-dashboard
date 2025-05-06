@@ -36,6 +36,10 @@ let ledgerData = [];
   let totalKittyAmount = 0;
   let totalExpenseAmount = 0;
   let totalVisitorAmount = 0;
+  let cashExpenseAmount = 0;
+  let onlineExpenseAmount = 0;
+  let cashVisitorAmount = 0;
+  let onlineVisitorAmount = 0;
 
   try {
     showLoader();
@@ -135,7 +139,9 @@ let ledgerData = [];
     console.log("Filtering orders for chapter:", chapterId);
     const chapterOrders = allOrders.filter(order => 
       parseInt(order.chapter_id) === chapterId && 
-      (order.payment_note === "meeting-payments" || order.payment_note === "Visitor Payment")
+      (order.payment_note === "meeting-payments" || 
+       order.payment_note === "visitor-payment" ||
+       order.payment_note === "Visitor Payment")
     );
     console.log("Found chapter orders:", chapterOrders.length);
 
@@ -154,6 +160,7 @@ let ledgerData = [];
         const amount = parseFloat(successfulTransaction.payment_amount) - parseFloat(order.tax);
         const gst = parseFloat(order.tax);
         const isKittyPayment = order.payment_note === "meeting-payments";
+        const isVisitorPayment = order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment";
         
         // Determine payment method
         let paymentMethod = "N/A";
@@ -176,18 +183,30 @@ let ledgerData = [];
           }
         }
 
+        let description;
+        if (isKittyPayment) {
+          description = `Meeting Fee - ${order.member_name}<br>
+                        <small class="text-muted">
+                          ${order.company || 'N/A'} | ${paymentMethod}
+                        </small>`;
+        } else if (isVisitorPayment) {
+          description = `<div style="display: flex; align-items: center; gap: 8px;">
+                          <div style="background-color: #4CAF50; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                            V
+                          </div>
+                          <div>
+                            <span style="color: #4CAF50; font-weight: 500;">Visitor Fee - ${order.visitor_name || 'N/A'}</span><br>
+                            <small class="text-muted">
+                              Invited by ${order.member_name || 'N/A'} | ${paymentMethod}
+                            </small>
+                          </div>
+                        </div>`;
+        }
+
         allTransactionItems.push({
           date: new Date(successfulTransaction.payment_time),
           type: isKittyPayment ? "kitty" : "visitor",
-          description: isKittyPayment 
-            ? `Meeting Fee - ${order.member_name}<br>
-               <small class="text-muted">
-                 ${order.company || 'N/A'} | ${paymentMethod}
-               </small>`
-            : `Visitor Fee - ${order.visitor_name || 'N/A'}<br>
-               <small class="text-muted">
-                 Invited by ${order.member_name || 'N/A'} | ${paymentMethod}
-               </small>`,
+          description: description,
           amount: amount,
           gst: gst,
           totalAmount: amount + gst,
@@ -196,8 +215,20 @@ let ledgerData = [];
 
         if (isKittyPayment) {
           totalKittyAmount += amount;
-        } else {
+        } else if (isVisitorPayment) {
           totalVisitorAmount += amount;
+          // Track visitor payments by mode
+          if (successfulTransaction.payment_method?.cash || paymentMethod.toLowerCase() === 'cash') {
+            cashVisitorAmount += amount;
+          } else {
+            onlineVisitorAmount += amount;
+          }
+          console.log("Added visitor payment:", {
+            visitorName: order.visitor_name,
+            amount: amount,
+            totalVisitorAmount: totalVisitorAmount,
+            paymentMethod: paymentMethod
+          });
         }
       }
     });
@@ -216,6 +247,15 @@ let ledgerData = [];
       const baseAmount = parseFloat(expense.amount) || 0;
       const gstAmount = parseFloat(expense.gst_amount) || 0;
       const totalAmount = parseFloat(expense.total_amount) || 0;
+      
+      // Track expenses by payment mode
+      if (expense.mode_of_payment.toLowerCase() === 'cash') {
+        cashExpenseAmount += totalAmount;
+      } else {
+        onlineExpenseAmount += totalAmount;
+      }
+
+      totalExpenseAmount += totalAmount;
       
       allTransactionItems.push({
         date: new Date(expense.bill_date),
@@ -238,8 +278,6 @@ let ledgerData = [];
         modeOfPayment: expense.mode_of_payment,
         submittedBy: expense.submitted_by
       });
-
-      totalExpenseAmount += totalAmount;
     });
 
     // Sort all items by date
@@ -280,8 +318,39 @@ let ledgerData = [];
     console.log("Updating UI with totals...");
     // Update UI with totals
     document.getElementById("total-kitty-amount").textContent = formatCurrency(totalKittyAmount);
-    document.getElementById("total-visitor-amount").textContent = formatCurrency(totalVisitorAmount);
-    document.getElementById("total-expense-amount").textContent = formatCurrency(totalExpenseAmount);
+    
+    // Update visitor amount with bifurcation
+    const visitorElement = document.getElementById("total-visitor-amount");
+    visitorElement.innerHTML = `
+      <div>
+        ${formatCurrency(totalVisitorAmount)}
+        <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+          <span>
+            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashVisitorAmount)}
+          </span>
+          <span style="margin-left: 8px;">
+            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineVisitorAmount)}
+          </span>
+        </div>
+      </div>
+    `;
+    
+    // Update expense amount with bifurcation
+    const expenseElement = document.getElementById("total-expense-amount");
+    expenseElement.innerHTML = `
+      <div>
+        ${formatCurrency(totalExpenseAmount)}
+        <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+          <span>
+            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashExpenseAmount)}
+          </span>
+          <span style="margin-left: 8px;">
+            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineExpenseAmount)}
+          </span>
+        </div>
+      </div>
+    `;
+    
     document.getElementById("current-balance").textContent = formatCurrency(currentBalance);
 
     // Render ledger table
