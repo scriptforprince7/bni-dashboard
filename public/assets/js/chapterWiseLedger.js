@@ -546,7 +546,8 @@ function exportToExcel() {
     // Generate ledger entries
     allTransactionItems.forEach(item => {
       if (item.type === "expense") {
-        currentBalance -= item.totalAmount;
+        // For expenses, subtract the base amount (debit)
+        currentBalance -= item.amount;
         ledgerData.push({
           sNo: ledgerData.length + 1,
           date: formatDate(item.date),
@@ -559,7 +560,8 @@ function exportToExcel() {
           balanceColor: currentBalance >= 0 ? "green" : "red"
         });
       } else {
-        currentBalance += (item.amount + item.gst);
+        // For kitty and visitor payments, add the base amount (credit)
+        currentBalance += item.amount;
         ledgerData.push({
           sNo: ledgerData.length + 1,
           date: formatDate(item.date),
