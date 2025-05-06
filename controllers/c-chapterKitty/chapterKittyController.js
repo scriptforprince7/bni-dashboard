@@ -29,3 +29,7 @@ exports.chapterMemberWiseKitty = (req, res) => {
 exports.memberRightOffManagement = (req, res) => {
     res.render('m-chapterKitty/chapter-memberRightOffManagement', { title: 'Chapter Member Right Off Management' });
 };
+
+exports.chapterWiseLedger = (req, res) => {
+    res.render('m-chapterKitty/chapter-wiseLedger', { title: 'Chapter Wise Ledger' });
+};

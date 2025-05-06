@@ -11,5 +11,6 @@ router.get('/chapter-creditManagement', chapterKitty.chapterCreditManagement);
 router.get('/chapter-memberRightOff', chapterKitty.chapterMemberRightOff);
 router.get('/chapter-memberWiseKitty', chapterKitty.chapterMemberWiseKitty);
 router.get('/chapter-memberRightOffManagement', chapterKitty.memberRightOffManagement);
+router.get('/chapter-wiseLedger', chapterKitty.chapterWiseLedger);
 
 module.exports = router;
