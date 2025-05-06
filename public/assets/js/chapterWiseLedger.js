@@ -31,6 +31,195 @@ function formatCurrency(amount) {
 // Global variable for ledger data
 let ledgerData = [];
 
+// Global variables for filtering
+let selectedMonth = 'all';
+let selectedType = 'all';
+let allTransactionRows = [];  // Store all rows for filtering
+
+function initializeFilters() {
+  // Populate months dropdown
+  const months = [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' },
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' }
+  ];
+
+  const monthFilter = document.getElementById('monthFilter');
+  months.forEach(month => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a class="dropdown-item" href="#" data-value="${month.value}">${month.label}</a>`;
+    monthFilter.appendChild(li);
+  });
+
+  // Add event listeners for filters
+  document.getElementById('monthFilter').addEventListener('click', function(e) {
+    if (e.target.classList.contains('dropdown-item')) {
+      e.preventDefault();
+      selectedMonth = e.target.dataset.value;
+      document.getElementById('monthFilterBtn').textContent = 
+        selectedMonth === 'all' ? 'Month' : months.find(m => m.value === selectedMonth).label;
+      applyFilters();
+    }
+  });
+
+  document.getElementById('typeFilter').addEventListener('click', function(e) {
+    if (e.target.classList.contains('dropdown-item')) {
+      e.preventDefault();
+      selectedType = e.target.dataset.value;
+      document.getElementById('typeFilterBtn').textContent = 
+        e.target.textContent;
+      applyFilters();
+    }
+  });
+
+  document.getElementById('resetFilters').addEventListener('click', function() {
+    selectedMonth = 'all';
+    selectedType = 'all';
+    document.getElementById('monthFilterBtn').innerHTML = '<i class="ri-calendar-line me-1"></i> Month';
+    document.getElementById('typeFilterBtn').innerHTML = '<i class="ri-filter-line me-1"></i> Type';
+    applyFilters();
+  });
+}
+
+function applyFilters() {
+  const tbody = document.getElementById('ledger-body');
+  const rows = Array.from(tbody.getElementsByTagName('tr'));
+  
+  rows.forEach(row => {
+    const date = row.cells[1].textContent;  // Date is in second column
+    const description = row.cells[2].innerHTML;  // Using innerHTML to check for the expense icon
+    const month = date.split('/')[1];  // Assuming date format is DD/MM/YYYY
+    
+    let showRow = true;
+    
+    // Apply month filter
+    if (selectedMonth !== 'all' && month !== selectedMonth) {
+      showRow = false;
+    }
+    
+    // Apply type filter
+    if (selectedType !== 'all') {
+      // Check for expense (red E icon)
+      const isExpense = description.includes('background-color: #ff4444') || description.includes('E</div>');
+      // Check for visitor payment (green V icon)
+      const isVisitor = description.includes('background-color: #4CAF50') || description.includes('V</div>');
+      // Check for meeting fee (no special icon)
+      const isKitty = description.includes('Meeting Fee') && !isExpense && !isVisitor;
+
+      if (selectedType === 'kitty' && !isKitty) {
+        showRow = false;
+      } else if (selectedType === 'visitor' && !isVisitor) {
+        showRow = false;
+      } else if (selectedType === 'expense' && !isExpense) {
+        showRow = false;
+      }
+    }
+    
+    row.style.display = showRow ? '' : 'none';
+  });
+
+  // Update row numbers for visible rows
+  let visibleRowNum = 1;
+  rows.forEach(row => {
+    if (row.style.display !== 'none') {
+      row.cells[0].textContent = visibleRowNum++;
+    }
+  });
+
+  // Update totals based on filtered rows
+  updateFilteredTotals(rows.filter(row => row.style.display !== 'none'));
+}
+
+function updateFilteredTotals(visibleRows) {
+  let filteredKittyAmount = 0;
+  let filteredVisitorAmount = 0;
+  let filteredExpenseAmount = 0;
+  let filteredCashExpenseAmount = 0;
+  let filteredOnlineExpenseAmount = 0;
+  let filteredCashVisitorAmount = 0;
+  let filteredOnlineVisitorAmount = 0;
+
+  visibleRows.forEach(row => {
+    const description = row.cells[2].innerHTML;
+    const debit = parseFloat(row.cells[4].textContent.replace(/[^0-9.-]+/g, '') || 0);
+    const credit = parseFloat(row.cells[5].textContent.replace(/[^0-9.-]+/g, '') || 0);
+
+    // Check for expense (red E icon)
+    const isExpense = description.includes('background-color: #ff4444') || description.includes('E</div>');
+    // Check for visitor payment (green V icon)
+    const isVisitor = description.includes('background-color: #4CAF50') || description.includes('V</div>');
+    // Check for meeting fee (no special icon)
+    const isKitty = description.includes('Meeting Fee') && !isExpense && !isVisitor;
+    
+    const isCashPayment = description.toLowerCase().includes('cash');
+
+    if (isKitty) {
+      filteredKittyAmount += credit;
+    } else if (isVisitor) {
+      filteredVisitorAmount += credit;
+      if (isCashPayment) {
+        filteredCashVisitorAmount += credit;
+      } else {
+        filteredOnlineVisitorAmount += credit;
+      }
+    } else if (isExpense) {
+      filteredExpenseAmount += debit;
+      if (isCashPayment) {
+        filteredCashExpenseAmount += debit;
+      } else {
+        filteredOnlineExpenseAmount += debit;
+      }
+    }
+  });
+
+  // Update the totals with filtered amounts
+  const kittyElement = document.getElementById('total-kitty-amount');
+  const visitorElement = document.getElementById('total-visitor-amount');
+  const expenseElement = document.getElementById('total-expense-amount');
+
+  // Update main amounts
+  kittyElement.firstElementChild.firstChild.textContent = formatCurrency(filteredKittyAmount);
+  
+  // Update visitor amount with bifurcation
+  visitorElement.innerHTML = `
+    <div>
+      ${formatCurrency(filteredVisitorAmount)}
+      <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+        <span>
+          <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(filteredCashVisitorAmount)}
+        </span>
+        <span style="margin-left: 8px;">
+          <i class="ri-bank-card-line"></i> Online: ${formatCurrency(filteredOnlineVisitorAmount)}
+        </span>
+      </div>
+    </div>
+  `;
+
+  // Update expense amount with bifurcation
+  expenseElement.innerHTML = `
+    <div>
+      ${formatCurrency(filteredExpenseAmount)}
+      <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+        <span>
+          <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(filteredCashExpenseAmount)}
+        </span>
+        <span style="margin-left: 8px;">
+          <i class="ri-bank-card-line"></i> Online: ${formatCurrency(filteredOnlineExpenseAmount)}
+        </span>
+      </div>
+    </div>
+  `;
+}
+
 (async function generateChapterLedger() {
   let currentBalance = 0;
   let totalKittyAmount = 0;
@@ -372,6 +561,9 @@ let ledgerData = [];
       `;
       ledgerBody.appendChild(row);
     });
+
+    // Initialize filters after table is populated
+    initializeFilters();
 
     console.log("Ledger generation completed successfully");
 

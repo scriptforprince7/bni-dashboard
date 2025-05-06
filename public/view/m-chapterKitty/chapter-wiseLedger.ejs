@@ -617,8 +617,40 @@
 
               <!-- Ledger Table -->
               <div class="card custom-card mt-4">
-                <div class="card-header justify-content-between" style="background-color: gainsboro !important">
-                  <div class="card-title">Chapter Ledger</div>
+                <div class="card-header" style="background-color: gainsboro !important">
+                  <div class="d-flex justify-content-between align-items-center w-100">
+                    <h4 class="card-title mb-0">Chapter Ledger</h4>
+                    <div class="d-flex gap-2">
+                      <!-- Month Filter -->
+                      <div class="dropdown">
+                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="monthFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                          <i class="ri-calendar-line me-1"></i> Month
+                        </button>
+                        <ul class="dropdown-menu" id="monthFilter">
+                          <li><a class="dropdown-item" href="#" data-value="all">All Months</a></li>
+                          <!-- Months will be populated dynamically -->
+                        </ul>
+                      </div>
+
+                      <!-- Type Filter -->
+                      <div class="dropdown">
+                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="typeFilterBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                          <i class="ri-filter-line me-1"></i> Type
+                        </button>
+                        <ul class="dropdown-menu" id="typeFilter">
+                          <li><a class="dropdown-item" href="#" data-value="all">All Transactions</a></li>
+                          <li><a class="dropdown-item" href="#" data-value="kitty">Meeting Fees</a></li>
+                          <li><a class="dropdown-item" href="#" data-value="visitor">Visitor Payments</a></li>
+                          <li><a class="dropdown-item" href="#" data-value="expense">Expenses</a></li>
+                        </ul>
+                      </div>
+
+                      <!-- Reset Filter -->
+                      <button class="btn btn-outline-secondary btn-sm" type="button" id="resetFilters">
+                        <i class="ri-refresh-line me-1"></i> Reset
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div class="card-body p-0">
                   <div class="table-responsive">
