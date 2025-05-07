@@ -202,33 +202,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         
         // Add all form fields
-        formData.append('payment_add_by', document.getElementById('payment_add_by').value);
-        formData.append('payment_description', document.getElementById('payment_description').value);
-        formData.append('chapter_id', document.getElementById('chapter').value);
-        formData.append('amount', document.getElementById('amount').value);
-        formData.append('payment_date', document.getElementById('payment_date').value);
-        formData.append('payment_mode', document.getElementById('payment_mode').value);
-        formData.append('is_gst', withGST);
-        formData.append('gst_percentage', gstPercentage);
-        formData.append('gst_amount', gstAmount);
-        formData.append('cgst', cgstAmount);
-        formData.append('sgst', sgstAmount);
-        formData.append('igst', igstAmount);
-        formData.append('total_amount', totalAmount);
-        formData.append('is_igst', isIGST);
+        const paymentData = {
+          payment_add_by: document.getElementById('payment_add_by').value,
+          payment_description: document.getElementById('payment_description').value,
+          chapter_id: document.getElementById('chapter').value,
+          amount: document.getElementById('amount').value,
+          payment_date: document.getElementById('payment_date').value,
+          payment_mode: document.getElementById('payment_mode').value,
+          is_gst: withGST,
+          gst_percentage: gstPercentage,
+          gst_amount: gstAmount,
+          cgst: cgstAmount,
+          sgst: sgstAmount,
+          igst: igstAmount,
+          total_amount: totalAmount,
+          is_igst: isIGST
+        };
 
-        // Add file if present
-        const paymentImg = document.getElementById('upload_payment_photo').files[0];
-        if (paymentImg) {
-          formData.append('payment_img', paymentImg);
-        }
-
-        console.log('Form data being sent:', Object.fromEntries(formData));
+        console.log('Payment data being sent:', paymentData);
 
         // Send to backend
         const response = await fetch('https://backend.bninewdelhi.com/api/addChapterPayment', {
           method: 'POST',
-          body: formData // Do not set Content-Type header, browser will set it automatically with boundary
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(paymentData)
         });
         
         if (!response.ok) {
