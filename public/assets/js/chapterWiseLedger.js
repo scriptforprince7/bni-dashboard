@@ -428,16 +428,18 @@ function exportToExcel() {
 
     // Fetch all orders, transactions and expenses
     console.log("Fetching transactions data...");
-    const [ordersResponse, transactionsResponse, expensesResponse] = await Promise.all([
+    const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
       fetch("https://backend.bninewdelhi.com/api/allOrders"),
       fetch("https://backend.bninewdelhi.com/api/allTransactions"),
-      fetch("https://backend.bninewdelhi.com/api/allExpenses")
+      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
+      fetch("http://localhost:5000/api/allOtherPayment")
     ]);
 
-    const [allOrders, allTransactions, allExpenses] = await Promise.all([
+    const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([
       ordersResponse.json(),
       transactionsResponse.json(),
-      expensesResponse.json()
+      expensesResponse.json(),
+      otherPaymentsResponse.json()
     ]);
 
     // Filter orders for current chapter
@@ -547,6 +549,14 @@ function exportToExcel() {
     );
     console.log("Found chapter expenses:", chapterExpenses.length);
 
+    // Process other payments
+    console.log("Processing other payments for chapter:", chapterId);
+    const chapterOtherPayments = allOtherPayments.filter(payment => 
+      parseInt(payment.chapter_id) === chapterId
+    );
+    console.log("Found chapter other payments:", chapterOtherPayments.length);
+
+    // Process expenses
     chapterExpenses.forEach(expense => {
       // Parse amounts from expense data
       const baseAmount = parseFloat(expense.amount) || 0;
@@ -582,6 +592,38 @@ function exportToExcel() {
         totalAmount: totalAmount,
         modeOfPayment: expense.mode_of_payment,
         submittedBy: expense.submitted_by
+      });
+    });
+
+    // Process other payments
+    chapterOtherPayments.forEach(payment => {
+      const baseAmount = parseFloat(payment.total_amount) - (payment.is_gst ? parseFloat(payment.gst_amount) : 0);
+      const gstAmount = payment.is_gst ? parseFloat(payment.gst_amount) : 0;
+      const totalAmount = parseFloat(payment.total_amount);
+      
+      // Add to total kitty amount instead of expenses
+      totalKittyAmount += totalAmount;
+      currentBalance += totalAmount;
+      
+      allTransactionItems.push({
+        date: new Date(payment.date),
+        type: "kitty", // Changed from "expense" to "kitty"
+        description: `<div style="display: flex; align-items: center; gap: 8px;">
+                       <div style="background-color: #4CAF50; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                         P
+                       </div>
+                       <div>
+                         <span style="color: #4CAF50; font-weight: 500;">${payment.payment_description}</span><br>
+                         <small class="text-muted">
+                           By: ${payment.added_by} | Online
+                         </small>
+                       </div>
+                     </div>`,
+        amount: baseAmount,
+        gst: gstAmount,
+        totalAmount: totalAmount,
+        modeOfPayment: "Online",
+        submittedBy: payment.added_by
       });
     });
 
