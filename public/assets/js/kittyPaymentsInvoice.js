@@ -609,18 +609,25 @@ function showLoader() {
               });
               return member.chapter_id == chapterId;
           });
+
+          // Sort members alphabetically by full name
+          const sortedMembers = filteredMembers.sort((a, b) => {
+              const nameA = `${a.member_first_name} ${a.member_last_name}`.toLowerCase();
+              const nameB = `${b.member_first_name} ${b.member_last_name}`.toLowerCase();
+              return nameA.localeCompare(nameB);
+          });
   
-          console.log("✅ Filtered Members:", {
-              total: filteredMembers.length,
-              members: filteredMembers.map(member => ({
+          console.log("✅ Sorted Members:", {
+              total: sortedMembers.length,
+              members: sortedMembers.map(member => ({
                   id: member.member_id,
                   name: `${member.member_first_name} ${member.member_last_name}`,
                   chapterId: member.chapter_id
               }))
           });
   
-          // Populate dropdown with filtered members
-          filteredMembers.forEach(member => {
+          // Populate dropdown with sorted members
+          sortedMembers.forEach(member => {
               const option = document.createElement("option");
               option.value = member.member_id;
               option.textContent = `${member.member_first_name} ${member.member_last_name}`;
@@ -628,7 +635,7 @@ function showLoader() {
               // Store member details in dataset
               option.dataset.firstName = member.member_first_name;
               option.dataset.lastName = member.member_last_name;
-              option.dataset.address = member.street_address_line_1;
+              option.dataset.address = member.member_company_address;
               option.dataset.companyName = member.member_company_name;
               option.dataset.phoneNumber = member.member_phone_number;
               option.dataset.gstNumber = member.member_gst_number;
@@ -679,24 +686,23 @@ function showLoader() {
                       
                       if (matchingOrder) {
                           const baseAmount = parseFloat(matchingOrder.amount_to_pay);
-                          const gstAmount = (baseAmount * 0.18).toFixed(2); // Calculate 18% GST
-                          const halfGst = (gstAmount / 2).toFixed(2);
-                          const totalAmount = baseAmount + parseFloat(gstAmount); // Add GST to base amount
-  
-                          // Update amount fields
+                          
+                          // Update amount fields without tax initially
                           document.getElementById("rate").value = `₹ ${baseAmount.toFixed(2)}`;
                           document.getElementById("price").value = `₹ ${baseAmount.toFixed(2)}`;
                           document.getElementById("taxable-total-amount").value = `₹ ${baseAmount.toFixed(2)}`;
-                          document.getElementById("cgst_amount").value = `₹ ${halfGst}`;
-                          document.getElementById("sgst_amount").value = `₹ ${halfGst}`;
-                          document.getElementById("grand_total").value = `₹ ${totalAmount.toFixed(2)}`;
-  
+                          
+                          // Initially set tax fields to 0 or empty
+                          document.getElementById("cgst_amount").value = "₹ 0.00";
+                          document.getElementById("sgst_amount").value = "₹ 0.00";
+                          
+                          // Set grand total to base amount initially (without tax)
+                          document.getElementById("grand_total").value = `₹ ${baseAmount.toFixed(2)}`;
+
                           console.log("💰 Updated amounts:", {
                               baseAmount,
-                              gstAmount,
-                              cgst: halfGst,
-                              sgst: halfGst,
-                              totalAmount
+                              taxIncluded: false,
+                              grandTotal: baseAmount
                           });
                       }
                   } catch (error) {
@@ -771,7 +777,7 @@ function showLoader() {
               });
           });
   
-          // Add this after member selection event listener
+          // Modify the GST checkbox handler
           document.getElementById("include-gst").addEventListener("change", function() {
             const taxableAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
             const cgstField = document.getElementById("cgst_amount");
@@ -779,20 +785,21 @@ function showLoader() {
             const grandTotalField = document.getElementById("grand_total");
 
             if (this.checked) {
-              // Calculate GST (9% CGST + 9% SGST = 18% total)
-              const cgstAmount = (taxableAmount * 0.09).toFixed(2);
-              const sgstAmount = (taxableAmount * 0.09).toFixed(2);
-              const grandTotal = (taxableAmount + (parseFloat(cgstAmount) * 2)).toFixed(2);
+                // Calculate GST (9% CGST + 9% SGST = 18% total)
+                const cgstAmount = (taxableAmount * 0.09).toFixed(2);
+                const sgstAmount = (taxableAmount * 0.09).toFixed(2);
+                const grandTotal = (taxableAmount + (parseFloat(cgstAmount) * 2)).toFixed(2);
 
-              // Update fields with GST
-              cgstField.value = `₹ ${cgstAmount}`;
-              sgstField.value = `₹ ${sgstAmount}`;
-              grandTotalField.value = `₹ ${grandTotal}`;
+                // Update fields with GST
+                cgstField.value = `₹ ${cgstAmount}`;
+                sgstField.value = `₹ ${sgstAmount}`;
+                grandTotalField.value = `₹ ${grandTotal}`;
             } else {
-              // Reset GST fields
-              cgstField.value = "-";
-              sgstField.value = "-";
-              grandTotalField.value = `₹ ${taxableAmount.toFixed(2)}`;
+                // Reset GST fields to 0
+                cgstField.value = "₹ 0.00";
+                sgstField.value = "₹ 0.00";
+                // Set grand total back to base amount
+                grandTotalField.value = `₹ ${taxableAmount.toFixed(2)}`;
             }
           });
   
@@ -1170,6 +1177,16 @@ function showLoader() {
                 const grandTotal = grandTotalElement ? 
                     parseFloat(grandTotalElement.value.replace(/[₹,\s]/g, '')) : 0;
 
+                // Get invoice date and time
+                const invoiceDateIssued = document.getElementById("invoice-date-issued").value;
+                if (!invoiceDateIssued) {
+                    showToast('warning', "Please select invoice date and time");
+                    return;
+                }
+
+                // Check if GST is included
+                const isGstIncluded = document.getElementById("include-gst").checked;
+
                 let invoiceData = {
                     region_id: selectedRegionId,
                     chapter_id: selectedChapterId,
@@ -1181,8 +1198,8 @@ function showLoader() {
                     member_gstin: document.getElementById("member_gst_number").value,
                     kitty_bill_id: kittyBillId,
                     order_amount: grandTotal,
-                    tax_amount: totalTax,
-                    created_at: new Date().toISOString()
+                    tax_amount: isGstIncluded ? totalTax : 0, // Set tax_amount to 0 if GST is not included
+                    created_at: invoiceDateIssued // Use the selected invoice date and time
                 };
 
                 // Add meeting payment specific data
@@ -1223,19 +1240,13 @@ function showLoader() {
                     });
 
                     Object.assign(invoiceData, {
-                        order_amount: partialAmountWithGst,  // Will be same as amountToPay if GST not included
+                        order_amount: partialAmountWithGst,
                         partial_amount: amountToPay,
                         payment_type: "partial",
                         payment_note: "meeting-payments-partial",
-                        remaining_balance_with_gst: remainingBalanceWithGst
+                        remaining_balance_with_gst: remainingBalanceWithGst,
+                        tax_amount: includeGst ? gstOnPartial : 0 // Set tax_amount to 0 if GST is not included
                     });
-
-                    // Only include tax_amount if GST is included
-                    if (includeGst) {
-                        invoiceData.tax_amount = gstOnPartial;
-                    } else {
-                        delete invoiceData.tax_amount;
-                    }
                 } else if (selectedPaymentType === "advance") {
                     const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
                     const includeGst = document.getElementById("include-gst").checked;
@@ -1252,22 +1263,8 @@ function showLoader() {
                         order_amount: advanceWithGST,
                         payment_type: "advance",
                         payment_note: "meeting-payments-advance",
-                        advance_amount: advanceAmount
-                    });
-
-                    // Only include tax if GST is checked
-                    if (includeGst) {
-                        invoiceData.tax_amount = taxAmount;
-                    } else {
-                        delete invoiceData.tax_amount;
-                    }
-
-                    console.log("💰 Advance Payment (First Section):", {
-                        amount: advanceAmount,
-                        withGST: includeGst,
-                        finalAmount: advanceWithGST,
-                        taxAmount: taxAmount,
-                        paymentType: paymentType
+                        advance_amount: advanceAmount,
+                        tax_amount: includeGst ? taxAmount : 0 // Set tax_amount to 0 if GST is not included
                     });
                 }
 
@@ -1295,6 +1292,33 @@ function showLoader() {
                     delete invoiceData.partialAmountWithGst;
                     delete invoiceData.gstOnPartial;
                 }
+
+                // Add detailed console logging of the complete invoice data
+                console.log("📋 Complete Invoice Data to be sent:", {
+                    ...invoiceData,
+                    paymentDetails: getPaymentDetails(),
+                    memberDetails: {
+                        id: selectedOption.value,
+                        name: `${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}`,
+                        company: selectedOption.dataset.companyName,
+                        address: selectedOption.dataset.address,
+                        phone: selectedOption.dataset.phoneNumber,
+                        gst: selectedOption.dataset.gstNumber
+                    },
+                    chapterDetails: {
+                        regionId: selectedRegionId,
+                        chapterId: selectedChapterId
+                    },
+                    paymentType: selectedPaymentType,
+                    amounts: {
+                        grandTotal,
+                        totalTax,
+                        baseAmount: amountToPay,
+                        creditAmount,
+                        penaltyAmount,
+                        remainingBalance: remainingBalanceWithGst
+                    }
+                });
 
                 // Show confirmation dialog
                 console.log("🔔 Showing confirmation dialog");

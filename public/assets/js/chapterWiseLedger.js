@@ -432,7 +432,7 @@ function exportToExcel() {
       fetch("https://backend.bninewdelhi.com/api/allOrders"),
       fetch("https://backend.bninewdelhi.com/api/allTransactions"),
       fetch("https://backend.bninewdelhi.com/api/allExpenses"),
-      fetch("http://localhost:5000/api/allOtherPayment")
+      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
     ]);
 
     const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([

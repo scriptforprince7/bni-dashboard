@@ -9,6 +9,10 @@ let allChapters = []; // Store all chapters
 // Define base URL at the top of your file
 const BILL_BASE_URL = 'https://backend.bninewdelhi.com';
 
+// Add sorting state tracking
+let currentSortColumn = null;
+let currentSortDirection = 'asc';
+
 // Function to populate chapter filter dropdown
 const populateChapterFilter = async () => {
   const chapterFilter = document.getElementById('chapterFilter');
@@ -278,8 +282,6 @@ const AddExpenseType = async () => {
   }
 };
 
-
-
 // Function to display expenses in the table
 function displayExpenses(expenses) {
   console.log('Displaying expenses:', expenses);
@@ -463,4 +465,97 @@ window.addEventListener("DOMContentLoaded", async () => {
   const button = document.getElementById("sortButton");
   button.textContent = "↑ (A-Z)";
   button.setAttribute("data-sort", "asc");
+});
+
+// Function to handle column sorting
+const sortByColumn = (columnName) => {
+  console.log(`Sorting by column: ${columnName}`);
+  
+  // Toggle sort direction if clicking the same column
+  if (currentSortColumn === columnName) {
+    currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSortColumn = columnName;
+    currentSortDirection = 'asc';
+  }
+
+  // Update sort icons
+  updateSortIcons(columnName);
+
+  // Sort the expenses
+  filteredExpenses.sort((a, b) => {
+    let valueA, valueB;
+
+    switch (columnName) {
+      case 'expense_type':
+        const expenseNameA = expenseTypes.find(type => type.expense_id === a.expense_type)?.expense_name || '';
+        const expenseNameB = expenseTypes.find(type => type.expense_id === b.expense_type)?.expense_name || '';
+        valueA = expenseNameA.toLowerCase();
+        valueB = expenseNameB.toLowerCase();
+        break;
+      case 'chapter_id':
+        valueA = a.chapter_id.toLowerCase();
+        valueB = b.chapter_id.toLowerCase();
+        break;
+      case 'submitted_by':
+        valueA = a.submitted_by.toLowerCase();
+        valueB = b.submitted_by.toLowerCase();
+        break;
+      case 'description':
+        valueA = a.description.toLowerCase();
+        valueB = b.description.toLowerCase();
+        break;
+      case 'amount':
+        valueA = parseFloat(a.amount);
+        valueB = parseFloat(b.amount);
+        break;
+      case 'payment_status':
+        valueA = a.payment_status.toLowerCase();
+        valueB = b.payment_status.toLowerCase();
+        break;
+      case 'bill_date':
+        valueA = new Date(a.bill_date);
+        valueB = new Date(b.bill_date);
+        break;
+      default:
+        return 0;
+    }
+
+    if (currentSortDirection === 'asc') {
+      return valueA > valueB ? 1 : -1;
+    } else {
+      return valueA < valueB ? 1 : -1;
+    }
+  });
+
+  // Update the display
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+  displayExpenses(filteredExpenses.slice(startIndex, endIndex));
+};
+
+// Function to update sort icons
+const updateSortIcons = (activeColumn) => {
+  // Reset all icons
+  document.querySelectorAll('th i').forEach(icon => {
+    icon.className = 'ri-sort-asc';
+  });
+
+  // Update active column icon
+  const activeIcon = document.querySelector(`th[data-column="${activeColumn}"] i`);
+  if (activeIcon) {
+    activeIcon.className = currentSortDirection === 'asc' ? 'ri-sort-asc' : 'ri-sort-desc';
+  }
+};
+
+// Add click event listeners to sortable headers
+document.addEventListener('DOMContentLoaded', () => {
+  const sortableHeaders = document.querySelectorAll('th[data-column]');
+  sortableHeaders.forEach(header => {
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', () => {
+      const columnName = header.getAttribute('data-column');
+      sortByColumn(columnName);
+    });
+  });
 });

@@ -46,7 +46,7 @@ async function fetchAllOrders() {
             }
 
             // Check for visitor-payment case
-            if (order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment") {
+            if (order.payment_note === "visitor-payment") {
                 console.log('🛬 Handling Visitor Payment case');
                 console.log('Visitor Name:', order.visitor_name);
                 console.log('Visitor Email:', order.visitor_email);

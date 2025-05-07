@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Form data being sent:', Object.fromEntries(formData));
 
         // Send to backend
-        const response = await fetch('http://localhost:5000/api/addChapterPayment', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/addChapterPayment', {
           method: 'POST',
           body: formData // Do not set Content-Type header, browser will set it automatically with boundary
         });

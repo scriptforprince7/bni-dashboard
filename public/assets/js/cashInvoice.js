@@ -395,6 +395,14 @@ document.addEventListener("DOMContentLoaded", async function() {
               if (sgstRow) sgstRow.style.display = 'none';
               console.log("✅ Hidden CGST and SGST rows");
 
+              // Set GST amount to 0 initially
+              document.getElementById("cgst_amount").value = "₹ 0.00";
+              document.getElementById("sgst_amount").value = "₹ 0.00";
+              
+              // Set grand total equal to visitor fee (without tax)
+              document.getElementById("grand_total").value = `₹ ${visitorFee.toFixed(2)}`;
+              console.log("✅ Set initial grand total without tax");
+
               // Calculate GST (18%)
               const gstAmount = visitorFee * 0.18;
               console.log("💰 GST Amount (18%):", gstAmount);
@@ -433,17 +441,6 @@ document.addEventListener("DOMContentLoaded", async function() {
               } else if (gstRow) {
                 document.getElementById('gst-18-amount').value = `₹ ${gstAmount.toFixed(2)}`;
                 console.log("✅ Updated GST Amount");
-              }
-
-              // Calculate and update Grand Total (Visitor Fee + GST)
-              const grandTotal = visitorFee + gstAmount;
-              const grandTotalField = document.getElementById('grand_total');
-              if (grandTotalField) {
-                grandTotalField.value = `₹ ${grandTotal.toFixed(2)}`;
-                grandTotalField.style.display = 'block'; // Make sure the input field is visible
-                console.log("✅ Updated Grand Total:", grandTotal.toFixed(2));
-              } else {
-                console.error("❌ Grand Total field not found!");
               }
 
             } catch (error) {
@@ -590,24 +587,34 @@ document.addEventListener("DOMContentLoaded", async function() {
             return;
         }
 
-        // Rest of your existing dropdown code remains unchanged
+        // Clear existing options
         memberDropdown.innerHTML = `<option selected>Select Member</option>`;
+        
+        // Filter members by chapter
         const filteredMembers = allMembers.filter(member => member.chapter_id == chapterId);
         
-        console.log("👥 Available Members:", filteredMembers.map(member => ({
+        // Sort members alphabetically by full name
+        const sortedMembers = filteredMembers.sort((a, b) => {
+            const nameA = `${a.member_first_name} ${a.member_last_name}`.toLowerCase();
+            const nameB = `${b.member_first_name} ${b.member_last_name}`.toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
+        console.log("👥 Sorted Members:", sortedMembers.map(member => ({
             id: member.member_id,
             name: `${member.member_first_name} ${member.member_last_name}`,
             company: member.member_company_name
         })));
 
-        filteredMembers.forEach(member => {
+        // Add sorted members to dropdown
+        sortedMembers.forEach(member => {
             const option = document.createElement("option");
             option.value = member.member_id;
             option.textContent = `${member.member_first_name} ${member.member_last_name}`;
             // Store full details in dataset
             option.dataset.firstName = member.member_first_name;
             option.dataset.lastName = member.member_last_name;
-            option.dataset.address = member.street_address_line_1;
+            option.dataset.address = member.member_company_address;
             option.dataset.companyName = member.member_company_name;
             option.dataset.phoneNumber = member.member_phone_number;
             option.dataset.gstNumber = member.member_gst_number;
@@ -652,30 +659,29 @@ document.addEventListener("DOMContentLoaded", async function() {
     const companyPhone = document.getElementById("company-phone");
     const companyGst = document.getElementById("company-gst");
 
-    // Populate company dropdown
-    companies.forEach(company => {
-      const companyOption = document.createElement("option");
-      companyOption.value = company.company_id; // Assuming there's a company_id field
-      companyOption.textContent = company.company_name; // Assuming there's a company_name field
-      companyDropdown.appendChild(companyOption);
-    });
+    // Clear existing options and add only ADI CORPORATE TRAINING
+    if (companyDropdown) {
+        companyDropdown.innerHTML = ''; // Clear existing options
+        
+        // Add the fixed company option
+        const companyOption = document.createElement("option");
+        companyOption.value = "ADI CORPORATE TRAINING";
+        companyOption.textContent = "ADI CORPORATE TRAINING";
+        companyDropdown.appendChild(companyOption);
 
-    // Event listener to update fields on company selection
-    companyDropdown.addEventListener("change", function() {
-      const selectedCompany = companies.find(c => c.company_id == this.value);
-      if (selectedCompany) {
-        companyAddress.value = selectedCompany.company_address || "";
-        companyMail.value = selectedCompany.company_email || "";
-        companyPhone.value = selectedCompany.company_phone || "";
-        companyGst.value = selectedCompany.company_gst || "";
-      } else {
-        // Clear fields if no company is selected
-        companyAddress.value = "";
-        companyMail.value = "";
-        companyPhone.value = "";
-        companyGst.value = "";
-      }
-    });
+        // Set fixed company details
+        if (companyAddress) companyAddress.value = "Dda Sfs Flat, Flat No 12, Pocket 1, Sector 19, Dwarka New Delhi, Delhi, 110075 India";
+        if (companyMail) companyMail.value = "sunilk@bni-india.in";
+        if (companyPhone) companyPhone.value = "9899789340";
+        if (companyGst) companyGst.value = "07AHIPK0486D1ZH";
+
+        // Make fields read-only
+        if (companyAddress) companyAddress.readOnly = true;
+        if (companyMail) companyMail.readOnly = true;
+        if (companyPhone) companyPhone.readOnly = true;
+        if (companyGst) companyGst.readOnly = true;
+    }
+
     // Fetch universal link data
     const response = await fetch(
       "https://backend.bninewdelhi.com/api/universalLinks"
@@ -1285,7 +1291,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     visitor_company_address: document.getElementById('visitor-company-address').value,
                     particulars: "Visitors Payment",
                     taxable_amount: document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
-                    gst_amount: document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0',
+                    gst_amount: document.getElementById('include-gst').checked ? 
+                        document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0' : '0',
                     total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
                     mode_of_payment: getPaymentDetails().mode_of_payment,
                     region_id: selectedRegionId,
@@ -1364,7 +1371,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         confirmButtonText: 'View Transactions'
                     });
 
-                    window.location.href = '/t/all-transactions';
+                    window.location.href = '/trans/manage-transactions';
                 } else {
                     throw new Error(responseData.message || 'Failed to process visitor payment');
                 }
