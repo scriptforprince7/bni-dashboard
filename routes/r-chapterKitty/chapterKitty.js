@@ -12,5 +12,6 @@ router.get('/chapter-memberRightOff', chapterKitty.chapterMemberRightOff);
 router.get('/chapter-memberWiseKitty', chapterKitty.chapterMemberWiseKitty);
 router.get('/chapter-memberRightOffManagement', chapterKitty.memberRightOffManagement);
 router.get('/chapter-wiseLedger', chapterKitty.chapterWiseLedger);
+router.get('/chapter-addPayment', chapterKitty.chapterAddPayment);
 
 module.exports = router;

@@ -33,3 +33,7 @@ exports.memberRightOffManagement = (req, res) => {
 exports.chapterWiseLedger = (req, res) => {
     res.render('m-chapterKitty/chapter-wiseLedger', { title: 'Chapter Wise Ledger' });
 };
+
+exports.chapterAddPayment = (req, res) => {
+    res.render('m-chapterKitty/chapter-addPayment', { title: 'Chapter Add Payment' });
+};
