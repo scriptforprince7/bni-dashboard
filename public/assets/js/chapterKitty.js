@@ -970,6 +970,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                               parseFloat(visitorAmountTotal) +
                               parseFloat(totalReceivedAmount);
 
+    // Store the values as data attributes
+    const totalAvailableElement = document.querySelector("#total_available_amount");
+    if (totalAvailableElement) {
+      totalAvailableElement.setAttribute('data-opening-balance', available_fund);
+      totalAvailableElement.setAttribute('data-meeting-payments', totalReceivedAmount);
+      totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
+      totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
+    }
+
     // Update UI with total available amount
     document.querySelector("#total_available_amount").textContent =
       indianCurrencyFormatter.format(totalAvailableAmount);
@@ -1645,3 +1654,58 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
 
   return totalManualAmount;
 }
+
+// Function to update fund breakdown modal
+function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense) {
+  // Get modal elements
+  const openingBalance = document.getElementById('modal-opening-balance');
+  const meetingPayments = document.getElementById('modal-meeting-payments');
+  const visitorPayments = document.getElementById('modal-visitor-payments');
+  const otherPayments = document.getElementById('modal-other-payments');
+  const paidExpenses = document.getElementById('modal-paid-expenses');
+  const totalAvailable = document.getElementById('modal-total-available');
+
+  // Format currency
+  const formatter = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  });
+
+  // Update modal values
+  openingBalance.textContent = formatter.format(parseFloat(available_fund || 0));
+  meetingPayments.textContent = formatter.format(totalReceivedAmount || 0);
+  visitorPayments.textContent = formatter.format(visitorAmountTotal || 0);
+  otherPayments.textContent = formatter.format(0); // Placeholder for other payments
+  paidExpenses.textContent = formatter.format(total_paid_expense || 0);
+  
+  // Calculate and display total
+  const total = parseFloat(available_fund || 0) + 
+                parseFloat(totalReceivedAmount || 0) + 
+                parseFloat(visitorAmountTotal || 0) - 
+                parseFloat(total_paid_expense || 0);
+  
+  totalAvailable.textContent = formatter.format(total);
+}
+
+// Update the click handler for total available amount
+document.addEventListener('DOMContentLoaded', function() {
+  const totalAvailableAmount = document.getElementById('total_available_amount');
+  if (totalAvailableAmount) {
+    totalAvailableAmount.addEventListener('click', function() {
+      // Get the current values
+      const available_fund = parseFloat(this.getAttribute('data-opening-balance') || 0);
+      const totalReceivedAmount = parseFloat(this.getAttribute('data-meeting-payments') || 0);
+      const visitorAmountTotal = parseFloat(this.getAttribute('data-visitor-payments') || 0);
+      const total_paid_expense = parseFloat(this.getAttribute('data-paid-expenses') || 0);
+
+      // Update the modal
+      updateFundBreakdownModal(
+        available_fund,
+        totalReceivedAmount,
+        visitorAmountTotal,
+        total_paid_expense
+      );
+    });
+  }
+});

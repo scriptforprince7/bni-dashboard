@@ -314,7 +314,7 @@
                             >Total Available Fund</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            <b><span class="total_Available_amount" id="total_available_amount">-</span></b>
+                            <b><span class="total_Available_amount" id="total_available_amount" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#fundBreakdownModal" data-opening-balance="0" data-meeting-payments="0" data-visitor-payments="0" data-paid-expenses="0" data-manual-payments="0">-</span></b>
                           </h4>
                           <div class="d-flex align-items-center mt-2">
                             <span class="badge bg-primary-transparent me-1" style="padding: 4px 8px; border-radius: 12px;">
@@ -827,3 +827,50 @@
       <script src="../../assets/js/tokenUtils.js"></script>
 
       <%- include('../partials/footer') %> 
+
+<!-- Fund Breakdown Modal -->
+<div class="modal fade" id="fundBreakdownModal" tabindex="-1" aria-labelledby="fundBreakdownModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fundBreakdownModalLabel">Total Available Fund Breakdown</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <tbody>
+              <tr>
+                <td><strong>Opening Balance</strong></td>
+                <td class="text-end" id="modal-opening-balance">-</td>
+              </tr>
+              <tr>
+                <td><strong>Meeting Payments</strong></td>
+                <td class="text-end" id="modal-meeting-payments">-</td>
+              </tr>
+              <tr>
+                <td><strong>Visitor Payments</strong></td>
+                <td class="text-end" id="modal-visitor-payments">-</td>
+              </tr>
+              <tr>
+                <td><strong>Other Payments</strong></td>
+                <td class="text-end" id="modal-other-payments">-</td>
+              </tr>
+              <tr>
+                <td><strong>Paid Expenses</strong></td>
+                <td class="text-end text-danger" id="modal-paid-expenses">-</td>
+              </tr>
+              <tr class="table-primary">
+                <td><strong>Total Available Fund</strong></td>
+                <td class="text-end" id="modal-total-available">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div> 
