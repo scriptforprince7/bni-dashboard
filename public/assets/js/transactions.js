@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  // Add this at the start of the script
+  let otherPayments = [];
+  try {
+    const response = await fetch('https://backend.bninewdelhi.com/api/allOtherPayment');
+    otherPayments = await response.json();
+    console.log('Loaded other payments:', otherPayments);
+  } catch (error) {
+    console.error('Error loading other payments:', error);
+  }
 
   const regionsDropdown = document.getElementById("region-filter");
   const chaptersDropdown = document.getElementById("chapter-filter");
@@ -637,42 +646,82 @@ const filteredTransactions = transactions.filter((transaction) => {
       // Function to get member name with console logging
       const getMemberName = (order, universalLinkName) => {
         console.log('💡 Member Name Check:', {
-            'Order Details': order,
-            'Link Type': universalLinkName,
-            'Visitor Name': order?.visitor_name,
-            'Member Name': order?.member_name,
-            'Payment Note': order?.payment_note
+          'Order Details': order,
+          'Link Type': universalLinkName,
+          'Visitor Name': order?.visitor_name,
+          'Member Name': order?.member_name,
+          'Payment Note': order?.payment_note
         });
 
         // Trim the universalLinkName to handle any extra spaces
         const linkType = universalLinkName?.trim();
 
+        if (order?.payment_note === "other-payment") {
+          // For other-payment, we need to match based on amount and chapter_id
+          const transaction = transactions.find(t => t.order_id === order.order_id);
+          if (!transaction) {
+            console.log('No matching transaction found for order:', order.order_id);
+            return "Unknown";
+          }
+
+          const amount = parseFloat(transaction.payment_amount);
+          const chapterId = parseInt(order.chapter_id);
+          
+          console.log('Matching criteria:', {
+            orderId: order.order_id,
+            amount: amount,
+            chapterId: chapterId
+          });
+
+          // Find the matching payment from the already fetched otherPayments
+          const otherPayment = otherPayments.find(payment => {
+            const paymentAmount = parseFloat(payment.total_amount);
+            const paymentChapterId = parseInt(payment.chapter_id);
+            
+            console.log('Comparing:', {
+              paymentAmount: paymentAmount,
+              paymentChapterId: paymentChapterId,
+              matches: paymentAmount === amount && paymentChapterId === chapterId
+            });
+            
+            return paymentAmount === amount && paymentChapterId === chapterId;
+          });
+
+          console.log('Found other payment:', otherPayment);
+          
+          if (otherPayment) {
+            return otherPayment.added_by;
+          }
+          return "Unknown";
+        }
+
         if (
           order?.payment_note === "visitor-payment" ||
           order?.payment_note === "Visitor Payment"
-      ) {
+        ) {
           return `
-              <div style="display: flex; flex-direction: column; gap: 4px;">
-                  <span style="font-weight: 500;">${order?.visitor_name || "Unknown Visitor"}</span>
-                  ${order?.member_name ? `
-                      <div style="display: flex; align-items: center; font-size: 0.85em; color: black;">
-                          Invited by - 
-                          <div style="display: flex; align-items: center; margin-left: 4px;">
-                              <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
-                              ${order.member_name}
-                          </div>
-                      </div>
-                  ` : ''}
-              </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-weight: 500;">${order?.visitor_name || "Unknown Visitor"}</span>
+              ${order?.member_name ? `
+                <div style="display: flex; align-items: center; font-size: 0.85em; color: black;">
+                  Invited by - 
+                  <div style="display: flex; align-items: center; margin-left: 4px;">
+                    <i class="ri-user-follow-line" style="margin-right: 4px;"></i>
+                    ${order.member_name}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
           `;
-      }
-      if (order?.payment_note === "New Member Payment") {
+        }
+
+        if (order?.payment_note === "New Member Payment") {
           return `
-              <div>
-                  <span style="font-weight: 100;">${order?.visitor_name || "Unknown Visitor"}</span>
-              </div>
+            <div>
+              <span style="font-weight: 100;">${order?.visitor_name || "Unknown Visitor"}</span>
+            </div>
           `;
-      }
+        }
 
         // For all other cases, return just the member name
         return order?.member_name || "Unknown";
