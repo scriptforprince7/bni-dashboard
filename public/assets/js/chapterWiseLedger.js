@@ -615,14 +615,14 @@ function exportToExcel() {
                        <div>
                          <span style="color: #4CAF50; font-weight: 500;">${payment.payment_description}</span><br>
                          <small class="text-muted">
-                           By: ${payment.added_by} | Online
+                           By: ${payment.added_by} | ${payment.mode_of_payment}
                          </small>
                        </div>
                      </div>`,
         amount: baseAmount,
         gst: gstAmount,
         totalAmount: totalAmount,
-        modeOfPayment: "Online",
+        modeOfPayment: payment.mode_of_payment,
         submittedBy: payment.added_by
       });
     });
