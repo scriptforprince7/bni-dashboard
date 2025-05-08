@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     try {
         showLoader();
         // Fetch the universal link details
-        const response = await fetch(`http://backend.bninewdelhi.com/api/getUniversalLink/${universalLinkId}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/api/getUniversalLink/${universalLinkId}`);
         if (!response.ok) throw new Error('Error fetching universal link details');
         
         const universalLink = await response.json();
 
-        const gatewayResponse = await fetch('http://backend.bninewdelhi.com/api/paymentGateway');
+        const gatewayResponse = await fetch('https://backend.bninewdelhi.com/api/paymentGateway');
         if (!gatewayResponse.ok) throw new Error('Error fetching payment gateways');
         const paymentGateways = await gatewayResponse.json();
 
@@ -96,7 +96,7 @@ const updateLinkData = async () => {
 
         try {
             showLoader(); // Show the loader when sending data
-            const response = await fetch(`http://backend.bninewdelhi.com/api/updateUniversalLink/${universalLinkId}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/updateUniversalLink/${universalLinkId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -480,7 +480,7 @@ function hideLoader() {
   // Function to fetch hotels
   async function fetchHotels() {
     try {
-      const response = await fetch('http://backend.bninewdelhi.com/api/getHotels');
+      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
       if (!response.ok) throw new Error('Failed to fetch hotels');
       return await response.json();
     } catch (error) {
@@ -540,7 +540,7 @@ function hideLoader() {
   // Function to fetch vendors
   async function fetchVendors() {
     try {
-      const response = await fetch('http://backend.bninewdelhi.com/api/getAllVendors');
+      const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
       if (!response.ok) throw new Error('Failed to fetch vendors');
       return await response.json();
     } catch (error) {
@@ -764,7 +764,7 @@ function hideLoader() {
 
   // Add this new code to prefill submitted_by field
   try {
-    const response = await fetch("http://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await response.json();
     
     // Find matching chapter by email
@@ -793,7 +793,7 @@ function hideLoader() {
 
   // Fetch data for "Type of Expense"
   try {
-    const response = await fetch("http://backend.bninewdelhi.com/api/expenseType");
+    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
     const data = await response.json();
     console.log("Expense Types:", data);
     const expenseTypeDropdown = document.getElementById("expense_type");
@@ -818,7 +818,7 @@ function hideLoader() {
   // Fetch and populate chapters dropdown
   try {
     console.log('Fetching chapters data...');
-    const response = await fetch("http://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await response.json();
     console.log("All available chapters:", chapters);
 
@@ -1006,7 +1006,7 @@ function hideLoader() {
 
       // Show loader and make API call
       showLoader();
-      const response = await fetch("http://backend.bninewdelhi.com/api/addExpense", {
+      const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
         method: "POST",
         body: formData,
       });
@@ -1124,7 +1124,7 @@ function hideLoader() {
       showLoader();
 
       // Send data as JSON instead of FormData
-      const response = await fetch('http://backend.bninewdelhi.com/api/addVendor', {
+      const response = await fetch('https://backend.bninewdelhi.com/api/addVendor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

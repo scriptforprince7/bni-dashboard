@@ -1,8 +1,8 @@
-const apiUrl = 'http://backend.bninewdelhi.com/api/members';
-const chaptersApiUrl = 'http://backend.bninewdelhi.com/api/chapters'; 
-// const regionsApiUrl = 'http://backend.bninewdelhi.com/api/regions';
-const categoriesApiUrl = 'http://backend.bninewdelhi.com/api/memberCategory';
-const accoladesApiUrl = 'http://backend.bninewdelhi.com/api/accolades';
+const apiUrl = 'https://backend.bninewdelhi.com/api/members';
+const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
+// const regionsApiUrl = 'https://backend.bninewdelhi.com/api/regions';
+const categoriesApiUrl = 'https://backend.bninewdelhi.com/api/memberCategory';
+const accoladesApiUrl = 'https://backend.bninewdelhi.com/api/accolades';
 let chaptersMap = {};
 let allMembers = []; 
 
@@ -369,7 +369,7 @@ async function fetchMembers() {
         });
 
         // Fetch all members
-        const response = await fetch("http://backend.bninewdelhi.com/api/members");
+        const response = await fetch("https://backend.bninewdelhi.com/api/members");
         if (!response.ok) throw new Error('Network response was not ok');
         
         const allMembersData = await response.json();
@@ -507,7 +507,7 @@ function displayMembers(members) {
             
             // Add photo URL handling like in script.js
             const photoUrl = member.member_photo 
-                ? `http://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`
+                ? `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`
                 : null;
             
             console.log('Photo processing for member:', {
@@ -730,7 +730,7 @@ const deleteMember = async (member_id) => {
   if (result.isConfirmed) {
       try {
           showLoader();  // Show loading indicator
-          const response = await fetch(`http://backend.bninewdelhi.com/api/deleteMember/${member_id}`, {
+          const response = await fetch(`https://backend.bninewdelhi.com/api/deleteMember/${member_id}`, {
               method: 'PUT',
           });
 

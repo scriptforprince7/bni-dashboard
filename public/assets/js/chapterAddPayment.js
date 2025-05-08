@@ -101,7 +101,7 @@ async function initializePage() {
     }
 
     // Fetch chapters
-    const chaptersResponse = await fetch("http://backend.bninewdelhi.com/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log("Chapters data received:", chapters.length, "chapters");
 
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Payment data being sent:', paymentData);
 
         // Send to backend
-        const response = await fetch('http://backend.bninewdelhi.com/api/addChapterPayment', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/addChapterPayment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

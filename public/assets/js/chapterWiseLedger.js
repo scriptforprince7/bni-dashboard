@@ -380,7 +380,7 @@ function exportToExcel() {
 
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
-    const chaptersResponse = await fetch("http://backend.bninewdelhi.com/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log("Chapters data received:", chapters.length, "chapters");
 
@@ -429,10 +429,10 @@ function exportToExcel() {
     // Fetch all orders, transactions and expenses
     console.log("Fetching transactions data...");
     const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
-      fetch("http://backend.bninewdelhi.com/api/allOrders"),
-      fetch("http://backend.bninewdelhi.com/api/allTransactions"),
-      fetch("http://backend.bninewdelhi.com/api/allExpenses"),
-      fetch("http://backend.bninewdelhi.com/api/allOtherPayment")
+      fetch("https://backend.bninewdelhi.com/api/allOrders"),
+      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
+      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
     ]);
 
     const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([

@@ -1005,8 +1005,8 @@
 
       <script>
         document.addEventListener("DOMContentLoaded", function() {
-  const regionsApiUrl = 'http://backend.bninewdelhi.com/api/regions';
-  const accoladesApiUrl = 'http://backend.bninewdelhi.com/api/accolades';
+  const regionsApiUrl = 'https://backend.bninewdelhi.com/api/regions';
+  const accoladesApiUrl = 'https://backend.bninewdelhi.com/api/accolades';
   const chapterNameInput = document.getElementById('chapter_name');
   const regionSelect = document.getElementById('region_id');
   const eoiLinkInput = document.getElementById('eoi_link');
@@ -1151,7 +1151,7 @@
             if (selectedRegion.hotel_id && Array.isArray(selectedRegion.hotel_id)) {
                 console.log('🏨 Region Hotels IDs:', selectedRegion.hotel_id);
 
-                fetch('http://backend.bninewdelhi.com/api/getHotels')
+                fetch('https://backend.bninewdelhi.com/api/getHotels')
                     .then(response => response.json())
                     .then(hotels => {
                         console.log('📥 All Hotels:', hotels);
@@ -1335,7 +1335,7 @@
         
         console.log('🚀 Sending data to server...');
 
-        const response = await fetch('http://backend.bninewdelhi.com/api/chapters', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters', {
             method: 'POST',
             body: formData
         });
@@ -1525,7 +1525,7 @@ document.getElementById("addHotelButton").addEventListener("click", function() {
                 return false;
             }
 
-            return fetch('http://backend.bninewdelhi.com/api/addHotelToRegion', {
+            return fetch('https://backend.bninewdelhi.com/api/addHotelToRegion', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1563,7 +1563,7 @@ document.getElementById("addHotelButton").addEventListener("click", function() {
 function fetchAndDisplayHotels() {
     const selectedRegionId = document.getElementById('region_id').value;
 
-    fetch("http://backend.bninewdelhi.com/api/getHotels")
+    fetch("https://backend.bninewdelhi.com/api/getHotels")
         .then((response) => response.json())
         .then((data) => {
             const hotelsContainer = document.getElementById("hotelsContainer");

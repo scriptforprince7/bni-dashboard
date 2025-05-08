@@ -4,7 +4,7 @@ const monthsDropdown = document.getElementById('month-filter');
 const applyFilterBtn = document.getElementById('apply-filters-btn');
 const resetFilterBtn = document.getElementById('reset-filters-btn');
 const loader = document.getElementById('loader');
-const trainingsApiUrl = 'http://backend.bninewdelhi.com/api/allTrainings';
+const trainingsApiUrl = 'https://backend.bninewdelhi.com/api/allTrainings';
 const searchInput = document.getElementById('searchAccolades');
 const yearsDropdown = document.getElementById('year-filter');
 
@@ -222,7 +222,7 @@ async function fetchRegistrationCount(training_id) {
     console.log(`Fetching registration count for training_id: ${training_id}`);
     try {
         // Fetch all orders
-        const ordersResponse = await fetch('http://backend.bninewdelhi.com/api/allOrders');
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         const orders = await ordersResponse.json();
         console.log(`Found ${orders.length} total orders`);
 
@@ -240,7 +240,7 @@ async function fetchRegistrationCount(training_id) {
         console.log(`Order IDs to check for training ${training_id}:`, orderIds);
 
         // Fetch all transactions
-        const transactionsResponse = await fetch('http://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         const transactions = await transactionsResponse.json();
         console.log(`Found ${transactions.length} total transactions`);
 
@@ -283,7 +283,7 @@ function renderTrainings(trainingsToShow) {
     updateTotalTrainingsCount(trainingsToShow.length);
 
     // Fetch hotels data first
-    fetch('http://backend.bninewdelhi.com/api/getHotels')
+    fetch('https://backend.bninewdelhi.com/api/getHotels')
         .then(response => response.json())
         .then(hotels => {
             trainingsToShow.forEach(async (training, index) => {
@@ -381,9 +381,9 @@ async function openMailDialog(trainingId) {
         // Fetch all required data
         console.log('📡 Fetching required data from APIs...');
         const [regions, chapters, members] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/regions').then(res => res.json()),
-            fetch('http://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
-            fetch('http://backend.bninewdelhi.com/api/members').then(res => res.json())
+            fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json()),
+            fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
+            fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json())
         ]);
 
         console.log('✅ Data fetched successfully:', {
@@ -486,7 +486,7 @@ async function openMailDialog(trainingId) {
             console.log('📧 Selected member details:', selectedMemberDetails);
 
             try {
-                const response = await fetch('http://backend.bninewdelhi.com/api/sendTrainingMails', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/sendTrainingMails', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

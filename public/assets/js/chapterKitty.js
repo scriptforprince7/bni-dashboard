@@ -12,7 +12,7 @@ let visitorAmountTotal = 0;
 async function populateGatewayFilter() {
   try {
     const response = await fetch(
-      "http://backend.bninewdelhi.com/api/paymentGateway"
+      "https://backend.bninewdelhi.com/api/paymentGateway"
     );
     const gateways = await response.json();
 
@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Get chapter_id from chapters API
       const chaptersResponse = await fetch(
-        "http://backend.bninewdelhi.com/api/chapters"
+        "https://backend.bninewdelhi.com/api/chapters"
       );
       const chapters = await chaptersResponse.json();
       const chapter = chapters.find(ch =>
@@ -279,7 +279,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Fetch write-off data and calculate total
     console.log("Fetching write-off data for chapter:", chapter_id);
     const writeoffResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/getAllMemberWriteOff"
+      "https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
     );
     const writeoffData = await writeoffResponse.json();
 
@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
     const chapterResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/chapters"
+      "https://backend.bninewdelhi.com/api/chapters"
     );
     const chaptersData = await chapterResponse.json();
     console.log("Chapters data received:", chaptersData.length, "chapters");
@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
     const membersResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/members"
+      "https://backend.bninewdelhi.com/api/members"
     );
     const allMembers = await membersResponse.json();
     const chapterMembersWithBalance = allMembers.filter(
@@ -348,7 +348,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // console.log("chapter member",chapterMembersWithBalance);
 
     const bankOrderResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/getbankOrder"
+      "https://backend.bninewdelhi.com/api/getbankOrder"
     );
     const bankOrders = await bankOrderResponse.json();
     console.log("Bank Orders Data:", bankOrders);
@@ -393,7 +393,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Continue with existing code
     const expenseResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/allExpenses"
+      "https://backend.bninewdelhi.com/api/allExpenses"
     );
     const expenses = await expenseResponse.json();
     console.log("expense", expenses);
@@ -413,7 +413,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Total Paid Expense:", total_paid_expense);
 
     const creditResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/getAllMemberCredit"
+      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
     );
     const memberCredits = await creditResponse.json();
     console.log("Member Credits Data:", memberCredits);
@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/getKittyPayments"
+      "https://backend.bninewdelhi.com/api/getKittyPayments"
     );
     const kittyPayments = await kittyResponse.json();
     const chapterKittyPayment = kittyPayments.find(
@@ -476,7 +476,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
       } else {
         const ordersResponse = await fetch(
-          "http://backend.bninewdelhi.com/api/allOrders"
+          "https://backend.bninewdelhi.com/api/allOrders"
         );
         const allOrders = await ordersResponse.json();
 
@@ -524,7 +524,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // else 0
         else {
           const transactionsResponse = await fetch(
-            "http://backend.bninewdelhi.com/api/allTransactions"
+            "https://backend.bninewdelhi.com/api/allTransactions"
           );
           const allTransactions = await transactionsResponse.json();
           console.log("Fetched Transactions:", allTransactions);
@@ -676,11 +676,257 @@ document.addEventListener("DOMContentLoaded", async function () {
                                     parseFloat(visitorAmountTotal) +
                                     parseFloat(totalReceivedAmount);
 
-          // Update UI with total available amount
-          document.querySelector("#total_available_amount").textContent =
-            indianCurrencyFormatter.format(totalAvailableAmount);
+          // Initialize otherPaymentsTotal
+          let otherPaymentsTotal = 0;
 
-          return;
+          // Store the values as data attributes
+          const totalAvailableElement = document.querySelector("#total_available_amount");
+          if (totalAvailableElement) {
+            totalAvailableElement.setAttribute('data-opening-balance', available_fund);
+            totalAvailableElement.setAttribute('data-meeting-payments', totalReceivedAmount);
+            totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
+            totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
+            totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
+            
+            // Update UI with total available amount
+            totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
+
+            // Add click handler for modal if not already added
+            if (!totalAvailableElement.hasAttribute('data-modal-handler-added')) {
+              totalAvailableElement.addEventListener('click', function() {
+                // Get the current values
+                const available_fund = parseFloat(this.getAttribute('data-opening-balance') || 0);
+                const totalReceivedAmount = parseFloat(this.getAttribute('data-meeting-payments') || 0);
+                const visitorAmountTotal = parseFloat(this.getAttribute('data-visitor-payments') || 0);
+                const total_paid_expense = parseFloat(this.getAttribute('data-paid-expenses') || 0);
+                const otherPaymentsTotal = parseFloat(this.getAttribute('data-other-payments') || 0);
+
+                // Update the modal
+                updateFundBreakdownModal(
+                  available_fund,
+                  totalReceivedAmount,
+                  visitorAmountTotal,
+                  total_paid_expense,
+                  otherPaymentsTotal
+                );
+              });
+              totalAvailableElement.setAttribute('data-modal-handler-added', 'true');
+            }
+          }
+
+          // Update the fund breakdown modal
+          updateFundBreakdownModal(
+            available_fund,
+            totalReceivedAmount,
+            visitorAmountTotal,
+            total_paid_expense,
+            otherPaymentsTotal
+          );
+
+          // Populate all filter dropdowns
+          await populateGatewayFilter();
+          populateMonthFilter();
+          populatePgStatusFilter();
+          populateMethodFilter();
+
+          // Add click event listener for PG Status filter
+          document
+            .getElementById("payment-status-filter")
+            .addEventListener("click", function (e) {
+              if (e.target.classList.contains("dropdown-item")) {
+                selectedPgStatus = e.target.dataset.status;
+
+                // Update dropdown button text
+                const dropdownButton = e.target
+                  .closest(".dropdown")
+                  .querySelector(".dropdown-toggle");
+                dropdownButton.textContent = selectedPgStatus;
+              }
+            });
+
+          // Add click event listener for Method filter
+          document
+            .getElementById("payment-method-filter")
+            .addEventListener("click", function (e) {
+              if (e.target.classList.contains("dropdown-item")) {
+                selectedMethod = e.target.dataset.method;
+
+                // Update dropdown button text
+                const dropdownButton = e.target
+                  .closest(".dropdown")
+                  .querySelector(".dropdown-toggle");
+                dropdownButton.textContent = selectedMethod.toUpperCase();
+              }
+            });
+
+          // Add click event listener for apply filter button
+          document
+            .getElementById("apply-filters-btn")
+            .addEventListener("click", function () {
+              filterTable();
+            });
+
+          // Update reset filter button click handler
+          document
+            .getElementById("reset-filters-btn")
+            .addEventListener("click", function () {
+              // Reset all filter variables
+              selectedGateway = null;
+              selectedMonth = null;
+              selectedPgStatus = null;
+              selectedMethod = null;
+
+              // Reset all dropdown texts
+              const gatewayDropdown = document.querySelector(
+                '[data-bs-toggle="dropdown"]'
+              );
+              gatewayDropdown.innerHTML =
+                '<i class="ti ti-sort-descending-2 me-1"></i> Gateway';
+
+              const monthDropdown = document
+                .getElementById("month-filter")
+                .closest(".dropdown")
+                .querySelector(".dropdown-toggle");
+              monthDropdown.innerHTML =
+                '<i class="ti ti-sort-descending-2 me-1"></i> Month';
+
+              const statusDropdown = document
+                .getElementById("payment-status-filter")
+                .closest(".dropdown")
+                .querySelector(".dropdown-toggle");
+              statusDropdown.innerHTML =
+                '<i class="ti ti-sort-descending-2 me-1"></i> PG Status';
+
+              const methodDropdown = document
+                .getElementById("payment-method-filter")
+                .closest(".dropdown")
+                .querySelector(".dropdown-toggle");
+              methodDropdown.innerHTML =
+                '<i class="ti ti-sort-descending-2 me-1"></i> Method';
+
+              // Show all rows
+              const tableBody = document.getElementById("paymentsTableBody");
+              const rows = tableBody.getElementsByTagName("tr");
+              for (let row of rows) {
+                row.style.display = "";
+              }
+
+              // Remove any "no results" message
+              const noResultsMsg = document.getElementById("no-results-message");
+              if (noResultsMsg) {
+                noResultsMsg.remove();
+              }
+            });
+
+          // Render recent successful payments
+          renderRecentSuccessfulPayments(allTransactions, allOrders, document.getElementById("paymentsTableBody"), chapter_id);
+
+          // --- Add sorting logic for table headers with icons ---
+          const table = document.getElementById('paymentsTableBody').closest('table');
+          if (!table) return;
+
+          // Helper: get cell value
+          function getCellValue(row, idx) {
+            const cell = row.children[idx];
+            if (!cell) return '';
+            // Remove HTML tags for icon columns
+            return cell.textContent.trim();
+          }
+
+          // Helper: compare function for sorting
+          function comparer(idx, type, asc) {
+            return function (a, b) {
+              let v1 = getCellValue(asc ? a : b, idx);
+              let v2 = getCellValue(asc ? b : a, idx);
+
+              // Numeric sort for amount columns
+              if (type === 'number') {
+                v1 = parseFloat(v1.replace(/[^0-9.]/g, '')) || 0;
+                v2 = parseFloat(v2.replace(/[^0-9.]/g, '')) || 0;
+                return v1 - v2;
+              }
+              // Date sort for date columns (assume dd/mm/yyyy)
+              if (type === 'date') {
+                const parseDate = (str) => {
+                  const [d, m, y] = str.split('/');
+                  return new Date(`20${y.length === 2 ? y : y.slice(-2)}`, m - 1, d);
+                };
+                return parseDate(v1) - parseDate(v2);
+              }
+              // String sort
+              return v1.localeCompare(v2);
+            };
+          }
+
+          // Add click event to sort icons
+          table.querySelectorAll('th').forEach((th, idx) => {
+            const sortIcons = th.querySelector('.sort-icons');
+            if (!sortIcons) return;
+
+            // Detect column type
+            let type = 'string';
+            const headerText = th.textContent.toLowerCase();
+            if (headerText.includes('date')) type = 'date';
+            if (headerText.includes('amount') || headerText.includes('total')) type = 'number';
+
+            // Up arrow (ascending)
+            const up = sortIcons.querySelector('.ti-arrow-up');
+            if (up) {
+              up.style.cursor = 'pointer';
+              up.addEventListener('click', function (e) {
+                e.stopPropagation();
+                sortTable(table, idx, type, true);
+              });
+            }
+            // Down arrow (descending)
+            const down = sortIcons.querySelector('.ti-arrow-down');
+            if (down) {
+              down.style.cursor = 'pointer';
+              down.addEventListener('click', function (e) {
+                e.stopPropagation();
+                sortTable(table, idx, type, false);
+              });
+            }
+          });
+
+          function sortTable(table, idx, type, asc) {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
+            rows.sort(comparer(idx, type, asc));
+            // Remove all rows and re-append in sorted order
+            rows.forEach(row => tbody.appendChild(row));
+          }
+
+          // After fetching orders and transactions
+          const manualPaymentAmount = await calculateManualPayments(
+            chapterId, 
+            allOrders, 
+            allTransactions, 
+            available_fund,
+            expenses
+          );
+          
+          // Fetch other payments total
+          otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
+          console.log("Other Payments Total:", otherPaymentsTotal);
+
+          // Calculate total available amount including other payments
+          totalAvailableAmount = parseFloat(visitorAmountTotal) +
+                                parseFloat(totalReceivedAmount) -
+                                parseFloat(total_paid_expense) +
+                                parseFloat(otherPaymentsTotal);
+
+          // Update the existing totalAvailableElement with new values
+          if (totalAvailableElement) {
+            totalAvailableElement.setAttribute('data-opening-balance', available_fund);
+            totalAvailableElement.setAttribute('data-meeting-payments', totalReceivedAmount);
+            totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
+            totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
+            totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
+            
+            // Update UI with total available amount
+            totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
+          }
         }
 
         // return;
@@ -754,7 +1000,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 6: Fetch all orders for the chapter
     const ordersResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/allOrders"
+      "https://backend.bninewdelhi.com/api/allOrders"
     );
     const allOrders = await ordersResponse.json();
 
@@ -805,7 +1051,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Fetched Orders:", chapterOrders);
 
     const transactionsResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/allTransactions"
+      "https://backend.bninewdelhi.com/api/allTransactions"
     );
     const allTransactions = await transactionsResponse.json();
     console.log("Fetched Transactions:", allTransactions);
@@ -832,7 +1078,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     let ReceivedAmount = 0;
     let MiscellaneousAmount = 0;
 
-    // const pendingBalanceResponse = await fetch('http://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
+    // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
     // const pendingBalances = await pendingBalanceResponse.json();
 
     chapterOrders.forEach(async (order) => {
@@ -951,230 +1197,35 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 8: Format values in Indian currency format
     const formattedBillAmount = indianCurrencyFormatter.format(amountWithGst);
-    const formattedTotalRaised =
-      indianCurrencyFormatter.format(totalAmountRaised);
-    const formattedKittyReceived = indianCurrencyFormatter.format(
-      totalKittyAmountReceived
-    );
-    const formattedMiscellaneousAmount = indianCurrencyFormatter.format(
-      totalPendingMiscellaneousAmount
-    );
-    const formattedTotalPaidExpense =
-      indianCurrencyFormatter.format(total_paid_expense);
+    const formattedTotalRaised = indianCurrencyFormatter.format(totalAmountRaised);
+    const formattedKittyReceived = indianCurrencyFormatter.format(totalKittyAmountReceived);
+    const formattedMiscellaneousAmount = indianCurrencyFormatter.format(totalPendingMiscellaneousAmount);
+    const formattedTotalPaidExpense = indianCurrencyFormatter.format(total_paid_expense);
     
     let totalReceivedAmount = ReceivedAmount;
     
-    // Calculate total available amount independent of kitty bill
+    // Calculate total available amount independent of kitty bill (without otherPaymentsTotal)
     let totalAvailableAmount = parseFloat(available_fund) - 
                               parseFloat(total_paid_expense) + 
                               parseFloat(visitorAmountTotal) +
                               parseFloat(totalReceivedAmount);
-
-    // Store the values as data attributes
-    const totalAvailableElement = document.querySelector("#total_available_amount");
-    if (totalAvailableElement) {
-      totalAvailableElement.setAttribute('data-opening-balance', available_fund);
-      totalAvailableElement.setAttribute('data-meeting-payments', totalReceivedAmount);
-      totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
-      totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
-    }
-
-    // Update UI with total available amount
-    document.querySelector("#total_available_amount").textContent =
-      indianCurrencyFormatter.format(totalAvailableAmount);
-
-    // Step 9: Update the UI with fetched values
-    document.querySelector(".total_bill_amount").textContent =
-      formattedBillAmount;
-    document.querySelector(".total_kitty_amount_received").textContent =
-      formattedKittyReceived;
+    // Set all dashboard values immediately (except available fund with otherPaymentsTotal)
+    document.querySelector(".total_bill_amount").textContent = formattedBillAmount;
+    document.querySelector(".total_kitty_amount_received").textContent = formattedKittyReceived;
     document.querySelector(".bill_type").textContent = bill_type;
     document.querySelector(".description").textContent = description;
     document.querySelector(".total_weeks").textContent = total_weeks;
     document.querySelector(".member_count").textContent = memberCount;
-    document.querySelector(".total_miscellaneous_amount").textContent =
-      formattedMiscellaneousAmount;
-    document.querySelector("#total_expense_amount").textContent =
-      formattedTotalPaidExpense;
-    document.querySelector("#total_pexpense_amount").textContent =
-      indianCurrencyFormatter.format(total_pending_expense);
-    document.querySelector("#total_credit_amount").textContent =
-      indianCurrencyFormatter.format(totalCreditAmount);
-    document.querySelector("#no_of_late_payment").textContent =
-      totalLatePayment;
+    document.querySelector(".total_miscellaneous_amount").textContent = formattedMiscellaneousAmount;
+    document.querySelector("#total_expense_amount").textContent = formattedTotalPaidExpense;
+    document.querySelector("#total_pexpense_amount").textContent = indianCurrencyFormatter.format(total_pending_expense);
+    document.querySelector("#total_credit_amount").textContent = indianCurrencyFormatter.format(totalCreditAmount);
+    document.querySelector("#no_of_late_payment").textContent = totalLatePayment;
 
-    // Populate all filter dropdowns
-    await populateGatewayFilter();
-    populateMonthFilter();
-    populatePgStatusFilter();
-    populateMethodFilter();
-
-    // Add click event listener for PG Status filter
-    document
-      .getElementById("payment-status-filter")
-      .addEventListener("click", function (e) {
-        if (e.target.classList.contains("dropdown-item")) {
-          selectedPgStatus = e.target.dataset.status;
-
-          // Update dropdown button text
-          const dropdownButton = e.target
-            .closest(".dropdown")
-            .querySelector(".dropdown-toggle");
-          dropdownButton.textContent = selectedPgStatus;
-        }
-      });
-
-    // Add click event listener for Method filter
-    document
-      .getElementById("payment-method-filter")
-      .addEventListener("click", function (e) {
-        if (e.target.classList.contains("dropdown-item")) {
-          selectedMethod = e.target.dataset.method;
-
-          // Update dropdown button text
-          const dropdownButton = e.target
-            .closest(".dropdown")
-            .querySelector(".dropdown-toggle");
-          dropdownButton.textContent = selectedMethod.toUpperCase();
-        }
-      });
-
-    // Add click event listener for apply filter button
-    document
-      .getElementById("apply-filters-btn")
-      .addEventListener("click", function () {
-        filterTable();
-      });
-
-    // Update reset filter button click handler
-    document
-      .getElementById("reset-filters-btn")
-      .addEventListener("click", function () {
-        // Reset all filter variables
-        selectedGateway = null;
-        selectedMonth = null;
-        selectedPgStatus = null;
-        selectedMethod = null;
-
-        // Reset all dropdown texts
-        const gatewayDropdown = document.querySelector(
-          '[data-bs-toggle="dropdown"]'
-        );
-        gatewayDropdown.innerHTML =
-          '<i class="ti ti-sort-descending-2 me-1"></i> Gateway';
-
-        const monthDropdown = document
-          .getElementById("month-filter")
-          .closest(".dropdown")
-          .querySelector(".dropdown-toggle");
-        monthDropdown.innerHTML =
-          '<i class="ti ti-sort-descending-2 me-1"></i> Month';
-
-        const statusDropdown = document
-          .getElementById("payment-status-filter")
-          .closest(".dropdown")
-          .querySelector(".dropdown-toggle");
-        statusDropdown.innerHTML =
-          '<i class="ti ti-sort-descending-2 me-1"></i> PG Status';
-
-        const methodDropdown = document
-          .getElementById("payment-method-filter")
-          .closest(".dropdown")
-          .querySelector(".dropdown-toggle");
-        methodDropdown.innerHTML =
-          '<i class="ti ti-sort-descending-2 me-1"></i> Method';
-
-        // Show all rows
-        const tableBody = document.getElementById("paymentsTableBody");
-        const rows = tableBody.getElementsByTagName("tr");
-        for (let row of rows) {
-          row.style.display = "";
-        }
-
-        // Remove any "no results" message
-        const noResultsMsg = document.getElementById("no-results-message");
-        if (noResultsMsg) {
-          noResultsMsg.remove();
-        }
-      });
-
-    // Render recent successful payments
-    renderRecentSuccessfulPayments(allTransactions, allOrders, document.getElementById("paymentsTableBody"), chapter_id);
-
-    // --- Add sorting logic for table headers with icons ---
-    const table = document.getElementById('paymentsTableBody').closest('table');
-    if (!table) return;
-
-    // Helper: get cell value
-    function getCellValue(row, idx) {
-      const cell = row.children[idx];
-      if (!cell) return '';
-      // Remove HTML tags for icon columns
-      return cell.textContent.trim();
-    }
-
-    // Helper: compare function for sorting
-    function comparer(idx, type, asc) {
-      return function (a, b) {
-        let v1 = getCellValue(asc ? a : b, idx);
-        let v2 = getCellValue(asc ? b : a, idx);
-
-        // Numeric sort for amount columns
-        if (type === 'number') {
-          v1 = parseFloat(v1.replace(/[^0-9.]/g, '')) || 0;
-          v2 = parseFloat(v2.replace(/[^0-9.]/g, '')) || 0;
-          return v1 - v2;
-        }
-        // Date sort for date columns (assume dd/mm/yyyy)
-        if (type === 'date') {
-          const parseDate = (str) => {
-            const [d, m, y] = str.split('/');
-            return new Date(`20${y.length === 2 ? y : y.slice(-2)}`, m - 1, d);
-          };
-          return parseDate(v1) - parseDate(v2);
-        }
-        // String sort
-        return v1.localeCompare(v2);
-      };
-    }
-
-    // Add click event to sort icons
-    table.querySelectorAll('th').forEach((th, idx) => {
-      const sortIcons = th.querySelector('.sort-icons');
-      if (!sortIcons) return;
-
-      // Detect column type
-      let type = 'string';
-      const headerText = th.textContent.toLowerCase();
-      if (headerText.includes('date')) type = 'date';
-      if (headerText.includes('amount') || headerText.includes('total')) type = 'number';
-
-      // Up arrow (ascending)
-      const up = sortIcons.querySelector('.ti-arrow-up');
-      if (up) {
-        up.style.cursor = 'pointer';
-        up.addEventListener('click', function (e) {
-          e.stopPropagation();
-          sortTable(idx, type, true);
-        });
-      }
-      // Down arrow (descending)
-      const down = sortIcons.querySelector('.ti-arrow-down');
-      if (down) {
-        down.style.cursor = 'pointer';
-        down.addEventListener('click', function (e) {
-          e.stopPropagation();
-          sortTable(idx, type, false);
-        });
-      }
-    });
-
-    function sortTable(idx, type, asc) {
-      const tbody = table.querySelector('tbody');
-      const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
-      rows.sort(comparer(idx, type, asc));
-      // Remove all rows and re-append in sorted order
-      rows.forEach(row => tbody.appendChild(row));
+    // Set Total Available Fund (initial, without otherPaymentsTotal)
+    const totalAvailableElement = document.querySelector("#total_available_amount");
+    if (totalAvailableElement) {
+      totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
     }
 
     // After fetching orders and transactions
@@ -1183,23 +1234,53 @@ document.addEventListener("DOMContentLoaded", async function () {
       allOrders, 
       allTransactions, 
       available_fund,
-      expenses  // Use the existing expenses variable that was fetched earlier
+      expenses
     );
-    
-    // Update the manual funds display
-    const manualFundsElement = document.querySelector('.manual-funds-amount');
-    if (manualFundsElement) {
-      manualFundsElement.textContent = indianCurrencyFormatter.format(manualPaymentAmount);
+    // Fetch other payments total
+    let otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
+    console.log("Other Payments Total:", otherPaymentsTotal);
+
+    // Calculate total available amount including other payments
+    totalAvailableAmount += parseFloat(otherPaymentsTotal);
+
+    // Update the existing totalAvailableElement with new values
+    if (totalAvailableElement) {
+      totalAvailableElement.setAttribute('data-opening-balance', available_fund);
+      totalAvailableElement.setAttribute('data-meeting-payments', totalReceivedAmount);
+      totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
+      totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
+      totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
+      // Update UI with total available amount
+      totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
+      // Add click handler for modal if not already added
+      if (!totalAvailableElement.hasAttribute('data-modal-handler-added')) {
+        totalAvailableElement.addEventListener('click', function() {
+          // Get the current values
+          const available_fund = parseFloat(this.getAttribute('data-opening-balance') || 0);
+          const totalReceivedAmount = parseFloat(this.getAttribute('data-meeting-payments') || 0);
+          const visitorAmountTotal = parseFloat(this.getAttribute('data-visitor-payments') || 0);
+          const total_paid_expense = parseFloat(this.getAttribute('data-paid-expenses') || 0);
+          const otherPaymentsTotal = parseFloat(this.getAttribute('data-other-payments') || 0);
+          // Update the modal
+          updateFundBreakdownModal(
+            available_fund,
+            totalReceivedAmount,
+            visitorAmountTotal,
+            total_paid_expense,
+            otherPaymentsTotal
+          );
+        });
+        totalAvailableElement.setAttribute('data-modal-handler-added', 'true');
+      }
     }
-
-    // Calculate total available amount
-    totalAvailableAmount = parseFloat(visitorAmountTotal) +
-                          parseFloat(totalReceivedAmount) -
-                          parseFloat(total_paid_expense);
-
-    // Update UI with total available amount
-    document.querySelector("#total_available_amount").textContent =
-      indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
+    // Update the fund breakdown modal
+    updateFundBreakdownModal(
+      available_fund,
+      totalReceivedAmount,
+      visitorAmountTotal,
+      total_paid_expense,
+      otherPaymentsTotal
+    );
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
     console.error("Error details:", {
@@ -1475,7 +1556,7 @@ async function fetchVisitorAmountTotal(chapterId) {
     try {
         // 1. Fetch Orders
         console.log('📥 Fetching orders...');
-        const ordersResponse = await fetch("http://backend.bninewdelhi.com/api/allOrders");
+        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
         const allOrders = await ordersResponse.json();
         console.log('📦 Total orders:', allOrders.length);
 
@@ -1494,7 +1575,7 @@ async function fetchVisitorAmountTotal(chapterId) {
 
         // 3. Fetch Transactions
         console.log('💳 Fetching transactions...');
-        const transactionsResponse = await fetch("http://backend.bninewdelhi.com/api/allTransactions");
+        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
         const allTransactions = await transactionsResponse.json();
         console.log('Total transactions:', allTransactions.length);
 
@@ -1655,8 +1736,37 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
   return totalManualAmount;
 }
 
-// Function to update fund breakdown modal
-function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense) {
+// Function to fetch and calculate other payments total
+async function fetchOtherPaymentsTotal(chapterId) {
+  try {
+    const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
+    const otherPayments = await response.json();
+    
+    // Filter payments for current chapter and calculate total
+    const chapterOtherPayments = otherPayments.filter(payment => 
+      payment.chapter_id === chapterId
+    );
+    
+    let totalOtherPayments = 0;
+    chapterOtherPayments.forEach(payment => {
+      if (payment.is_gst) {
+        // If GST is included, use total_amount
+        totalOtherPayments += parseFloat(payment.total_amount || 0);
+      } else {
+        // If no GST, use base amount
+        totalOtherPayments += parseFloat(payment.total_amount || 0);
+      }
+    });
+    
+    return totalOtherPayments;
+  } catch (error) {
+    console.error("Error fetching other payments:", error);
+    return 0;
+  }
+}
+
+// Update the fund breakdown modal function
+function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal) {
   // Get modal elements
   const openingBalance = document.getElementById('modal-opening-balance');
   const meetingPayments = document.getElementById('modal-meeting-payments');
@@ -1676,36 +1786,51 @@ function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAm
   openingBalance.textContent = formatter.format(parseFloat(available_fund || 0));
   meetingPayments.textContent = formatter.format(totalReceivedAmount || 0);
   visitorPayments.textContent = formatter.format(visitorAmountTotal || 0);
-  otherPayments.textContent = formatter.format(0); // Placeholder for other payments
+  otherPayments.textContent = formatter.format(otherPaymentsTotal || 0);
   paidExpenses.textContent = formatter.format(total_paid_expense || 0);
   
   // Calculate and display total
   const total = parseFloat(available_fund || 0) + 
                 parseFloat(totalReceivedAmount || 0) + 
-                parseFloat(visitorAmountTotal || 0) - 
+                parseFloat(visitorAmountTotal || 0) + 
+                parseFloat(otherPaymentsTotal || 0) - 
                 parseFloat(total_paid_expense || 0);
   
   totalAvailable.textContent = formatter.format(total);
 }
 
-// Update the click handler for total available amount
-document.addEventListener('DOMContentLoaded', function() {
-  const totalAvailableAmount = document.getElementById('total_available_amount');
-  if (totalAvailableAmount) {
-    totalAvailableAmount.addEventListener('click', function() {
-      // Get the current values
-      const available_fund = parseFloat(this.getAttribute('data-opening-balance') || 0);
-      const totalReceivedAmount = parseFloat(this.getAttribute('data-meeting-payments') || 0);
-      const visitorAmountTotal = parseFloat(this.getAttribute('data-visitor-payments') || 0);
-      const total_paid_expense = parseFloat(this.getAttribute('data-paid-expenses') || 0);
+// Function to update total available amount and modal
+function updateTotalAvailableAmount(element, available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal) {
+  if (!element) return;
 
-      // Update the modal
+  // Calculate total available amount
+  const totalAvailableAmount = parseFloat(available_fund) + 
+                             parseFloat(totalReceivedAmount) + 
+                             parseFloat(visitorAmountTotal) + 
+                             parseFloat(otherPaymentsTotal) - 
+                             parseFloat(total_paid_expense);
+
+  // Set data attributes
+  element.setAttribute('data-opening-balance', available_fund);
+  element.setAttribute('data-meeting-payments', totalReceivedAmount);
+  element.setAttribute('data-visitor-payments', visitorAmountTotal);
+  element.setAttribute('data-paid-expenses', total_paid_expense);
+  element.setAttribute('data-other-payments', otherPaymentsTotal);
+
+  // Update UI
+  element.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
+
+  // Add click handler for modal if not already added
+  if (!element.hasAttribute('data-modal-handler-added')) {
+    element.addEventListener('click', function() {
       updateFundBreakdownModal(
-        available_fund,
-        totalReceivedAmount,
-        visitorAmountTotal,
-        total_paid_expense
+        parseFloat(this.getAttribute('data-opening-balance') || 0),
+        parseFloat(this.getAttribute('data-meeting-payments') || 0),
+        parseFloat(this.getAttribute('data-visitor-payments') || 0),
+        parseFloat(this.getAttribute('data-paid-expenses') || 0),
+        parseFloat(this.getAttribute('data-other-payments') || 0)
       );
     });
+    element.setAttribute('data-modal-handler-added', 'true');
   }
-});
+}

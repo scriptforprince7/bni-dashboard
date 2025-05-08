@@ -25,7 +25,7 @@ let writeOffData = [];
 // Function to fetch member data
 async function fetchMembersData() {
     try {
-        const response = await fetch("http://backend.bninewdelhi.com/api/members");
+        const response = await fetch("https://backend.bninewdelhi.com/api/members");
         membersData = await response.json();
     } catch (error) {
         console.error("Error fetching members data:", error);
@@ -34,7 +34,7 @@ async function fetchMembersData() {
 
 async function fetchWriteOffData() {
     try {
-        const response = await fetch('http://backend.bninewdelhi.com/api/getAllMemberWriteOff');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff');
         writeOffData = await response.json();
     } catch (error) {
         console.error('Error fetching write-off data:', error);
@@ -48,16 +48,16 @@ async function fetchAndFilterData() {
             fetchWriteOffData(),
             fetchMembersData(),
             // Fetch chapters data
-            fetch("http://backend.bninewdelhi.com/api/chapters")
+            fetch("https://backend.bninewdelhi.com/api/chapters")
         ]);
 
         // Fetch write-off data
-        const response = await fetch("http://backend.bninewdelhi.com/api/getAllMemberWriteOff");
+        const response = await fetch("https://backend.bninewdelhi.com/api/getAllMemberWriteOff");
         const data = await response.json();
         console.log("Write-off Data:", data);
 
         // Fetch chapters data
-        const chaptersResponse = await fetch("http://backend.bninewdelhi.com/api/chapters");
+        const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
         const chaptersData = await chaptersResponse.json();
         console.log("Chapters Data:", chaptersData);
 

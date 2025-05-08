@@ -1,7 +1,7 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
-window.BNI.apiUrl = 'http://backend.bninewdelhi.com/api/regions';
-const API_BASE_URL = 'http://backend.bninewdelhi.com/api';
+window.BNI.apiUrl = 'https://backend.bninewdelhi.com/api/regions';
+const API_BASE_URL = 'https://backend.bninewdelhi.com/api';
 let total_regions =0;
 let active_total =0;
 let chapter_total = 0;
@@ -295,7 +295,7 @@ const deleteRegion = async (region_id) => {
             try {
                 // First get the current region data
                 console.log('Fetching current region data...');
-                const getResponse = await fetch(`http://backend.bninewdelhi.com/api/getRegion/${region_id}`);
+                const getResponse = await fetch(`https://backend.bninewdelhi.com/api/getRegion/${region_id}`);
                 const regionData = await getResponse.json();
                 console.log('Current region data:', regionData);
 
@@ -308,7 +308,7 @@ const deleteRegion = async (region_id) => {
 
                 // Update the region via API
                 console.log('Sending update request...');
-                const updateResponse = await fetch(`http://backend.bninewdelhi.com/api/updateRegion/${region_id}`, {
+                const updateResponse = await fetch(`https://backend.bninewdelhi.com/api/updateRegion/${region_id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -363,7 +363,7 @@ const deleteRegion = async (region_id) => {
         if (result.isConfirmed) {
             try {
                 showLoader();
-                const response = await fetch(`http://backend.bninewdelhi.com/api/deleteRegion/${region_id}`, {
+                const response = await fetch(`https://backend.bninewdelhi.com/api/deleteRegion/${region_id}`, {
                     method: 'PUT',
                 });
 

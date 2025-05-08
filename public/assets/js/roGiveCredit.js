@@ -6,8 +6,8 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-const memberApiUrl = 'http://backend.bninewdelhi.com/api/members';
-const lateNOApiUrl = 'http://backend.bninewdelhi.com/api/getbankOrder';
+const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
+const lateNOApiUrl = 'https://backend.bninewdelhi.com/api/getbankOrder';
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Populate Region Filter
         const regionFilter = document.getElementById('regionFilter');
-        const regionsResponse = await fetch('http://backend.bninewdelhi.com/api/regions');
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
         const regions = await regionsResponse.json();
         
         regions.forEach(region => {
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
 
                 // Fetch and populate chapters for selected region
-                const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+                const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
                 const chapters = await chaptersResponse.json();
                 const filteredChapters = chapters.filter(chapter => chapter.region_id === parseInt(regionId));
 
@@ -249,7 +249,7 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
 
     try {
         showLoader();
-        const response = await fetch('http://backend.bninewdelhi.com/api/addMemberCredit', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/addMemberCredit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

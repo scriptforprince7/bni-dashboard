@@ -18,7 +18,7 @@ function showLoader() {
       showLoader();
   
       const responses = await fetch(
-        "http://backend.bninewdelhi.com/api/universalLinks"
+        "https://backend.bninewdelhi.com/api/universalLinks"
       );
       const data = await responses.json();
       console.log("Fetched data:", data);
@@ -38,19 +38,19 @@ function showLoader() {
       }
       // Fetch regions
       const regionResponse = await fetch(
-        "http://backend.bninewdelhi.com/api/regions"
+        "https://backend.bninewdelhi.com/api/regions"
       );
       const regions = await regionResponse.json();
   
       // Fetch chapters
       const chapterResponse = await fetch(
-        "http://backend.bninewdelhi.com/api/chapters"
+        "https://backend.bninewdelhi.com/api/chapters"
       );
       const chapters = await chapterResponse.json();
   
       // Fetch members
       const memberResponse = await fetch(
-        "http://backend.bninewdelhi.com/api/members"
+        "https://backend.bninewdelhi.com/api/members"
       );
       const members = await memberResponse.json();
   
@@ -191,7 +191,7 @@ function showLoader() {
   
       // Fetch company data
       const companyResponse = await fetch(
-        "http://backend.bninewdelhi.com/api/company"
+        "https://backend.bninewdelhi.com/api/company"
       );
       const companies = await companyResponse.json();
   
@@ -227,7 +227,7 @@ function showLoader() {
       });
       // Fetch universal link data
       const response = await fetch(
-        "http://backend.bninewdelhi.com/api/universalLinks"
+        "https://backend.bninewdelhi.com/api/universalLinks"
       );
       const universalLinks = await response.json();
   
@@ -240,7 +240,7 @@ function showLoader() {
       // If ID is 3, fetch training data and populate the dropdown
       if (selectedLink.id == 3) {
         const trainingResponse = await fetch(
-          "http://backend.bninewdelhi.com/api/allTrainings"
+          "https://backend.bninewdelhi.com/api/allTrainings"
         );
         const trainings = await trainingResponse.json();
         console.log("📋 Available Trainings:", trainings);
@@ -585,7 +585,7 @@ function showLoader() {
       });
   
       try {
-          const response = await fetch("http://backend.bninewdelhi.com/api/add-invoice", {
+          const response = await fetch("https://backend.bninewdelhi.com/api/add-invoice", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(invoiceData)

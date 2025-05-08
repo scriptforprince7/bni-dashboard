@@ -1,4 +1,4 @@
-// let apiUrl = "http://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
+// let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let entriesPerPage = 10; // Number of entries to display per page
@@ -99,7 +99,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('Current user email:', userEmail);
 
     // First fetch chapters to get the user's chapter_id
-    const chaptersResponse = await fetch("http://backend.bninewdelhi.com/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log('All chapters:', chapters);
     
@@ -127,7 +127,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
 
     // Fetch expense types for mapping
     const expenseTypesResponse = await fetch(
-      "http://backend.bninewdelhi.com/api/expenseType"
+      "https://backend.bninewdelhi.com/api/expenseType"
     );
     if (!expenseTypesResponse.ok) {
       throw new Error("Failed to fetch expense types");
@@ -136,7 +136,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('Expense types:', expenseTypes);
 
     // Fetch all expenses
-    const response = await fetch("http://backend.bninewdelhi.com/api/allExpenses");
+    const response = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
     if (!response.ok) throw new Error("Network response was not ok");
 
     const allExpensesData = await response.json();
@@ -254,7 +254,7 @@ const AddExpenseType = async () => {
         showLoader(); // Show loading indicator
 
         // Call the API to add the expense (replace with the actual API endpoint)
-        const response = await fetch(`http://backend.bninewdelhi.com/api/expenseType`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/expenseType`, {
           method: 'POST', // Use POST to add an expense
           headers: {
             'Content-Type': 'application/json',
@@ -393,7 +393,7 @@ const deleteExpense = async (expense_id) => {
       showLoader();
 
       const response = await fetch(
-        `http://backend.bninewdelhi.com/api/expense/${expense_id}`,
+        `https://backend.bninewdelhi.com/api/expense/${expense_id}`,
         {
           method: "DELETE",
         }

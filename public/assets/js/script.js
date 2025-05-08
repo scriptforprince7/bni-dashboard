@@ -1,11 +1,11 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.endpoints = {
-    members: "http://backend.bninewdelhi.com/api/members",
-    chapters: "http://backend.bninewdelhi.com/api/chapters",
-    regions: "http://backend.bninewdelhi.com/api/regions",
-    categories: "http://backend.bninewdelhi.com/api/memberCategory",
-    accolades: "http://backend.bninewdelhi.com/api/accolades"
+    members: "https://backend.bninewdelhi.com/api/members",
+    chapters: "https://backend.bninewdelhi.com/api/chapters",
+    regions: "https://backend.bninewdelhi.com/api/regions",
+    categories: "https://backend.bninewdelhi.com/api/memberCategory",
+    accolades: "https://backend.bninewdelhi.com/api/accolades"
 };
 
 // Use window.BNI namespace for other global variables
@@ -490,7 +490,7 @@ function displayMembers(members) {
         
         // Create the photo URL if member_photo exists
         const photoUrl = member.member_photo 
-            ? `http://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`
+            ? `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`
             : null;
         
         console.log('Photo processing for member:', {
@@ -818,7 +818,7 @@ const deleteMember = async (member_id) => {
   if (result.isConfirmed) {
       try {
           showLoader();  // Show loading indicator
-          const response = await fetch(`http://backend.bninewdelhi.com/api/deleteMember/${member_id}`, {
+          const response = await fetch(`https://backend.bninewdelhi.com/api/deleteMember/${member_id}`, {
               method: 'PUT',
           });
 
@@ -852,7 +852,7 @@ document.getElementById('chaptersTableBody').addEventListener('click', (event) =
 async function updateMemberCounts() {
     try {
         console.log('=== Starting Member Counts Update Process ===');
-        const response = await fetch('http://backend.bninewdelhi.com/api/members');
+        const response = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await response.json();
         console.log('Total members data fetched:', members.length);
 

@@ -763,7 +763,7 @@
                 const visitorId = urlParams.get('visitor_id');
                 
                 // Fetch member application data
-                const response = await fetch(`http://backend.bninewdelhi.com/api/memberApplicationFormNewMember`);
+                const response = await fetch(`https://backend.bninewdelhi.com/api/memberApplicationFormNewMember`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -776,8 +776,8 @@
                 }
 
                 // Fetch region and chapter names
-                const regionResponse = await fetch(`http://backend.bninewdelhi.com/api/regions`);
-                const chapterResponse = await fetch(`http://backend.bninewdelhi.com/api/chapters`);
+                const regionResponse = await fetch(`https://backend.bninewdelhi.com/api/regions`);
+                const chapterResponse = await fetch(`https://backend.bninewdelhi.com/api/chapters`);
                 
                 console.log('Region Response Status:', regionResponse.status);
                 console.log('Chapter Response Status:', chapterResponse.status);
@@ -952,7 +952,7 @@
                     // Make API call to update verification status
                     console.log('🔄 Making API call to update verification status');
                     
-                    const response = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
+                    const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'

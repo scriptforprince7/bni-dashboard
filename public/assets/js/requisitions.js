@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('👤 RO Admin accessing chapter:', { currentChapterEmail, currentChapterId });
             
             // Step 2: Fetch chapter data to get full chapter details
-            const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chapters = await chaptersResponse.json();
             console.log('📚 All Chapters:', chapters);
             
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('👤 User Email:', userEmail);
             
             // Step 2: Fetch chapter data and find matching chapter
-            const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chapters = await chaptersResponse.json();
             console.log('📚 All Chapters:', chapters);
             
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('🏢 User Chapter:', userChapter);
         
         // Step 3: Fetch chapter requisitions
-        const requisitionsResponse = await fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const requisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
         const allRequisitions = await requisitionsResponse.json();
         console.log('📝 All Requisitions:', allRequisitions);
         
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('🔍 Chapter Requisitions:', chapterRequisitions);
         
         // Step 4: Fetch accolades data
-        const accoladesResponse = await fetch('http://backend.bninewdelhi.com/api/accolades');
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await accoladesResponse.json();
         console.log('🏆 All Accolades:', accolades);
 
@@ -576,11 +576,11 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
     try {
         // Add visitors to the parallel fetch
         const [accoladesResponse, membersResponse, requisitionResponse, memberRequisitionsResponse, visitorsResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/accolades'),
-            fetch('http://backend.bninewdelhi.com/api/members'),
-            fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('http://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
-            fetch('http://backend.bninewdelhi.com/api/getallvisitors')
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
         const [allAccolades, allMembers, allRequisitions, memberRequisitions, visitors] = await Promise.all([
@@ -847,10 +847,10 @@ async function showApprovedMembers(requisitionId) {
         
         // Fetch all required data
         const [requisitionResponse, membersResponse, accoladesResponse, visitorsResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('http://backend.bninewdelhi.com/api/members'),
-            fetch('http://backend.bninewdelhi.com/api/accolades'),
-            fetch('http://backend.bninewdelhi.com/api/getallvisitors')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
         const [requisitions, members, accolades, visitors] = await Promise.all([
@@ -1010,10 +1010,10 @@ async function showDeclinedMembers(requisitionId) {
         
         // Fetch all required data
         const [requisitionResponse, membersResponse, accoladesResponse, visitorsResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('http://backend.bninewdelhi.com/api/members'),
-            fetch('http://backend.bninewdelhi.com/api/accolades'),
-            fetch('http://backend.bninewdelhi.com/api/getallvisitors')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
         const [requisitions, members, accolades, visitors] = await Promise.all([
@@ -1186,7 +1186,7 @@ async function showRequisitionForm() {
             console.log('👤 Regular user email:', userEmail);
         }
 
-        const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         const currentChapter = chapters.find(
             (chapter) =>
@@ -1202,9 +1202,9 @@ async function showRequisitionForm() {
 
         // Fetch all required data
         const [accoladesResponse, membersResponse, requisitionsResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/accolades'),
-            fetch('http://backend.bninewdelhi.com/api/members'),
-            fetch('http://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition')
         ]);
         
         const accolades = await accoladesResponse.json();
@@ -1622,7 +1622,7 @@ async function showRequisitionForm() {
                         requested_by: requestedByEmail
                     };
 
-                    const response = await fetch('http://backend.bninewdelhi.com/api/chapter-requisition', {
+                    const response = await fetch('https://backend.bninewdelhi.com/api/chapter-requisition', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1917,7 +1917,7 @@ async function handlePickupDateUpdate(requisitionId, defaultDate) {
         if (pickupDate) {
             try {
                 // First get the existing requisition data
-                const getRequisitionResponse = await fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+                const getRequisitionResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
                 const requisitionsData = await getRequisitionResponse.json();
                 
                 console.log('🔍 Fetched requisitions:', requisitionsData);
@@ -1942,7 +1942,7 @@ async function handlePickupDateUpdate(requisitionId, defaultDate) {
                     }
                 };
 
-                const response = await fetch('http://backend.bninewdelhi.com/api/updateChapterRequisition', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1997,9 +1997,9 @@ async function showGivenStatusModal(requisitionId) {
         
         // Fetch all required data
         const [requisitionResponse, membersResponse, accoladesResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('http://backend.bninewdelhi.com/api/members'),
-            fetch('http://backend.bninewdelhi.com/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
 
         const [requisitions, members, accolades] = await Promise.all([
@@ -2149,7 +2149,7 @@ async function markAsGiven(requisitionId, combinationKey) {
         const [memberId, accoladeId] = combinationKey.split('_').map(Number);
 
         // Fetch chapter requisition
-        const chapterReqResponse = await fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const chapterReqResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
         const chapterRequisitions = await chapterReqResponse.json();
         
         const currentRequisition = chapterRequisitions.find(req => 
@@ -2164,7 +2164,7 @@ async function markAsGiven(requisitionId, combinationKey) {
         if (currentRequisition.visitor_id) {
             console.log('👤 Processing visitor given status update');
             
-            const response = await fetch('http://backend.bninewdelhi.com/api/updateChapterRequisition', {
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -2183,7 +2183,7 @@ async function markAsGiven(requisitionId, combinationKey) {
             console.log('👥 Processing member given status update');
 
             // 1. Check member requisition status
-            const memberReqResponse = await fetch('http://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+            const memberReqResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
             const memberRequisitions = await memberReqResponse.json();
             
             // Check if valid member requisition exists
@@ -2198,7 +2198,7 @@ async function markAsGiven(requisitionId, combinationKey) {
 
             if (matchingRequisition) {
                 // Update member requisition if found
-                const memberUpdateResponse = await fetch('http://backend.bninewdelhi.com/api/updateMemberRequisition', {
+                const memberUpdateResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2229,7 +2229,7 @@ async function markAsGiven(requisitionId, combinationKey) {
                 date: givenDate
             };
 
-            const chapterResponse = await fetch('http://backend.bninewdelhi.com/api/updateChapterRequisition', {
+            const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -2271,10 +2271,10 @@ async function showTotalAccoladesDetails(requisitionId) {
         
         // Fetch all required data
         const [requisitionResponse, membersResponse, accoladesResponse, visitorsResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
-            fetch('http://backend.bninewdelhi.com/api/members'),
-            fetch('http://backend.bninewdelhi.com/api/accolades'),
-            fetch('http://backend.bninewdelhi.com/api/getallvisitors')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
 
         const [requisitions, members, accolades, visitors] = await Promise.all([
@@ -2568,7 +2568,7 @@ function filterMembers(searchTerm) {
 async function checkExistingAccolades(memberId, accoladeId) {
     try {
         // Fetch all member accolades from the new API
-        const response = await fetch('http://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
         const allMemberAccolades = await response.json();
         
         console.log('🔍 Checking accolade assignment:', {

@@ -39,7 +39,7 @@ async function fetchAndDisplayAccoladeRequests() {
         }
 
         // Step 2: Fetch chapter data and find matching chapter
-        const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         
         if (loginType === 'ro_admin') {
@@ -65,7 +65,7 @@ async function fetchAndDisplayAccoladeRequests() {
         console.log('📍 Chapter Data:', chapterData);
 
         // Step 3: Fetch all requisitions
-        const requisitionsResponse = await fetch('http://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+        const requisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
         const requisitions = await requisitionsResponse.json();
         
         // Filter requisitions for the chapter
@@ -73,11 +73,11 @@ async function fetchAndDisplayAccoladeRequests() {
         console.log('📝 Chapter Requisitions:', chapterRequisitions);
 
         // Step 4: Fetch members data
-        const membersResponse = await fetch('http://backend.bninewdelhi.com/api/members');
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await membersResponse.json();
 
         // Step 5: Fetch accolades data
-        const accoladesResponse = await fetch('http://backend.bninewdelhi.com/api/accolades');
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await accoladesResponse.json();
         console.log('🏆 All Accolades:', accolades);
 
@@ -180,7 +180,7 @@ document.querySelector('#paid-requisitions-filter').addEventListener('click', as
                 }
 
                 // Step 2: Fetch chapter data and find matching chapter
-                const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+                const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
                 const chapters = await chaptersResponse.json();
                 
                 let currentChapter;
@@ -205,7 +205,7 @@ document.querySelector('#paid-requisitions-filter').addEventListener('click', as
                 document.getElementById('paidAmountHeader').style.display = 'table-cell';
                 
                 // Step 3: Fetch and filter paid requisitions
-                const requisitionsResponse = await fetch('http://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+                const requisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
                 const requisitions = await requisitionsResponse.json();
                 
                 const paidRequisitions = requisitions.filter(req => 
@@ -218,8 +218,8 @@ document.querySelector('#paid-requisitions-filter').addEventListener('click', as
 
                 // Step 4: Fetch members and accolades data
                 const [membersResponse, accoladesResponse] = await Promise.all([
-                    fetch('http://backend.bninewdelhi.com/api/members'),
-                    fetch('http://backend.bninewdelhi.com/api/accolades')
+                    fetch('https://backend.bninewdelhi.com/api/members'),
+                    fetch('https://backend.bninewdelhi.com/api/accolades')
                 ]);
                 
                 const [members, accolades] = await Promise.all([

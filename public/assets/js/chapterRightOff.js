@@ -6,8 +6,8 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-const chaptersApiUrl = 'http://backend.bninewdelhi.com/api/chapters'; 
-const memberApiUrl= 'http://backend.bninewdelhi.com/api/members';
+const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
+const memberApiUrl= 'https://backend.bninewdelhi.com/api/members';
 let creditType;
 document.addEventListener('DOMContentLoaded', async () => {
     const loginType = getUserLoginType();
@@ -158,7 +158,7 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
 
     try {
         showLoader();
-        const response = await fetch('http://backend.bninewdelhi.com/api/addMemberWriteOff', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/addMemberWriteOff', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

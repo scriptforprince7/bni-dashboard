@@ -134,13 +134,13 @@ const paymentTypes = [
   
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
     } else if (loginType === 'ro_admin') {
       const current_chapter_id = localStorage.getItem('current_chapter_id');
       if (current_chapter_id) {
-        const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await res.json();
         chapter = chapters.find(chap => String(chap.chapter_id) === String(current_chapter_id));
       }
@@ -156,7 +156,7 @@ const paymentTypes = [
     const regionId = chapter.region_id;
     const chapterId = chapter.chapter_id;
     const chapterName = chapter.chapter_name;
-    const regionRes = await fetch('http://backend.bninewdelhi.com/api/regions');
+    const regionRes = await fetch('https://backend.bninewdelhi.com/api/regions');
     const regions = await regionRes.json();
     const region = regions.find(r => String(r.region_id) === String(regionId));
     const regionName = region ? region.region_name : 'Unknown';
@@ -319,13 +319,13 @@ const paymentTypes = [
     // 1. Get chapter object
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
     } else if (loginType === 'ro_admin') {
       const current_chapter_id = localStorage.getItem('current_chapter_id');
       if (current_chapter_id) {
-        const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await res.json();
         chapter = chapters.find(chap => String(chap.chapter_id) === String(current_chapter_id));
       }
@@ -336,7 +336,7 @@ const paymentTypes = [
       const regionId = chapter.region_id;
   
       // 3. Fetch all regions
-      const regionRes = await fetch('http://backend.bninewdelhi.com/api/regions');
+      const regionRes = await fetch('https://backend.bninewdelhi.com/api/regions');
       const regions = await regionRes.json();
   
       // 4. Find the region with matching region_id
@@ -361,13 +361,13 @@ const paymentTypes = [
     // 1. Get chapter object
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
     } else if (loginType === 'ro_admin') {
       const current_chapter_id = localStorage.getItem('current_chapter_id');
       if (current_chapter_id) {
-        const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await res.json();
         chapter = chapters.find(chap => String(chap.chapter_id) === String(current_chapter_id));
       }
@@ -397,13 +397,13 @@ const paymentTypes = [
     // 1. Get chapter object
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
     } else if (loginType === 'ro_admin') {
       const current_chapter_id = localStorage.getItem('current_chapter_id');
       if (current_chapter_id) {
-        const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await res.json();
         chapter = chapters.find(chap => String(chap.chapter_id) === String(current_chapter_id));
       }
@@ -416,7 +416,7 @@ const paymentTypes = [
       const chapterName = chapter.chapter_name;
   
       // 3. Fetch all regions to get region name
-      const regionRes = await fetch('http://backend.bninewdelhi.com/api/regions');
+      const regionRes = await fetch('https://backend.bninewdelhi.com/api/regions');
       const regions = await regionRes.json();
       const region = regions.find(r => String(r.region_id) === String(regionId));
       const regionName = region ? region.region_name : 'Unknown';
@@ -440,13 +440,13 @@ const paymentTypes = [
     // 1. Get chapter object
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
     } else if (loginType === 'ro_admin') {
       const current_chapter_id = localStorage.getItem('current_chapter_id');
       if (current_chapter_id) {
-        const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await res.json();
         chapter = chapters.find(chap => String(chap.chapter_id) === String(current_chapter_id));
       }
@@ -459,7 +459,7 @@ const paymentTypes = [
       const chapterName = chapter.chapter_name;
   
       // 3. Fetch all regions to get region name
-      const regionRes = await fetch('http://backend.bninewdelhi.com/api/regions');
+      const regionRes = await fetch('https://backend.bninewdelhi.com/api/regions');
       const regions = await regionRes.json();
       const region = regions.find(r => String(r.region_id) === String(regionId));
       const regionName = region ? region.region_name : 'Unknown';
@@ -483,7 +483,7 @@ const paymentTypes = [
     let chapterName = "BNI Chapter";
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       const chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
       chapterId = chapter ? chapter.chapter_id : null;
@@ -491,7 +491,7 @@ const paymentTypes = [
     } else if (loginType === 'ro_admin') {
       chapterId = localStorage.getItem('current_chapter_id');
       // Fetch chapter name for ro_admin
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       const chapter = chapters.find(chap => String(chap.chapter_id) === String(chapterId));
       chapterName = chapter ? chapter.chapter_name : chapterName;
@@ -503,7 +503,7 @@ const paymentTypes = [
     }
   
     // 2. Fetch members for this chapter
-    const membersRes = await fetch('http://backend.bninewdelhi.com/api/members');
+    const membersRes = await fetch('https://backend.bninewdelhi.com/api/members');
     const allMembers = await membersRes.json();
     const members = allMembers.filter(m => String(m.chapter_id) === String(chapterId));
   
@@ -598,7 +598,7 @@ const paymentTypes = [
         console.log("Sending payment links email payload:", payload);
   
         try {
-          const response = await fetch('http://backend.bninewdelhi.com/api/send-payment-links', {
+          const response = await fetch('https://backend.bninewdelhi.com/api/send-payment-links', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -649,7 +649,7 @@ const paymentTypes = [
     const loginType = getUserLoginType();
     if (loginType === 'chapter') {
       const email = getUserEmail();
-      const res = await fetch('http://backend.bninewdelhi.com/api/chapters');
+      const res = await fetch('https://backend.bninewdelhi.com/api/chapters');
       const chapters = await res.json();
       const chapter = chapters.find(chap => chap.email_id && chap.email_id.toLowerCase() === email.toLowerCase());
       chapterId = chapter ? chapter.chapter_id : null;
@@ -657,7 +657,7 @@ const paymentTypes = [
       chapterId = localStorage.getItem('current_chapter_id');
     }
     if (!chapterId) return [];
-    const membersRes = await fetch('http://backend.bninewdelhi.com/api/members');
+    const membersRes = await fetch('https://backend.bninewdelhi.com/api/members');
     const allMembers = await membersRes.json();
     return allMembers.filter(m => String(m.chapter_id) === String(chapterId));
   }
@@ -785,7 +785,7 @@ const paymentTypes = [
             console.log("Sending all payment links payload:", payload);
   
             try {
-              const response = await fetch('http://backend.bninewdelhi.com/api/send-all-payment-links', {
+              const response = await fetch('https://backend.bninewdelhi.com/api/send-all-payment-links', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

@@ -126,7 +126,7 @@ const populateCountryDropdown = async () => {
 const fetchChapterDetails = async () => {
   showLoader();
   try {
-    const response = await fetch(`http://backend.bninewdelhi.com/api/getChapter/${chapter_id}`);
+    const response = await fetch(`https://backend.bninewdelhi.com/api/getChapter/${chapter_id}`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
@@ -153,7 +153,7 @@ const fetchChapterDetails = async () => {
 // Fetch and populate regions
 const populateRegions = async (currentRegionId) => {
   try {
-    const response = await fetch("http://backend.bninewdelhi.com/api/regions");
+    const response = await fetch("https://backend.bninewdelhi.com/api/regions");
     if (!response.ok) {
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
@@ -181,7 +181,7 @@ const fetchAndPopulateHotels = async (selectedHotelId, regionId) => {
 
     try {
         // First fetch region data to get hotel_ids array
-        const regionResponse = await fetch('http://backend.bninewdelhi.com/api/regions');
+        const regionResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
         if (!regionResponse.ok) {
             throw new Error(`Failed to fetch regions: ${regionResponse.status}`);
         }
@@ -198,7 +198,7 @@ const fetchAndPopulateHotels = async (selectedHotelId, regionId) => {
         }
 
         // Fetch all hotels
-        const hotelsResponse = await fetch('http://backend.bninewdelhi.com/api/getHotels');
+        const hotelsResponse = await fetch('https://backend.bninewdelhi.com/api/getHotels');
         if (!hotelsResponse.ok) {
             throw new Error(`Failed to fetch hotels: ${hotelsResponse.status}`);
         }
@@ -278,7 +278,7 @@ const populateChapterFields = (data) => {
   
   if (data.chapter_logo) {
     // Use consistent URL pattern for chapter logos
-    const logoUrl = `http://backend.bninewdelhi.com/api/uploads/chapterLogos/${data.chapter_logo}`;
+    const logoUrl = `https://backend.bninewdelhi.com/api/uploads/chapterLogos/${data.chapter_logo}`;
     console.log('🔗 Setting logo URL:', logoUrl);
     
     logoPreview.src = logoUrl;
@@ -514,7 +514,7 @@ const updateChapterData = async () => {
             }
             
             console.log('📤 Sending update request with logo...');
-            const response = await fetch(`http://backend.bninewdelhi.com/api/updateChapter/${chapter_id}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/updateChapter/${chapter_id}`, {
                 method: 'PUT',
                 body: formData
             });
@@ -525,7 +525,7 @@ const updateChapterData = async () => {
                 
                 // Update logo preview if new logo was uploaded
                 if (updatedChapter.chapter_logo) {
-                    const logoUrl = `http://backend.bninewdelhi.com/api/uploads/chapterLogos/${updatedChapter.chapter_logo}`;
+                    const logoUrl = `https://backend.bninewdelhi.com/api/uploads/chapterLogos/${updatedChapter.chapter_logo}`;
                     console.log('🔄 Updating logo preview with:', logoUrl);
                     document.getElementById('logoPreview').src = logoUrl;
                 }

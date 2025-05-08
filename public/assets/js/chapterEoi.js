@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch chapters data
         console.log('📚 Fetching chapters data...');
-        const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         console.log('📘 Chapters data received:', chapters);
 
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Now fetch EOI forms
         console.log('📝 Fetching EOI forms...');
-        const eoiResponse = await fetch('http://backend.bninewdelhi.com/api/getEoiForms');
+        const eoiResponse = await fetch('https://backend.bninewdelhi.com/api/getEoiForms');
         const allEoiForms = await eoiResponse.json();
         console.log('📋 All EOI forms received:', allEoiForms);
 
@@ -192,8 +192,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Fetch remaining required data
         console.log('🔄 Fetching additional data...');
         const [regionsResponse, membersResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/regions'),
-            fetch('http://backend.bninewdelhi.com/api/members')
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/members')
         ]);
 
         const [regions, members] = await Promise.all([
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // Fetch all visitors data first
                 console.log('📊 Fetching all visitors data...');
-                const visitorsResponse = await fetch('http://backend.bninewdelhi.com/api/getallVisitors');
+                const visitorsResponse = await fetch('https://backend.bninewdelhi.com/api/getallVisitors');
                 const visitorsData = await visitorsResponse.json();
                 console.log('👥 All visitors data:', visitorsData);
 

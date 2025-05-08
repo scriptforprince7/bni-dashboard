@@ -72,7 +72,7 @@ document.getElementById('signInForm').addEventListener('submit', async function 
     showLoader();
 
     try {
-        const response = await fetch('http://backend.bninewdelhi.com/api/auth/login', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

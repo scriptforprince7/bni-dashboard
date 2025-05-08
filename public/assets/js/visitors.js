@@ -94,7 +94,7 @@ function showInductionConfirmation(visitor) {
                 console.log('🔄 Processing Induction for visitor:', visitor);
 
                 // Make API call to update induction status
-                const response = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -156,7 +156,7 @@ function formatDate(dateString) {
 // Function to check payment status from membership pending data
 async function checkMembershipPayment(visitorId) {
     try {
-        const response = await fetch('http://backend.bninewdelhi.com/api/getMembershipPending');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getMembershipPending');
         const membershipData = await response.json();
         
         const membershipRecord = membershipData.find(record => record.visitor_id === visitorId);
@@ -183,7 +183,7 @@ async function checkMembershipPayment(visitorId) {
 async function fetchMemberApplicationDetails(visitorId) {
     try {
         console.log("🔍 Fetching member application details for visitor ID:", visitorId);
-        const response = await fetch('http://backend.bninewdelhi.com/api/memberApplicationFormNewMember');
+        const response = await fetch('https://backend.bninewdelhi.com/api/memberApplicationFormNewMember');
         const applications = await response.json();
         console.log("📄 All applications:", applications);
         
@@ -267,9 +267,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch all required data
         const [visitorsResponse, regionsResponse, chaptersResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/getallVisitors'),
-            fetch('http://backend.bninewdelhi.com/api/regions'),
-            fetch('http://backend.bninewdelhi.com/api/chapters')
+            fetch('https://backend.bninewdelhi.com/api/getallVisitors'),
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters')
         ]);
 
         const visitors = await visitorsResponse.json();
@@ -789,8 +789,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                       
                     return `
                         <div class="doc-container">
-                            <a href="http://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}" target="_blank">
-                                <img src="http://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}" alt="${docType}" style="max-width: 100px;">
+                            <a href="https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}" target="_blank">
+                                <img src="https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}" alt="${docType}" style="max-width: 100px;">
                             </a>
                             <div class="doc-number">${docNumber || 'N/A'}</div>
                             <div class="verification-badge" style="
@@ -815,7 +815,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const onboardingCallDisplay = visitor.onboarding_call 
                     ? `
                         <div class="doc-container">
-                            <img src="http://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
+                            <img src="https://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
                                  class="doc-preview" 
                                  onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
                                  alt="Onboarding Call Preview"
@@ -1139,7 +1139,7 @@ async function handleScreenshotUpload(event, visitor_id) {
         const formData = new FormData();
         formData.append('onboarding_call_img', file);
 
-        const response = await fetch(`http://backend.bninewdelhi.com/api/updateOnboardingCall/${visitor_id}`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/updateOnboardingCall/${visitor_id}`, {
             method: 'PUT',
             body: formData
         });
@@ -1224,7 +1224,7 @@ async function handleInductionKitApproval(visitorId, chapterId) {
 
     try {
         // Fetch chapter requisitions
-        const response = await fetch('http://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
         const requisitions = await response.json();
         console.log('------------------------------------------------------');
         console.log('📦 All Requisitions:', requisitions);
@@ -1249,7 +1249,7 @@ async function handleInductionKitApproval(visitorId, chapterId) {
         console.log('✅ Requisition is approved, updating visitor status');
 
         // Update visitor status
-        const updateResponse = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
+        const updateResponse = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -1302,7 +1302,7 @@ async function handleVisitorEntry(visitor) {
         console.log('🔄 Processing Visitor Entry Update:', visitor);
 
         // Make API call to update visitor
-        const response = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -1352,7 +1352,7 @@ async function handleGoogleSheet(visitor) {
         console.log('🔄 Processing Google Sheet Update:', visitor);
 
         // Make API call to update visitor
-        const response = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -1430,7 +1430,7 @@ async function handleDocVerification(docType, event, visitorId) {
             });
 
             // Make API call to update verification status
-            const response = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
+            const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

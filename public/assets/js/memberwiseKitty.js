@@ -38,13 +38,13 @@ async function fetchMemberWiseKitty() {
     });
 
     const [orders, transactions, bankOrders, activeBill, members, credits, chapters] = await Promise.all([
-      fetch('http://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
-      fetch('http://backend.bninewdelhi.com/api/allTransactions').then(res => res.json()),
-      fetch('http://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
-      fetch('http://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
-      fetch('http://backend.bninewdelhi.com/api/members').then(res => res.json()),
-      fetch('http://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
-      fetch('http://backend.bninewdelhi.com/api/chapters').then(res => res.json())
+      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json())
     ]);
 
     console.log('✅ All data fetched successfully');
@@ -270,7 +270,7 @@ function populateRegionFilter() {
       return;
     }
 
-    fetch('http://backend.bninewdelhi.com/api/regions')
+    fetch('https://backend.bninewdelhi.com/api/regions')
       .then(res => res.json())
       .then(regions => {
         console.log('🌍 Fetched regions:', regions);
@@ -301,7 +301,7 @@ function populateChapterFilter(regionId) {
       return;
     }
 
-    fetch('http://backend.bninewdelhi.com/api/chapters')
+    fetch('https://backend.bninewdelhi.com/api/chapters')
       .then(res => res.json())
       .then(chapters => {
         console.log('🏢 Fetched all chapters:', chapters);

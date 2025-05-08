@@ -1,9 +1,9 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.endpoints = {
-    chapters: "http://backend.bninewdelhi.com/api/chapters",
-    regions: "http://backend.bninewdelhi.com/api/regions",
-    members: "http://backend.bninewdelhi.com/api/members"
+    chapters: "https://backend.bninewdelhi.com/api/chapters",
+    regions: "https://backend.bninewdelhi.com/api/regions",
+    members: "https://backend.bninewdelhi.com/api/members"
 };
 let active_total =0;
 let member_total = 0;
@@ -225,7 +225,7 @@ async function displayChapters(chapters) {
     document.getElementById("total-chapters-count").textContent = totalEntries;
 
     // Update total members count
-    fetch('http://backend.bninewdelhi.com/api/members')
+    fetch('https://backend.bninewdelhi.com/api/members')
         .then(response => response.json())
         .then(members => {
             const activeMembersCount = members.filter(member => member).length;
@@ -238,9 +238,9 @@ async function displayChapters(chapters) {
 
     // Fetch all required data ONCE
     const [expenses, allOrders, allTransactions] = await Promise.all([
-        fetch("http://backend.bninewdelhi.com/api/allExpenses").then(r => r.json()),
-        fetch("http://backend.bninewdelhi.com/api/allOrders").then(r => r.json()),
-        fetch("http://backend.bninewdelhi.com/api/allTransactions").then(r => r.json())
+        fetch("https://backend.bninewdelhi.com/api/allExpenses").then(r => r.json()),
+        fetch("https://backend.bninewdelhi.com/api/allOrders").then(r => r.json()),
+        fetch("https://backend.bninewdelhi.com/api/allTransactions").then(r => r.json())
     ]);
 
     // Calculate pagination
@@ -593,7 +593,7 @@ document.getElementById("chaptersTableBody")?.addEventListener("click", async (e
         if (result.isConfirmed) {
             try {
                 showLoader();
-                const response = await fetch(`http://backend.bninewdelhi.com/api/deleteChapter/${chapterId}`, {
+                const response = await fetch(`https://backend.bninewdelhi.com/api/deleteChapter/${chapterId}`, {
                     method: "PUT"
                 });
 

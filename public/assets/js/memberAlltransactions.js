@@ -92,7 +92,7 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
 
           // Fetch member details to get member_id
           console.log('Fetching members data from API..');
-          const response = await fetch('http://backend.bninewdelhi.com/api/members');
+          const response = await fetch('https://backend.bninewdelhi.com/api/members');
           if (!response.ok) {
               throw new Error('Failed to fetch member details');
           }
@@ -131,9 +131,9 @@ const populateDropdown = (dropdown, data, valueField, textField, defaultText) =>
 
       // Fetch orders, transactions, and universal links
       const [ordersResponse, transactionsResponse, universalLinksResponse] = await Promise.all([
-          fetch('http://backend.bninewdelhi.com/api/allOrders'),
-          fetch('http://backend.bninewdelhi.com/api/allTransactions'),
-          fetch('http://backend.bninewdelhi.com/api/universalLinks'),
+          fetch('https://backend.bninewdelhi.com/api/allOrders'),
+          fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+          fetch('https://backend.bninewdelhi.com/api/universalLinks'),
       ]);
 
       if (!ordersResponse.ok || !transactionsResponse.ok || !universalLinksResponse.ok) {

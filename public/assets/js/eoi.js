@@ -103,10 +103,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch all required data
         const [eoiResponse, regionsResponse, chaptersResponse, membersResponse] = await Promise.all([
-            fetch('http://backend.bninewdelhi.com/api/getEoiForms'),
-            fetch('http://backend.bninewdelhi.com/api/regions'),
-            fetch('http://backend.bninewdelhi.com/api/chapters'),
-            fetch('http://backend.bninewdelhi.com/api/members')
+            fetch('https://backend.bninewdelhi.com/api/getEoiForms'),
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/members')
         ]);
 
         const [eoiForms, regions, chapters, members] = await Promise.all([
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // Fetch all visitors data first
                 console.log('📊 Fetching all visitors data...');
-                const visitorsResponse = await fetch('http://backend.bninewdelhi.com/api/getallVisitors');
+                const visitorsResponse = await fetch('https://backend.bninewdelhi.com/api/getallVisitors');
                 const visitorsData = await visitorsResponse.json();
                 console.log('👥 All visitors data:', visitorsData);
 
