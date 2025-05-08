@@ -1,8 +1,6 @@
 // let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
-let entriesPerPage = 10; // Number of entries to display per page
-let currentPage = 1; // For pagination
 let expenseTypes = []; // Store expense types mapping
 
 // Define base URL at the top of your file
@@ -93,10 +91,9 @@ const fetchExpenses = async (sortDirection = 'asc') => {
         chapter.vice_president_mail === userEmail ||
         chapter.president_mail === userEmail ||
         chapter.treasurer_mail === userEmail
-    );
+      );
     
-    console.log('Found user chapter:', userChapter);
-    
+      console.log('Found user chapter:', userChapter);
       
       console.log('🏢 Chapter user filtering:', {
         userEmail,
@@ -129,12 +126,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
 
     // Sort and display expenses
     sortExpenses(sortDirection);
-    
-    const startIndex = (currentPage - 1) * entriesPerPage;
-    const endIndex = startIndex + entriesPerPage;
-    const expensesToDisplay = filteredExpenses.slice(startIndex, endIndex);
-    
-    displayExpenses(expensesToDisplay);
+    displayExpenses(filteredExpenses);
     updateExpenseTotals(allExpenses);
 
   } catch (error) {
@@ -168,9 +160,7 @@ const sortExpenses = (filter) => {
   });
 
   // Update the display after sorting
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-  displayExpenses(filteredExpenses.slice(startIndex, endIndex));
+  displayExpenses(filteredExpenses);
 };
 
 const AddExpenseType = async () => {
@@ -258,7 +248,7 @@ function displayExpenses(expenses) {
     console.log('No expenses to display');
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="10" class="text-center">No expenses found</td>
+      <td colspan="11" class="text-center">No expenses found</td>
     `;
     tableBody.appendChild(row);
     return;
@@ -298,11 +288,12 @@ function displayExpenses(expenses) {
       status: expense.payment_status,
       date: formattedBillDate,
       billUrl: billUrl,
-      receiptUrl: receiptUrl
+      receiptUrl: receiptUrl,
+      modeOfPayment: expense.mode_of_payment
     });
 
     row.innerHTML = `
-      <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
+      <td>${index + 1}</td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.submitted_by}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.description}</b></td>
@@ -311,6 +302,9 @@ function displayExpenses(expenses) {
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
+      <td style="border: 1px solid grey;">
+        <span class="badge bg-${expense.mode_of_payment === "online" ? "info" : "secondary"}">${expense.mode_of_payment || "N/A"}</span>
+      </td>
       <td style="border: 1px solid grey;">
         ${filename ? `
           <a href="${billUrl}" target="_blank" style="text-decoration: underline; color: blue">

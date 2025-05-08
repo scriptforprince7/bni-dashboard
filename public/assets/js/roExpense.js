@@ -1,8 +1,6 @@
 // let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
-let entriesPerPage = 10; // Number of entries to display per page
-let currentPage = 1; // For pagination
 let expenseTypes = []; // Store expense types mapping
 let allChapters = []; // Store all chapters
 
@@ -41,10 +39,7 @@ const filterExpensesByChapter = (chapterName) => {
   }
   
   // Update display with filtered expenses
-  const startIndex = 0;
-  const endIndex = entriesPerPage;
-  currentPage = 1; // Reset to first page when filtering
-  displayExpenses(filteredExpenses.slice(startIndex, endIndex));
+  displayExpenses(filteredExpenses);
   
   // Update expense totals for filtered expenses
   updateExpenseTotals(filteredExpenses);
@@ -168,13 +163,8 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     // Sort expenses
     sortExpenses(sortDirection);
     
-    // Display first page of expenses
-    const startIndex = (currentPage - 1) * entriesPerPage;
-    const endIndex = startIndex + entriesPerPage;
-    const expensesToDisplay = filteredExpenses.slice(startIndex, endIndex);
-    console.log('Displaying expenses:', expensesToDisplay);
-    
-    displayExpenses(expensesToDisplay);
+    // Display all expenses
+    displayExpenses(filteredExpenses);
 
     // Update the expense totals
     updateExpenseTotals(allExpenses);
@@ -211,9 +201,7 @@ const sortExpenses = (filter) => {
   });
 
   // Update the display after sorting
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-  displayExpenses(filteredExpenses.slice(startIndex, endIndex));
+  displayExpenses(filteredExpenses);
 };
 
 const AddExpenseType = async () => {
@@ -292,7 +280,7 @@ function displayExpenses(expenses) {
     console.log('No expenses to display');
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="8" class="text-center">No expenses found</td>
+      <td colspan="11" class="text-center">No expenses found</td>
     `;
     tableBody.appendChild(row);
     return;
@@ -332,7 +320,7 @@ function displayExpenses(expenses) {
     });
 
     row.innerHTML = `
-      <td>${(currentPage - 1) * entriesPerPage + index + 1}</td>
+      <td>${index + 1}</td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.chapter_id}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.submitted_by}</b></td>
@@ -342,6 +330,9 @@ function displayExpenses(expenses) {
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
+      <td style="border: 1px solid grey;">
+        <span class="badge bg-${expense.mode_of_payment === "online" ? "info" : "secondary"}">${expense.mode_of_payment || "N/A"}</span>
+      </td>
       <td style="border: 1px solid grey;">
         ${filename ? `
           <a href="${billUrl}" target="_blank" style="text-decoration: underline; color: blue">
@@ -365,6 +356,9 @@ function displayExpenses(expenses) {
     `;
     tableBody.appendChild(row);
   });
+
+  // Update total expenses count
+  document.getElementById('totalExpensesCount').textContent = expenses.length;
 }
 
 // Event listener for Delete button
@@ -533,9 +527,7 @@ const sortByColumn = (columnName) => {
   });
 
   // Update the display
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const endIndex = startIndex + entriesPerPage;
-  displayExpenses(filteredExpenses.slice(startIndex, endIndex));
+  displayExpenses(filteredExpenses);
 };
 
 // Function to update sort icons

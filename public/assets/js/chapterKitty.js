@@ -906,6 +906,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             expenses
           );
           
+          // Update manual funds display
+          const manualFundsElement = document.querySelector('.manual-funds-amount');
+          if (manualFundsElement) {
+            manualFundsElement.textContent = indianCurrencyFormatter.format(manualPaymentAmount);
+            console.log('Updated manual funds display:', manualPaymentAmount);
+          }
+
           // Fetch other payments total
           otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
           console.log("Other Payments Total:", otherPaymentsTotal);
@@ -914,7 +921,8 @@ document.addEventListener("DOMContentLoaded", async function () {
           totalAvailableAmount = parseFloat(visitorAmountTotal) +
                                 parseFloat(totalReceivedAmount) -
                                 parseFloat(total_paid_expense) +
-                                parseFloat(otherPaymentsTotal);
+                                parseFloat(otherPaymentsTotal) +
+                                parseFloat(manualPaymentAmount);
 
           // Update the existing totalAvailableElement with new values
           if (totalAvailableElement) {
@@ -923,6 +931,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
             totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
             totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
+            totalAvailableElement.setAttribute('data-manual-payments', manualPaymentAmount);
             
             // Update UI with total available amount
             totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
@@ -1077,9 +1086,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     let currentChapterMember;
     let ReceivedAmount = 0;
     let MiscellaneousAmount = 0;
-
-    // const pendingBalanceResponse = await fetch('https://backend.bninewdelhi.com/api/memberPendingKittyOpeningBalance');
-    // const pendingBalances = await pendingBalanceResponse.json();
 
     chapterOrders.forEach(async (order) => {
       // Find matching transaction
@@ -1237,11 +1243,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       expenses
     );
     // Fetch other payments total
-    let otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
+    otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
     console.log("Other Payments Total:", otherPaymentsTotal);
 
     // Calculate total available amount including other payments
-    totalAvailableAmount += parseFloat(otherPaymentsTotal);
+    totalAvailableAmount = parseFloat(visitorAmountTotal) +
+                          parseFloat(totalReceivedAmount) -
+                          parseFloat(total_paid_expense) +
+                          parseFloat(otherPaymentsTotal) +
+                          parseFloat(manualPaymentAmount);
 
     // Update the existing totalAvailableElement with new values
     if (totalAvailableElement) {
@@ -1250,36 +1260,20 @@ document.addEventListener("DOMContentLoaded", async function () {
       totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
       totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
       totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
+      totalAvailableElement.setAttribute('data-manual-payments', manualPaymentAmount);
+      
       // Update UI with total available amount
-      totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
-      // Add click handler for modal if not already added
-      if (!totalAvailableElement.hasAttribute('data-modal-handler-added')) {
-        totalAvailableElement.addEventListener('click', function() {
-          // Get the current values
-          const available_fund = parseFloat(this.getAttribute('data-opening-balance') || 0);
-          const totalReceivedAmount = parseFloat(this.getAttribute('data-meeting-payments') || 0);
-          const visitorAmountTotal = parseFloat(this.getAttribute('data-visitor-payments') || 0);
-          const total_paid_expense = parseFloat(this.getAttribute('data-paid-expenses') || 0);
-          const otherPaymentsTotal = parseFloat(this.getAttribute('data-other-payments') || 0);
-          // Update the modal
-          updateFundBreakdownModal(
-            available_fund,
-            totalReceivedAmount,
-            visitorAmountTotal,
-            total_paid_expense,
-            otherPaymentsTotal
-          );
-        });
-        totalAvailableElement.setAttribute('data-modal-handler-added', 'true');
-      }
+      totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
     }
+
     // Update the fund breakdown modal
     updateFundBreakdownModal(
       available_fund,
       totalReceivedAmount,
       visitorAmountTotal,
       total_paid_expense,
-      otherPaymentsTotal
+      otherPaymentsTotal,
+      manualPaymentAmount
     );
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
@@ -1698,25 +1692,27 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
     if (transaction) {
       // Check if order has tax
       const orderHasTax = parseFloat(order.tax || 0) > 0;
+      let amountToAdd = 0;
       
       if (orderHasTax) {
         // If order has tax, use full amount including GST
-        totalManualAmount += parseFloat(transaction.payment_amount || 0);
+        amountToAdd = parseFloat(transaction.payment_amount || 0);
       } else {
         // If no tax, calculate amount without GST
-        const payamount = Math.ceil(
+        amountToAdd = Math.ceil(
           parseFloat(transaction.payment_amount) -
           (parseFloat(transaction.payment_amount) * 18) / 118
         );
-        totalManualAmount += parseFloat(payamount);
       }
+
+      totalManualAmount += amountToAdd;
 
       // Log for debugging
       console.log(`Added ${order.payment_note} payment:`, {
         orderId: order.order_id,
         amount: transaction.payment_amount,
         hasTax: orderHasTax,
-        addedAmount: orderHasTax ? transaction.payment_amount : payamount
+        addedAmount: amountToAdd
       });
     }
   });
@@ -1739,25 +1735,36 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
 // Function to fetch and calculate other payments total
 async function fetchOtherPaymentsTotal(chapterId) {
   try {
+    console.log('Fetching other payments for chapter:', chapterId);
     const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const otherPayments = await response.json();
     
-    // Filter payments for current chapter and calculate total
+    // Filter payments for current chapter
     const chapterOtherPayments = otherPayments.filter(payment => 
-      payment.chapter_id === chapterId
+      String(payment.chapter_id) === String(chapterId)
     );
+    
+    console.log('Found other payments for chapter:', chapterOtherPayments.length);
     
     let totalOtherPayments = 0;
     chapterOtherPayments.forEach(payment => {
+      console.log('Processing payment:', payment);
+      
       if (payment.is_gst) {
-        // If GST is included, use total_amount
+        // If GST is included, use total_amount directly
         totalOtherPayments += parseFloat(payment.total_amount || 0);
+        console.log('Added GST-included amount:', payment.total_amount);
       } else {
-        // If no GST, use base amount
-        totalOtherPayments += parseFloat(payment.total_amount || 0);
+        // If no GST, calculate amount without GST
+        const baseAmount = parseFloat(payment.total_amount || 0);
+        const gstAmount = parseFloat(payment.gst_amount || 0);
+        const amountWithoutGst = baseAmount - gstAmount;
+        totalOtherPayments += amountWithoutGst;
+        console.log('Added amount without GST:', amountWithoutGst);
       }
     });
     
+    console.log('Total other payments calculated:', totalOtherPayments);
     return totalOtherPayments;
   } catch (error) {
     console.error("Error fetching other payments:", error);
@@ -1766,7 +1773,7 @@ async function fetchOtherPaymentsTotal(chapterId) {
 }
 
 // Update the fund breakdown modal function
-function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal) {
+function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal, manualPaymentsTotal) {
   // Get modal elements
   const openingBalance = document.getElementById('modal-opening-balance');
   const meetingPayments = document.getElementById('modal-meeting-payments');
@@ -1793,7 +1800,8 @@ function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAm
   const total = parseFloat(available_fund || 0) + 
                 parseFloat(totalReceivedAmount || 0) + 
                 parseFloat(visitorAmountTotal || 0) + 
-                parseFloat(otherPaymentsTotal || 0) - 
+                parseFloat(otherPaymentsTotal || 0) + 
+                parseFloat(manualPaymentsTotal || 0) - 
                 parseFloat(total_paid_expense || 0);
   
   totalAvailable.textContent = formatter.format(total);
