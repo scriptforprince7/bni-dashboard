@@ -407,25 +407,6 @@ function exportToExcel() {
       return;
     }
 
-    // Initialize ledger with opening balance (available_fund)
-    currentBalance = parseFloat(loggedInChapter.available_fund) || 0;
-    console.log("Initial balance:", currentBalance);
-
-    // Update opening balance display
-    document.getElementById("opening-balance").textContent = formatCurrency(currentBalance);
-
-    ledgerData = [{
-      sNo: 1,
-      date: formatDate(loggedInChapter.date_of_publishing || new Date()),
-      description: "Opening Balance",
-      billAmount: 0,
-      debit: 0,
-      credit: currentBalance,
-      gst: 0,
-      balance: currentBalance,
-      balanceColor: currentBalance >= 0 ? "green" : "red"
-    }];
-
     // Fetch all orders, transactions and expenses
     console.log("Fetching transactions data...");
     const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
@@ -441,6 +422,21 @@ function exportToExcel() {
       expensesResponse.json(),
       otherPaymentsResponse.json()
     ]);
+
+    // Find the earliest transaction date (move this block here, after allOrders etc. are initialized)
+    let earliestDate = new Date();
+    if (allOrders.length > 0 || allExpenses.length > 0 || allOtherPayments.length > 0) {
+      let dates = [];
+      allOrders.forEach(order => { if (order.payment_time) dates.push(new Date(order.payment_time)); });
+      allExpenses.forEach(expense => { if (expense.bill_date) dates.push(new Date(expense.bill_date)); });
+      allOtherPayments.forEach(payment => { if (payment.date) dates.push(new Date(payment.date)); });
+      if (dates.length > 0) {
+        earliestDate = new Date(Math.min(...dates.map(d => d.getTime())));
+      }
+    }
+    // Set opening balance date to one day before earliest transaction
+    let openingBalanceDate = new Date(earliestDate);
+    openingBalanceDate.setDate(openingBalanceDate.getDate() - 1);
 
     // Filter orders for current chapter
     console.log("Filtering orders for chapter:", chapterId);
@@ -530,15 +526,13 @@ function exportToExcel() {
           } else {
             onlineVisitorAmount += amount;
           }
-          console.log("Added visitor payment:", {
-            visitorName: order.visitor_name,
-            amount: amount,
-            totalVisitorAmount: totalVisitorAmount,
-            paymentMethod: paymentMethod
-          });
         }
       }
     });
+
+    // Sort all items by date
+    allTransactionItems.sort((a, b) => a.date - b.date);
+    console.log("Total transaction items:", allTransactionItems.length);
 
     // Add expenses
     console.log("Processing expenses for chapter:", chapterId);
@@ -627,28 +621,52 @@ function exportToExcel() {
       });
     });
 
-    // Sort all items by date
+    // Sort all items by date again after adding expenses and other payments
     allTransactionItems.sort((a, b) => a.date - b.date);
-    console.log("Total transaction items:", allTransactionItems.length);
+    console.log("Total transaction items after adding expenses and other payments:", allTransactionItems.length);
 
-    // Generate ledger entries
-    allTransactionItems.forEach(item => {
-      if (item.type === "expense") {
-        // For expenses, subtract the base amount (debit)
-        currentBalance -= item.amount;
+    // Insert opening balance as the very first transaction
+    allTransactionItems.unshift({
+      date: openingBalanceDate,
+      type: "opening",
+      description: "Opening Balance",
+      amount: 0,
+      gst: 0,
+      totalAmount: 0,
+      credit: currentBalance,
+      balance: currentBalance
+    });
+
+    // Now process allTransactionItems in order to build ledgerData
+    currentBalance = parseFloat(loggedInChapter.available_fund) || 0;
+    ledgerData = [];
+    allTransactionItems.forEach((item, idx) => {
+      if (item.type === "opening") {
+        ledgerData.push({
+          sNo: ledgerData.length + 1,
+          date: formatDate(item.date),
+          description: item.description,
+          billAmount: '-',
+          debit: 0,
+          credit: Math.round(currentBalance * 100) / 100,
+          gst: '-',
+          balance: Math.round(currentBalance * 100) / 100,
+          balanceColor: currentBalance >= 0 ? "green" : "red"
+        });
+      } else if (item.type === "expense") {
+        currentBalance -= item.totalAmount;
         ledgerData.push({
           sNo: ledgerData.length + 1,
           date: formatDate(item.date),
           description: item.description,
           billAmount: Math.round(item.totalAmount * 100) / 100,
-          debit: Math.round(item.amount * 100) / 100,
+          debit: Math.round(item.totalAmount * 100) / 100,
           credit: 0,
           gst: Math.round(item.gst * 100) / 100,
-          balance: currentBalance,
+          balance: Math.round(currentBalance * 100) / 100,
           balanceColor: currentBalance >= 0 ? "green" : "red"
         });
       } else {
-        // For kitty and visitor payments, add the base amount (credit)
         currentBalance += item.amount;
         ledgerData.push({
           sNo: ledgerData.length + 1,
@@ -656,9 +674,9 @@ function exportToExcel() {
           description: item.description,
           billAmount: Math.round(item.totalAmount * 100) / 100,
           debit: 0,
-          credit: item.amount,
+          credit: Math.round(item.amount * 100) / 100,
           gst: Math.round(item.gst * 100) / 100,
-          balance: currentBalance,
+          balance: Math.round(currentBalance * 100) / 100,
           balanceColor: currentBalance >= 0 ? "green" : "red"
         });
       }
