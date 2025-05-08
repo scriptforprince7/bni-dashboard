@@ -22,7 +22,7 @@ let accoladeMap = {};
 const fetchRegionDetails = async () => {
     showLoader();
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/getRegion/${region_id}`);
+        const response = await fetch(`http://backend.bninewdelhi.com/api/getRegion/${region_id}`);
         if (!response.ok) {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
@@ -41,7 +41,7 @@ const fetchRegionDetails = async () => {
 const fetchAccolades = async () => {
     showLoader();
     try {
-        const response = await fetch("https://backend.bninewdelhi.com/api/accolades");
+        const response = await fetch("http://backend.bninewdelhi.com/api/accolades");
         if (!response.ok) {
             throw new Error(`Accolades API error: ${response.status} ${response.statusText}`);
         }
@@ -229,7 +229,7 @@ const populateFormFields = (data) => {
         const imagePreview = document.getElementById('imagePreview');
         
         // Construct the URL if not provided in response
-        const logoUrl = `https://backend.bninewdelhi.com/api/uploads/regionLogos/${data.region_logo}`;
+        const logoUrl = `http://backend.bninewdelhi.com/api/uploads/regionLogos/${data.region_logo}`;
         console.log('🔗 Using logo URL:', logoUrl);
         
         if (preview && imagePreview) {
@@ -617,7 +617,7 @@ const updateRegionData = async () => {
         const formData = collectFormData();
         
         console.log('🚀 Sending update request to server');
-        const response = await fetch(`https://backend.bninewdelhi.com/api/updateRegion/${region_id}`, {
+        const response = await fetch(`http://backend.bninewdelhi.com/api/updateRegion/${region_id}`, {
             method: 'PUT',
             body: formData
         });
@@ -817,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log('🚀 Sending update request for region:', region_id);
 
-                const response = await fetch(`https://backend.bninewdelhi.com/api/updateRegion/${region_id}`, {
+                const response = await fetch(`http://backend.bninewdelhi.com/api/updateRegion/${region_id}`, {
                     method: 'PUT',
                     body: formData
                 });
@@ -863,7 +863,7 @@ document.addEventListener('DOMContentLoaded', function() {
 const fetchHotels = async () => {
     showLoader();
     try {
-        const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
+        const response = await fetch("http://backend.bninewdelhi.com/api/getHotels");
         if (!response.ok) {
             throw new Error(`Hotels API error: ${response.status} ${response.statusText}`);
         }

@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchZoneDetails() {
         try {
             console.log('📥 Fetching zone details for ID:', zoneId);
-            const response = await fetch(`https://backend.bninewdelhi.com/api/getZone/${zoneId}`);
+            const response = await fetch(`http://backend.bninewdelhi.com/api/getZone/${zoneId}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const formData = new FormData(form);
                 console.log('📤 Sending update request');
 
-                const response = await fetch(`https://backend.bninewdelhi.com/api/updateZone/${zoneId}`, {
+                const response = await fetch(`http://backend.bninewdelhi.com/api/updateZone/${zoneId}`, {
                     method: 'PUT',
                     body: formData
                 });

@@ -1,9 +1,9 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.endpoints = {
-    universalLinks: 'https://backend.bninewdelhi.com/api/universalLinks',
-    paymentGateway: 'https://backend.bninewdelhi.com/api/paymentGateway',
-    deleteUniversalLink: 'https://backend.bninewdelhi.com/api/deleteUniversalLink'
+    universalLinks: 'http://backend.bninewdelhi.com/api/universalLinks',
+    paymentGateway: 'http://backend.bninewdelhi.com/api/paymentGateway',
+    deleteUniversalLink: 'http://backend.bninewdelhi.com/api/deleteUniversalLink'
 };
 
 // Use window.BNI namespace for other global variables

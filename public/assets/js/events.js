@@ -1,4 +1,4 @@
-const accoladesApiUrl = 'https://backend.bninewdelhi.com/api/allEvents';
+const accoladesApiUrl = 'http://backend.bninewdelhi.com/api/allEvents';
 const accoladesTableBody = document.querySelector('table tbody');
 const paginationContainer = document.querySelector('.pagination');
 let accolades = []; // To store all fetched events
@@ -351,7 +351,7 @@ const deleteEvent = async (event_id) => {
     if (result.isConfirmed) {
         try {
             showLoader();  // Show loading indicator
-            const response = await fetch(`https://backend.bninewdelhi.com/api/deleteEvent/${event_id}`, {
+            const response = await fetch(`http://backend.bninewdelhi.com/api/deleteEvent/${event_id}`, {
                 method: 'PUT',
             });
   

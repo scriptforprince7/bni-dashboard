@@ -65,7 +65,7 @@ let ledgerData = [];
 
     // Step 2: Fetch member data using the email
     const memberResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/members"
+      "http://backend.bninewdelhi.com/api/members"
     );
     const members = await memberResponse.json();
 
@@ -92,7 +92,7 @@ let ledgerData = [];
     // let currentBalance = 0;
 
     const AllTimeRaisedKittyResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllKittyPayments"
+      "http://backend.bninewdelhi.com/api/getAllKittyPayments"
     );
     const AllTimeRaisedKitty = await AllTimeRaisedKittyResponse.json();
     const allTimeRaisedKitty = AllTimeRaisedKitty.filter(
@@ -103,17 +103,17 @@ let ledgerData = [];
     let activeKittyEntries = [];
     let remainingKittyEntries = [];
     const allAvailableOrdersResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allOrders"
+      "http://backend.bninewdelhi.com/api/allOrders"
     );
     const allAvailableOrders = await allAvailableOrdersResponse.json();
     const allAvailableTransactionsResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allTransactions"
+      "http://backend.bninewdelhi.com/api/allTransactions"
     );
     const allAvailableTransactions = await allAvailableTransactionsResponse.json();
 
     // Fetch all member credits
     const memberCreditResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
+      "http://backend.bninewdelhi.com/api/getAllMemberCredit"
     );
     const memberCredits = await memberCreditResponse.json();
     let filteredCredits = memberCredits.filter(
@@ -934,7 +934,7 @@ let ledgerData = [];
     }
 
     // Fetch write-off data and check for write-off status
-    const writeOffResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberWriteOff");
+    const writeOffResponse = await fetch("http://backend.bninewdelhi.com/api/getAllMemberWriteOff");
     const writeOffData = await writeOffResponse.json();
     memberWriteOff = writeOffData.find(wo => wo.member_id === userData.member_id);
     console.log("memberWriteOff", memberWriteOff);

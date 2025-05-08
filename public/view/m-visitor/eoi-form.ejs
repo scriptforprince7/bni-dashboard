@@ -363,7 +363,7 @@
                 console.log('Fetching data for visitor_id:', visitorId);
 
                 // Fetch EOI Form data
-                const eoiResponse = await fetch(`https://backend.bninewdelhi.com/api/getEoiForms`);
+                const eoiResponse = await fetch(`http://backend.bninewdelhi.com/api/getEoiForms`);
                 const eoiForms = await eoiResponse.json();
                 console.log('All EOI Forms:', eoiForms);
 
@@ -377,17 +377,17 @@
                 }
 
                 // Fetch Regions
-                const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+                const regionsResponse = await fetch('http://backend.bninewdelhi.com/api/regions');
                 const regions = await regionsResponse.json();
                 console.log('Regions data:', regions);
 
                 // Fetch Chapters
-                const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+                const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
                 const chapters = await chaptersResponse.json();
                 console.log('Chapters data:', chapters);
 
                 // Fetch Members
-                const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+                const membersResponse = await fetch('http://backend.bninewdelhi.com/api/members');
                 const members = await membersResponse.json();
                 console.log('Members data:', members);
 
@@ -493,7 +493,7 @@
                     // Make API call to update verification status
                     console.log('🔄 Making API call to update verification status');
                     
-                    const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                    const response = await fetch('http://backend.bninewdelhi.com/api/update-visitor', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'

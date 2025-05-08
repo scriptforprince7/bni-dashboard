@@ -1,4 +1,4 @@
-// let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
+// let apiUrl = "http://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let entriesPerPage = 10; // Number of entries to display per page
@@ -60,7 +60,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     });
 
     // Fetch all expenses first
-    const response = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+    const response = await fetch("http://backend.bninewdelhi.com/api/allExpenses");
     if (!response.ok) throw new Error("Network response was not ok");
     const allExpensesData = await response.json();
     console.log('📊 All expenses before filtering:', allExpensesData);
@@ -86,7 +86,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       console.log('✅ Filtered expenses for RO Admin:', allExpenses);
     } else if (userType !== 'ro_admin') {
       // For chapter users, fetch their chapter details
-      const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+      const chaptersResponse = await fetch("http://backend.bninewdelhi.com/api/chapters");
       const chapters = await chaptersResponse.json();
       const userChapter = chapters.find(chapter =>
         chapter.email_id === userEmail ||
@@ -113,7 +113,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
 
     // Fetch expense types for mapping
     const expenseTypesResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/expenseType"
+      "http://backend.bninewdelhi.com/api/expenseType"
     );
     if (!expenseTypesResponse.ok) {
       throw new Error("Failed to fetch expense types");
@@ -211,7 +211,7 @@ const AddExpenseType = async () => {
         showLoader(); // Show loading indicator
 
         // Call the API to add the expense (replace with the actual API endpoint)
-        const response = await fetch(`https://backend.bninewdelhi.com/api/expenseType`, {
+        const response = await fetch(`http://backend.bninewdelhi.com/api/expenseType`, {
           method: 'POST', // Use POST to add an expense
           headers: {
             'Content-Type': 'application/json',
@@ -281,14 +281,14 @@ function displayExpenses(expenses) {
     const formattedBillDate = billDate.toLocaleDateString();
 
     // Get just the filename from upload_bill (remove any path if present)
-    const filename = expense.upload_bill.split('/').pop(); // This will get just the filename
+    const filename = expense.upload_bill ? expense.upload_bill.split('/').pop() : null;
     
     // Construct the bill URL
-    const billUrl = `${BILL_BASE_URL}/api/uploads/expenses/${filename}`;
+    const billUrl = filename ? `${BILL_BASE_URL}/api/uploads/expenses/${filename}` : '#';
     
     // Get receipt filename and construct receipt URL
-    const receiptFilename = expense.upload_receipt.split('/').pop();
-    const receiptUrl = `${BILL_BASE_URL}/api/uploads/expenses/${receiptFilename}`;
+    const receiptFilename = expense.upload_receipt ? expense.upload_receipt.split('/').pop() : null;
+    const receiptUrl = receiptFilename ? `${BILL_BASE_URL}/api/uploads/expenses/${receiptFilename}` : '#';
 
     console.log('Creating row for expense:', {
       id: expense.expense_id,
@@ -312,16 +312,20 @@ function displayExpenses(expenses) {
       </td>
       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
       <td style="border: 1px solid grey;">
-        <a href="${billUrl}" target="_blank" style="text-decoration: underline; color: blue">
-          View Bill
-          <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
-        </a>
+        ${filename ? `
+          <a href="${billUrl}" target="_blank" style="text-decoration: underline; color: blue">
+            View Bill
+            <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
+          </a>
+        ` : 'No bill uploaded'}
       </td>
       <td style="border: 1px solid grey;">
-        <a href="${receiptUrl}" target="_blank" style="text-decoration: underline; color: blue">
-          View Receipt
-          <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
-        </a>
+        ${receiptFilename ? `
+          <a href="${receiptUrl}" target="_blank" style="text-decoration: underline; color: blue">
+            View Receipt
+            <i class="fas fa-external-link-alt" style="font-size: 12px; margin-left: 4px;"></i>
+          </a>
+        ` : 'No receipt uploaded'}
       </td>
       <td style="border: 1px solid grey">
         <a href="/exp/edit-expense/?expense_id=${expense.expense_id}" class="badge" style="background-color: #10b981; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); transition: all 0.3s ease; hover: {opacity: 0.9};">Edit Bill</a>
@@ -358,7 +362,7 @@ const deleteExpense = async (expense_id) => {
       showLoader();
 
       const response = await fetch(
-        `https://backend.bninewdelhi.com/api/expense/${expense_id}`,
+        `http://backend.bninewdelhi.com/api/expense/${expense_id}`,
         {
           method: "DELETE",
         }
@@ -470,7 +474,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Function to fetch hotels
   const fetchHotels = async () => {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
+      const response = await fetch('http://backend.bninewdelhi.com/api/getHotels');
       if (!response.ok) throw new Error('Failed to fetch hotels');
       return await response.json();
     } catch (error) {

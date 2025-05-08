@@ -121,7 +121,7 @@
                             console.log('=== Starting Total Regions Count Process ===');
                         
                             // Fetch regions data
-                            const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+                            const regionsResponse = await fetch('http://backend.bninewdelhi.com/api/regions');
                             const regionsData = await regionsResponse.json();
                         
                             // Count active regions
@@ -174,7 +174,7 @@
                             console.log('=== Starting Total Chapters Count Process ===');
                         
                             // Fetch chapters data
-                            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+                            const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
                             const chaptersData = await chaptersResponse.json();
                         
                             // Count chapters with status 'running'
@@ -224,7 +224,7 @@
                       <script>
                         document.addEventListener('DOMContentLoaded', async function() {
                           try {
-                            const response = await fetch('https://backend.bninewdelhi.com/api/members');
+                            const response = await fetch('http://backend.bninewdelhi.com/api/members');
                             const members = await response.json();
                             
                             // Count active members
@@ -276,7 +276,7 @@
                             console.log('=== Starting Total Expenses Calculation Process ===');
                         
                             // Fetch expenses data
-                            const expensesResponse = await fetch('https://backend.bninewdelhi.com/api/allExpenses');
+                            const expensesResponse = await fetch('http://backend.bninewdelhi.com/api/allExpenses');
                             const expensesData = await expensesResponse.json();
                         
                             // Calculate total expenses for paid status
@@ -333,7 +333,7 @@
                             console.log('=== Starting Total Trainings Count Process ===');
                         
                             // Fetch trainings data
-                            const trainingsResponse = await fetch('https://backend.bninewdelhi.com/api/allTrainings');
+                            const trainingsResponse = await fetch('http://backend.bninewdelhi.com/api/allTrainings');
                             const trainingsData = await trainingsResponse.json();
                         
                             // Count total trainings

@@ -1,6 +1,6 @@
 async function fetchUniversalLinks() {
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
+        const response = await fetch('http://backend.bninewdelhi.com/api/universalLinks');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }

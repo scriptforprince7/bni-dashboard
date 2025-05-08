@@ -56,7 +56,7 @@ const viewVendorLedger = async (vendorId) => {
     if (!vendor) throw new Error('Vendor not found');
 
     // Fetch vendor's expenses
-    const response = await fetch(`https://backend.bninewdelhi.com/api/allExpenses`);
+    const response = await fetch(`http://backend.bninewdelhi.com/api/allExpenses`);
     if (!response.ok) throw new Error('Failed to fetch expenses');
     const allExpenses = await response.json();
 
@@ -265,7 +265,7 @@ const deleteVendor = async (vendorId) => {
   if (result.isConfirmed) {
     try {
       showLoader();
-      const response = await fetch(`https://backend.bninewdelhi.com/api/vendor/${vendorId}`, {
+      const response = await fetch(`http://backend.bninewdelhi.com/api/vendor/${vendorId}`, {
         method: 'DELETE'
       });
 
@@ -325,7 +325,7 @@ const fetchVendors = async () => {
     showLoader();
     
     // Fetch chapters first
-    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
     chapters = await chaptersResponse.json();
     
     // Populate chapter filter dropdown
@@ -335,7 +335,7 @@ const fetchVendors = async () => {
     const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
     
     // Fetch vendors
-    const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+    const response = await fetch('http://backend.bninewdelhi.com/api/getAllVendors');
     if (!response.ok) throw new Error('Failed to fetch vendors');
     
     const vendors = await response.json();
@@ -363,7 +363,7 @@ const fetchVendors = async () => {
 const addNewVendor = async () => {
   try {
     // Fetch chapters for dropdown
-    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    const chaptersResponse = await fetch('http://backend.bninewdelhi.com/api/chapters');
     const chapters = await chaptersResponse.json();
     
     // Sort chapters alphabetically
@@ -528,7 +528,7 @@ const addNewVendor = async () => {
     if (result.isConfirmed && result.value) {
       try {
         showLoader();
-        const response = await fetch('https://backend.bninewdelhi.com/api/addVendor', {
+        const response = await fetch('http://backend.bninewdelhi.com/api/addVendor', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

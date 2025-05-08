@@ -1,5 +1,5 @@
 // API URL to fetch accolades data
-const accoladesApiUrl = 'https://backend.bninewdelhi.com/api/accolades';
+const accoladesApiUrl = 'http://backend.bninewdelhi.com/api/accolades';
 const searchInput = document.getElementById('searchAccolades');
 
 // DOM element to populate the accolades table
@@ -174,7 +174,7 @@ const deleteAccolade = async (accolade_id) => {
   if (result.isConfirmed) {
       try {
           showLoader();  // Show loading indicator
-          const response = await fetch(`https://backend.bninewdelhi.com/api/deleteAccolade/${accolade_id}`, {
+          const response = await fetch(`http://backend.bninewdelhi.com/api/deleteAccolade/${accolade_id}`, {
               method: 'PUT',
           });
 

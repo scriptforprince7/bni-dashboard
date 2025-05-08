@@ -1380,13 +1380,13 @@
             const userEmail = getUserEmail();
             if (!userEmail) return;
 
-            const response = await fetch(`https://backend.bninewdelhi.com/api/members`);
+            const response = await fetch(`http://backend.bninewdelhi.com/api/members`);
             const members = await response.json();
             const member = members.find(m => m.member_email_address === userEmail);
 
             if (member && member.member_photo) {
                 const headerLogo = document.getElementById('headerLogo');
-                const photoUrl = `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`;
+                const photoUrl = `http://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`;
                 
                 // Set up error handling for the image
                 headerLogo.onerror = function() {
@@ -1529,7 +1529,7 @@
       // Add this function to update header logo
       async function updateHeaderLogo() {
         try {
-          const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+          const response = await fetch('http://backend.bninewdelhi.com/api/chapters');
           const chapters = await response.json();
           const userChapter = chapters.find(chapter =>
     chapter.email_id === userEmail ||
@@ -1543,7 +1543,7 @@ console.log('Found user chapter:', userChapter);
 
           if (userChapter && userChapter.chapter_logo) {
             const headerLogo = document.getElementById('headerLogo');
-            headerLogo.src = `https://backend.bninewdelhi.com/api/uploads/chapterLogos/${userChapter.chapter_logo}`;
+            headerLogo.src = `http://backend.bninewdelhi.com/api/uploads/chapterLogos/${userChapter.chapter_logo}`;
             console.log('🔄 Updated header logo:', headerLogo.src);
           }
         } catch (error) {
@@ -1635,7 +1635,7 @@ console.log('Found user chapter:', userChapter);
         // Function to fetch chapter data from the API
         async function fetchChapterData() {
           try {
-            const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+            const response = await fetch('http://backend.bninewdelhi.com/api/chapters');
             return await response.json();
           } catch (error) {
             console.error('Error fetching chapter data:', error);
@@ -1646,7 +1646,7 @@ console.log('Found user chapter:', userChapter);
         // Function to fetch member data from the API
         async function fetchMemberData() {
           try {
-            const response = await fetch('https://backend.bninewdelhi.com/api/members');
+            const response = await fetch('http://backend.bninewdelhi.com/api/members');
             return await response.json();
           } catch (error) {
             console.error('Error fetching member data:', error);

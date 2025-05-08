@@ -35,7 +35,7 @@ let allHotels = []; // Store all hotel data
 async function fetchHotels() {
     try {
         showLoader();
-        const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
+        const response = await fetch("http://backend.bninewdelhi.com/api/getHotels");
         allHotels = await response.json(); // Store original data
 
         document.getElementById("totalHotel").textContent = allHotels.length;
@@ -140,7 +140,7 @@ function confirmDeleteHotel(hotelId) {
 // Function to send delete request to backend
 async function deleteHotel(hotelId) {
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/deleteHotel/${hotelId}`, {
+        const response = await fetch(`http://backend.bninewdelhi.com/api/deleteHotel/${hotelId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"

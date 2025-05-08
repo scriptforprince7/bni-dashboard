@@ -25,8 +25,8 @@ async function populateDropdowns() {
         
         // Fetch both accolades and members data in parallel
         const [accoladesResponse, membersResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/accolades'),
-            fetch('https://backend.bninewdelhi.com/api/members')
+            fetch('http://backend.bninewdelhi.com/api/accolades'),
+            fetch('http://backend.bninewdelhi.com/api/members')
         ]);
 
         const accoladesData = await accoladesResponse.json();

@@ -776,31 +776,6 @@ function hideLoader() {
     const billFile = document.getElementById('upload_bill').files[0];
     const receiptFile = document.getElementById('upload_receipt').files[0];
 
-    // Validate files
-    if (!billFile) {
-        Swal.fire('Error!', 'Please select a bill file', 'error');
-        return;
-    }
-
-    if (!receiptFile) {
-        Swal.fire('Error!', 'Please select a receipt file', 'error');
-        return;
-    }
-
-    // Validate file types
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-    if (!allowedTypes.includes(billFile.type) || !allowedTypes.includes(receiptFile.type)) {
-        Swal.fire('Error!', 'Only JPG, PNG and PDF files are allowed', 'error');
-        return;
-    }
-
-    // Validate file sizes (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (billFile.size > maxSize || receiptFile.size > maxSize) {
-        Swal.fire('Error!', 'File size should not exceed 5MB', 'error');
-        return;
-    }
-
     // Validate and add hotel_id or vendor_id based on expense type
     if (isHotelExpense) {
         const hotelId = document.getElementById('hotel').value;
@@ -869,16 +844,16 @@ function hideLoader() {
         gstAmount: withGST ? parseFloat(document.getElementById('gstAmount').value) : null,
         totalAmount: withGST ? parseFloat(document.getElementById('totalAmount').value) : parseFloat(document.getElementById('amount').value),
         files: {
-            bill: {
+            bill: billFile ? {
                 name: billFile.name,
                 type: billFile.type,
                 size: billFile.size
-            },
-            receipt: {
+            } : null,
+            receipt: receiptFile ? {
                 name: receiptFile.name,
                 type: receiptFile.type,
                 size: receiptFile.size
-            }
+            } : null
         }
     };
     console.log('📤 Sending Form Data:', formDataDebug);
@@ -886,7 +861,7 @@ function hideLoader() {
     try {
         showLoader();
         
-        const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
+        const response = await fetch("http://backend.bninewdelhi.com/api/addExpense", {
             method: "POST",
             body: formData
         });

@@ -22,7 +22,7 @@ document.getElementById("submit-event").addEventListener("click", async () => {
     };
   
     try {
-      const response = await fetch("https://backend.bninewdelhi.com/api/events", {
+      const response = await fetch("http://backend.bninewdelhi.com/api/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

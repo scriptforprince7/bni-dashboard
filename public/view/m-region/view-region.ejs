@@ -1455,7 +1455,7 @@ function getRegionIdFromUrl() {
 async function fetchRegionData(regionId) {
     showLoader();
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/getRegion/${regionId}`);
+        const response = await fetch(`http://backend.bninewdelhi.com/api/getRegion/${regionId}`);
         if (!response.ok) {
             toastr.error("Something went wrong try again")
             throw new Error(`Error: ${response.statusText}`);
@@ -1479,7 +1479,7 @@ async function displayRegionData(data) {
         // Profile Image handling with proper logging
         if (data.region_logo) {
             console.log('🖼️ Found logo filename:', data.region_logo);
-            const logoUrl = `https://backend.bninewdelhi.com/api/uploads/regionLogos/${data.region_logo}`;
+            const logoUrl = `http://backend.bninewdelhi.com/api/uploads/regionLogos/${data.region_logo}`;
             console.log('🔗 Using logo URL:', logoUrl);
             
             const profileImage = document.getElementById("profileImage");
@@ -1612,7 +1612,7 @@ async function displayRegionData(data) {
         // Fetch and display accolades
         try {
             console.log("Fetching accolades data...");
-            const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+            const accoladesResponse = await fetch('http://backend.bninewdelhi.com/api/accolades');
             if (!accoladesResponse.ok) {
                 throw new Error('Failed to fetch accolades');
             }
