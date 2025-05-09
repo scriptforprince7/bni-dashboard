@@ -36,6 +36,19 @@ let selectedMonth = 'all';
 let selectedType = 'all';
 let allTransactionRows = [];  // Store all rows for filtering
 
+let totalKittyAmount = 0;
+let totalExpenseAmount = 0;
+let totalExpenseBaseAmount = 0; // sum of base amounts (debit) only
+let totalVisitorAmount = 0;
+let cashExpenseAmount = 0;
+let onlineExpenseAmount = 0;
+let cashExpenseBaseAmount = 0; // base (debit) only
+let onlineExpenseBaseAmount = 0; // base (debit) only
+let cashVisitorAmount = 0;
+let onlineVisitorAmount = 0;
+let cashKittyAmount = 0;
+let onlineKittyAmount = 0;
+
 function initializeFilters() {
   // Populate months dropdown
   const months = [
@@ -336,15 +349,110 @@ function exportToExcel() {
   XLSX.writeFile(wb, `Chapter_Ledger_${dateStr}.xlsx`);
 }
 
+// Add this function after the formatCurrency function
+function showKittyBreakdownPopup(kittyAmountWithVisitors) {
+  // Calculate other payments total
+  const otherPaymentsTotal = totalKittyAmount - (cashKittyAmount + onlineKittyAmount);
+  
+  // Create the HTML content for the popup
+  const content = `
+    <div class="kitty-breakdown">
+      <div class="breakdown-section">
+        <h6 class="mb-3">Payment Mode Breakdown</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Payments</span>
+          <span class="fw-bold">${formatCurrency(cashKittyAmount)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Payments</span>
+          <span class="fw-bold">${formatCurrency(onlineKittyAmount)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-user-add-line me-2"></i>Visitor Payments</span>
+          <span class="fw-bold">${formatCurrency(totalVisitorAmount)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-exchange-dollar-line me-2"></i>Other Payments</span>
+          <span class="fw-bold">${formatCurrency(otherPaymentsTotal)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold">Total Kitty Amount</span>
+          <span class="fw-bold">${formatCurrency(kittyAmountWithVisitors)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Show the popup
+  Swal.fire({
+    title: 'Kitty Amount Breakdown',
+    html: content,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    },
+    showCloseButton: true,
+    showConfirmButton: false,
+    width: '500px'
+  });
+}
+
+// Add this function to show the current balance calculation popup
+function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, totalExpenseBaseAmount, currentBalance) {
+  const content = `
+    <div class="kitty-breakdown">
+      <div class="breakdown-section">
+        <h6 class="mb-3">Current Balance Calculation</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Opening Balance</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(openingBalance)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>+ Total Kitty Amount (incl. Visitor)</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(kittyAmountWithVisitors)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>- Total Expenses</span>
+          <span class="fw-bold" style="color: #dc3545;">${formatCurrency(totalExpenseBaseAmount)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold">Current Balance</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(currentBalance)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  Swal.fire({
+    title: 'Current Balance Breakdown',
+    html: content,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    },
+    showCloseButton: true,
+    showConfirmButton: false,
+    width: '500px'
+  });
+}
+
 (async function generateChapterLedger() {
   let currentBalance = 0;
-  let totalKittyAmount = 0;
-  let totalExpenseAmount = 0;
-  let totalVisitorAmount = 0;
-  let cashExpenseAmount = 0;
-  let onlineExpenseAmount = 0;
-  let cashVisitorAmount = 0;
-  let onlineVisitorAmount = 0;
+  totalKittyAmount = 0;
+  totalExpenseAmount = 0;
+  totalExpenseBaseAmount = 0; // sum of base amounts (debit) only
+  totalVisitorAmount = 0;
+  cashExpenseAmount = 0;
+  onlineExpenseAmount = 0;
+  cashExpenseBaseAmount = 0; // base (debit) only
+  onlineExpenseBaseAmount = 0; // base (debit) only
+  cashVisitorAmount = 0;
+  onlineVisitorAmount = 0;
+  cashKittyAmount = 0;
+  onlineKittyAmount = 0;
 
   try {
     showLoader();
@@ -518,6 +626,12 @@ function exportToExcel() {
 
         if (isKittyPayment) {
           totalKittyAmount += amount;
+          // Track kitty payments by mode
+          if (successfulTransaction.payment_method?.cash || paymentMethod.toLowerCase() === 'cash') {
+            cashKittyAmount += amount;
+          } else {
+            onlineKittyAmount += amount;
+          }
         } else if (isVisitorPayment) {
           totalVisitorAmount += amount;
           // Track visitor payments by mode
@@ -555,16 +669,19 @@ function exportToExcel() {
       // Parse amounts from expense data
       const baseAmount = parseFloat(expense.amount) || 0;
       const gstAmount = parseFloat(expense.gst_amount) || 0;
-      const totalAmount = parseFloat(expense.total_amount) || 0;
+      const totalAmount = parseFloat(expense.total_amount) || (baseAmount + gstAmount);
       
       // Track expenses by payment mode
       if (expense.mode_of_payment.toLowerCase() === 'cash') {
         cashExpenseAmount += totalAmount;
+        cashExpenseBaseAmount += baseAmount;
       } else {
         onlineExpenseAmount += totalAmount;
+        onlineExpenseBaseAmount += baseAmount;
       }
 
       totalExpenseAmount += totalAmount;
+      totalExpenseBaseAmount += baseAmount;
       
       allTransactionItems.push({
         date: new Date(expense.bill_date),
@@ -581,7 +698,7 @@ function exportToExcel() {
                          </small>
                        </div>
                      </div>`,
-        amount: baseAmount,
+        amount: baseAmount, // base amount for debit
         gst: gstAmount,
         totalAmount: totalAmount,
         modeOfPayment: expense.mode_of_payment,
@@ -646,21 +763,21 @@ function exportToExcel() {
           sNo: ledgerData.length + 1,
           date: formatDate(item.date),
           description: item.description,
-          billAmount: '-',
+          billAmount: 0,
           debit: 0,
           credit: Math.round(currentBalance * 100) / 100,
-          gst: '-',
+          gst: 0,
           balance: Math.round(currentBalance * 100) / 100,
           balanceColor: currentBalance >= 0 ? "green" : "red"
         });
       } else if (item.type === "expense") {
-        currentBalance -= item.totalAmount;
+        currentBalance -= item.amount;
         ledgerData.push({
           sNo: ledgerData.length + 1,
           date: formatDate(item.date),
           description: item.description,
           billAmount: Math.round(item.totalAmount * 100) / 100,
-          debit: Math.round(item.totalAmount * 100) / 100,
+          debit: Math.round(item.amount * 100) / 100,
           credit: 0,
           gst: Math.round(item.gst * 100) / 100,
           balance: Math.round(currentBalance * 100) / 100,
@@ -683,8 +800,28 @@ function exportToExcel() {
     });
 
     console.log("Updating UI with totals...");
+    // Add visitor payments to totalKittyAmount before updating the UI
+    const kittyAmountWithVisitors = totalKittyAmount + totalVisitorAmount;
+
     // Update UI with totals
-    document.getElementById("total-kitty-amount").textContent = formatCurrency(totalKittyAmount);
+    // document.getElementById("total-kitty-amount").textContent = formatCurrency(kittyAmountWithVisitors);
+    const kittyElement = document.getElementById("total-kitty-amount");
+    kittyElement.innerHTML = `
+      <div>
+        ${formatCurrency(kittyAmountWithVisitors)}
+        <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+          <span>
+            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashKittyAmount)}
+          </span>
+          <span style="margin-left: 8px;">
+            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineKittyAmount)}
+          </span>
+          <span style="margin-left: 8px;">
+            <i class="ri-user-add-line"></i> Visitor: ${formatCurrency(totalVisitorAmount)}
+          </span>
+        </div>
+      </div>
+    `;
     
     // Update visitor amount with bifurcation
     const visitorElement = document.getElementById("total-visitor-amount");
@@ -706,13 +843,13 @@ function exportToExcel() {
     const expenseElement = document.getElementById("total-expense-amount");
     expenseElement.innerHTML = `
       <div>
-        ${formatCurrency(totalExpenseAmount)}
+        ${formatCurrency(totalExpenseBaseAmount)}
         <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
           <span>
-            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashExpenseAmount)}
+            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashExpenseBaseAmount)}
           </span>
           <span style="margin-left: 8px;">
-            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineExpenseAmount)}
+            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineExpenseBaseAmount)}
           </span>
         </div>
       </div>
@@ -742,6 +879,27 @@ function exportToExcel() {
 
     // Initialize filters after table is populated
     initializeFilters();
+
+    // Add click event listener to the kitty amount card
+    kittyElement.style.cursor = 'pointer';
+    kittyElement.addEventListener('click', function() {
+      showKittyBreakdownPopup(kittyAmountWithVisitors);
+    });
+
+    // After finding loggedInChapter and before rendering the ledger table
+    document.getElementById("opening-balance").textContent = formatCurrency(parseFloat(loggedInChapter.available_fund) || 0);
+
+    // After updating current balance in the UI, add click event for popup
+    const currentBalanceElement = document.getElementById("current-balance");
+    currentBalanceElement.style.cursor = 'pointer';
+    currentBalanceElement.addEventListener('click', function() {
+      showCurrentBalanceBreakdown(
+        parseFloat(loggedInChapter.available_fund) || 0,
+        kittyAmountWithVisitors,
+        totalExpenseBaseAmount,
+        currentBalance
+      );
+    });
 
     console.log("Ledger generation completed successfully");
 

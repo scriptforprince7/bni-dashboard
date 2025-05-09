@@ -9,18 +9,63 @@
   overflow-x: hidden; /* Prevents horizontal scrolling */
 }
 
-
-.dropdown-menu::-webkit-scrollbar {
-  width: 8px; /* Width of the scrollbar */
+/* Add these new styles for the kitty breakdown popup */
+.kitty-breakdown-popup {
+  font-family: inherit;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb {
-  background-color: #888; /* Color of the scrollbar thumb */
-  border-radius: 4px; /* Rounded edges for the thumb */
+.kitty-breakdown-popup .swal2-title {
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb:hover {
-  background-color: #555; /* Darker shade on hover */
+.kitty-breakdown-popup .swal2-html-container {
+  margin: 0;
+  padding: 0;
+}
+
+.kitty-breakdown {
+  padding: 1rem;
+}
+
+.breakdown-section {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.breakdown-section h6 {
+  color: #495057;
+  font-weight: 600;
+}
+
+.breakdown-section .d-flex {
+  padding: 0.5rem 0;
+}
+
+.breakdown-section hr {
+  margin: 1rem 0;
+  opacity: 0.1;
+}
+
+.breakdown-section i {
+  color: #6c757d;
+}
+
+.breakdown-section .fw-bold {
+  color: #212529;
+}
+
+/* Make the kitty amount card clickable */
+#total-kitty-amount {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#total-kitty-amount:hover {
+  opacity: 0.8;
 }
 
 .stats-card {
@@ -560,7 +605,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                       <div>
                         <h6>Total Kitty Amount</h6>
-                        <div class="amount" id="total-kitty-amount">₹ 0.00</div>
+                        <div class="amount" id="total-kitty-amount" style="min-height: 40px;">₹ 0.00</div>
                       </div>
                       <div class="icon">
                         <i class="ri-money-dollar-circle-line"></i>
@@ -694,6 +739,5 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
       <%- include('../partials/footer') %> 
-
 
 
