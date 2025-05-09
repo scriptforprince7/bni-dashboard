@@ -713,22 +713,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Function to render visitors
         async function renderVisitors(visitorsToShow) {
-            // Filter visitors based on payment status and new member form
+            // Filter visitors based on payment status
             const filteredVisitors = await Promise.all(
                 visitorsToShow.map(async (visitor) => {
                     const isPaid = await checkMembershipPayment(visitor.visitor_id);
-                    // Only include visitors who haven't paid AND haven't completed new member form
-                    return (!isPaid && !visitor.new_member_form) ? visitor : null;
+                    return isPaid ? visitor : null;
                 })
             );
 
-            // Remove null values (visitors who have paid or completed new member form)
-            const pureVisitors = filteredVisitors.filter(visitor => visitor !== null);
+            // Remove null values (visitors who haven't paid)
+            const paidVisitors = filteredVisitors.filter(visitor => visitor !== null);
 
-            // Update total count with pure visitors only
-            updateTotalCount(pureVisitors.length);
+            // Update total count with paid visitors only
+            updateTotalCount(paidVisitors.length);
 
-            if (!pureVisitors.length) {
+            if (!paidVisitors.length) {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="15" class="text-center">No visitors found</td>
@@ -736,7 +735,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
-            const tableContent = await Promise.all(pureVisitors.map(async (visitor, index) => {
+            const tableContent = await Promise.all(paidVisitors.map(async (visitor, index) => {
                 console.log("👤 Processing visitor:", visitor);
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);

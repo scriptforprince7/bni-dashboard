@@ -340,12 +340,24 @@ document.addEventListener("DOMContentLoaded", async function() {
     console.log("User email:", userEmail);
 
     if (loginType === 'chapter') {
-        // Fetch all chapters and find the one with matching email_id
-        matchingChapter = chapters.find(chap => chap.email_id === userEmail);
+        // Fetch all chapters and find the one with matching email_id, vice_president_mail, president_mail, or treasurer_mail
+        matchingChapter = chapters.find(chap => 
+            chap.email_id === userEmail || 
+            chap.vice_president_mail === userEmail || 
+            chap.president_mail === userEmail || 
+            chap.treasurer_mail === userEmail
+        );
+        
         if (matchingChapter) {
             selectedChapterId = matchingChapter.chapter_id;
             selectedRegionId = matchingChapter.region_id;
             console.log("Found chapter for user:", matchingChapter);
+            console.log("Matching email type:", 
+                matchingChapter.email_id === userEmail ? "email_id" :
+                matchingChapter.vice_president_mail === userEmail ? "vice_president_mail" :
+                matchingChapter.president_mail === userEmail ? "president_mail" :
+                "treasurer_mail"
+            );
 
             // Find the region for this chapter
             matchingRegion = regions.find(region => region.region_id == selectedRegionId);

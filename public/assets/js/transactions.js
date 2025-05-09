@@ -1296,11 +1296,13 @@ const filteredTransactions = transactions.filter((transaction) => {
                 Swal.fire({
                     title: "Please check the details",
                     html: `
-                        <strong>Order ID:</strong> ${orderId}<br>
-                        <strong>Transaction ID:</strong> ${transaction.cf_payment_id}<br>
+                        <strong>Member Name:</strong> ${order?.member_name || 'N/A'}<br>
                         <strong>Chapter Name:</strong> ${chapterName}<br>
-                        <strong>Payment Gateway:</strong> ${gatewayName}<br>
-                        <strong>Universal Link:</strong> ${universalLinkName}<br>
+                        <strong>Email:</strong> ${order?.customer_email || 'N/A'}<br>
+                        <strong>Phone:</strong> ${order?.customer_phone || 'N/A'}<br>
+                        <strong>Company Name:</strong> ${order?.company || 'N/A'}<br>
+                        <strong>Company GST No:</strong> ${order?.gstin || 'N/A'}<br>
+                        <strong>Payment Description:</strong> ${universalLinkName}<br>
                         <strong>Amount:</strong> ₹ ${transaction.payment_amount}
                     `,
                     icon: "info",

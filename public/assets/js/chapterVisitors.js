@@ -563,6 +563,172 @@ async function handleSendVPEmail(visitor) {
     }
 }
 
+// Add these functions at the global scope, before the DOMContentLoaded event listener
+async function handleDocUpload(event, docType, visitorId) {
+    try {
+        console.log('🔄 Starting document upload process');
+        console.log('📄 Document Type:', docType);
+        console.log('👤 Visitor ID:', visitorId);
+
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('❌ No file selected');
+            return;
+        }
+
+        // Show loading state
+        Swal.fire({
+            title: 'Uploading...',
+            text: 'Please wait while we upload your document',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        
+        // Map the document type to the correct field name
+        let fieldName;
+        switch(docType.toLowerCase()) {
+            case 'aadharcard':
+                fieldName = 'aadhar_card_img';
+                break;
+            case 'pancard':
+                fieldName = 'pan_card_img';
+                break;
+            case 'gstcertificate':
+                fieldName = 'gst_certificate';
+                break;
+            default:
+                throw new Error('Invalid document type');
+        }
+
+        // Add visitor_id to formData
+        formData.append('visitor_id', visitorId);
+        
+        // Add the file with correct field name
+        formData.append(fieldName, file);
+
+        console.log('📤 Making API call to update visitor docs');
+        console.log('📦 FormData contents:', {
+            visitor_id: visitorId,
+            fieldName: fieldName,
+            fileName: file.name
+        });
+
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateVisitorDocs', {
+            method: 'PUT',
+            body: formData
+        });
+
+        console.log('📡 API Response Status:', response.status);
+        const data = await response.json();
+        console.log('📦 API Response Data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to upload document');
+        }
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Document uploaded successfully'
+        });
+
+        // Refresh the page to show updated documents
+        window.location.reload();
+
+    } catch (error) {
+        console.error('❌ Error uploading document:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload document. Please try again.'
+        });
+    }
+}
+
+async function handleDocVerification(docType, event, visitorId) {
+    try {
+        console.log('🔄 Starting document verification process');
+        console.log('📄 Document Type:', docType);
+        console.log('👤 Visitor ID:', visitorId);
+
+        const result = await Swal.fire({
+            title: `Verify ${docType}`,
+            text: `Are you sure you want to verify this ${docType}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#dc2626',
+            confirmButtonText: 'Yes, verify it!',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (result.isConfirmed) {
+            console.log('✅ User confirmed verification');
+            
+            // Prepare verification object based on document type
+            const verificationKey = docType.toLowerCase().replace(/\s+/g, '_');
+            const verificationData = {
+                [verificationKey]: "true"
+            };
+            
+            console.log('📤 Making API call with data:', {
+                visitor_id: visitorId,
+                verification: verificationData
+            });
+
+            // Make API call to update verification status
+            const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    visitor_id: parseInt(visitorId),
+                    verification: verificationData
+                })
+            });
+
+            console.log('📡 API Response Status:', response.status);
+            const data = await response.json();
+            console.log('📦 API Response Data:', data);
+
+            if (!response.ok) {
+                throw new Error(data.error || `Failed to verify ${docType}`);
+            }
+
+            // Show success message
+            await Swal.fire({
+                title: 'Verified!',
+                text: `${docType} has been verified successfully.`,
+                icon: 'success',
+                confirmButtonColor: '#16a34a'
+            });
+
+            // Update the badge UI
+            console.log('🎨 Updating badge UI');
+            const badge = event.target;
+            badge.style.backgroundColor = '#dcfce7';
+            badge.style.color = '#16a34a';
+            badge.style.borderColor = '#86efac';
+            badge.textContent = 'Verified';
+            
+            console.log('✨ Document verification process completed successfully');
+        }
+    } catch (error) {
+        console.error('❌ Error in document verification:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || `Failed to verify ${docType}. Please try again.`
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -1115,21 +1281,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                             ${createDocumentDisplay(
                                 memberApplication?.aadhar_card_img,
                                 memberApplication?.aadhar_card_number,
-                                'aadharCard'
+                                'aadharCard',
+                                visitor.visitor_id
                             )}
                         </td>
                         <td class="text-center">
                             ${createDocumentDisplay(
                                 memberApplication?.pan_card_img,
                                 memberApplication?.pan_card_number,
-                                'panCard'
+                                'panCard',
+                                visitor.visitor_id
                             )}
                         </td>
                         <td class="text-center">
                             ${createDocumentDisplay(
                                 memberApplication?.gst_certificate,
                                 visitor.visitor_gst,
-                                'gstCertificate'
+                                'gstCertificate',
+                                visitor.visitor_id
                             )}
                         </td>
                         <td class="text-center" data-visitor-id="${visitor.visitor_id}">${inductionKitDisplay}</td>
@@ -1142,30 +1311,93 @@ document.addEventListener('DOMContentLoaded', async function() {
             tableBody.innerHTML = tableContent.join('');
         }
 
-        // Add this helper function
-        function createDocumentDisplay(imgPath, docNumber, docType) {
-            if (!imgPath) {
-                return `
-                    <div class="doc-container">
-                        <div class="no-doc">No ${docType} Found</div>
-                    </div>`;
+        // Update the createDocumentDisplay function
+        function createDocumentDisplay(imgPath, docNumber, docType, visitorId) {
+            console.log(`🖼️ Creating ${docType} display:`, { imgPath, docNumber, visitorId });
+            
+            // Parse verification status from visitor data
+            let verificationStatus = false;
+            try {
+                const verificationData = JSON.parse(visitor.verification || '{}');
+                const verificationKey = docType.toLowerCase().replace(/\s+/g, '_');
+                verificationStatus = verificationData[verificationKey] === "true";
+                console.log(`📋 Verification status for ${docType}:`, verificationStatus);
+            } catch (error) {
+                console.error('❌ Error parsing verification data:', error);
             }
-
+            
+            // Base URL for images
+            const baseUrl = 'https://backend.bninewdelhi.com/api/uploads';
+            
+            // Determine folder name based on document type
             const folderName = docType === 'aadharCard' ? 'aadharCards' : 
                               docType === 'panCard' ? 'panCards' : 
                               'gstCertificates';
-                              
-            const fullImageUrl = `https://backend.bninewdelhi.com/api/uploads/${folderName}/${imgPath}`;
             
+            if (!imgPath) {
+                console.log(`⚠️ No ${docType} image found, showing upload button`);
+                return `
+                    <div class="doc-container">
+                        <div class="no-doc">No ${docType} Found</div>
+                        <label class="upload-btn" title="Upload ${docType}">
+                            <i class="ri-upload-2-line"></i> Upload
+                            <input type="file" 
+                                   accept="image/*" 
+                                   style="display: none;" 
+                                   onchange="handleDocUpload(event, '${docType}', ${visitorId})"
+                            >
+                        </label>
+                        <div class="verification-badge" style="
+                            margin-top: 5px;
+                            padding: 2px 8px;
+                            background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                            color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                            border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                            border-radius: 12px;
+                            font-size: 11px;
+                            font-weight: 600;
+                            display: inline-block;
+                            cursor: pointer;
+                            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);"
+                            onclick="handleDocVerification('${docType}', event, ${visitorId})">
+                            ${verificationStatus ? 'Verified' : 'Not Verified'}
+                        </div>
+                    </div>`;
+            }
+
+            console.log(`✅ ${docType} image found, showing preview`);
             return `
                 <div class="doc-container">
-                    <img src="${fullImageUrl}" 
-                         class="doc-preview" 
-                         onclick="previewDocument(this.src, '${docType}')" 
-                         alt="${docType} Preview"
-                         onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
-                    />
+                    <a href="${baseUrl}/${folderName}/${imgPath}" target="_blank">
+                        <img src="${baseUrl}/${folderName}/${imgPath}" 
+                             alt="${docType}" 
+                             style="max-width: 100px;"
+                             onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';">
+                    </a>
                     <div class="doc-number">${docNumber || 'N/A'}</div>
+                    <label class="upload-btn" title="Upload New">
+                        <i class="ri-upload-2-line"></i>
+                        <input type="file" 
+                               accept="image/*" 
+                               style="display: none;" 
+                               onchange="handleDocUpload(event, '${docType}', ${visitorId})"
+                        >
+                    </label>
+                    <div class="verification-badge" style="
+                        margin-top: 5px;
+                        padding: 2px 8px;
+                        background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                        color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                        border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        display: inline-block;
+                        cursor: pointer;
+                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);"
+                        onclick="handleDocVerification('${docType}', event, ${visitorId})">
+                        ${verificationStatus ? 'Verified' : 'Not Verified'}
+                    </div>
                 </div>`;
         }
 

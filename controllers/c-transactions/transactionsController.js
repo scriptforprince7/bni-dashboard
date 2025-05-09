@@ -64,6 +64,10 @@ exports.chapterVisitors = (req, res) => {
     res.render('m-visitor/chapter-visitors', { title: 'Chapter Visitors' });
 };
 
+exports.manageUpcomingMembers = (req, res) => {
+    res.render('m-visitor/manage-upcoming-members', { title: 'Manage Upcoming Members' });
+};
+
 
 
 
