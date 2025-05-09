@@ -7,6 +7,7 @@ let total_pending_expense = 0;
 let total_paid_expense = 0;
 let pendingAmount = 0;
 let visitorAmountTotal = 0;
+let otherPaymentsTotal = 0;
 
 // Function to populate Gateway filter dropdown
 async function populateGatewayFilter() {
@@ -670,14 +671,17 @@ document.addEventListener("DOMContentLoaded", async function () {
           let totalReceivedAmount = ReceivedAmount;
           let totalPendingMiscellaneousAmount = MiscellaneousAmount;
 
-          // Calculate total available amount independent of kitty bill
-          let totalAvailableAmount = parseFloat(available_fund) - 
-                                    parseFloat(total_paid_expense) + 
-                                    parseFloat(visitorAmountTotal) +
-                                    parseFloat(totalReceivedAmount);
+          // Initialize otherPaymentsTotal if not already set
+          if (typeof otherPaymentsTotal === 'undefined') {
+            otherPaymentsTotal = 0;
+          }
 
-          // Initialize otherPaymentsTotal
-          let otherPaymentsTotal = 0;
+          // Calculate total available amount including other payments
+          let totalAvailableAmount = parseFloat(available_fund) + 
+                                    parseFloat(totalReceivedAmount) + 
+                                    parseFloat(visitorAmountTotal) + 
+                                    parseFloat(otherPaymentsTotal) - 
+                                    parseFloat(total_paid_expense);
 
           // Store the values as data attributes
           const totalAvailableElement = document.querySelector("#total_available_amount");
@@ -689,7 +693,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
             
             // Update UI with total available amount
-            totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
+            totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
 
             // Add click handler for modal if not already added
             if (!totalAvailableElement.hasAttribute('data-modal-handler-added')) {
@@ -918,11 +922,11 @@ document.addEventListener("DOMContentLoaded", async function () {
           console.log("Other Payments Total:", otherPaymentsTotal);
 
           // Calculate total available amount including other payments
-          totalAvailableAmount = parseFloat(visitorAmountTotal) +
-                                parseFloat(totalReceivedAmount) -
-                                parseFloat(total_paid_expense) +
-                                parseFloat(otherPaymentsTotal) +
-                                parseFloat(manualPaymentAmount);
+          totalAvailableAmount = parseFloat(available_fund) + 
+                                parseFloat(totalReceivedAmount) + 
+                                parseFloat(visitorAmountTotal) + 
+                                parseFloat(otherPaymentsTotal) - 
+                                parseFloat(total_paid_expense);
 
           // Update the existing totalAvailableElement with new values
           if (totalAvailableElement) {
@@ -931,10 +935,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
             totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
             totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
-            totalAvailableElement.setAttribute('data-manual-payments', manualPaymentAmount);
             
             // Update UI with total available amount
-            totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
+            totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
           }
         }
 
@@ -1210,11 +1213,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     let totalReceivedAmount = ReceivedAmount;
     
-    // Calculate total available amount independent of kitty bill (without otherPaymentsTotal)
-    let totalAvailableAmount = parseFloat(available_fund) - 
-                              parseFloat(total_paid_expense) + 
-                              parseFloat(visitorAmountTotal) +
-                              parseFloat(totalReceivedAmount);
+    // Calculate total available amount including other payments
+    let totalAvailableAmount = parseFloat(available_fund) + 
+                              parseFloat(totalReceivedAmount) + 
+                              parseFloat(visitorAmountTotal) + 
+                              parseFloat(otherPaymentsTotal) - 
+                              parseFloat(total_paid_expense);
     // Set all dashboard values immediately (except available fund with otherPaymentsTotal)
     document.querySelector(".total_bill_amount").textContent = formattedBillAmount;
     document.querySelector(".total_kitty_amount_received").textContent = formattedKittyReceived;
@@ -1247,11 +1251,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Other Payments Total:", otherPaymentsTotal);
 
     // Calculate total available amount including other payments
-    totalAvailableAmount = parseFloat(visitorAmountTotal) +
-                          parseFloat(totalReceivedAmount) -
-                          parseFloat(total_paid_expense) +
-                          parseFloat(otherPaymentsTotal) +
-                          parseFloat(manualPaymentAmount);
+    totalAvailableAmount = parseFloat(available_fund) + 
+                          parseFloat(totalReceivedAmount) + 
+                          parseFloat(visitorAmountTotal) + 
+                          parseFloat(otherPaymentsTotal) - 
+                          parseFloat(total_paid_expense);
 
     // Update the existing totalAvailableElement with new values
     if (totalAvailableElement) {
@@ -1260,10 +1264,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       totalAvailableElement.setAttribute('data-visitor-payments', visitorAmountTotal);
       totalAvailableElement.setAttribute('data-paid-expenses', total_paid_expense);
       totalAvailableElement.setAttribute('data-other-payments', otherPaymentsTotal);
-      totalAvailableElement.setAttribute('data-manual-payments', manualPaymentAmount);
       
       // Update UI with total available amount
-      totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount + parseFloat(available_fund));
+      totalAvailableElement.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
     }
 
     // Update the fund breakdown modal
@@ -1272,8 +1275,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       totalReceivedAmount,
       visitorAmountTotal,
       total_paid_expense,
-      otherPaymentsTotal,
-      manualPaymentAmount
+      otherPaymentsTotal
     );
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
@@ -1587,25 +1589,46 @@ async function fetchVisitorAmountTotal(chapterId) {
 
         console.log('💫 Successful visitor orders:', successfulOrders.length);
 
-        // 5. Calculate Total
-        const visitorAmountTotal = successfulOrders.reduce((sum, order) => {
-            const amount = parseFloat(order.order_amount || 0);
-            console.log(`💰 Adding amount ${amount} from order ${order.order_id}`);
-            return sum + amount;
-        }, 0);
+        // 5. Calculate Total with GST handling and payment mode tracking
+        let totalAmount = 0;
+        let cashPayments = 0;
+        let onlinePayments = 0;
 
-        console.log('📊 Final visitor amount total:', visitorAmountTotal);
+        successfulOrders.forEach(order => {
+            let amount = parseFloat(order.order_amount || 0);
+            
+            // Handle GST and payment mode
+            if (order.payment_note === "visitor-payment") {
+                // Online payment - subtract GST
+                amount = Math.ceil(amount - (amount * 18) / 118);
+                onlinePayments += amount;
+                console.log(`💰 Added online payment ${amount} from order ${order.order_id}`);
+            } else if (order.payment_note === "Visitor Payment") {
+                // Cash payment - use full amount
+                cashPayments += amount;
+                console.log(`💰 Added cash payment ${amount} from order ${order.order_id}`);
+            }
+            
+            totalAmount += amount;
+        });
 
-        // 6. Update UI
+        console.log('📊 Final visitor amount total:', totalAmount);
+        console.log('💵 Cash payments:', cashPayments);
+        console.log('💳 Online payments:', onlinePayments);
+
+        // 6. Update UI with payment mode breakdown
         const amountElement = document.querySelector('#total_V_amount');
         if (amountElement) {
             amountElement.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    
-                    <span>₹ ${visitorAmountTotal.toLocaleString('en-IN', {
+                <div class="d-flex flex-column">
+                    <span>₹ ${totalAmount.toLocaleString('en-IN', {
                         maximumFractionDigits: 2,
                         minimumFractionDigits: 2
                     })}</span>
+                    <span class="ms-2 fs-12 fw-semibold" style="color: #666;">
+                        Cash: ₹${cashPayments.toLocaleString('en-IN', {maximumFractionDigits: 2})} | 
+                        Online: ₹${onlinePayments.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+                    </span>
                 </div>
             `;
             console.log('✨ UI updated successfully');
@@ -1613,7 +1636,7 @@ async function fetchVisitorAmountTotal(chapterId) {
             console.error('❌ Element #total_V_amount not found');
         }
 
-        return visitorAmountTotal;
+        return totalAmount;
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -1741,30 +1764,49 @@ async function fetchOtherPaymentsTotal(chapterId) {
     
     // Filter payments for current chapter
     const chapterOtherPayments = otherPayments.filter(payment => 
-      String(payment.chapter_id) === String(chapterId)
+      payment.chapter_id === chapterId
     );
     
     console.log('Found other payments for chapter:', chapterOtherPayments.length);
     
     let totalOtherPayments = 0;
+    let cashPayments = 0;
+    let onlinePayments = 0;
+
     chapterOtherPayments.forEach(payment => {
       console.log('Processing payment:', payment);
       
-      if (payment.is_gst) {
-        // If GST is included, use total_amount directly
-        totalOtherPayments += parseFloat(payment.total_amount || 0);
-        console.log('Added GST-included amount:', payment.total_amount);
+      // Add total amount regardless of GST
+      totalOtherPayments += parseFloat(payment.total_amount || 0);
+      
+      // Track payment mode
+      if (payment.mode_of_payment === 'cash') {
+        cashPayments += parseFloat(payment.total_amount || 0);
       } else {
-        // If no GST, calculate amount without GST
-        const baseAmount = parseFloat(payment.total_amount || 0);
-        const gstAmount = parseFloat(payment.gst_amount || 0);
-        const amountWithoutGst = baseAmount - gstAmount;
-        totalOtherPayments += amountWithoutGst;
-        console.log('Added amount without GST:', amountWithoutGst);
+        onlinePayments += parseFloat(payment.total_amount || 0);
       }
+      
+      console.log('Added payment amount:', payment.total_amount, 'Mode:', payment.mode_of_payment);
     });
     
     console.log('Total other payments calculated:', totalOtherPayments);
+    console.log('Cash payments:', cashPayments);
+    console.log('Online payments:', onlinePayments);
+
+    // Update UI to show payment mode breakdown if needed
+    const otherPaymentsElement = document.querySelector('#total_other_payments');
+    if (otherPaymentsElement) {
+      otherPaymentsElement.innerHTML = `
+        <div class="d-flex flex-column">
+          <span>Total: ₹${totalOtherPayments.toLocaleString('en-IN', {maximumFractionDigits: 2})}</span>
+          <small class="text-muted">
+            Cash: ₹${cashPayments.toLocaleString('en-IN', {maximumFractionDigits: 2})} | 
+            Online: ₹${onlinePayments.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+          </small>
+        </div>
+      `;
+    }
+
     return totalOtherPayments;
   } catch (error) {
     console.error("Error fetching other payments:", error);
@@ -1773,7 +1815,7 @@ async function fetchOtherPaymentsTotal(chapterId) {
 }
 
 // Update the fund breakdown modal function
-function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal, manualPaymentsTotal) {
+function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal) {
   // Get modal elements
   const openingBalance = document.getElementById('modal-opening-balance');
   const meetingPayments = document.getElementById('modal-meeting-payments');
@@ -1800,45 +1842,9 @@ function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAm
   const total = parseFloat(available_fund || 0) + 
                 parseFloat(totalReceivedAmount || 0) + 
                 parseFloat(visitorAmountTotal || 0) + 
-                parseFloat(otherPaymentsTotal || 0) + 
-                parseFloat(manualPaymentsTotal || 0) - 
+                parseFloat(otherPaymentsTotal || 0) - 
                 parseFloat(total_paid_expense || 0);
   
   totalAvailable.textContent = formatter.format(total);
 }
 
-// Function to update total available amount and modal
-function updateTotalAvailableAmount(element, available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal) {
-  if (!element) return;
-
-  // Calculate total available amount
-  const totalAvailableAmount = parseFloat(available_fund) + 
-                             parseFloat(totalReceivedAmount) + 
-                             parseFloat(visitorAmountTotal) + 
-                             parseFloat(otherPaymentsTotal) - 
-                             parseFloat(total_paid_expense);
-
-  // Set data attributes
-  element.setAttribute('data-opening-balance', available_fund);
-  element.setAttribute('data-meeting-payments', totalReceivedAmount);
-  element.setAttribute('data-visitor-payments', visitorAmountTotal);
-  element.setAttribute('data-paid-expenses', total_paid_expense);
-  element.setAttribute('data-other-payments', otherPaymentsTotal);
-
-  // Update UI
-  element.textContent = indianCurrencyFormatter.format(totalAvailableAmount);
-
-  // Add click handler for modal if not already added
-  if (!element.hasAttribute('data-modal-handler-added')) {
-    element.addEventListener('click', function() {
-      updateFundBreakdownModal(
-        parseFloat(this.getAttribute('data-opening-balance') || 0),
-        parseFloat(this.getAttribute('data-meeting-payments') || 0),
-        parseFloat(this.getAttribute('data-visitor-payments') || 0),
-        parseFloat(this.getAttribute('data-paid-expenses') || 0),
-        parseFloat(this.getAttribute('data-other-payments') || 0)
-      );
-    });
-    element.setAttribute('data-modal-handler-added', 'true');
-  }
-}
