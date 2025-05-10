@@ -7,11 +7,12 @@ function hideLoader() {
 }
 
 const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
-const memberApiUrl= 'https://backend.bninewdelhi.com/api/members';
+const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
 const lateNOApiUrl = 'https://backend.bninewdelhi.com/api/getbankOrder';
 
-
 let creditType;
+let allMembers = []; // Store all members for search functionality
+
 document.addEventListener('DOMContentLoaded', async () => {
     const loginType = getUserLoginType();
     console.log('Current login type:', loginType);
@@ -52,7 +53,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             chapter.president_mail === chapterEmail ||
             chapter.treasurer_mail === chapterEmail
         );
-        
     }
 
     if (!current_User) {
@@ -76,18 +76,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const Members = await MembersResponse.json();
     let MemberList = Members;
     const filteredMembers = MemberList.filter(member => member.chapter_id === current_User.chapter_id);
+    allMembers = [...filteredMembers]; // Store filtered members for search
 
+    // Add search functionality
+    const searchInput = document.getElementById('memberSearch');
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const filtered = allMembers.filter(member => {
+            const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
+            return fullName.includes(searchTerm);
+        });
+        displayMembers(filtered, memberLateData);
+    });
+
+    displayMembers(filteredMembers, memberLateData);
+});
+
+// Function to display members in the table
+function displayMembers(members, memberLateData) {
     const tableBody = document.getElementById('chaptersTableBody');
-    if (filteredMembers.length > 0) {
-        console.log('members Founded ...', filteredMembers.length);
+    tableBody.innerHTML = '';
 
-        // Create table rows for each filtered member
-        filteredMembers.forEach((member, index) => {
+    if (members.length > 0) {
+        console.log('members Found ...', members.length);
+
+        members.forEach((member, index) => {
             const row = document.createElement('tr');
 
             const latePaymentData = memberLateData.filter(lateData => lateData.member_id === member.member_id);
-            // latePaymentCell.textContent = latePaymentData.length > 0 ? latePaymentData[0].late_payment_count : '0';
-            console.log("=========================",latePaymentData[0].no_of_late_payment);
+            console.log("=========================", latePaymentData[0]?.no_of_late_payment || 0);
 
             // Checkbox cell
             const checkboxCell = document.createElement('td');
@@ -104,11 +121,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             serialNumberCell.style.fontWeight = 'bold';
             row.appendChild(serialNumberCell);
 
-            // Other member details cells
+            // Name cell with image
             const nameCell = document.createElement('td');
             nameCell.style.fontWeight = 'bold';
             
-            // Add image before the name
             const img = document.createElement('img');
             img.src = 'https://cdn-icons-png.flaticon.com/512/194/194828.png';
             img.alt = '';
@@ -131,13 +147,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             statusCell.style.fontWeight = 'bold';
             row.appendChild(statusCell);
 
-            // Late Payment cell
             const latePaymentCell = document.createElement('td');
-            latePaymentCell.textContent = `${latePaymentData[0].no_of_late_payment}`;
+            latePaymentCell.textContent = latePaymentData[0]?.no_of_late_payment || 0;
             latePaymentCell.style.fontWeight = 'bold';
             row.appendChild(latePaymentCell);
 
-            // Append the row to the table body
             tableBody.appendChild(row);
         });
     } else {
@@ -150,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         row.appendChild(cell);
         tableBody.appendChild(row);
     }
-});
+}
 
 // Function to handle the "Give Credit +" button click
 document.querySelector('.add_bill').addEventListener('click', async () => {

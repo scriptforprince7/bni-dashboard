@@ -10,6 +10,8 @@ const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters';
 const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
 const getBankOrderApi = 'https://backend.bninewdelhi.com/api/getBankOrder';
 let creditType;
+let allMembers = []; // Store all members for search functionality
+
 document.addEventListener('DOMContentLoaded', async () => {
     // console.log('=== Chapter Give Credit Loading Process Started ===');
     try {
@@ -79,7 +81,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!MembersResponse.ok) throw new Error('Network response was not ok');
         const Members = await MembersResponse.json();
         const filteredMembers = Members.filter(member => member.chapter_id === current_User.chapter_id);
+        allMembers = [...filteredMembers]; // Store filtered members for search
         // console.log('Filtered members:', filteredMembers.length);
+
+        // Add search functionality
+        const searchInput = document.getElementById('memberSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const filtered = allMembers.filter(member => {
+                    const fullName = `${member.member_first_name} ${member.member_last_name}`.toLowerCase();
+                    return fullName.includes(searchTerm);
+                });
+                updateTableWithMembers(filtered, writeoffData);
+            });
+        }
 
         const tableBody = document.getElementById('chaptersTableBody');
         if (filteredMembers.length > 0) {
@@ -365,3 +381,105 @@ document.getElementById('selectAllCheckbox')?.addEventListener('change', functio
         checkbox.checked = this.checked;
     });
 });
+
+// Function to update table with filtered members
+function updateTableWithMembers(members, writeoffData) {
+    const tableBody = document.getElementById('chaptersTableBody');
+    tableBody.innerHTML = '';
+
+    if (members.length > 0) {
+        members.forEach((member, index) => {
+            const isWrittenOff = writeoffData.some(wo => 
+                parseInt(wo.member_id) === parseInt(member.member_id) && 
+                parseInt(wo.chapter_id) === parseInt(current_User.chapter_id)
+            );
+
+            const row = document.createElement('tr');
+            
+            // Checkbox cell
+            const checkboxCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = member.member_id;
+            checkbox.style.fontWeight = 'bold';
+            
+            if (isWrittenOff) {
+                checkbox.checked = true;
+                checkbox.disabled = true;
+                row.style.backgroundColor = '#e8f5e9';
+            }
+            
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
+
+            // Serial number cell
+            const serialNumberCell = document.createElement('td');
+            serialNumberCell.textContent = index + 1;
+            serialNumberCell.style.fontWeight = 'bold';
+            row.appendChild(serialNumberCell);
+
+            // Name cell
+            const nameCell = document.createElement('td');
+            nameCell.style.fontWeight = 'bold';
+            nameCell.style.textAlign = 'left';
+            const img = document.createElement('img');
+            img.src = 'https://cdn-icons-png.flaticon.com/512/194/194828.png';
+            img.alt = '';
+            img.style.width = '30px';
+            img.style.height = '30px';
+            img.style.borderRadius = '50%';
+            img.style.marginRight = '10px';
+            nameCell.appendChild(img);
+            nameCell.appendChild(document.createTextNode(member.member_first_name + ' ' + member.member_last_name));
+            row.appendChild(nameCell);
+
+            // Phone cell
+            const phoneCell = document.createElement('td');
+            phoneCell.textContent = member.member_phone_number;
+            phoneCell.style.fontWeight = 'bold';
+            row.appendChild(phoneCell);
+
+            // Status cell
+            const statusCell = document.createElement('td');
+            statusCell.textContent = member.member_status;
+            statusCell.style.fontWeight = 'bold';
+            row.appendChild(statusCell);
+
+            // Late Payment cell
+            const latePaymentCell = document.createElement('td');
+            latePaymentCell.textContent = '-';
+            latePaymentCell.style.fontWeight = 'bold';
+            row.appendChild(latePaymentCell);
+
+            // Total pending amount
+            const totalPendingAmount = document.createElement('td');
+            totalPendingAmount.textContent = '-';
+            totalPendingAmount.style.fontWeight = 'bold';
+            row.appendChild(totalPendingAmount);
+
+            // Fetch data from the API and update the cells
+            fetch(getBankOrderApi)
+                .then(response => response.json())
+                .then(data => {
+                    const memberData = data.find(item => item.member_id === member.member_id);
+                    if (memberData) {
+                        latePaymentCell.textContent = memberData.no_of_late_payment || '0';
+                        totalPendingAmount.textContent = memberData.amount_to_pay || '-';
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching bank order data:", error);
+                });
+
+            tableBody.appendChild(row);
+        });
+    } else {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; font-weight: bold;">
+                    No members found
+                </td>
+            </tr>
+        `;
+    }
+}

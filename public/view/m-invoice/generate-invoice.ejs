@@ -6,6 +6,7 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
+
 <!-- sidebar -->
 <style>
   /* Style for dropdown menu to enable scrolling */
@@ -81,6 +82,18 @@ background-color: #555; /* Darker shade on hover */
 .payment-type-options .form-check-input:checked + .form-check-label {
   font-weight: bold;
   color: #6259ca;
+}
+
+#new-member-details-form .form-label i {
+  color: #6259ca;
+  font-size: 1.1em;
+}
+#new-member-details-form .card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(98,89,202,0.08);
+}
+#new-member-details-form input.form-control {
+  border-radius: 8px;
 }
 </style>
 
@@ -190,6 +203,10 @@ window.toast = {
       <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
     </div>
     
+    <div id="membership-dropdown-container"></div>
+    <!-- Add this after the chapterDropdown UL -->
+    <div id="payment-type-radio-container"></div>
+
     <!-- Payment Type Options (for meeting payments) -->
     <div id="payment-type-options" class="payment-type-options" style="display: none;">
       <div class="row">
@@ -216,6 +233,50 @@ window.toast = {
         </div>
       </div>
     </div>
+    <!-- Visitor/Member Details Form (Visible only for id=1) -->
+<div id="new-member-details-form" style="display: none; margin-top: 24px;">
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h5 class="mb-4" style="font-weight: 600;">
+        <i class="ti ti-user me-2"></i> New Member Details
+      </h5>
+      <form class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-user me-1"></i>Name</label>
+          <input type="text" class="form-control" id="nm-name" placeholder="Enter Name" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-mail me-1"></i>Email</label>
+          <input type="email" class="form-control" id="nm-email" placeholder="Enter Email" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-tag me-1"></i>Category</label>
+          <input type="text" class="form-control" id="nm-category" placeholder="Enter Category" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-calendar me-1"></i>Date</label>
+          <input type="date" class="form-control" id="nm-date" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-phone me-1"></i>Mobile Number</label>
+          <input type="tel" class="form-control" id="nm-mobile" placeholder="Enter Mobile Number" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-building me-1"></i>Company Name</label>
+          <input type="text" class="form-control" id="nm-company-name" placeholder="Enter Company Name" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-file-text me-1"></i>Company GSTIN</label>
+          <input type="text" class="form-control" id="nm-company-gstin" placeholder="Enter GSTIN" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"><i class="ti ti-map-pin me-1"></i>Company Address</label>
+          <input type="text" class="form-control" id="nm-company-address" placeholder="Enter Company Address" autocomplete="off">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
     <!-- Detailed Kitty Bill Info (Moved to top) -->
     <div id="kitty-bill-info" style="display: none;" class="mb-3">
@@ -407,7 +468,7 @@ window.toast = {
                     </div>
                   </div>
                   <div
-                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3"
+                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3" id="billing-to-col"
                   >
                     <p class="dw-semibold mb-2">Billing To :</p>
                     <div class="row gy-2">
@@ -476,12 +537,7 @@ window.toast = {
                     <tbody>
                       <tr>
                         <td>
-                          <input
-                          type="datetime-local"
-                  class="form-control form-control-light"
-                  id="invoice-date-issued"
-                  placeholder="Choose date"
-                />
+                           
                         </td>
                         <td>
                           <div id="particulars-container">
@@ -596,6 +652,20 @@ window.toast = {
                                   />
                                 </td>
                               </tr>
+                              <!-- Add Partial Payment Field -->
+                              <tr id="partial-payment-row" style="display: none;">
+                                <th scope="row">
+                                  <div class="fw-medium">Partial Amount :</div>
+                                </th>
+                                <td>
+                                  <input
+                                    type="text"
+                                    class="form-control form-control-light invoice-amount-input"
+                                    placeholder="Enter Partial Amount"
+                                    id="partial-amount"
+                                  />
+                                </td>
+                              </tr>
                               <tr>
                                 <th scope="row">
                                   <div class="fs-14 fw-medium">Grand Total :</div>
@@ -613,19 +683,6 @@ window.toast = {
                               </tr>
                               
                               <!-- Partial Payment Fields (Hidden by default) -->
-                              <tr id="partial-payment-row" style="display: none;">
-                                <th scope="row">
-                                  <div class="fs-14 fw-medium">Partial Amount :</div>
-                                </th>
-                                <td>
-                                  <input
-                                    type="number"
-                                    class="form-control form-control-light"
-                                    id="partial-amount"
-                                    placeholder="Enter partial amount"
-                                  />
-                                </td>
-                              </tr>
                               <tr id="remaining-balance-row" style="display: none;">
                                 <th scope="row">
                                   <div class="fs-14 fw-medium">Remaining Balance :</div>
@@ -798,20 +855,31 @@ window.toast = {
 
 <!-- Add a check to prevent both scripts from loading simultaneously -->
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.isNewMemberPayment) {
+      const billingToCol = document.getElementById('billing-to-col');
+      if (billingToCol) billingToCol.style.display = 'none';
+    }
+  });
+</script>
+<script>
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('id') === '4') {
         // Load only kittyPaymentsInvoice.js for meeting payments
         document.write('<script src="../../assets/js/kittyPaymentsInvoice.js"><\/script>');
     } 
-     else {
+     else if (urlParams.get('id') === '5') {
         // Load cashInvoice.js for other cases
         document.write('<script src="../../assets/js/cashInvoice.js"><\/script>');
+    }else{
+      // Load newMemberPayment.js for other cases
+      document.write('<script src="../../assets/js/newMemberPayment.js"><\/script>');
     }
 </script>
 
 <script>
 // Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   // Payment method handling
   const paymentMethods = document.getElementsByName('paymentMethod');
   const upiFields = document.getElementById('upiFields');
@@ -866,8 +934,22 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+
+ 
 });
 </script>
 
+
+
 <%- include('../partials/footer') %>
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') === '1') {
+      // Show the new member details form
+      document.getElementById('new-member-details-form').style.display = 'block';
+    }
+  });
+</script>
   

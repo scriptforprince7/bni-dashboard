@@ -175,19 +175,36 @@
          <div class="table-responsive">
            <table class="table table-hover text-nowrap" style="border: 1px solid grey">
              <thead>
-               <tr>
-                 <th scope="col" style="border: 1px solid grey;">S.No.</th>
-                 <th scope="col" style="border: 1px solid grey;">Expense Type</th>
-                 <th scope="col" style="border: 1px solid grey;">Submitted By</th>
-                 <th scope="col" style="border: 1px solid grey;">Description</th>
-                 <th scope="col" style="border: 1px solid grey;">Amount</th>
-                 <th scope="col" style="border: 1px solid grey;">Payment Status</th>
-                 <th scope="col" style="border: 1px solid grey;">Bill Date</th>
-                 <th scope="col" style="border: 1px solid grey;">Mode of Payment</th>
-                 <th scope="col" style="border: 1px solid grey;">View Bill</th>
-                 <th scope="col" style="border: 1px solid grey;">View Receipt</th>
-                 <th scope="col" style="border: 1px solid grey;">Actions</th>
-               </tr>
+              <tr>
+                <th scope="col" style="border: 1px solid grey;">S.No.</th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="expense_type">
+                  Expense Type
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="submitted_by">
+                  Submitted By
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="description">
+                  Description
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="amount">
+                  Amount
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="payment_status">
+                  Payment Status
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="bill_date">
+                  Bill Date
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;">View Bill</th>
+                <th scope="col" style="border: 1px solid grey;">View Receipt</th>
+                <th scope="col" style="border: 1px solid grey;">Actions</th>
+              </tr>
              </thead>
              <tbody id="expensesTableBody">
              </tbody>

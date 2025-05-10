@@ -413,18 +413,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Add function to check induction status
         const getInductionStatus = (visitor) => {
             console.log('🔍 Checking induction status for visitor:', visitor);
-            
             let verificationData = {};
             try {
                 // Remove extra quotes if they exist and parse
-                const cleanVerification = visitor.verification.replace(/^"/, '').replace(/"$/, '');
-                verificationData = JSON.parse(cleanVerification);
+                const cleanVerification = visitor.verification && typeof visitor.verification === 'string'
+                    ? visitor.verification.replace(/^"/, '').replace(/"$/, '')
+                    : visitor.verification;
+                verificationData = cleanVerification ? JSON.parse(cleanVerification) : {};
                 console.log('📋 Parsed verification data:', verificationData);
             } catch (error) {
                 console.error('❌ Error parsing verification data:', error);
                 return false;
             }
-
             // Check all required conditions
             const conditions = {
                 // Form completions
@@ -435,19 +435,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 commitment_sheet: visitor.commitment_sheet && verificationData.commitment_sheet === "true",
                 inclusion_exclusion_sheet: visitor.inclusion_exclusion_sheet && verificationData.inclusion_exclusion_sheet === "true",
                 new_member_form: visitor.new_member_form,
-                
                 // Document verifications
                 aadhar_verified: verificationData.aadharcard === "true",
                 pan_verified: verificationData.pancard === "true",
-                gst_verified: verificationData.gstcertificate === "true"
+                gst_verified: verificationData.gstcertificate === "true",
+                // Mail verifications
+                vp_mail: verificationData.vp_mail === "true",
+                welcome_mail: verificationData.welcome_mail === "true"
             };
-
             console.log('✅ Checking conditions:', conditions);
-
             // Return true only if all conditions are met
             const isReady = Object.values(conditions).every(condition => condition === true);
             console.log('🎯 Final induction status:', isReady);
-            
             return isReady;
         };
 
@@ -941,7 +940,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                             ${visitor.vp_mail ? 
                                 `<button class="mail-sent-btn">
                                     Mail Sent <i class="ri-check-line"></i>
-                                </button>` : 
+                                </button>
+                                ${(() => {
+                                    let verification = {};
+                                    try {
+                                        verification = typeof visitor.verification === 'string' ? JSON.parse(visitor.verification) : (visitor.verification || {});
+                                    } catch (e) { verification = {}; }
+                                    if (verification.vp_mail === "true") {
+                                        return '<span class="badge bg-success ms-2" style="cursor:default;">Verified</span>';
+                                    } else {
+                                        return '<span class="badge bg-danger ms-2 vp-mail-verify-badge" style="cursor:pointer;">Not Verified</span>';
+                                    }
+                                })()}`
+                                : 
                                 `<button class="mail-not-sent-btn">
                                     Mail Not Sent <i class="ri-close-line"></i>
                                 </button>`
@@ -951,7 +962,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                             ${visitor.welcome_mail ? 
                                 `<button class="mail-sent-btn">
                                     Mail Sent <i class="ri-check-line"></i>
-                                </button>` : 
+                                </button>
+                                ${(() => {
+                                    let verification = {};
+                                    try {
+                                        verification = typeof visitor.verification === 'string' ? JSON.parse(visitor.verification) : (visitor.verification || {});
+                                    } catch (e) { verification = {}; }
+                                    if (verification.welcome_mail === "true") {
+                                        return '<span class="badge bg-success ms-2" style="cursor:default;">Verified</span>';
+                                    } else {
+                                        return '<span class="badge bg-danger ms-2 welcome-mail-verify-badge" style="cursor:pointer;">Not Verified</span>';
+                                    }
+                                })()}`
+                                : 
                                 `<button class="mail-not-sent-btn">
                                     Mail Not Sent <i class="ri-close-line"></i>
                                 </button>`
@@ -1032,6 +1055,139 @@ document.addEventListener('DOMContentLoaded', async function() {
             }));
 
             tableBody.innerHTML = tableContent.join('');
+
+            // Helper to get visitor object by ID from the current data
+            function getVisitorById(visitorId, visitorsArr) {
+                return visitorsArr.find(v => String(v.visitor_id) === String(visitorId));
+            }
+
+            // VP Mail badge handler
+            Array.from(document.querySelectorAll('.vp-mail-verify-badge')).forEach(badge => {
+                badge.addEventListener('click', async function() {
+                    const row = this.closest('tr');
+                    let visitorId;
+                    if (row) {
+                        visitorId = row.getAttribute('data-visitor-id');
+                        if (!visitorId) {
+                            const paymentLink = row.querySelector('a[href*="visitor_id="]');
+                            if (paymentLink) {
+                                const url = new URL(paymentLink.href, window.location.origin);
+                                visitorId = url.searchParams.get('visitor_id');
+                            }
+                        }
+                    }
+                    if (!visitorId) {
+                        Swal.fire('Error', 'Could not determine visitor ID.', 'error');
+                        return;
+                    }
+                    const result = await Swal.fire({
+                        title: 'Verify Mail',
+                        text: 'Are you sure that this mail has come to you?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#16a34a',
+                        cancelButtonColor: '#dc2626',
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'Cancel'
+                    });
+                    if (result.isConfirmed) {
+                        // Get the visitor object from the current data
+                        const visitor = typeof window.visitors !== 'undefined' ? getVisitorById(visitorId, window.visitors) : null;
+                        let verification = {};
+                        if (visitor && visitor.verification) {
+                            try {
+                                verification = typeof visitor.verification === 'string'
+                                    ? JSON.parse(visitor.verification)
+                                    : visitor.verification;
+                            } catch (e) { verification = {}; }
+                        }
+                        verification.vp_mail = "true";
+                        try {
+                            const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    visitor_id: parseInt(visitorId),
+                                    verification: verification
+                                })
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(data.error || 'Failed to update mail verification');
+                            this.classList.remove('bg-danger');
+                            this.classList.add('bg-success');
+                            this.textContent = 'Verified';
+                            this.style.cursor = 'default';
+                            Swal.fire('Verified!', 'VP Mail has been marked as verified.', 'success');
+                        } catch (error) {
+                            Swal.fire('Error', error.message || 'Failed to verify mail.', 'error');
+                        }
+                    }
+                });
+            });
+
+            // Welcome Mail badge handler
+            Array.from(document.querySelectorAll('.welcome-mail-verify-badge')).forEach(badge => {
+                badge.addEventListener('click', async function() {
+                    const row = this.closest('tr');
+                    let visitorId;
+                    if (row) {
+                        visitorId = row.getAttribute('data-visitor-id');
+                        if (!visitorId) {
+                            const paymentLink = row.querySelector('a[href*="visitor_id="]');
+                            if (paymentLink) {
+                                const url = new URL(paymentLink.href, window.location.origin);
+                                visitorId = url.searchParams.get('visitor_id');
+                            }
+                        }
+                    }
+                    if (!visitorId) {
+                        Swal.fire('Error', 'Could not determine visitor ID.', 'error');
+                        return;
+                    }
+                    const result = await Swal.fire({
+                        title: 'Verify Mail',
+                        text: 'Are you sure that this mail has come to you?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#16a34a',
+                        cancelButtonColor: '#dc2626',
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'Cancel'
+                    });
+                    if (result.isConfirmed) {
+                        // Get the visitor object from the current data
+                        const visitor = typeof window.visitors !== 'undefined' ? getVisitorById(visitorId, window.visitors) : null;
+                        let verification = {};
+                        if (visitor && visitor.verification) {
+                            try {
+                                verification = typeof visitor.verification === 'string'
+                                    ? JSON.parse(visitor.verification)
+                                    : visitor.verification;
+                            } catch (e) { verification = {}; }
+                        }
+                        verification.welcome_mail = "true";
+                        try {
+                            const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    visitor_id: parseInt(visitorId),
+                                    verification: verification
+                                })
+                            });
+                            const data = await response.json();
+                            if (!response.ok) throw new Error(data.error || 'Failed to update mail verification');
+                            this.classList.remove('bg-danger');
+                            this.classList.add('bg-success');
+                            this.textContent = 'Verified';
+                            this.style.cursor = 'default';
+                            Swal.fire('Verified!', 'Welcome Mail has been marked as verified.', 'success');
+                        } catch (error) {
+                            Swal.fire('Error', error.message || 'Failed to verify mail.', 'error');
+                        }
+                    }
+                });
+            });
         }
 
         // Initial render with total count
