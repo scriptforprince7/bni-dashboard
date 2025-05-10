@@ -50,6 +50,7 @@ let cashKittyAmount = 0;
 let onlineKittyAmount = 0;
 let cashOtherPayments = 0;
 let onlineOtherPayments = 0;
+let cashGSTAmount = 0;
 
 function initializeFilters() {
   // Populate months dropdown
@@ -484,7 +485,7 @@ function showPaymentModeBreakdownPopup(mode, totalAmount, breakdown) {
 }
 
 // Add this function after showPaymentModeBreakdownPopup
-function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineBreakdown, availableFund) {
+function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineBreakdown, availableFund, cashGST) {
   const content = `
     <div class="kitty-breakdown">
       <div class="breakdown-section">
@@ -502,6 +503,10 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
           <span class="fw-bold" style="color: #28a745;">${formatCurrency(cashBreakdown.receipts)}</span>
         </div>
         <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash GST</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(cashGST)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
           <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Expenses</span>
           <span class="fw-bold" style="color: #dc3545;">${formatCurrency(cashBreakdown.expenses)}</span>
         </div>
@@ -517,6 +522,10 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
         <div class="d-flex justify-content-between mb-2">
           <span><i class="ri-bank-card-line me-2"></i>Online Expenses</span>
           <span class="fw-bold" style="color: #dc3545;">${formatCurrency(onlineBreakdown.expenses)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Less: Cash GST</span>
+          <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(cashGST)}</span>
         </div>
         <hr>
         <div class="d-flex justify-content-between">
@@ -558,6 +567,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
   onlineKittyAmount = 0;
   cashOtherPayments = 0;
   onlineOtherPayments = 0;
+  cashGSTAmount = 0;
 
   try {
     showLoader();
@@ -734,6 +744,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
           // Track kitty payments by mode
           if (successfulTransaction.payment_method?.cash || paymentMethod.toLowerCase() === 'cash') {
             cashKittyAmount += amount;
+            cashGSTAmount += gst;
           } else {
             onlineKittyAmount += amount;
           }
@@ -742,6 +753,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
           // Track visitor payments by mode
           if (successfulTransaction.payment_method?.cash || paymentMethod.toLowerCase() === 'cash') {
             cashVisitorAmount += amount;
+            cashGSTAmount += gst;
           } else {
             onlineVisitorAmount += amount;
           }
@@ -824,6 +836,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
       // Track other payments by mode
       if (payment.mode_of_payment.toLowerCase() === 'cash') {
         cashOtherPayments += totalAmount;
+        cashGSTAmount += gstAmount;
       } else {
         onlineOtherPayments += totalAmount;
       }
@@ -976,8 +989,8 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
     const onlineExpenses = onlineExpenseBaseAmount;
 
     // Calculate cash and online balances
-    const cashBalance = (parseFloat(loggedInChapter.available_fund) || 0) + totalCashReceipts - cashExpenses;
-    const onlineBalance = totalOnlineReceipts - onlineExpenses;
+    const cashBalance = (parseFloat(loggedInChapter.available_fund) || 0) + totalCashReceipts + cashGSTAmount - cashExpenses;
+    const onlineBalance = totalOnlineReceipts - onlineExpenses - cashGSTAmount;
 
     currentBalanceElement.innerHTML = `
       <div>
@@ -1005,7 +1018,8 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
         receipts: totalOnlineReceipts,
         expenses: onlineExpenses
       },
-      parseFloat(loggedInChapter.available_fund) || 0
+      parseFloat(loggedInChapter.available_fund) || 0,
+      cashGSTAmount
       );
     });
 
