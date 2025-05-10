@@ -483,6 +483,65 @@ function showPaymentModeBreakdownPopup(mode, totalAmount, breakdown) {
   });
 }
 
+// Add this function after showPaymentModeBreakdownPopup
+function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineBreakdown, availableFund) {
+  const content = `
+    <div class="kitty-breakdown">
+      <div class="breakdown-section">
+        <h6 class="mb-3">Current Balance Breakdown</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Balance</span>
+          <span class="fw-bold">${formatCurrency(cashBreakdown.total)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-wallet-3-line me-2"></i>Opening Balance (Available Fund)</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(availableFund)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Receipts</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(cashBreakdown.receipts)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Expenses</span>
+          <span class="fw-bold" style="color: #dc3545;">${formatCurrency(cashBreakdown.expenses)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Balance</span>
+          <span class="fw-bold">${formatCurrency(onlineBreakdown.total)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Receipts</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(onlineBreakdown.receipts)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Expenses</span>
+          <span class="fw-bold" style="color: #dc3545;">${formatCurrency(onlineBreakdown.expenses)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold">Total Current Balance</span>
+          <span class="fw-bold">${formatCurrency(currentBalance)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Show the popup
+  Swal.fire({
+    title: 'Current Balance Breakdown',
+    html: content,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    },
+    showCloseButton: true,
+    showConfirmButton: false,
+    width: '500px'
+  });
+}
+
 (async function generateChapterLedger() {
   let currentBalance = 0;
   totalKittyAmount = 0;
@@ -907,7 +966,48 @@ function showPaymentModeBreakdownPopup(mode, totalAmount, breakdown) {
       </div>
     `;
     
-    document.getElementById("current-balance").textContent = formatCurrency(currentBalance);
+    // Update current balance display with cash/online bifurcation
+    const currentBalanceElement = document.getElementById("current-balance");
+    const totalCashReceipts = cashKittyAmount + cashVisitorAmount + cashOtherPayments;
+    const totalOnlineReceipts = onlineKittyAmount + onlineVisitorAmount + onlineOtherPayments;
+
+    // Calculate cash and online expenses
+    const cashExpenses = cashExpenseBaseAmount;
+    const onlineExpenses = onlineExpenseBaseAmount;
+
+    // Calculate cash and online balances
+    const cashBalance = (parseFloat(loggedInChapter.available_fund) || 0) + totalCashReceipts - cashExpenses;
+    const onlineBalance = totalOnlineReceipts - onlineExpenses;
+
+    currentBalanceElement.innerHTML = `
+      <div>
+        ${formatCurrency(currentBalance)}
+        <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+          <span>
+            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashBalance)}
+          </span>
+          <span style="margin-left: 8px;">
+            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineBalance)}
+          </span>
+        </div>
+      </div>
+    `;
+
+    // Make current balance clickable and add click handler
+    currentBalanceElement.style.cursor = 'pointer';
+    currentBalanceElement.addEventListener('click', function() {
+      showCurrentBalanceBreakdownPopup(currentBalance, {
+        total: cashBalance,
+        receipts: totalCashReceipts,
+        expenses: cashExpenses
+      }, {
+        total: onlineBalance,
+        receipts: totalOnlineReceipts,
+        expenses: onlineExpenses
+      },
+      parseFloat(loggedInChapter.available_fund) || 0
+      );
+    });
 
     // Render ledger table
     console.log("Rendering ledger table...");
@@ -940,18 +1040,6 @@ function showPaymentModeBreakdownPopup(mode, totalAmount, breakdown) {
 
     // After finding loggedInChapter and before rendering the ledger table
     document.getElementById("opening-balance").textContent = formatCurrency(parseFloat(loggedInChapter.available_fund) || 0);
-
-    // After updating current balance in the UI, add click event for popup
-    const currentBalanceElement = document.getElementById("current-balance");
-    currentBalanceElement.style.cursor = 'pointer';
-    currentBalanceElement.addEventListener('click', function() {
-      showCurrentBalanceBreakdown(
-        parseFloat(loggedInChapter.available_fund) || 0,
-        kittyAmountWithVisitors,
-        totalExpenseBaseAmount,
-        currentBalance
-      );
-    });
 
     // Add click handlers for cash and online breakdowns
     document.getElementById('cash-breakdown').addEventListener('click', function() {
