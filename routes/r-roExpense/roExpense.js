@@ -7,5 +7,6 @@ router.get('/view-expenses', roExpenseController.viewExpense);
 router.get('/add-expense', roExpenseController.addExpense);
 router.get('/all-vendors', roExpenseController.allVendors);
 router.get('/edit-expense', roExpenseController.editExpense);
+router.get('/edit-vendor', roExpenseController.editVendor);
 
 module.exports = router;

@@ -14,3 +14,7 @@ exports.editExpense = (req, res) => {
     res.render('m-roExpense/edit-expense', { title: 'Edit Expense' });
 };
 
+exports.editVendor = (req, res) => {
+    res.render('m-roExpense/edit-vendor', { title: 'Edit Vendor' });
+};
+

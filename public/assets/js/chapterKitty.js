@@ -13,7 +13,7 @@ let otherPaymentsTotal = 0;
 async function populateGatewayFilter() {
   try {
     const response = await fetch(
-      "https://backend.bninewdelhi.com/api/paymentGateway"
+      "http://localhost:5000/api/paymentGateway"
     );
     const gateways = await response.json();
 
@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Get chapter_id from chapters API
       const chaptersResponse = await fetch(
-        "https://backend.bninewdelhi.com/api/chapters"
+        "http://localhost:5000/api/chapters"
       );
       const chapters = await chaptersResponse.json();
       const chapter = chapters.find(ch =>
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Fetch write-off data and calculate total
     console.log("Fetching write-off data for chapter:", chapter_id);
     const writeoffResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
+      "http://localhost:5000/api/getAllMemberWriteOff"
     );
     const writeoffData = await writeoffResponse.json();
 
@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
     const chapterResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/chapters"
+      "http://localhost:5000/api/chapters"
     );
     const chaptersData = await chapterResponse.json();
     console.log("Chapters data received:", chaptersData.length, "chapters");
@@ -337,7 +337,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
     const membersResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/members"
+      "http://localhost:5000/api/members"
     );
     const allMembers = await membersResponse.json();
     const chapterMembersWithBalance = allMembers.filter(
@@ -349,7 +349,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // console.log("chapter member",chapterMembersWithBalance);
 
     const bankOrderResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getbankOrder"
+      "http://localhost:5000/api/getbankOrder"
     );
     const bankOrders = await bankOrderResponse.json();
     console.log("Bank Orders Data:", bankOrders);
@@ -394,7 +394,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Continue with existing code
     const expenseResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allExpenses"
+      "http://localhost:5000/api/allExpenses"
     );
     const expenses = await expenseResponse.json();
     console.log("expense", expenses);
@@ -414,7 +414,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Total Paid Expense:", total_paid_expense);
 
     const creditResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
+      "http://localhost:5000/api/getAllMemberCredit"
     );
     const memberCredits = await creditResponse.json();
     console.log("Member Credits Data:", memberCredits);
@@ -435,7 +435,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getKittyPayments"
+      "http://localhost:5000/api/getKittyPayments"
     );
     const kittyPayments = await kittyResponse.json();
     const chapterKittyPayment = kittyPayments.find(
@@ -477,7 +477,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
       } else {
         const ordersResponse = await fetch(
-          "https://backend.bninewdelhi.com/api/allOrders"
+          "http://localhost:5000/api/allOrders"
         );
         const allOrders = await ordersResponse.json();
 
@@ -525,7 +525,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // else 0
         else {
           const transactionsResponse = await fetch(
-            "https://backend.bninewdelhi.com/api/allTransactions"
+            "http://localhost:5000/api/allTransactions"
           );
           const allTransactions = await transactionsResponse.json();
           console.log("Fetched Transactions:", allTransactions);
@@ -902,19 +902,41 @@ document.addEventListener("DOMContentLoaded", async function () {
           }
 
           // After fetching orders and transactions
+          console.log('Calculating manual payments...');
           const manualPaymentAmount = await calculateManualPayments(
             chapterId, 
             allOrders, 
             allTransactions, 
-            available_fund,
-            expenses
+            available_fund
           );
-          
+          console.log('Manual payment amount calculated:', manualPaymentAmount);
+
           // Update manual funds display
-          const manualFundsElement = document.querySelector('.manual-funds-amount');
+          const manualFundsElement = document.getElementById('manual-funds-amount');
+          console.log('Manual funds element found:', !!manualFundsElement);
+          
           if (manualFundsElement) {
-            manualFundsElement.textContent = indianCurrencyFormatter.format(manualPaymentAmount);
-            console.log('Updated manual funds display:', manualPaymentAmount);
+            // Format the amount with Indian currency format
+            const formattedManualAmount = new Intl.NumberFormat('en-IN', {
+              style: 'currency',
+              currency: 'INR',
+              maximumFractionDigits: 2
+            }).format(manualPaymentAmount);
+            
+            // Update the text content with the formatted amount
+            manualFundsElement.textContent = formattedManualAmount;
+            console.log('Updated manual funds display:', formattedManualAmount);
+
+            // Also update the data attribute in the total available amount element
+            const totalAvailableElement = document.querySelector("#total_available_amount");
+            if (totalAvailableElement) {
+              totalAvailableElement.setAttribute('data-manual-payments', manualPaymentAmount);
+            }
+          } else {
+            console.error('Manual funds element not found in DOM. Available elements:', {
+              byClass: document.getElementsByClassName('.manual-funds-amount').length,
+              byId: document.getElementById('manual-funds-amount') ? 'exists' : 'not found'
+            });
           }
 
           // Fetch other payments total
@@ -1012,7 +1034,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 6: Fetch all orders for the chapter
     const ordersResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allOrders"
+      "http://localhost:5000/api/allOrders"
     );
     const allOrders = await ordersResponse.json();
 
@@ -1063,7 +1085,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Fetched Orders:", chapterOrders);
 
     const transactionsResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allTransactions"
+      "http://localhost:5000/api/allTransactions"
     );
     const allTransactions = await transactionsResponse.json();
     console.log("Fetched Transactions:", allTransactions);
@@ -1243,8 +1265,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       chapterId, 
       allOrders, 
       allTransactions, 
-      available_fund,
-      expenses
+      available_fund
     );
     // Fetch other payments total
     otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
@@ -1552,7 +1573,7 @@ async function fetchVisitorAmountTotal(chapterId) {
     try {
         // 1. Fetch Orders
         console.log('📥 Fetching orders...');
-        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+        const ordersResponse = await fetch("http://localhost:5000/api/allOrders");
         const allOrders = await ordersResponse.json();
         console.log('📦 Total orders:', allOrders.length);
 
@@ -1571,7 +1592,7 @@ async function fetchVisitorAmountTotal(chapterId) {
 
         // 3. Fetch Transactions
         console.log('💳 Fetching transactions...');
-        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
+        const transactionsResponse = await fetch("http://localhost:5000/api/allTransactions");
         const allTransactions = await transactionsResponse.json();
         console.log('Total transactions:', allTransactions.length);
 
@@ -1690,8 +1711,10 @@ async function calculateTotalReceivedAmount(chapterId, allOrders, allTransaction
 }
 
 // Function to calculate manual/cash payments
-async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund, expenses) {
+async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund) {
+  console.log('Starting calculateManualPayments with:', { chapterId, available_fund });
   let totalManualAmount = parseFloat(available_fund || 0);  // Start with available_fund
+  console.log('Initial totalManualAmount:', totalManualAmount);
   
   // Filter orders for the chapter - include both meeting and visitor payments
   const chapterOrders = allOrders.filter(order =>
@@ -1703,55 +1726,58 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
       order.payment_note === "Visitor Payment"
     )
   );
+  console.log('Filtered chapter orders:', chapterOrders.length);
 
   // Calculate total from successful cash transactions
   chapterOrders.forEach(order => {
     const transaction = allTransactions.find(
       tran => tran.order_id === order.order_id && 
               tran.payment_status === "SUCCESS" &&
-              tran.payment_method?.cash
+              (tran.payment_method?.cash || order.payment_note === "Visitor Payment")
     );
 
     if (transaction) {
-      // Check if order has tax
-      const orderHasTax = parseFloat(order.tax || 0) > 0;
-      let amountToAdd = 0;
-      
-      if (orderHasTax) {
-        // If order has tax, use full amount including GST
-        amountToAdd = parseFloat(transaction.payment_amount || 0);
-      } else {
-        // If no tax, calculate amount without GST
-        amountToAdd = Math.ceil(
-          parseFloat(transaction.payment_amount) -
-          (parseFloat(transaction.payment_amount) * 18) / 118
-        );
-      }
-
+      // For cash payments, use full amount
+      const amountToAdd = parseFloat(transaction.payment_amount || 0);
       totalManualAmount += amountToAdd;
 
       // Log for debugging
-      console.log(`Added ${order.payment_note} payment:`, {
+      console.log(`Added cash payment:`, {
         orderId: order.order_id,
         amount: transaction.payment_amount,
-        hasTax: orderHasTax,
-        addedAmount: amountToAdd
+        paymentNote: order.payment_note,
+        newTotal: totalManualAmount
       });
     }
   });
 
-  // Subtract cash expenses
-  const cashExpenses = expenses.filter(expense => 
-    expense.chapter_id === chapterId && 
-    expense.mode_of_payment === "cash" &&
-    expense.payment_status === "paid" &&
-    expense.delete_status === 0
-  );
+  // Fetch and add other payments
+  try {
+    const response = await fetch("http://localhost:5000/api/allOtherPayment");
+    const otherPayments = await response.json();
+    
+    // Filter cash payments for current chapter
+    const chapterOtherPayments = otherPayments.filter(payment => 
+      payment.chapter_id === chapterId &&
+      payment.mode_of_payment === 'cash'
+    );
+    
+    console.log('Found cash other payments for chapter:', chapterOtherPayments.length);
+    
+    chapterOtherPayments.forEach(payment => {
+      const amount = parseFloat(payment.total_amount || 0);
+      totalManualAmount += amount;
+      console.log(`Added other payment:`, {
+        paymentId: payment.payment_id,
+        amount: amount,
+        newTotal: totalManualAmount
+      });
+    });
+  } catch (error) {
+    console.error('Error fetching other payments:', error);
+  }
 
-  cashExpenses.forEach(expense => {
-    totalManualAmount -= parseFloat(expense.amount || 0);
-  });
-
+  console.log('Final totalManualAmount:', totalManualAmount);
   return totalManualAmount;
 }
 
@@ -1759,7 +1785,7 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
 async function fetchOtherPaymentsTotal(chapterId) {
   try {
     console.log('Fetching other payments for chapter:', chapterId);
-    const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
+    const response = await fetch("http://localhost:5000/api/allOtherPayment");
     const otherPayments = await response.json();
     
     // Filter payments for current chapter
@@ -1847,4 +1873,3 @@ function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAm
   
   totalAvailable.textContent = formatter.format(total);
 }
-

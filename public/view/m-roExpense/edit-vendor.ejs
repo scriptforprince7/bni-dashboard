@@ -1,0 +1,339 @@
+<!-- Add this script at the very top of your file, before any other content -->
+<script src="../../assets/js/tokenUtils.js"></script>
+
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin' && loginType !== 'chapter') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin and Chapter can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+<script>
+    // Get login type from token
+    const loginType = getUserLoginType();
+    
+    // If user is a member, redirect to home page
+    if (loginType === 'member') {
+        window.location.href = '/';
+    }
+</script>
+
+<!-- header -->
+<%- include('../partials/header') %>
+<!-- end header -->
+
+<!-- sidebar -->
+<%- include('../partials/sidebar') %>
+<!-- end sidebar -->
+
+<style>
+  /* Ensuring that the modal body has padding */
+  .modal-body {
+    padding: 20px;
+  }
+
+  /* Preventing the add button container from affecting layout */
+  .add-button-container {
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* Custom dropdown style */
+  .custom-dropdown {
+    position: relative;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .options {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    background: white;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1;
+  }
+
+  .options div {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .options div:hover {
+    background-color: #f0f0f0;
+  }
+
+  .selected {
+    display: flex;
+    align-items: center;
+  }
+</style>
+<!-- Start::app-content -->
+<div class="main-content app-content" style="background-color: #f4f4f4">
+  <div class="container-fluid">
+    <!-- Start::page-header -->
+    <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
+      <div>
+        <h1 class="page-title fw-medium fs-18 mb-0">
+          <span style="font-weight: 700; font-family: Poppins">Edit Expense</span>
+        </h1>
+      </div>
+    </div>
+    <!-- End::page-header -->
+
+    <form id="editExpenseForm">
+      <div class="row">
+        <div class="col-xl-12">
+          <div class="card custom-card">
+            <div class="card-body add-products">
+              <div class="row gx-4">
+                <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
+                  <div class="card custom-card shadow-none mb-0 border-0">
+                    <div class="card-body p-0">
+                      <div class="row gy-3">
+                        <div class="col-xl-6">
+                          <label for="expense_type" class="form-label">Type of Expense</label>
+                          <select class="form-control" name="expense_type" id="expense_type" required>
+                            <option value="">Loading...</option>
+                          </select>
+                        </div>
+                        <div class="col-xl-6">
+                          <label for="submitted_by" class="form-label">Submitted By:</label>
+                          <input type="text" class="form-control" id="submitted_by" name="submitted_by" placeholder="Enter Name" maxlength="50" required />
+                        </div>
+
+                        <div class="row">
+                          <div class="col-xl-6">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="3" maxlength="200" required></textarea>
+                          </div>
+
+                          <div class="col-xl-6">
+                            <label for="chapter" class="form-label">Chapter</label>
+                            <select class="form-control" name="chapter" id="chapter" required>
+                              <option value="">Select Chapter</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <!-- Hotel Selection Section (Initially Hidden) -->
+                        <div id="hotelSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label for="hotel" class="form-label">Select Hotel</label>
+                              <a href="/h/add-hotel" class="btn btn-danger btn-sm">+ Add New Hotel</a>
+                            </div>
+                            <select class="form-control" name="hotel" id="hotel">
+                              <option value="">Select Hotel</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <!-- Vendor Selection Section (Initially Hidden) -->
+                        <div id="vendorSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-12">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label for="vendor" class="form-label">Select Vendor</label>
+                              <button type="button" class="btn btn-danger btn-sm" id="addNewVendorBtn">+ Add New Vendor</button>
+                            </div>
+                            <select class="form-control" name="vendor" id="vendor">
+                              <option value="">Select Vendor</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <!-- Vendor Details Section (Initially Hidden) -->
+                        <div id="vendorDetailsSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="vendor_company_name"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Company Address</label>
+                            <input type="text" class="form-control" id="vendor_company_address"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="vendor_phone"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="text" class="form-control" id="vendor_email"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Company GST</label>
+                            <input type="text" class="form-control" id="vendor_company_gst"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Bank Name</label>
+                            <input type="text" class="form-control" id="vendor_bank_name"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="vendor_account"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">IFSC Code</label>
+                            <input type="text" class="form-control" id="vendor_ifsc_code"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Type</label>
+                            <input type="text" class="form-control" id="vendor_account_type"  />
+                          </div>
+                        </div>
+
+                        <!-- Hotel Details Section (Initially Hidden) -->
+                        <div id="hotelDetailsSection" style="display: none;" class="row mt-3">
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Bank Name</label>
+                            <input type="text" class="form-control" id="bank_name"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">IFSC Code</label>
+                            <input type="text" class="form-control" id="ifsc_code" />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="account_no"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Account Type</label>
+                            <input type="text" class="form-control" id="account_type"  />
+                          </div>
+                          <div class="col-xl-6 col-md-6 mb-3">
+                            <label class="form-label">Hotel GST</label>
+                            <input type="text" class="form-control" id="hotel_gst"  />
+                          </div>
+                        </div>
+
+                        <div id="membershipFeesContainer" class="container">
+                          <div class="row">
+                            <div class="col-xl-4 col-md-4">
+                              <label class="form-label" for="amount">Amount</label>
+                              <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" required />
+                              
+                              <!-- Added GST Checkbox -->
+                              <div class="form-check mt-2" style="margin-left: 4px;">
+                                <input 
+                                  type="checkbox" 
+                                  class="form-check-input" 
+                                  id="withGST" 
+                                  name="withGST"
+                                  style="cursor: pointer;"
+                                />
+                                <label class="form-check-label" for="withGST" style="cursor: pointer; user-select: none;">
+                                  With GST
+                                </label>
+                              </div>
+
+                              <!-- GST Calculation Fields (Initially Hidden) -->
+                              <div id="gstCalculationFields" style="display: none;" class="mt-3">
+                                <div class="row">
+                                  <div class="col-4">
+                                    <label class="form-label" for="gstPercentage">GST %</label>
+                                    <select class="form-control" id="gstPercentage" name="gstPercentage">
+                                      <option value="5">5%</option>
+                                      <option value="9">9%</option>
+                                      <option value="12">12%</option>
+                                      <option value="18" selected>18%</option>
+                                      <option value="28">28%</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label" for="gstAmount">GST Amount</label>
+                                    <input type="number" class="form-control" id="gstAmount" name="gstAmount" readonly />
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label" for="totalAmount">Total Amount</label>
+                                    <input type="number" class="form-control" id="totalAmount" name="totalAmount" readonly />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="col-xl-4 col-md-4">
+                              <label for="payment_status" class="form-label">Payment Status</label>
+                              <select class="form-control" name="payment_status" id="payment_status">
+                                <option value="">Payment Status</option>
+                                <option value="paid">Paid</option>
+                                <option value="pending">Pending</option>
+                              </select>
+                            </div>
+
+                            <div class="col-xl-4 col-md-4">
+                              <label for="payment_mode" class="form-label">Mode of Payment</label>
+                              <select class="form-control" name="payment_mode" id="payment_mode" required>
+                                <option value="">Select Payment Mode</option>
+                                
+                                <option value="cash">Cash</option>
+                                <option value="online">Online</option>
+                              </select>
+                            </div>
+
+                            <div class="col-xl-4">
+                              <label for="bill_date" class="form-label">Bill Date:</label>
+                              <input type="date" id="bill_date" name="bill_date" class="form-control" required />
+                            </div>
+                          </div>
+
+                          <div class="row">
+                            <div class="col-xl-3">
+                              <label for="upload_bill" class="form-label">Upload Bill</label>
+                              <input type="file" class="form-control" id="upload_bill" name="upload_bill" />
+                            </div>
+                            <div class="col-xl-3">
+                              <label for="bill_no" class="form-label">Bill No.</label>
+                              <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20" required/>
+                            </div>
+                            <div class="col-xl-3">
+                              <label for="transaction_no" class="form-label">Transaction No./Transfer ID/UTR No.</label>
+                              <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" required />
+                            </div>
+                            <div class="col-xl-3">
+                              <label for="upload_receipt" class="form-label">Upload Receipt</label>
+                              <input type="file" class="form-control" id="upload_receipt" name="upload_receipt" />
+                            </div>
+                          </div>
+                        </br>
+                        <button type="submit" id="updateExpenseButton" class="btn btn-success ...">Update Expense</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <div id="formMessage"></div>
+  </div>
+</div>
+<!-- End::content -->
+
+<!-- Include necessary scripts in correct order -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/assets/js/tokenUtils.js"></script>
+<script src="../../assets/js/roExpenseEditBill.js"></script>
+
+<%- include('../partials/footer') %> 

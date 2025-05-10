@@ -252,37 +252,53 @@ const sortVendors = (direction) => {
 
 // Function to delete vendor
 const deleteVendor = async (vendorId) => {
-  const result = await Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!'
-  });
+  try {
+    // Show confirmation dialog
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    });
 
-  if (result.isConfirmed) {
-    try {
+    if (result.isConfirmed) {
       showLoader();
-      const response = await fetch(`https://backend.bninewdelhi.com/api/vendor/${vendorId}`, {
-        method: 'DELETE'
+      const response = await fetch('http://localhost:5000/api/deleteVendor', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ vendor_id: vendorId })
       });
 
-      if (response.ok) {
-        await Swal.fire('Deleted!', 'Vendor has been deleted.', 'success');
+      const data = await response.json();
+
+      if (data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Vendor has been deleted successfully.',
+          showConfirmButton: false,
+          timer: 1500
+        });
         // Refresh vendors list
         await fetchVendors();
       } else {
-        const error = await response.json();
-        Swal.fire('Error!', error.message || 'Failed to delete vendor', 'error');
+        throw new Error(data.message || 'Failed to delete vendor');
       }
-    } catch (error) {
-      console.error('Error deleting vendor:', error);
-      Swal.fire('Error!', 'Failed to delete vendor', 'error');
-    } finally {
-      hideLoader();
     }
+  } catch (error) {
+    console.error('Error deleting vendor:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message || 'Failed to delete vendor. Please try again.'
+    });
+  } finally {
+    hideLoader();
   }
 };
 
@@ -564,6 +580,11 @@ const addNewVendor = async () => {
   }
 };
 
+// Function to edit vendor
+const editVendor = (vendorId) => {
+  window.location.href = `/rexp/edit-vendor?id=${vendorId}`;
+};
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
   // Initial fetch
@@ -583,11 +604,14 @@ document.addEventListener('DOMContentLoaded', () => {
     filterVendorsByChapter(this.value);
   });
 
-  // Delete button listener
+  // Delete and Edit button listeners
   document.getElementById('expensesTableBody').addEventListener('click', (e) => {
     if (e.target.closest('.delete-vendor')) {
       const vendorId = e.target.closest('.delete-vendor').dataset.vendorId;
       deleteVendor(vendorId);
+    } else if (e.target.closest('.edit-vendor')) {
+      const vendorId = e.target.closest('.edit-vendor').dataset.vendorId;
+      editVendor(vendorId);
     }
   });
 

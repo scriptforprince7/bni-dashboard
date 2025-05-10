@@ -86,13 +86,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         regionsResponse,
         paymentTypeResponse,
       ] = await Promise.all([
-        fetch("https://backend.bninewdelhi.com/api/allOrders"),
-        fetch("https://backend.bninewdelhi.com/api/allTransactions"),
-        fetch("https://backend.bninewdelhi.com/api/chapters"),
-        fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
-        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
-        fetch("https://backend.bninewdelhi.com/api/regions"),
-        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+        fetch("http://localhost:5000/api/allOrders"),
+        fetch("http://localhost:5000/api/allTransactions"),
+        fetch("http://localhost:5000/api/chapters"),
+        fetch("http://localhost:5000/api/paymentGateway"),
+        fetch("http://localhost:5000/api/universalLinks"),
+        fetch("http://localhost:5000/api/regions"),
+        fetch("http://localhost:5000/api/universalLinks"),
       ]);
   
       const orders = await ordersResponse.json();
@@ -502,7 +502,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Fetch IRN and QR code details for each order from the einvoice table
         if (transaction.payment_status === 'SUCCESS') {
           showLoader();
-          fetch(`https://backend.bninewdelhi.com/api/einvoice/${order.order_id}`)
+          fetch(`http://localhost:5000/api/einvoice/${order.order_id}`)
               .then(response => response.json())
               .then(einvoiceData => {
                   const irnCell = row.querySelector(".irn");
@@ -662,7 +662,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
                   try {
                     const backendResponse = await fetch(
-                      "https://backend.bninewdelhi.com/einvoice/generate-irn",
+                      "http://localhost:5000/einvoice/generate-irn",
                       {
                         method: "POST",
                         headers: {
@@ -679,7 +679,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     
                       // Fetch IRN and QR code details after successful generation
                       const einvoiceResponse = await fetch(
-                        `https://backend.bninewdelhi.com/api/einvoice/${orderId}`
+                        `http://localhost:5000/api/einvoice/${orderId}`
                       );
                       const einvoiceData = await einvoiceResponse.json();
                     

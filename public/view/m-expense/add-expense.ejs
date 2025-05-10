@@ -159,7 +159,10 @@
                           </label>
                           <button class="btn btn-danger border" type="button" id="addNewExpenseBtn" data-region-id="123" style="float: right">
                             + Add New Expense Type
-                          </button> 
+                          </button>
+                          <button class="btn btn-primary border" type="button" id="viewExpenseBtn" style="float: right; margin-right: 10px;">
+                             + View Expense types
+                          </button>
                         </div>
 
                         <div class="col-xl-6">
@@ -930,24 +933,89 @@ function hideLoader() {
       // Get selected chapter and convert ID to number
       const selectedChapter = document.getElementById("chapter");
       const selectedChapterId = parseInt(selectedChapter.value, 10);
+      
+      // Validate chapter selection
+      if (!selectedChapterId || isNaN(selectedChapterId)) {
+        Swal.fire('Error!', 'Please select a valid chapter', 'error');
+        console.error('Invalid chapter selection:', {
+          originalValue: selectedChapter.value,
+          parsedValue: selectedChapterId
+        });
+        return;
+      }
+
+      // Validate payment status
+      const selectedPaymentStatus = document.getElementById('payment_status').value;
+      if (selectedPaymentStatus !== "paid" && selectedPaymentStatus !== "pending") {
+        console.log("selectedPaymentStatus", selectedPaymentStatus);
+        Swal.fire('Error!', 'Please select a valid payment status', 'error');
+        return;
+      }
+
+      // Validate expense type
+      const expenseType = document.getElementById('expense_type');
+      const selectedExpenseType = expenseType.options[expenseType.selectedIndex].textContent;
+      if (!expenseType.value) {
+        Swal.fire('Error!', 'Please select an expense type', 'error');
+        return;
+      }
+
+      // Validate amount
+      const amount = document.getElementById('amount').value;
+      if (!amount || parseFloat(amount) <= 0) {
+        Swal.fire('Error!', 'Please enter a valid amount', 'error');
+        return;
+      }
+
+      // Validate bill date
+      const billDate = document.getElementById('bill_date').value;
+      if (!billDate) {
+        Swal.fire('Error!', 'Please select a bill date', 'error');
+        return;
+      }
+
+      // Validate bill number
+      const billNo = document.getElementById('bill_no').value;
+      if (!billNo) {
+        Swal.fire('Error!', 'Please enter a bill number', 'error');
+        return;
+      }
+
+      // Validate transaction number
+      const transactionNo = document.getElementById('transaction_no').value;
+      if (!transactionNo) {
+        Swal.fire('Error!', 'Please enter a transaction number', 'error');
+        return;
+      }
+
+      // Validate payment mode
+      const paymentMode = document.getElementById('payment_mode').value;
+      if (!paymentMode) {
+        Swal.fire('Error!', 'Please select a payment mode', 'error');
+        return;
+      }
+
+      // Validate file uploads
+      const billFile = document.getElementById('upload_bill').files[0];
+      if (!billFile) {
+        Swal.fire('Error!', 'Please upload a bill', 'error');
+        return;
+      }
 
       // Add basic form fields
-      formData.append('expense_type', document.getElementById('expense_type').value);
+      formData.append('expense_type', expenseType.value);
       formData.append('submitted_by', document.getElementById('submitted_by').value);
       formData.append('description', document.getElementById('description').value);
       formData.append('chapter_id', selectedChapterId);
-      formData.append('amount', document.getElementById('amount').value);
-      formData.append('payment_status', document.getElementById('payment_status').value);
-      formData.append('bill_date', document.getElementById('bill_date').value);
-      formData.append('bill_no', document.getElementById('bill_no').value);
-      formData.append('transaction_no', document.getElementById('transaction_no').value);
-      formData.append('payment_mode', document.getElementById('payment_mode').value);
+      formData.append('amount', amount);
+      formData.append('payment_status', selectedPaymentStatus);
+      formData.append('bill_date', billDate);
+      formData.append('bill_no', billNo);
+      formData.append('transaction_no', transactionNo);
+      formData.append('payment_mode', paymentMode);
 
       // Add files
-      const billFile = document.getElementById('upload_bill').files[0];
-      if (billFile) {
-        formData.append('upload_bill', billFile);
-      }
+      formData.append('upload_bill', billFile);
       const receiptFile = document.getElementById('upload_receipt').files[0];
       if (receiptFile) {
         formData.append('upload_receipt', receiptFile);
@@ -966,23 +1034,24 @@ function hideLoader() {
         formData.append('gstAmount', gstAmount);
         formData.append('totalAmount', totalAmount);
       } else {
-        formData.append('totalAmount', document.getElementById('amount').value);
+        formData.append('totalAmount', amount);
       }
 
       // Add vendor or hotel details based on expense type
-      const expenseType = document.getElementById('expense_type');
-      const selectedExpenseType = expenseType.options[expenseType.selectedIndex].textContent;
-      
       if (selectedExpenseType === 'Meeting Hotel Expenses') {
         const selectedHotel = document.getElementById('hotel').value;
-        if (selectedHotel) {
-          formData.append('hotel_id', selectedHotel);
+        if (!selectedHotel) {
+          Swal.fire('Error!', 'Please select a hotel', 'error');
+          return;
         }
+        formData.append('hotel_id', selectedHotel);
       } else {
         const selectedVendor = document.getElementById('vendor').value;
-        if (selectedVendor && selectedVendor !== 'show_others') {
-          formData.append('vendor_id', selectedVendor);
+        if (!selectedVendor || selectedVendor === 'show_others') {
+          Swal.fire('Error!', 'Please select a vendor', 'error');
+          return;
         }
+        formData.append('vendor_id', selectedVendor);
       }
 
       // Debug logging
@@ -993,15 +1062,15 @@ function hideLoader() {
         description: document.getElementById('description').value,
         chapter_id: selectedChapterId,
         chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
-        amount: parseFloat(document.getElementById('amount').value),
+        amount: parseFloat(amount),
         withGST: withGST,
-        payment_status: document.getElementById('payment_status').value,
-        bill_date: document.getElementById('bill_date').value,
-        bill_no: document.getElementById('bill_no').value,
-        transaction_no: document.getElementById('transaction_no').value,
-        upload_bill: billFile ? billFile.name : 'No file selected',
+        payment_status: selectedPaymentStatus,
+        bill_date: billDate,
+        bill_no: billNo,
+        transaction_no: transactionNo,
+        upload_bill: billFile.name,
         upload_receipt: receiptFile ? receiptFile.name : 'No file selected',
-        payment_mode: document.getElementById('payment_mode').value
+        payment_mode: paymentMode
       });
 
       // Show loader and make API call
@@ -1158,6 +1227,773 @@ function hideLoader() {
     } catch (error) {
       console.error('Error adding vendor:', error);
       Swal.fire('Error!', error.message || 'Failed to add vendor. Please try again.', 'error');
+    } finally {
+      hideLoader();
+    }
+  });
+
+  // Add click handler for view expense types button
+  document.getElementById('viewExpenseBtn').addEventListener('click', async function() {
+    try {
+      const response = await fetch('https://backend.bninewdelhi.com/api/expenseType');
+      const expenseTypes = await response.json();
+      
+      // Sort expense types alphabetically by name
+      expenseTypes.sort((a, b) => a.expense_name.localeCompare(b.expense_name));
+
+      Swal.fire({
+        title: '<div class="d-flex align-items-center gap-2"><i class="ri-file-list-3-line text-primary"></i><span>Expense Types</span></div>',
+        html: `
+          <div class="expense-types-container">
+            <div class="expense-types-header mb-3">
+              <i class="ri-information-line text-primary"></i>
+              Total Expense Types: <span class="badge bg-primary">${expenseTypes.length}</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th><i class="ri-hashtag text-primary"></i> S.No</th>
+                    <th><i class="ri-file-text-line text-primary"></i> Name</th>
+                    <th><i class="ri-toggle-line text-primary"></i> Status</th>
+                    <th><i class="ri-settings-4-line text-primary"></i> Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${expenseTypes.map((type, index) => `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td>${type.expense_name}</td>
+                      <td>
+                        <span class="badge ${type.expense_status === 'active' ? 'bg-success' : 'bg-danger'}">
+                          ${type.expense_status === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="action-buttons">
+                          <button class="btn btn-sm edit-btn" data-id="${type.expense_id}" data-tooltip="Edit Expense Type">
+                            <i class="ri-edit-line"></i>
+                          </button>
+                          <button class="btn btn-sm delete-btn" data-id="${type.expense_id}" data-tooltip="Delete Expense Type">
+                            <i class="ri-delete-bin-line"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: '800px',
+        customClass: {
+          container: 'expense-types-modal',
+          popup: 'expense-types-popup',
+          content: 'expense-types-content'
+        },
+        didOpen: () => {
+          // Add event listeners for edit and delete buttons
+          document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+              const expenseId = this.dataset.id;
+              const expenseName = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+              const expenseStatus = this.closest('tr').querySelector('td:nth-child(3) .badge').textContent.toLowerCase();
+
+              const result = await Swal.fire({
+                title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-edit-line" style="font-size: 24px; color: #2563eb;"></i><span style="color: #2563eb; font-weight: 600;">Edit Expense Type</span></div>',
+                html: `
+                  <div class="expense-type-form" style="text-align: left; padding: 20px;">
+                    <div class="form-group mb-4" style="position: relative;">
+                      <label for="editExpenseType" class="form-label" style="display: flex; align-items: center; gap: 8px; color: #1e293b; font-weight: 500; margin-bottom: 8px;">
+                        <i class="ri-money-dollar-circle-line" style="color: #2563eb;"></i>
+                        Expense Type
+                      </label>
+                      <div style="position: relative;">
+                        <input type="text" id="editExpenseType" class="form-control" 
+                          style="padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.3s ease;"
+                          value="${expenseName}">
+                        <div class="input-focus-effect"></div>
+                      </div>
+                    </div>
+                    
+                    <div class="form-group mb-4" style="position: relative;">
+                      <label for="editStatus" class="form-label" style="display: flex; align-items: center; gap: 8px; color: #1e293b; font-weight: 500; margin-bottom: 8px;">
+                        <i class="ri-toggle-line" style="color: #2563eb;"></i>
+                        Status
+                      </label>
+                      <select id="editStatus" class="form-control" 
+                        style="padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer;">
+                        <option value="active" ${expenseStatus === 'active' ? 'selected' : ''}>Active</option>
+                        <option value="inactive" ${expenseStatus === 'inactive' ? 'selected' : ''}>Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="ri-save-line me-1"></i> Update',
+                cancelButtonText: '<i class="ri-close-line me-1"></i> Cancel',
+                focusConfirm: false,
+                customClass: {
+                  container: 'edit-expense-type-popup',
+                  popup: 'expense-type-popup',
+                  title: 'expense-type-title',
+                  htmlContainer: 'expense-type-html',
+                  confirmButton: 'btn btn-primary',
+                  cancelButton: 'btn btn-light'
+                },
+                buttonsStyling: false,
+                showClass: {
+                  popup: 'animate__animated animate__fadeInDown animate__faster'
+                },
+                hideClass: {
+                  popup: 'animate__animated animate__fadeOutUp animate__faster'
+                },
+                preConfirm: () => {
+                  const expenseType = document.getElementById('editExpenseType').value;
+                  const status = document.getElementById('editStatus').value;
+
+                  if (!expenseType) {
+                    Swal.showValidationMessage(`
+                      <div style="display: flex; align-items: center; gap: 8px; color: #dc2626;">
+                        <i class="ri-error-warning-line"></i>
+                        <span>Expense Type is required</span>
+                      </div>
+                    `);
+                    return false;
+                  }
+                  return { expenseType, status };
+                }
+              });
+
+              if (result.isConfirmed) {
+                try {
+                  showLoader();
+                  const response = await fetch('http://localhost:5000/api/updateExpenseType', {
+                    method: 'PUT',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      expense_id: expenseId,
+                      expense_name: result.value.expenseType,
+                      expense_status: result.value.status
+                    }),
+                  });
+
+                  if (response.ok) {
+                    const data = await response.json();
+                    await Swal.fire({
+                      icon: 'success',
+                      title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-checkbox-circle-line" style="font-size: 24px; color: #16a34a;"></i><span style="color: #16a34a; font-weight: 600;">Success!</span></div>',
+                      html: `
+                        <div style="text-align: center; padding: 20px;">
+                          <p style="color: #1e293b; margin-bottom: 0;">${data.message || 'Expense type updated successfully'}</p>
+                        </div>
+                      `,
+                      timer: 2000,
+                      showConfirmButton: false,
+                      customClass: {
+                        popup: 'animate__animated animate__fadeInDown animate__faster'
+                      }
+                    });
+                    
+                    // Close the current modal and reopen with updated data
+                    Swal.close();
+                    document.getElementById('viewExpenseBtn').click();
+                  } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to update expense type');
+                  }
+                } catch (error) {
+                  console.error('Error updating expense type:', error);
+                  Swal.fire({
+                    icon: 'error',
+                    title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-error-warning-line" style="font-size: 24px; color: #dc2626;"></i><span style="color: #dc2626; font-weight: 600;">Error!</span></div>',
+                    html: `
+                      <div style="text-align: center; padding: 20px;">
+                        <p style="color: #1e293b; margin-bottom: 0;">${error.message || 'Failed to update expense type'}</p>
+                      </div>
+                    `,
+                    customClass: {
+                      popup: 'animate__animated animate__fadeInDown animate__faster'
+                    }
+                  });
+                } finally {
+                  hideLoader();
+                }
+              }
+            });
+          });
+
+          document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+              const expenseId = this.dataset.id;
+              const expenseName = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+
+              const result = await Swal.fire({
+                title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-delete-bin-line" style="font-size: 24px; color: #dc2626;"></i><span style="color: #dc2626; font-weight: 600;">Delete Expense Type</span></div>',
+                html: `
+                  <div style="text-align: center; padding: 20px;">
+                    <p style="color: #1e293b; margin-bottom: 0;">Are you sure you want to delete the expense type "<strong>${expenseName}</strong>"?</p>
+                  </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="ri-delete-bin-line me-1"></i> Delete',
+                cancelButtonText: '<i class="ri-close-line me-1"></i> Cancel',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                customClass: {
+                  container: 'delete-expense-type-popup',
+                  popup: 'expense-type-popup',
+                  title: 'expense-type-title',
+                  htmlContainer: 'expense-type-html',
+                  confirmButton: 'btn btn-danger',
+                  cancelButton: 'btn btn-light'
+                },
+                buttonsStyling: false,
+                showClass: {
+                  popup: 'animate__animated animate__fadeInDown animate__faster'
+                },
+                hideClass: {
+                  popup: 'animate__animated animate__fadeOutUp animate__faster'
+                }
+              });
+
+              if (result.isConfirmed) {
+                try {
+                  showLoader();
+                  const response = await fetch('http://localhost:5000/api/deleteExpenseType', {
+                    method: 'DELETE',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      expense_id: expenseId
+                    }),
+                  });
+
+                  if (response.ok) {
+                    const data = await response.json();
+                    await Swal.fire({
+                      icon: 'success',
+                      title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-checkbox-circle-line" style="font-size: 24px; color: #16a34a;"></i><span style="color: #16a34a; font-weight: 600;">Success!</span></div>',
+                      html: `
+                        <div style="text-align: center; padding: 20px;">
+                          <p style="color: #1e293b; margin-bottom: 0;">${data.message || 'Expense type deleted successfully'}</p>
+                        </div>
+                      `,
+                      timer: 2000,
+                      showConfirmButton: false,
+                      customClass: {
+                        popup: 'animate__animated animate__fadeInDown animate__faster'
+                      }
+                    });
+                    
+                    // Close the current modal and reopen with updated data
+                    Swal.close();
+                    document.getElementById('viewExpenseBtn').click();
+                  } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to delete expense type');
+                  }
+                } catch (error) {
+                  console.error('Error deleting expense type:', error);
+                  Swal.fire({
+                    icon: 'error',
+                    title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-error-warning-line" style="font-size: 24px; color: #dc2626;"></i><span style="color: #dc2626; font-weight: 600;">Error!</span></div>',
+                    html: `
+                      <div style="text-align: center; padding: 20px;">
+                        <p style="color: #1e293b; margin-bottom: 0;">${error.message || 'Failed to delete expense type'}</p>
+                      </div>
+                    `,
+                    customClass: {
+                      popup: 'animate__animated animate__fadeInDown animate__faster'
+                    }
+                  });
+                } finally {
+                  hideLoader();
+                }
+              }
+            });
+          });
+        }
+      });
+
+      // Add custom styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .expense-types-popup {
+          border-radius: 15px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .expense-types-content {
+          padding: 20px;
+        }
+        
+        .expense-types-header {
+          background-color: #f8fafc;
+          padding: 15px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 1.1em;
+          margin-bottom: 20px;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table {
+          margin-top: 15px;
+          border-collapse: separate;
+          border-spacing: 0;
+          width: 100%;
+          background: white;
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .table th {
+          background-color: #f8fafc;
+          padding: 15px;
+          font-weight: 600;
+          border-bottom: 2px solid #e2e8f0;
+          color: #1e293b;
+          text-transform: uppercase;
+          font-size: 0.85em;
+          letter-spacing: 0.5px;
+        }
+        
+        .table td {
+          padding: 15px;
+          vertical-align: middle;
+          border-bottom: 1px solid #e2e8f0;
+          color: #475569;
+          font-size: 0.95em;
+        }
+        
+        .table tbody tr {
+          transition: all 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+          background-color: #f8fafc;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .badge {
+          padding: 8px 12px;
+          font-weight: 500;
+          border-radius: 6px;
+          font-size: 0.85em;
+          letter-spacing: 0.3px;
+          text-transform: uppercase;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .badge.bg-success {
+          background-color: #dcfce7 !important;
+          color: #16a34a;
+          border: 1px solid #86efac;
+        }
+        
+        .badge.bg-danger {
+          background-color: #fee2e2 !important;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+        
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+        }
+        
+        .edit-btn, .delete-btn {
+          padding: 8px;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          border: 1px solid transparent;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+        }
+        
+        .edit-btn {
+          background-color: #eff6ff;
+          color: #2563eb;
+          border-color: #bfdbfe;
+        }
+        
+        .edit-btn:hover {
+          background-color: #2563eb;
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+        
+        .delete-btn {
+          background-color: #fef2f2;
+          color: #dc2626;
+          border-color: #fecaca;
+        }
+        
+        .delete-btn:hover {
+          background-color: #dc2626;
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+        }
+        
+        .table-responsive {
+          max-height: 400px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 #f1f5f9;
+          border-radius: 10px;
+          padding: 2px;
+        }
+        
+        .table-responsive::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 3px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 3px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
+        }
+
+        /* Add hover effect for table rows */
+        .table tbody tr {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .table tbody tr::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          transform: translateX(-100%);
+          transition: transform 0.6s ease;
+        }
+
+        .table tbody tr:hover::after {
+          transform: translateX(100%);
+        }
+
+        /* Add subtle animation for action buttons */
+        .edit-btn i, .delete-btn i {
+          transition: transform 0.3s ease;
+        }
+
+        .edit-btn:hover i {
+          transform: scale(1.1);
+        }
+
+        .delete-btn:hover i {
+          transform: scale(1.1);
+        }
+
+        /* Add tooltip styles */
+        .edit-btn, .delete-btn {
+          position: relative;
+        }
+
+        .edit-btn::before, .delete-btn::before {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 5px 10px;
+          background-color: #1e293b;
+          color: white;
+          font-size: 12px;
+          border-radius: 4px;
+          white-space: nowrap;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover::before, .delete-btn:hover::before {
+          opacity: 1;
+          visibility: visible;
+          bottom: calc(100% + 5px);
+        }
+      `;
+      document.head.appendChild(style);
+
+    } catch (error) {
+      console.error('Error fetching expense types:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Failed to load expense types. Please try again.'
+      });
+    }
+  });
+
+  // Add event listener for Add New Expense Type button
+  document.getElementById('addNewExpenseBtn').addEventListener('click', async function() {
+    try {
+      const result = await Swal.fire({
+        title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-add-circle-line" style="font-size: 24px; color: #2563eb;"></i><span style="color: #2563eb; font-weight: 600;">Add New Expense Type</span></div>',
+        html: `
+          <div class="expense-type-form" style="text-align: left; padding: 20px;">
+            <div class="form-group mb-4" style="position: relative;">
+              <label for="expenseType" class="form-label" style="display: flex; align-items: center; gap: 8px; color: #1e293b; font-weight: 500; margin-bottom: 8px;">
+                <i class="ri-money-dollar-circle-line" style="color: #2563eb;"></i>
+                Expense Type
+              </label>
+              <div style="position: relative;">
+                <input type="text" id="expenseType" class="form-control" 
+                  style="padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.3s ease;"
+                  placeholder="Enter the expense type name">
+                <div class="input-focus-effect"></div>
+              </div>
+            </div>
+            
+            <div class="form-group mb-4" style="position: relative;">
+              <label for="status" class="form-label" style="display: flex; align-items: center; gap: 8px; color: #1e293b; font-weight: 500; margin-bottom: 8px;">
+                <i class="ri-toggle-line" style="color: #2563eb;"></i>
+                Status
+              </label>
+              <select id="status" class="form-control" 
+                style="padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer;">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ri-add-line me-1"></i> Add Expense Type',
+        cancelButtonText: '<i class="ri-close-line me-1"></i> Cancel',
+        focusConfirm: false,
+        customClass: {
+          container: 'add-expense-type-popup',
+          popup: 'expense-type-popup',
+          title: 'expense-type-title',
+          htmlContainer: 'expense-type-html',
+          confirmButton: 'btn btn-primary',
+          cancelButton: 'btn btn-light'
+        },
+        buttonsStyling: false,
+        showClass: {
+          popup: 'animate__animated animate__fadeInDown animate__faster'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutUp animate__faster'
+        },
+        didOpen: () => {
+          // Add custom styles
+          const style = document.createElement('style');
+          style.textContent = `
+            .expense-type-popup {
+              border-radius: 15px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+              border: 1px solid #e2e8f0;
+              max-width: 500px;
+            }
+            .expense-type-title {
+              padding: 20px 20px 0;
+              margin-bottom: 0;
+            }
+            .expense-type-html {
+              padding: 0 20px;
+            }
+            .expense-type-form .form-control {
+              width: 100%;
+              font-size: 14px;
+              color: #1e293b;
+            }
+            .expense-type-form .form-control:focus {
+              border-color: #2563eb;
+              box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+            }
+            .expense-type-form .form-control::placeholder {
+              color: #94a3b8;
+            }
+            .expense-type-form select.form-control {
+              appearance: none;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+              background-repeat: no-repeat;
+              background-position: right 12px center;
+              background-size: 16px;
+              padding-right: 40px;
+            }
+            .btn {
+              padding: 10px 20px;
+              font-weight: 500;
+              border-radius: 8px;
+              transition: all 0.3s ease;
+            }
+            .btn-primary {
+              background-color: #2563eb;
+              border-color: #2563eb;
+            }
+            .btn-primary:hover {
+              background-color: #1d4ed8;
+              border-color: #1d4ed8;
+              transform: translateY(-1px);
+            }
+            .btn-light {
+              background-color: #f1f5f9;
+              border-color: #e2e8f0;
+              color: #64748b;
+            }
+            .btn-light:hover {
+              background-color: #e2e8f0;
+              color: #1e293b;
+              transform: translateY(-1px);
+            }
+            .swal2-actions {
+              gap: 10px;
+              padding: 20px;
+            }
+            .input-focus-effect {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 0;
+              height: 2px;
+              background-color: #2563eb;
+              transition: width 0.3s ease;
+            }
+            .form-control:focus + .input-focus-effect {
+              width: 100%;
+            }
+          `;
+          document.head.appendChild(style);
+
+          // Add input focus effects
+          const inputs = document.querySelectorAll('.form-control');
+          inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+              this.parentElement.querySelector('.input-focus-effect').style.width = '100%';
+            });
+            input.addEventListener('blur', function() {
+              if (!this.value) {
+                this.parentElement.querySelector('.input-focus-effect').style.width = '0';
+              }
+            });
+          });
+        },
+        preConfirm: () => {
+          const expenseType = document.getElementById('expenseType').value;
+          const status = document.getElementById('status').value;
+
+          if (!expenseType) {
+            Swal.showValidationMessage(`
+              <div style="display: flex; align-items: center; gap: 8px; color: #dc2626;">
+                <i class="ri-error-warning-line"></i>
+                <span>Expense Type is required</span>
+              </div>
+            `);
+            return false;
+          }
+          return { expenseType, status };
+        }
+      });
+
+      if (result.isConfirmed) {
+        const { expenseType, status } = result.value;
+        
+        showLoader();
+        const response = await fetch('https://backend.bninewdelhi.com/api/expenseType', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            expense_name: expenseType, 
+            expense_status: status 
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          await Swal.fire({
+            icon: 'success',
+            title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-checkbox-circle-line" style="font-size: 24px; color: #16a34a;"></i><span style="color: #16a34a; font-weight: 600;">Success!</span></div>',
+            html: `
+              <div style="text-align: center; padding: 20px;">
+                <p style="color: #1e293b; margin-bottom: 0;">${data.message || 'Expense type added successfully'}</p>
+              </div>
+            `,
+            timer: 2000,
+            showConfirmButton: false,
+            customClass: {
+              popup: 'animate__animated animate__fadeInDown animate__faster'
+            }
+          });
+          
+          // Refresh the expense type dropdown
+          const expenseTypeResponse = await fetch("https://backend.bninewdelhi.com/api/expenseType");
+          const expenseTypes = await expenseTypeResponse.json();
+          
+          const expenseTypeDropdown = document.getElementById("expense_type");
+          expenseTypeDropdown.innerHTML = '<option value="">Select</option>';
+          
+          expenseTypes.sort((a, b) => a.expense_name.localeCompare(b.expense_name));
+          expenseTypes.forEach((expense) => {
+            const option = document.createElement("option");
+            option.value = expense.expense_id;
+            option.textContent = expense.expense_name;
+            expenseTypeDropdown.appendChild(option);
+          });
+        } else {
+          const errorData = await response.json();
+          Swal.fire({
+            icon: 'error',
+            title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-error-warning-line" style="font-size: 24px; color: #dc2626;"></i><span style="color: #dc2626; font-weight: 600;">Error!</span></div>',
+            html: `
+              <div style="text-align: center; padding: 20px;">
+                <p style="color: #1e293b; margin-bottom: 0;">${errorData.message || 'Failed to add expense type'}</p>
+              </div>
+            `,
+            customClass: {
+              popup: 'animate__animated animate__fadeInDown animate__faster'
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error adding expense type:', error);
+      Swal.fire({
+        icon: 'error',
+        title: '<div style="display: flex; align-items: center; gap: 10px;"><i class="ri-error-warning-line" style="font-size: 24px; color: #dc2626;"></i><span style="color: #dc2626; font-weight: 600;">Error!</span></div>',
+        html: `
+          <div style="text-align: center; padding: 20px;">
+            <p style="color: #1e293b; margin-bottom: 0;">Failed to add expense type. Please try again.</p>
+          </div>
+        `,
+        customClass: {
+          popup: 'animate__animated animate__fadeInDown animate__faster'
+        }
+      });
     } finally {
       hideLoader();
     }

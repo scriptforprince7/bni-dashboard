@@ -48,6 +48,8 @@ let cashVisitorAmount = 0;
 let onlineVisitorAmount = 0;
 let cashKittyAmount = 0;
 let onlineKittyAmount = 0;
+let cashOtherPayments = 0;
+let onlineOtherPayments = 0;
 
 function initializeFilters() {
   // Populate months dropdown
@@ -385,18 +387,18 @@ function showKittyBreakdownPopup(kittyAmountWithVisitors) {
   `;
 
   // Show the popup
-  Swal.fire({
-    title: 'Kitty Amount Breakdown',
-    html: content,
-    customClass: {
-      container: 'kitty-breakdown-popup',
-      popup: 'kitty-breakdown-popup',
-      content: 'kitty-breakdown-content'
-    },
-    showCloseButton: true,
-    showConfirmButton: false,
-    width: '500px'
-  });
+  // Swal.fire({
+  //   title: 'Kitty Amount Breakdown',
+  //   html: content,
+  //   customClass: {
+  //     container: 'kitty-breakdown-popup',
+  //     popup: 'kitty-breakdown-popup',
+  //     content: 'kitty-breakdown-content'
+  //   },
+  //   showCloseButton: true,
+  //   showConfirmButton: false,
+  //   width: '500px'
+  // });
 }
 
 // Add this function to show the current balance calculation popup
@@ -439,6 +441,48 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
   });
 }
 
+// Add this function after showKittyBreakdownPopup
+function showPaymentModeBreakdownPopup(mode, totalAmount, breakdown) {
+  const content = `
+    <div class="kitty-breakdown">
+      <div class="breakdown-section">
+        <h6 class="mb-3">${mode} Payments Breakdown</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Meeting Fees</span>
+          <span class="fw-bold">${formatCurrency(breakdown.kitty)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-user-add-line me-2"></i>Visitor Payments</span>
+          <span class="fw-bold">${formatCurrency(breakdown.visitor)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-exchange-dollar-line me-2"></i>Other Payments</span>
+          <span class="fw-bold">${formatCurrency(breakdown.other)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold">Total ${mode} Amount</span>
+          <span class="fw-bold">${formatCurrency(totalAmount)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Show the popup
+  Swal.fire({
+    title: `${mode} Payments Breakdown`,
+    html: content,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    },
+    showCloseButton: true,
+    showConfirmButton: false,
+    width: '500px'
+  });
+}
+
 (async function generateChapterLedger() {
   let currentBalance = 0;
   totalKittyAmount = 0;
@@ -453,6 +497,8 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
   onlineVisitorAmount = 0;
   cashKittyAmount = 0;
   onlineKittyAmount = 0;
+  cashOtherPayments = 0;
+  onlineOtherPayments = 0;
 
   try {
     showLoader();
@@ -488,7 +534,7 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
 
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
-    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log("Chapters data received:", chapters.length, "chapters");
 
@@ -518,10 +564,10 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
     // Fetch all orders, transactions and expenses
     console.log("Fetching transactions data...");
     const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
-      fetch("https://backend.bninewdelhi.com/api/allOrders"),
-      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
-      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
-      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
+      fetch("http://localhost:5000/api/allOrders"),
+      fetch("http://localhost:5000/api/allTransactions"),
+      fetch("http://localhost:5000/api/allExpenses"),
+      fetch("http://localhost:5000/api/allOtherPayment")
     ]);
 
     const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([
@@ -715,6 +761,13 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
       // Add to total kitty amount instead of expenses
       totalKittyAmount += totalAmount;
       currentBalance += totalAmount;
+
+      // Track other payments by mode
+      if (payment.mode_of_payment.toLowerCase() === 'cash') {
+        cashOtherPayments += totalAmount;
+      } else {
+        onlineOtherPayments += totalAmount;
+      }
       
       allTransactionItems.push({
         date: new Date(payment.date),
@@ -804,20 +857,19 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
     const kittyAmountWithVisitors = totalKittyAmount + totalVisitorAmount;
 
     // Update UI with totals
-    // document.getElementById("total-kitty-amount").textContent = formatCurrency(kittyAmountWithVisitors);
     const kittyElement = document.getElementById("total-kitty-amount");
+    const totalCashAmount = cashKittyAmount + cashVisitorAmount + cashOtherPayments;
+    const totalOnlineAmount = onlineKittyAmount + onlineVisitorAmount + onlineOtherPayments;
+
     kittyElement.innerHTML = `
       <div>
         ${formatCurrency(kittyAmountWithVisitors)}
         <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
-          <span>
-            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashKittyAmount)}
+          <span style="cursor: pointer;" id="cash-breakdown">
+            <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(totalCashAmount)}
           </span>
-          <span style="margin-left: 8px;">
-            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineKittyAmount)}
-          </span>
-          <span style="margin-left: 8px;">
-            <i class="ri-user-add-line"></i> Visitor: ${formatCurrency(totalVisitorAmount)}
+          <span style="margin-left: 8px; cursor: pointer;" id="online-breakdown">
+            <i class="ri-bank-card-line"></i> Online: ${formatCurrency(totalOnlineAmount)}
           </span>
         </div>
       </div>
@@ -899,6 +951,23 @@ function showCurrentBalanceBreakdown(openingBalance, kittyAmountWithVisitors, to
         totalExpenseBaseAmount,
         currentBalance
       );
+    });
+
+    // Add click handlers for cash and online breakdowns
+    document.getElementById('cash-breakdown').addEventListener('click', function() {
+      showPaymentModeBreakdownPopup('Cash', totalCashAmount, {
+        kitty: cashKittyAmount,
+        visitor: cashVisitorAmount,
+        other: cashOtherPayments
+      });
+    });
+
+    document.getElementById('online-breakdown').addEventListener('click', function() {
+      showPaymentModeBreakdownPopup('Online', totalOnlineAmount, {
+        kitty: onlineKittyAmount,
+        visitor: onlineVisitorAmount,
+        other: onlineOtherPayments
+      });
     });
 
     console.log("Ledger generation completed successfully");
