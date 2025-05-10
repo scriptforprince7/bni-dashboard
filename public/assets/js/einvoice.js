@@ -28,7 +28,7 @@ console.log("Training ID:", trainingId);
 async function fetchTrainingDetails(trainingId) {
 console.log("Fetching training details for ID:", trainingId); // Debug log
 try {
-  const response = await fetch("http://localhost:5000/api/allTrainings");
+  const response = await fetch("https://backend.bninewdelhi.com/api/allTrainings");
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
@@ -51,7 +51,7 @@ try {
 }
 }
 
-const apiUrl = "http://localhost:5000/api/universalLinks";
+const apiUrl = "https://backend.bninewdelhi.com/api/universalLinks";
 // Use `invoiceData` and `einvoiceData` as needed
 const ackDate = einvoiceData.ack_dt ? new Date(einvoiceData.ack_dt) : null;
 const orderAmount = invoiceData.orderId.order_amount || 0;
@@ -62,7 +62,7 @@ const delhiZipCodes = ["110080", "110081", "110082", "110083", "110084", "110085
 async function fetchMemberDetails(memberId) {
   showLoader();
 try {
-  const response = await fetch("http://localhost:5000/api/members");
+  const response = await fetch("https://backend.bninewdelhi.com/api/members");
   const members = await response.json();  // Assuming the response is a list of all members
 
   if (response.ok) {
@@ -238,7 +238,7 @@ document.querySelector(".ack_date").textContent = ackDate
     console.log("🔑 Kitty Bill ID:", kittyBillId);
 
     try {
-      const kittyResponse = await fetch("http://localhost:5000/api/getAllKittyPayments");
+      const kittyResponse = await fetch("https://backend.bninewdelhi.com/api/getAllKittyPayments");
       const kittyData = await kittyResponse.json();
       console.log("📊 All Kitty Payments:", kittyData);
 
@@ -307,7 +307,7 @@ if (err) {
 // Fetch document numbers and update invoice number
 async function fetchAndUpdateInvoiceNumber(orderId) {
   try {
-    const response = await fetch("http://localhost:5000/api/getAllDocNumbers");
+    const response = await fetch("https://backend.bninewdelhi.com/api/getAllDocNumbers");
     const docNumbers = await response.json();
     
     // Find the matching document number for the current order ID

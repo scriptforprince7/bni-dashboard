@@ -55,13 +55,13 @@ async function fetchMemberWiseKitty() {
     }
 
     const [orders, transactions, bankOrders, activeBill, members, credits, chapters] = await Promise.all([
-      fetch('http://localhost:5000/api/allOrders').then(res => res.json()),
-      fetch('http://localhost:5000/api/allTransactions').then(res => res.json()),
-      fetch('http://localhost:5000/api/getbankOrder').then(res => res.json()),
-      fetch('http://localhost:5000/api/getKittyPayments').then(res => res.json()),
-      fetch('http://localhost:5000/api/members').then(res => res.json()),
-      fetch('http://localhost:5000/api/getAllMemberCredit').then(res => res.json()),
-      fetch('http://localhost:5000/api/chapters').then(res => res.json())
+      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
+      fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json())
     ]);
 
     console.log('✅ Data fetched successfully');
@@ -185,7 +185,7 @@ async function fetchMemberWiseKitty() {
 
     // Fetch write-off data
 const writeoffResponse = await fetch(
-"http://localhost:5000/api/getAllMemberWriteOff"
+"https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
 );
 const writeoffData = await writeoffResponse.json();
 
@@ -262,7 +262,7 @@ function populateRegionFilter() {
       return;
     }
 
-    fetch('http://localhost:5000/api/regions')
+    fetch('https://backend.bninewdelhi.com/api/regions')
       .then(res => res.json())
       .then(regions => {
         console.log('🌍 Fetched regions:', regions);
@@ -293,7 +293,7 @@ function populateChapterFilter(regionId) {
       return;
     }
 
-    fetch('http://localhost:5000/api/chapters')
+    fetch('https://backend.bninewdelhi.com/api/chapters')
       .then(res => res.json())
       .then(chapters => {
         console.log('🏢 Fetched all chapters:', chapters);

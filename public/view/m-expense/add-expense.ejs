@@ -1371,7 +1371,7 @@ function hideLoader() {
               if (result.isConfirmed) {
                 try {
                   showLoader();
-                  const response = await fetch('http://localhost:5000/api/updateExpenseType', {
+                  const response = await fetch('https://backend.bninewdelhi.com/api/updateExpenseType', {
                     method: 'PUT',
                     headers: {
                       'Content-Type': 'application/json',
@@ -1465,7 +1465,7 @@ function hideLoader() {
               if (result.isConfirmed) {
                 try {
                   showLoader();
-                  const response = await fetch('http://localhost:5000/api/deleteExpenseType', {
+                  const response = await fetch('https://backend.bninewdelhi.com/api/deleteExpenseType', {
                     method: 'DELETE',
                     headers: {
                       'Content-Type': 'application/json',

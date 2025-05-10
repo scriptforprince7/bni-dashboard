@@ -266,7 +266,7 @@ const deleteVendor = async (vendorId) => {
 
     if (result.isConfirmed) {
       showLoader();
-      const response = await fetch('http://localhost:5000/api/deleteVendor', {
+      const response = await fetch('https://backend.bninewdelhi.com/api/deleteVendor', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'

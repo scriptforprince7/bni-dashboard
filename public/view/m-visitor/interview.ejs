@@ -478,9 +478,9 @@
                 // Fetch questions, answers, and chapters in parallel
                 console.log('Fetching questions, answers and chapters from APIs...');
                 const [questionsResponse, answersResponse, chaptersResponse] = await Promise.all([
-                    fetch('http://localhost:5000/api/getInterviewSheetQuestions'),
-                    fetch('http://localhost:5000/api/getInterviewSheetAnswers'),
-                    fetch('http://localhost:5000/api/chapters')
+                    fetch('https://backend.bninewdelhi.com/api/getInterviewSheetQuestions'),
+                    fetch('https://backend.bninewdelhi.com/api/getInterviewSheetAnswers'),
+                    fetch('https://backend.bninewdelhi.com/api/chapters')
                 ]);
 
                 console.log('Questions API Response:', questionsResponse);
@@ -624,7 +624,7 @@
                     // Make API call to update verification status
                     console.log('🔄 Making API call to update verification status');
                     
-                    const response = await fetch('http://localhost:5000/api/update-visitor', {
+                    const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'

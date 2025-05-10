@@ -323,7 +323,7 @@
                     <div class="card custom-card">
                       <div class="card-header justify-content-between">
                         <div class="card-title">Latest Transactions</div>
-                        <a href="http://localhost:5000/exp/manage-expenses" class="btn btn-light btn-wave btn-sm text-muted">
+                        <a href="https://backend.bninewdelhi.com/exp/manage-expenses" class="btn btn-light btn-wave btn-sm text-muted">
                           View All<i class="ti ti-arrow-narrow-right ms-1"></i>
                         </a>
                       </div>
@@ -4044,7 +4044,7 @@
               }
 
               // Fetch chapters to get chapter_id
-              const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+              const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
               const chapters = await chaptersResponse.json();
               
               // Find chapter by email
@@ -4057,8 +4057,8 @@
 
               // Fetch orders and transactions
               const [ordersResponse, transactionsResponse] = await Promise.all([
-                  fetch('http://localhost:5000/api/allOrders'),
-                  fetch('http://localhost:5000/api/allTransactions')
+                  fetch('https://backend.bninewdelhi.com/api/allOrders'),
+                  fetch('https://backend.bninewdelhi.com/api/allTransactions')
               ]);
 
               const orders = await ordersResponse.json();

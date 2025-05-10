@@ -603,7 +603,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
 
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
-    const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log("Chapters data received:", chapters.length, "chapters");
 
@@ -633,10 +633,10 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
     // Fetch all orders, transactions and expenses
     console.log("Fetching transactions data...");
     const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
-      fetch("http://localhost:5000/api/allOrders"),
-      fetch("http://localhost:5000/api/allTransactions"),
-      fetch("http://localhost:5000/api/allExpenses"),
-      fetch("http://localhost:5000/api/allOtherPayment")
+      fetch("https://backend.bninewdelhi.com/api/allOrders"),
+      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
+      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
     ]);
 
     const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([
@@ -1071,6 +1071,158 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
         other: onlineOtherPayments
       });
     });
+
+    // === Meeting & Visitor Payment Member Count Calculation ===
+    // Use ledgerData to get unique member/visitor names for meeting and visitor payments, and bifurcate by cash/online
+    const meetingMembers = new Set();
+    const meetingMembersCash = new Set();
+    const meetingMembersOnline = new Set();
+    const visitorMembers = new Set();
+    const visitorMembersCash = new Set();
+    const visitorMembersOnline = new Set();
+
+    // For popups: store details
+    const meetingMemberDetailsCash = [];
+    const meetingMemberDetailsOnline = [];
+    const visitorMemberDetailsCash = [];
+    const visitorMemberDetailsOnline = [];
+
+    ledgerData.forEach(entry => {
+      if (typeof entry.description === 'string' && entry.description.includes('Meeting Fee')) {
+        // Extract member name and company
+        const nameMatch = entry.description.match(/Meeting Fee - ([^<]+)/);
+        const companyMatch = entry.description.match(/<small class=\"text-muted\">([^|]*)\|/);
+        const memberName = nameMatch && nameMatch[1] ? nameMatch[1].trim() : '';
+        const company = companyMatch && companyMatch[1] ? companyMatch[1].trim() : '';
+        if (memberName) {
+          meetingMembers.add(memberName);
+          const detailObj = {
+            name: memberName,
+            company,
+            date: entry.date,
+            amount: entry.credit || 0
+          };
+          if (entry.description.toLowerCase().includes('cash')) {
+            meetingMembersCash.add(memberName);
+            meetingMemberDetailsCash.push(detailObj);
+          } else {
+            meetingMembersOnline.add(memberName);
+            meetingMemberDetailsOnline.push(detailObj);
+          }
+        }
+      } else if (typeof entry.description === 'string' && entry.description.includes('Visitor Fee')) {
+        // Extract visitor name and invited by
+        const nameMatch = entry.description.match(/Visitor Fee - ([^<]+)/);
+        const invitedByMatch = entry.description.match(/Invited by ([^|<]+)/);
+        const visitorName = nameMatch && nameMatch[1] && nameMatch[1] !== 'N/A' ? nameMatch[1].trim() : '';
+        const invitedBy = invitedByMatch && invitedByMatch[1] ? invitedByMatch[1].trim() : '';
+        if (visitorName) {
+          visitorMembers.add(visitorName);
+          const detailObj = {
+            name: visitorName,
+            invitedBy,
+            date: entry.date,
+            amount: entry.credit || 0
+          };
+          if (entry.description.toLowerCase().includes('cash')) {
+            visitorMembersCash.add(visitorName);
+            visitorMemberDetailsCash.push(detailObj);
+          } else {
+            visitorMembersOnline.add(visitorName);
+            visitorMemberDetailsOnline.push(detailObj);
+          }
+        }
+      }
+    });
+
+    // Update the UI
+    document.getElementById('meeting-member-count').textContent = meetingMembers.size;
+    document.getElementById('meeting-member-cash-count').innerHTML = '<i class="ri-money-dollar-circle-line"></i> Cash: <span>' + meetingMembersCash.size + '</span>';
+    document.getElementById('meeting-member-online-count').innerHTML = '<i class="ri-bank-card-line"></i> Online: <span>' + meetingMembersOnline.size + '</span>';
+    document.getElementById('visitor-member-count').textContent = visitorMembers.size;
+    document.getElementById('visitor-member-cash-count').innerHTML = '<i class="ri-money-dollar-circle-line"></i> Cash: <span>' + visitorMembersCash.size + '</span>';
+    document.getElementById('visitor-member-online-count').innerHTML = '<i class="ri-bank-card-line"></i> Online: <span>' + visitorMembersOnline.size + '</span>';
+
+    // === Add popups for member/visitor cash/online counts ===
+    function showMemberListPopup(title, details, type) {
+      if (!details || details.length === 0) {
+        Swal.fire({
+          title,
+          html: '<p>No members found</p>',
+          width: 500,
+          showCloseButton: true,
+          showConfirmButton: false,
+          customClass: {
+            container: 'kitty-breakdown-popup',
+            popup: 'kitty-breakdown-popup',
+            content: 'kitty-breakdown-content'
+          }
+        });
+        return;
+      }
+
+      let html = `<div style=\"padding:0.5em 0;\">
+        <table style=\"width:100%;border-collapse:separate;border-spacing:0 8px;\">
+          <thead>
+            <tr style=\"background:#f8f9fa;color:#495057;font-size:1em;\">
+              <th style=\"text-align:center;padding:6px 8px;\">#</th>
+              <th style=\"text-align:center;padding:6px 8px;\">Name</th>
+              ${type === 'meeting' ? '<th style=\"text-align:center;padding:6px 8px;\">Company</th>' : '<th style=\"text-align:center;padding:6px 8px;\">Invited By</th>'}
+              <th style=\"text-align:center;padding:6px 8px;\">Date</th>
+              <th style=\"text-align:center;padding:6px 8px;\">Amount</th>
+            </tr>
+          </thead>
+          <tbody>`;
+      details.forEach((d, i) => {
+        html += `<tr style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+          <td style="padding:6px 8px;font-weight:600;color:#d01f2f;">${i+1}</td>
+          <td style="padding:6px 8px;font-weight:600;">${d.name}</td>
+          <td style="padding:6px 8px;">${type === 'meeting' ? (d.company || '-') : (d.invitedBy || '-')}</td>
+          <td style="padding:6px 8px;">${d.date}</td>
+          <td style="padding:6px 8px;text-align:right;font-weight:600;">${formatCurrency(d.amount)}</td>
+        </tr>`;
+      });
+      html += `</tbody></table></div>`;
+      Swal.fire({
+        title,
+        html,
+        width: 900,
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+          container: 'kitty-breakdown-popup',
+          popup: 'kitty-breakdown-popup',
+          content: 'kitty-breakdown-content'
+        }
+      });
+    }
+
+    // Function to setup click handlers
+    function setupClickHandlers() {
+      try {
+        const elements = {
+          'meeting-member-cash-count': () => showMemberListPopup('Meeting Payment Members (Cash)', meetingMemberDetailsCash, 'meeting'),
+          'meeting-member-online-count': () => showMemberListPopup('Meeting Payment Members (Online)', meetingMemberDetailsOnline, 'meeting'),
+          'visitor-member-cash-count': () => showMemberListPopup('Visitor Payment Members (Cash)', visitorMemberDetailsCash, 'visitor'),
+          'visitor-member-online-count': () => showMemberListPopup('Visitor Payment Members (Online)', visitorMemberDetailsOnline, 'visitor')
+        };
+
+        Object.entries(elements).forEach(([id, handler]) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.style.cursor = 'pointer';
+            element.onclick = handler;
+          } else {
+            console.warn(`Element with id ${id} not found`);
+          }
+        });
+      } catch (error) {
+        console.error('Error setting up click handlers:', error);
+      }
+    }
+
+    // Call setupClickHandlers after a short delay to ensure DOM is ready
+    setTimeout(setupClickHandlers, 100);
 
     console.log("Ledger generation completed successfully");
 
