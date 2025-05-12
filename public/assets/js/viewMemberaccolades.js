@@ -32,7 +32,7 @@ async function fetchMemberData() {
         }
 
         // First fetch members data to get member_id
-        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        const membersResponse = await fetch('http://localhost:5000/api/members');
         const membersData = await membersResponse.json();
         
         // Find logged in member to get member_id
@@ -44,12 +44,12 @@ async function fetchMemberData() {
         debugLog('Found member:', loggedInMember);
 
         // Get all accolades for display
-        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+        const accoladesResponse = await fetch('http://localhost:5000/api/accolades');
         const accoladesData = await accoladesResponse.json();
         debugLog('All accolades fetched:', accoladesData);
 
         // Get member's earned accolades
-        const memberAccoladesResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const memberAccoladesResponse = await fetch('http://localhost:5000/api/getAllMemberAccolades');
         const memberAccoladesData = await memberAccoladesResponse.json();
         debugLog('Member accolades fetched:', memberAccoladesData);
 
@@ -159,7 +159,7 @@ function updateAccoladesCount() {
 async function populateAccoladesDropdown() {
     try {
         // Fetch accolades data
-        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+        const accoladesResponse = await fetch('http://localhost:5000/api/accolades');
         const accoladesData = await accoladesResponse.json();
         debugLog('Accolades data fetched for dropdown:', accoladesData);
 
@@ -241,7 +241,7 @@ async function handleRequestAndPay(accoladeId) {
 async function showAccoladeDetails(accoladeId) {
     try {
         // Fetch accolades data
-        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
+        const response = await fetch('http://localhost:5000/api/accolades');
         const accolades = await response.json();
         
         // Find the matching accolade

@@ -44,6 +44,8 @@ let cashExpenseAmount = 0;
 let onlineExpenseAmount = 0;
 let cashExpenseBaseAmount = 0; // base (debit) only
 let onlineExpenseBaseAmount = 0; // base (debit) only
+let cashExpenseGST = 0; // Track cash expense GST
+let onlineExpenseGST = 0; // Track online expense GST
 let cashVisitorAmount = 0;
 let onlineVisitorAmount = 0;
 let cashKittyAmount = 0;
@@ -51,6 +53,15 @@ let onlineKittyAmount = 0;
 let cashOtherPayments = 0;
 let onlineOtherPayments = 0;
 let cashGSTAmount = 0;
+
+// Add variables for pending expenses
+let totalPendingExpenseAmount = 0;
+let cashPendingExpenseAmount = 0;
+let onlinePendingExpenseAmount = 0;
+let pendingExpenseDetails = [];
+
+// Add variables for paid expenses tracking
+let paidExpenseDetails = [];
 
 function initializeFilters() {
   // Populate months dropdown
@@ -510,6 +521,10 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
           <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Expenses</span>
           <span class="fw-bold" style="color: #dc3545;">${formatCurrency(cashBreakdown.expenses)}</span>
         </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Expense GST</span>
+          <span class="fw-bold" style="color: #dc3545;">${formatCurrency(cashBreakdown.expenseGST)}</span>
+        </div>
         <hr>
         <div class="d-flex justify-content-between mb-2">
           <span><i class="ri-bank-card-line me-2"></i>Online Balance</span>
@@ -524,8 +539,16 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
           <span class="fw-bold" style="color: #dc3545;">${formatCurrency(onlineBreakdown.expenses)}</span>
         </div>
         <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Expense GST</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(onlineBreakdown.expenseGST)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
           <span><i class="ri-bank-card-line me-2"></i>Less: Cash GST</span>
           <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(cashGST)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Add: Cash Expense GST</span>
+          <span class="fw-bold" style="color: #28a745;">+${formatCurrency(cashBreakdown.expenseGST)}</span>
         </div>
         <hr>
         <div class="d-flex justify-content-between">
@@ -551,6 +574,94 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
   });
 }
 
+// Add this function after showCurrentBalanceBreakdownPopup
+function showPendingExpensesPopup(mode) {
+  const filteredDetails = pendingExpenseDetails.filter(expense => 
+    mode === 'all' || expense.mode.toLowerCase() === mode.toLowerCase()
+  );
+
+  if (filteredDetails.length === 0) {
+    Swal.fire({
+      title: 'Pending Expenses',
+      html: '<p>No pending expenses found</p>',
+      width: 500,
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        container: 'kitty-breakdown-popup',
+        popup: 'kitty-breakdown-popup',
+        content: 'kitty-breakdown-content'
+      }
+    });
+    return;
+  }
+
+  // Calculate totals for the filtered expenses
+  const totalBaseAmount = filteredDetails.reduce((sum, e) => sum + e.baseAmount, 0);
+  const totalGST = filteredDetails.reduce((sum, e) => sum + e.gstAmount, 0);
+  const totalAmount = filteredDetails.reduce((sum, e) => sum + e.amount, 0);
+
+  let html = `<div style="padding:0.5em 0;">
+    <div style="margin-bottom: 1em; padding: 0.5em; background: #f8f9fa; border-radius: 4px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5em;">
+        <span style="font-weight: 600;">Total Base Amount:</span>
+        <span style="font-weight: 600;">${formatCurrency(totalBaseAmount)}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5em;">
+        <span style="font-weight: 600;">Total GST:</span>
+        <span style="font-weight: 600;">${formatCurrency(totalGST)}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="font-weight: 600;">Total Amount (including GST):</span>
+        <span style="font-weight: 600;">${formatCurrency(totalAmount)}</span>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:separate;border-spacing:0 8px;">
+      <thead>
+        <tr style="background:#f8f9fa;color:#495057;font-size:1em;">
+          <th style="text-align:center;padding:6px 8px;">#</th>
+          <th style="text-align:center;padding:6px 8px;">Description</th>
+          <th style="text-align:center;padding:6px 8px;">Date</th>
+          <th style="text-align:center;padding:6px 8px;">Submitted By</th>
+          <th style="text-align:center;padding:6px 8px;">Bill No.</th>
+          <th style="text-align:center;padding:6px 8px;">Base Amount</th>
+          <th style="text-align:center;padding:6px 8px;">GST %</th>
+          <th style="text-align:center;padding:6px 8px;">GST Amount</th>
+          <th style="text-align:center;padding:6px 8px;">Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  
+  filteredDetails.forEach((expense, i) => {
+    html += `<tr style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+      <td style="padding:6px 8px;font-weight:600;color:#d01f2f;">${i+1}</td>
+      <td style="padding:6px 8px;font-weight:600;">${expense.description}</td>
+      <td style="padding:6px 8px;">${formatDate(expense.date)}</td>
+      <td style="padding:6px 8px;">${expense.submittedBy}</td>
+      <td style="padding:6px 8px;">${expense.billNo || '-'}</td>
+      <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.baseAmount)}</td>
+      <td style="padding:6px 8px;text-align:right;">${expense.gstPercentage || '-'}</td>
+      <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.gstAmount)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:600;">${formatCurrency(expense.amount)}</td>
+    </tr>`;
+  });
+  
+  html += `</tbody></table></div>`;
+
+  Swal.fire({
+    title: 'Pending Expenses',
+    html,
+    width: 1200,
+    showCloseButton: true,
+    showConfirmButton: false,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    }
+  });
+}
+
 (async function generateChapterLedger() {
   let currentBalance = 0;
   totalKittyAmount = 0;
@@ -561,6 +672,8 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
   onlineExpenseAmount = 0;
   cashExpenseBaseAmount = 0; // base (debit) only
   onlineExpenseBaseAmount = 0; // base (debit) only
+  cashExpenseGST = 0; // Track cash expense GST
+  onlineExpenseGST = 0; // Track online expense GST
   cashVisitorAmount = 0;
   onlineVisitorAmount = 0;
   cashKittyAmount = 0;
@@ -568,6 +681,15 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
   cashOtherPayments = 0;
   onlineOtherPayments = 0;
   cashGSTAmount = 0;
+
+  // Add variables for pending expenses
+  totalPendingExpenseAmount = 0;
+  cashPendingExpenseAmount = 0;
+  onlinePendingExpenseAmount = 0;
+  pendingExpenseDetails = [];
+
+  // Add variables for paid expenses tracking
+  paidExpenseDetails = [];
 
   try {
     showLoader();
@@ -603,7 +725,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
 
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
-    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log("Chapters data received:", chapters.length, "chapters");
 
@@ -633,10 +755,10 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
     // Fetch all orders, transactions and expenses
     console.log("Fetching transactions data...");
     const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
-      fetch("https://backend.bninewdelhi.com/api/allOrders"),
-      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
-      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
-      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
+      fetch("http://localhost:5000/api/allOrders"),
+      fetch("http://localhost:5000/api/allTransactions"),
+      fetch("http://localhost:5000/api/allExpenses"),
+      fetch("http://localhost:5000/api/allOtherPayment")
     ]);
 
     const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([
@@ -769,8 +891,7 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
     console.log("Processing expenses for chapter:", chapterId);
     const chapterExpenses = allExpenses.filter(expense => 
       parseInt(expense.chapter_id) === chapterId && 
-      expense.delete_status === 0 && 
-      expense.payment_status === "paid"
+      expense.delete_status === 0
     );
     console.log("Found chapter expenses:", chapterExpenses.length);
 
@@ -788,40 +909,101 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
       const gstAmount = parseFloat(expense.gst_amount) || 0;
       const totalAmount = parseFloat(expense.total_amount) || (baseAmount + gstAmount);
       
-      // Track expenses by payment mode
-      if (expense.mode_of_payment.toLowerCase() === 'cash') {
-        cashExpenseAmount += totalAmount;
-        cashExpenseBaseAmount += baseAmount;
-      } else {
-        onlineExpenseAmount += totalAmount;
-        onlineExpenseBaseAmount += baseAmount;
-      }
+      // Track expenses by payment mode and status
+      if (expense.payment_status === "paid") {
+        if (expense.mode_of_payment.toLowerCase() === 'cash') {
+          cashExpenseAmount += totalAmount;
+          cashExpenseBaseAmount += baseAmount;
+          cashExpenseGST += gstAmount;
+        } else {
+          onlineExpenseAmount += totalAmount;
+          onlineExpenseBaseAmount += baseAmount;
+          onlineExpenseGST += gstAmount;
+        }
+        totalExpenseAmount += totalAmount;
+        totalExpenseBaseAmount += baseAmount;
 
-      totalExpenseAmount += totalAmount;
-      totalExpenseBaseAmount += baseAmount;
-      
-      allTransactionItems.push({
-        date: new Date(expense.bill_date),
-        type: "expense",
-        description: `<div style="display: flex; align-items: center; gap: 8px;">
-                       <div style="background-color: #ff4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                         E
-                       </div>
-                       <div>
-                         <span style="color: #ff4444; font-weight: 500;">${expense.description}</span><br>
-                         <small class="text-muted">
-                           By: ${expense.submitted_by} | ${expense.mode_of_payment}
-                           ${expense.bill_no ? ' | Bill #' + expense.bill_no : ''}
-                         </small>
-                       </div>
-                     </div>`,
-        amount: baseAmount, // base amount for debit
-        gst: gstAmount,
-        totalAmount: totalAmount,
-        modeOfPayment: expense.mode_of_payment,
-        submittedBy: expense.submitted_by
-      });
+        // Store paid expense details for popup
+        paidExpenseDetails.push({
+          description: expense.description,
+          amount: totalAmount,
+          date: expense.bill_date,
+          mode: expense.mode_of_payment,
+          submittedBy: expense.submitted_by,
+          billNo: expense.bill_no,
+          gstAmount: gstAmount,
+          baseAmount: baseAmount,
+          gstPercentage: expense.gst_percentage
+        });
+
+        // Only add paid expenses to transaction items
+        allTransactionItems.push({
+          date: new Date(expense.bill_date),
+          type: "expense",
+          description: `<div style="display: flex; align-items: center; gap: 8px;">
+                         <div style="background-color: #ff4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                           E
+                         </div>
+                         <div>
+                           <span style="color: #ff4444; font-weight: 500;">${expense.description}</span><br>
+                           <small class="text-align:right;">
+                             By: ${expense.submitted_by} | ${expense.mode_of_payment}
+                             ${expense.bill_no ? ' | Bill #' + expense.bill_no : ''}
+                           </small>
+                         </div>
+                       </div>`,
+          amount: baseAmount,
+          gst: gstAmount,
+          totalAmount: totalAmount,
+          modeOfPayment: expense.mode_of_payment,
+          submittedBy: expense.submitted_by
+        });
+      } else if (expense.payment_status === "pending") {
+        console.log("Found pending expense:", expense);
+        // Track pending expenses using base amount (excluding GST)
+        totalPendingExpenseAmount += baseAmount;
+        if (expense.mode_of_payment.toLowerCase() === 'cash') {
+          cashPendingExpenseAmount += baseAmount;
+        } else {
+          onlinePendingExpenseAmount += baseAmount;
+        }
+        // Store pending expense details for popup
+        pendingExpenseDetails.push({
+          description: expense.description,
+          amount: totalAmount,
+          date: expense.bill_date,
+          mode: expense.mode_of_payment,
+          submittedBy: expense.submitted_by,
+          billNo: expense.bill_no,
+          gstAmount: gstAmount,
+          baseAmount: baseAmount,
+          gstPercentage: expense.gst_percentage
+        });
+      }
     });
+
+    // Calculate total GST for pending expenses
+    const totalPendingGST = pendingExpenseDetails.reduce((sum, expense) => sum + expense.gstAmount, 0);
+
+    // Update the UI with pending expenses
+    document.getElementById('pending-expense-amount').innerHTML = 
+      `${formatCurrency(totalPendingExpenseAmount)} <small style="font-size: 0.7em; color: #666;">(excluding ${formatCurrency(totalPendingGST)} GST)</small>`;
+    
+    document.getElementById('pending-expense-cash-count').querySelector('span').textContent = 
+      formatCurrency(cashPendingExpenseAmount);
+    
+    document.getElementById('pending-expense-online-count').querySelector('span').textContent = 
+      formatCurrency(onlinePendingExpenseAmount);
+
+    // Add click handlers for pending expenses
+    document.getElementById('pending-expense-amount').style.cursor = 'pointer';
+    document.getElementById('pending-expense-amount').addEventListener('click', () => showPendingExpensesPopup('all'));
+
+    document.getElementById('pending-expense-cash-count').style.cursor = 'pointer';
+    document.getElementById('pending-expense-cash-count').addEventListener('click', () => showPendingExpensesPopup('cash'));
+    
+    document.getElementById('pending-expense-online-count').style.cursor = 'pointer';
+    document.getElementById('pending-expense-online-count').addEventListener('click', () => showPendingExpensesPopup('online'));
 
     // Process other payments
     chapterOtherPayments.forEach(payment => {
@@ -966,19 +1148,113 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
     // Update expense amount with bifurcation
     const expenseElement = document.getElementById("total-expense-amount");
     expenseElement.innerHTML = `
-      <div>
+      <div style="cursor: pointer;">
         ${formatCurrency(totalExpenseBaseAmount)}
         <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
-          <span>
+          <span id="expense-cash-breakdown" style="cursor:pointer;">
             <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(cashExpenseBaseAmount)}
           </span>
-          <span style="margin-left: 8px;">
+          <span id="expense-online-breakdown" style="margin-left:8px; cursor:pointer;">
             <i class="ri-bank-card-line"></i> Online: ${formatCurrency(onlineExpenseBaseAmount)}
           </span>
         </div>
       </div>
     `;
-    
+
+    // Add click handlers for total expenses
+    expenseElement.addEventListener('click', () => showTotalExpensesPopup('all'));
+    document.getElementById('expense-cash-breakdown').addEventListener('click', () => showTotalExpensesPopup('cash'));
+    document.getElementById('expense-online-breakdown').addEventListener('click', () => showTotalExpensesPopup('online'));
+
+    // Add function to show total expenses popup
+    function showTotalExpensesPopup(mode) {
+      const filteredDetails = paidExpenseDetails.filter(expense => {
+        if (mode === 'all') return true;
+        return expense.mode.toLowerCase() === mode.toLowerCase();
+      });
+
+      if (filteredDetails.length === 0) {
+        Swal.fire({
+          title: mode === 'all' ? 'Total Expenses' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Expenses`,
+          html: '<p>No expenses found</p>',
+          width: 500,
+          showCloseButton: true,
+          showConfirmButton: false,
+          customClass: {
+            container: 'kitty-breakdown-popup',
+            popup: 'kitty-breakdown-popup',
+            content: 'kitty-breakdown-content'
+          }
+        });
+        return;
+      }
+
+      // Calculate totals for the filtered expenses
+      const totalBaseAmount = filteredDetails.reduce((sum, e) => sum + e.baseAmount, 0);
+      const totalGST = filteredDetails.reduce((sum, e) => sum + e.gstAmount, 0);
+      const totalAmount = filteredDetails.reduce((sum, e) => sum + e.amount, 0);
+
+      let html = `<div style="padding:0.5em 0;">
+        <div style="margin-bottom: 1em; padding: 0.5em; background: #f8f9fa; border-radius: 4px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5em;">
+            <span style="font-weight: 600;">Total Base Amount:</span>
+            <span style="font-weight: 600;">${formatCurrency(totalBaseAmount)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5em;">
+            <span style="font-weight: 600;">Total GST:</span>
+            <span style="font-weight: 600;">${formatCurrency(totalGST)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-weight: 600;">Total Amount (including GST):</span>
+            <span style="font-weight: 600;">${formatCurrency(totalAmount)}</span>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:separate;border-spacing:0 8px;">
+          <thead>
+            <tr style="background:#f8f9fa;color:#495057;font-size:1em;">
+              <th style="text-align:center;padding:6px 8px;">#</th>
+              <th style="text-align:center;padding:6px 8px;">Description</th>
+              <th style="text-align:center;padding:6px 8px;">Date</th>
+              <th style="text-align:center;padding:6px 8px;">Submitted By</th>
+              <th style="text-align:center;padding:6px 8px;">Bill No.</th>
+              <th style="text-align:center;padding:6px 8px;">Base Amount</th>
+              <th style="text-align:center;padding:6px 8px;">GST %</th>
+              <th style="text-align:center;padding:6px 8px;">GST Amount</th>
+              <th style="text-align:center;padding:6px 8px;">Total Amount</th>
+            </tr>
+          </thead>
+          <tbody>`;
+      
+      filteredDetails.forEach((expense, i) => {
+        html += `<tr style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+          <td style="padding:6px 8px;font-weight:600;color:#d01f2f;">${i+1}</td>
+          <td style="padding:6px 8px;font-weight:600;">${expense.description}</td>
+          <td style="padding:6px 8px;">${formatDate(expense.date)}</td>
+          <td style="padding:6px 8px;">${expense.submittedBy}</td>
+          <td style="padding:6px 8px;">${expense.billNo || '-'}</td>
+          <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.baseAmount)}</td>
+          <td style="padding:6px 8px;text-align:right;">${expense.gstPercentage || '-'}</td>
+          <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.gstAmount)}</td>
+          <td style="padding:6px 8px;text-align:right;font-weight:600;">${formatCurrency(expense.amount)}</td>
+        </tr>`;
+      });
+      
+      html += `</tbody></table></div>`;
+
+      Swal.fire({
+        title: mode === 'all' ? 'Total Expenses' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Expenses`,
+        html,
+        width: 1200,
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+          container: 'kitty-breakdown-popup',
+          popup: 'kitty-breakdown-popup',
+          content: 'kitty-breakdown-content'
+        }
+      });
+    }
+
     // Update current balance display with cash/online bifurcation
     const currentBalanceElement = document.getElementById("current-balance");
     const totalCashReceipts = cashKittyAmount + cashVisitorAmount + cashOtherPayments;
@@ -989,8 +1265,8 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
     const onlineExpenses = onlineExpenseBaseAmount;
 
     // Calculate cash and online balances
-    const cashBalance = (parseFloat(loggedInChapter.available_fund) || 0) + totalCashReceipts + cashGSTAmount - cashExpenses;
-    const onlineBalance = totalOnlineReceipts - onlineExpenses - cashGSTAmount;
+    const cashBalance = (parseFloat(loggedInChapter.available_fund) || 0) + totalCashReceipts + cashGSTAmount - cashExpenses - cashExpenseGST;
+    const onlineBalance = totalOnlineReceipts - onlineExpenses - cashGSTAmount + cashExpenseGST;
 
     currentBalanceElement.innerHTML = `
       <div>
@@ -1012,11 +1288,13 @@ function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineB
       showCurrentBalanceBreakdownPopup(currentBalance, {
         total: cashBalance,
         receipts: totalCashReceipts,
-        expenses: cashExpenses
+        expenses: cashExpenses,
+        expenseGST: cashExpenseGST
       }, {
         total: onlineBalance,
         receipts: totalOnlineReceipts,
-        expenses: onlineExpenses
+        expenses: onlineExpenses,
+        expenseGST: onlineExpenseGST
       },
       parseFloat(loggedInChapter.available_fund) || 0,
       cashGSTAmount

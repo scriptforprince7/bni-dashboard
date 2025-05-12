@@ -14,7 +14,7 @@ function hideLoader() {
 async function fetchAllOrders() {
     showLoader();
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        const response = await fetch('http://localhost:5000/api/allOrders');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -50,7 +50,7 @@ async function fetchAllOrders() {
 async function fetchMemberAddress(customerId) {
     showLoader();
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/members');
+        const response = await fetch('http://localhost:5000/api/members');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -71,7 +71,7 @@ async function fetchMemberAddress(customerId) {
 async function fetchTransactionsForOrder(orderId) {
     showLoader();
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const response = await fetch('http://localhost:5000/api/allTransactions');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -90,7 +90,7 @@ async function fetchTransactionsForOrder(orderId) {
 async function fetchUniversalLinkName(universalLinkId) {
     showLoader();
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
+        const response = await fetch('http://localhost:5000/api/universalLinks');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -114,7 +114,7 @@ async function fetchUniversalLinkName(universalLinkId) {
 // Add new function to fetch training name
 async function fetchTrainingName(trainingId) {
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/allTrainings');
+        const response = await fetch('http://localhost:5000/api/allTrainings');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }

@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch both accolades and members data
         const [accoladesResponse, membersResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/accolades'),
-            fetch('https://backend.bninewdelhi.com/api/members')
+            fetch('http://localhost:5000/api/accolades'),
+            fetch('http://localhost:5000/api/members')
         ]);
 
         const accolades = await accoladesResponse.json();
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Add this function at the top to fetch all member accolades
         async function fetchAllMemberAccolades() {
             try {
-                const response = await fetch(`https://backend.bninewdelhi.com/api/getAllMemberAccolades`);
+                const response = await fetch(`http://localhost:5000/api/getAllMemberAccolades`);
                 if (!response.ok) throw new Error('Failed to fetch member accolades');
                 return await response.json();
             } catch (error) {
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log('🚀 Sending API Request:', requestPayload);
 
                 // Make API call
-                const response = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
+                const response = await fetch('http://localhost:5000/api/member-requisition', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

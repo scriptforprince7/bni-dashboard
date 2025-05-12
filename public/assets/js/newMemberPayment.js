@@ -196,7 +196,7 @@ function showLoader() {
   
         try {
           showLoader();
-          const response = await fetch(`https://backend.bninewdelhi.com/api/get-gst-details/${gstNumber}`);
+          const response = await fetch(`http://localhost:5000/api/get-gst-details/${gstNumber}`);
           const data = await response.json();
   
           if (data.error) {
@@ -247,7 +247,7 @@ function showLoader() {
       showLoader();
   
       const responses = await fetch(
-        "https://backend.bninewdelhi.com/api/universalLinks"
+        "http://localhost:5000/api/universalLinks"
       );
       const data = await responses.json();
       console.log("Fetched data:", data);
@@ -267,19 +267,19 @@ function showLoader() {
       }
       // Fetch regions
       const regionResponse = await fetch(
-        "https://backend.bninewdelhi.com/api/regions"
+        "http://localhost:5000/api/regions"
       );
       const regions = await regionResponse.json();
   
       // Fetch chapters
       const chapterResponse = await fetch(
-        "https://backend.bninewdelhi.com/api/chapters"
+        "http://localhost:5000/api/chapters"
       );
       const chapters = await chapterResponse.json();
   
       // Fetch members
       const memberResponse = await fetch(
-        "https://backend.bninewdelhi.com/api/members"
+        "http://localhost:5000/api/members"
       );
       const members = await memberResponse.json();
   
@@ -506,7 +506,7 @@ function showLoader() {
       async function fetchKittyBillData(chapterId) {
         try {
           showLoader();
-          const response = await fetch("https://backend.bninewdelhi.com/api/getKittyPayments");
+          const response = await fetch("http://localhost:5000/api/getKittyPayments");
           const kittyBills = await response.json();
           
           // Find the current kitty bill for the selected chapter
@@ -821,7 +821,7 @@ function showLoader() {
   
       // Fetch company data
       const companyResponse = await fetch(
-        "https://backend.bninewdelhi.com/api/company"
+        "http://localhost:5000/api/company"
       );
       const companies = await companyResponse.json();
   
@@ -869,7 +869,7 @@ function showLoader() {
       });
       // Fetch universal link data
       const response = await fetch(
-        "https://backend.bninewdelhi.com/api/universalLinks"
+        "http://localhost:5000/api/universalLinks"
       );
       const universalLinks = await response.json();
   
@@ -882,7 +882,7 @@ function showLoader() {
       // If ID is 3, fetch training data and populate the dropdown
       if (selectedLink.id == 3) {
         const trainingResponse = await fetch(
-          "https://backend.bninewdelhi.com/api/allTrainings"
+          "http://localhost:5000/api/allTrainings"
         );
         const trainings = await trainingResponse.json();
         console.log("📋 Available Trainings:", trainings);
@@ -971,7 +971,7 @@ function showLoader() {
   
           try {
             // Fetch member's kitty data
-            const bankOrderResponse = await fetch(`https://backend.bninewdelhi.com/api/getbankOrder`);
+            const bankOrderResponse = await fetch(`http://localhost:5000/api/getbankOrder`);
             const bankOrderData = await bankOrderResponse.json();
             const memberBankOrder = bankOrderData.find(order => 
                 order.member_id === selectedMemberId && 
@@ -979,7 +979,7 @@ function showLoader() {
             );
 
             // Fetch member credits
-            const creditResponse = await fetch(`https://backend.bninewdelhi.com/api/getAllMemberCredit`);
+            const creditResponse = await fetch(`http://localhost:5000/api/getAllMemberCredit`);
             const creditData = await creditResponse.json();
             const memberCredits = creditData.filter(credit => 
                 credit.member_id === selectedMemberId && 
@@ -993,7 +993,7 @@ function showLoader() {
             );
 
             // Get current date
-            const currentDateResponse = await fetch(`https://backend.bninewdelhi.com/api/getCurrentDate`);
+            const currentDateResponse = await fetch(`http://localhost:5000/api/getCurrentDate`);
             const currentDate = await currentDateResponse.json();
 
             // Update UI with kitty bill info
@@ -1182,7 +1182,7 @@ function showLoader() {
         // Fetch all visitors
         let visitors = [];
         try {
-          const res = await fetch('https://backend.bninewdelhi.com/api/getallvisitors');
+          const res = await fetch('http://localhost:5000/api/getallvisitors');
           visitors = await res.json();
         } catch (err) {
           console.error('Failed to fetch visitors:', err);
@@ -1251,7 +1251,7 @@ function showLoader() {
 
             // Now, fetch membership pending and update amount fields if found
             try {
-              const pendingRes = await fetch('https://backend.bninewdelhi.com/api/getMembershipPending');
+              const pendingRes = await fetch('http://localhost:5000/api/getMembershipPending');
               const pendingList = await pendingRes.json();
               // Find by visitor_id
               const pending = pendingList.find(p => String(p.visitor_id) === String(visitor.visitor_id));
@@ -1494,7 +1494,7 @@ function showLoader() {
 
           // Commented out: API call
           
-          const response = await fetch('https://backend.bninewdelhi.com/api/addNewMemberPaymentManually', {
+          const response = await fetch('http://localhost:5000/api/addNewMemberPaymentManually', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
