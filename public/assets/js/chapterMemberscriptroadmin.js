@@ -1,8 +1,8 @@
-const apiUrl = 'http://localhost:5000/api/members';
-const chapterssApiUrl = 'http://localhost:5000/api/chapters'; 
-// const regionsApiUrl = 'http://localhost:5000/api/regions';
-const categoriesApiUrl = 'http://localhost:5000/api/memberCategory';
-const accoladesApiUrl = 'http://localhost:5000/api/accolades';
+const apiUrl = 'https://backend.bninewdelhi.com/api/members';
+const chapterssApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
+// const regionsApiUrl = 'https://backend.bninewdelhi.com/api/regions';
+const categoriesApiUrl = 'https://backend.bninewdelhi.com/api/memberCategory';
+const accoladesApiUrl = 'https://backend.bninewdelhi.com/api/accolades';
 let chaptersMap = {};
 let allMembers = []; 
 
@@ -622,7 +622,7 @@ const deleteMember = async (member_id) => {
   if (result.isConfirmed) {
       try {
           showLoader();  // Show loading indicator
-          const response = await fetch(`http://localhost:5000/api/deleteMember/${member_id}`, {
+          const response = await fetch(`https://backend.bninewdelhi.com/api/deleteMember/${member_id}`, {
               method: 'PUT',
           });
 

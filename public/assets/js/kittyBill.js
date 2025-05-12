@@ -23,7 +23,7 @@ function hideLoader() {
         showLoader();
 
         // Fetch and populate regions
-        const regions = await fetch('http://localhost:5000/api/regions').then(res => res.json());
+        const regions = await fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json());
         regions.forEach(region => {
             const li = document.createElement('li');
             li.innerHTML = `<a class="dropdown-item" href="javascript:void(0);" data-id="${region.region_id}">${region.region_name}</a>`;
@@ -31,7 +31,7 @@ function hideLoader() {
         });
 
         // Fetch and populate chapters
-        const chapters = await fetch('http://localhost:5000/api/chapters').then(res => res.json());
+        const chapters = await fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json());
         chapters.forEach(chapter => {
             const li = document.createElement('li');
             li.innerHTML = `<a class="dropdown-item" href="javascript:void(0);" data-id="${chapter.chapter_id}">${chapter.chapter_name}</a>`;
@@ -39,7 +39,7 @@ function hideLoader() {
         });
 
         // Fetch all members data once (this will be used for filtering chapters based on region)
-        members = await fetch('http://localhost:5000/api/members').then(res => res.json());
+        members = await fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json());
         console.log("Fetched members data:", members);  // Log the members data to see the structure
 
     } catch (error) {
@@ -83,7 +83,7 @@ function hideLoader() {
                 showLoader();  // Show loader before fetch
     
                 // Fetch chapter details using chapter_id
-                const chapter = await fetch(`http://localhost:5000/api/getChapter/${selectedChapter}`)
+                const chapter = await fetch(`https://backend.bninewdelhi.com/api/getChapter/${selectedChapter}`)
                     .then(res => res.json());
                 console.log("Fetched Chapter Details:", chapter);
     
@@ -100,7 +100,7 @@ function hideLoader() {
                     document.querySelector('#kitty_billing_frequency').value = billingFrequency;
 
                      // Fetch hotel details using hotel_id from chapter
-                const hotelResponse = await fetch(`http://localhost:5000/api/getHotels`);
+                const hotelResponse = await fetch(`https://backend.bninewdelhi.com/api/getHotels`);
                 const hotels = await hotelResponse.json();
                 const hotel = hotels.find(h => h.hotel_id === chapter.hotel_id);
 
@@ -159,7 +159,7 @@ function hideLoader() {
         try {
             showLoader();
 
-            const response = await fetch('http://localhost:5000/api/addKittyPayment', {
+            const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPayment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
