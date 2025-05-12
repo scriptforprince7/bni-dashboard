@@ -33,6 +33,7 @@ let ledgerData = [];
 
 // Global variables for filtering
 let selectedMonth = 'all';
+let selectedYear = 'all';
 let selectedType = 'all';
 let allTransactionRows = [];  // Store all rows for filtering
 
@@ -80,7 +81,28 @@ function initializeFilters() {
     { value: '12', label: 'December' }
   ];
 
+  // Get unique years from ledger data
+  const years = new Set();
+  ledgerData.forEach(entry => {
+    if (entry.date) {
+      const year = entry.date.split('/')[2];
+      if (year) years.add(year);
+    }
+  });
+  const sortedYears = Array.from(years).sort((a, b) => b - a); // Sort years in descending order
+
+  // Populate year filter
+  const yearFilter = document.getElementById('yearFilter');
+  yearFilter.innerHTML = '<li><a class="dropdown-item" href="#" data-value="all">All Years</a></li>';
+  sortedYears.forEach(year => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a class="dropdown-item" href="#" data-value="${year}">${year}</a>`;
+    yearFilter.appendChild(li);
+  });
+
+  // Populate month filter
   const monthFilter = document.getElementById('monthFilter');
+  monthFilter.innerHTML = '<li><a class="dropdown-item" href="#" data-value="all">All Months</a></li>';
   months.forEach(month => {
     const li = document.createElement('li');
     li.innerHTML = `<a class="dropdown-item" href="#" data-value="${month.value}">${month.label}</a>`;
@@ -88,6 +110,16 @@ function initializeFilters() {
   });
 
   // Add event listeners for filters
+  document.getElementById('yearFilter').addEventListener('click', function(e) {
+    if (e.target.classList.contains('dropdown-item')) {
+      e.preventDefault();
+      selectedYear = e.target.dataset.value;
+      document.getElementById('yearFilterBtn').textContent = 
+        selectedYear === 'all' ? 'Year' : selectedYear;
+      applyFilters();
+    }
+  });
+
   document.getElementById('monthFilter').addEventListener('click', function(e) {
     if (e.target.classList.contains('dropdown-item')) {
       e.preventDefault();
@@ -110,8 +142,10 @@ function initializeFilters() {
 
   document.getElementById('resetFilters').addEventListener('click', function() {
     selectedMonth = 'all';
+    selectedYear = 'all';
     selectedType = 'all';
     document.getElementById('monthFilterBtn').innerHTML = '<i class="ri-calendar-line me-1"></i> Month';
+    document.getElementById('yearFilterBtn').innerHTML = '<i class="ri-calendar-line me-1"></i> Year';
     document.getElementById('typeFilterBtn').innerHTML = '<i class="ri-filter-line me-1"></i> Type';
     applyFilters();
   });
@@ -127,9 +161,14 @@ function applyFilters() {
   rows.forEach(row => {
     const date = row.cells[1].textContent;  // Date is in second column
     const description = row.cells[2].innerHTML;  // Using innerHTML to check for the expense icon
-    const month = date.split('/')[1];  // Assuming date format is DD/MM/YYYY
+    const [day, month, year] = date.split('/');  // Split date into components
     
     let showRow = true;
+    
+    // Apply year filter
+    if (selectedYear !== 'all' && year !== selectedYear) {
+      showRow = false;
+    }
     
     // Apply month filter
     if (selectedMonth !== 'all' && month !== selectedMonth) {
