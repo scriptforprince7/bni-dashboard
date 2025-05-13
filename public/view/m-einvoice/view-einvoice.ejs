@@ -22,6 +22,30 @@
 		.lin {
 			border: 1px solid grey;
 		}
+		@media print {
+			body {
+				/* Reduce default margins to fit more content */
+				margin: 0;
+				padding: 0;
+			}
+			.invoice-container {
+				/* Try to fit everything on one page */
+				page-break-inside: avoid;
+				break-inside: avoid;
+			}
+			table, tr, td, th {
+				page-break-inside: avoid !important;
+				break-inside: avoid !important;
+			}
+			/* Optionally, scale down content to fit */
+			html, body {
+				zoom: 0.85; /* Adjust as needed (0.8, 0.9, etc.) */
+			}
+			/* Hide elements you don't want to print */
+			.d-print-none, .btn, #loader {
+				display: none !important;
+			}
+		}
 	</style>
 </head>
 
@@ -153,7 +177,9 @@
 				<div class="col-sm-4 text-center text-sm-start">
 					<span><b>Transaction ID :</b></span> <span class="transaction_id">11-Nov-2024</span> <br>
 					<span><b>Order ID :</b></span> <span class="order_id">11-Nov-2024</span> <br>
-					<span><b>Payment Time :</b></span> <span class="">16:30:27sss</span> <br>
+					<span><b>Payment Date :</b></span> <span class="payment_date"></span> <br>
+					<span><b>Payment Time :</span> <span class="payment_time"></span> <br>
+					<span><b>Chapter Name :</b></span> <span class="chapter_name"></span> <br>
 					<span><b>Buyer Email :</b></span> <span class="buyer_email">16:30:27sss</span> <br>
 					<span><b>Buyer Phone :</b></span> <span class="buyer_phone">16:30:27sss</span> <br>
 				</div>

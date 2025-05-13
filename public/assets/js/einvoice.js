@@ -189,8 +189,10 @@ const amountInWords = formatAmount(invoiceData.amount);
 console.log(invoiceData);
 // Calculate base amount
 const baseAmount = orderAmount - taxAmount;
-const currentDate = new Date();
-const formattedDate = `${currentDate.getDate().toString().padStart(2, '0')}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getFullYear()}`;
+const invoiceDate = ackDate;
+const formattedDate = invoiceDate 
+  ? `${invoiceDate.getDate().toString().padStart(2, '0')}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}-${invoiceDate.getFullYear()}`
+  : "N/A";
 // Populate each field
 document.querySelector(".irn_number").textContent = einvoiceData.irn || "N/A";
 document.querySelector(".ack_no").textContent = einvoiceData.ack_no || "N/A";
@@ -328,3 +330,57 @@ async function fetchAndUpdateInvoiceNumber(orderId) {
 // Add this line after the invoiceData is retrieved
 const orderId = invoiceData.orderId.order_id;
 fetchAndUpdateInvoiceNumber(orderId);
+
+// Set payment date and time
+const paymentDateTime = invoiceData.transactionId.payment_time;
+if (paymentDateTime) {
+  // Try to parse as ISO or fallback to string split
+  let datePart = "N/A";
+  let timePart = "N/A";
+  if (paymentDateTime.includes("T")) {
+    // ISO format
+    const dt = new Date(paymentDateTime);
+    if (!isNaN(dt)) {
+      datePart = `${dt.getDate().toString().padStart(2, '0')}-${(dt.getMonth() + 1).toString().padStart(2, '0')}-${dt.getFullYear()}`;
+      timePart = dt.toTimeString().slice(0,8);
+    }
+  } else if (paymentDateTime.includes(" ")) {
+    // e.g. "2024-05-12 16:30:27"
+    const [date, time] = paymentDateTime.split(" ");
+    if (date && time) {
+      const [y, m, d] = date.split("-");
+      datePart = `${d}-${m}-${y}`;
+      timePart = time;
+    }
+  }
+  document.querySelector(".payment_date").textContent = datePart;
+  document.querySelector(".payment_time").textContent = timePart;
+} else {
+  document.querySelector(".payment_date").textContent = "N/A";
+  document.querySelector(".payment_time").textContent = "N/A";
+}
+
+// Fetch and display chapter name
+async function fetchAndDisplayChapterName(orderId) {
+  try {
+    // Fetch all orders
+    const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allorders");
+    const orders = await ordersResponse.json();
+    const order = orders.find(o => o.order_id === orderId);
+    if (!order || !order.chapter_id) {
+      document.querySelector(".chapter_name").textContent = "N/A";
+      return;
+    }
+    const chapterId = order.chapter_id;
+    // Fetch all chapters
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const chapters = await chaptersResponse.json();
+    const chapter = chapters.find(c => String(c.chapter_id) === String(chapterId));
+    document.querySelector(".chapter_name").textContent = chapter ? chapter.chapter_name : "N/A";
+  } catch (err) {
+    document.querySelector(".chapter_name").textContent = "N/A";
+  }
+}
+
+// Call the function after setting orderId
+fetchAndDisplayChapterName(orderId);

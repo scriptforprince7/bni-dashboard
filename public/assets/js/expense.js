@@ -6,6 +6,59 @@ let expenseTypes = []; // Store expense types mapping
 // Define base URL at the top of your file
 const BILL_BASE_URL = 'https://backend.bninewdelhi.com';
 
+// Sorting state for each column
+const sortState = {};
+
+// Helper to get value for sorting
+function getSortValue(expense, column) {
+  switch (column) {
+    case 'expense_type': {
+      const expenseTypeObj = expenseTypes.find(type => type.expense_id === expense.expense_type);
+      return expenseTypeObj ? expenseTypeObj.expense_name : '';
+    }
+    case 'submitted_by':
+      return expense.submitted_by || '';
+    case 'description':
+      return expense.description || '';
+    case 'amount':
+      return parseFloat(expense.amount) || 0;
+    case 'payment_status':
+      return expense.payment_status || '';
+    case 'bill_date':
+      return expense.bill_date || '';
+    default:
+      return '';
+  }
+}
+
+// Add event listeners to sortable headers
+function setupColumnSorting() {
+  document.querySelectorAll('.sortable').forEach(header => {
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', function () {
+      const column = header.getAttribute('data-column');
+      if (!column) return;
+      // Toggle sort direction
+      sortState[column] = sortState[column] === 'asc' ? 'desc' : 'asc';
+      // Sort filteredExpenses
+      filteredExpenses.sort((a, b) => {
+        const valA = getSortValue(a, column);
+        const valB = getSortValue(b, column);
+        if (typeof valA === 'number' && typeof valB === 'number') {
+          return sortState[column] === 'asc' ? valA - valB : valB - valA;
+        } else {
+          return sortState[column] === 'asc'
+            ? String(valA).localeCompare(String(valB))
+            : String(valB).localeCompare(String(valA));
+        }
+      });
+      // Update table
+      displayExpenses(filteredExpenses);
+      // Optionally update icon (not required, but can be added)
+    });
+  });
+}
+
 // Function to show the loader
 function showLoader() {
   document.getElementById("loader").style.display = "flex"; // Show loader
@@ -128,6 +181,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     sortExpenses(sortDirection);
     displayExpenses(filteredExpenses);
     updateExpenseTotals(allExpenses);
+    setupColumnSorting();
 
   } catch (error) {
     console.error("❌ Error in fetchExpenses:", error);
@@ -528,4 +582,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       document.getElementById('hotelDetailsSection').style.display = 'none';
     }
   });
+
+  setupColumnSorting();
 });

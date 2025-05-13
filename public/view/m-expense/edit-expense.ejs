@@ -1,312 +1,230 @@
-<!-- Add this script at the very top of your file, before any other content -->
 <script src="../../assets/js/tokenUtils.js"></script>
-
 <script>
-    (function checkAccess() {
-        try {
-            const loginType = getUserLoginType();
-            if (loginType !== 'ro_admin' && loginType !== 'chapter') {
-                document.body.innerHTML = `
-                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
-                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
-                            <p style="color: #6c757d;">Only RO Admin and Chapter can access this page.</p>
-                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
-                        </div>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            console.error('Access check failed:', error);
-            window.location.href = '/';
-        }
-    })();
-</script>
-<script>
-    // Get login type from token
-    const loginType = getUserLoginType();
-    
-    // If user is a member, redirect to home page
-    if (loginType === 'member') {
-        window.location.href = '/';
-    }
-</script>
-
-<!-- header -->
-<%- include('../partials/header') %>
-<!-- end header -->
-
-<!-- sidebar -->
-<%- include('../partials/chapter-sidebar') %>
-<!-- end sidebar -->
-
-<style>
-  /* Ensuring that the modal body has padding */
-  .modal-body {
-    padding: 20px;
-  }
-
-  /* Preventing the add button container from affecting layout */
-  .add-button-container {
-    margin-top: 10px;
-    display: none;
-  }
-
-  /* Custom dropdown style */
-  .custom-dropdown {
-    position: relative;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 5px;
-  }
-
-  .options {
-    display: none;
-    position: absolute;
-    border: 1px solid #ccc;
-    background: white;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1;
-  }
-
-  .options div {
-    padding: 10px;
-    display: flex;
-    align-items: center;
-  }
-
-  .options div:hover {
-    background-color: #f0f0f0;
-  }
-
-  .selected {
-    display: flex;
-    align-items: center;
-  }
-</style>
-<!-- Start::app-content -->
-<div class="main-content app-content" style="background-color: #f4f4f4">
-  <div class="container-fluid">
-    <!-- Start::page-header -->
-    <div class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2">
-      <div>
-        <h1 class="page-title fw-medium fs-18 mb-0">
-          <span style="font-weight: 700; font-family: Poppins">Update Expense</span>
-        </h1>
-      </div>
-    </div>
-    <!-- End::page-header -->
-
-    <form id="updateExpenseForm">
-      <div class="row">
-        <div class="col-xl-12">
-          <div class="card custom-card">
-            <div class="card-body add-products">
-              <div class="row gx-4">
-                <div class="col-xxl-12 col-xl-12 col-lg-12 col-md-6">
-                  <div class="card custom-card shadow-none mb-0 border-0">
-                    <div class="card-body p-0">
-                      <div class="row gy-3">
-                        <div class="col-xl-12">
-                          <label for="product-cost-add" class="form-label">
-                            <span style="font-size: 15px"><b>It's time to update an expense!</b></span>
-                          </label>
-                          <button class="btn btn-danger border" type="button" id="addNewExpenseBtn" data-region-id="123" style="float: right">
-                            + Add New Expense Type
-                          </button> 
-                        </div>
-
-                        <div class="col-xl-6">
-                          <label for="expense_type" class="form-label">Type of Expense</label>
-                          <select class="form-control" name="expense_type" id="expense_type">
-                            <option value="">Loading...</option>
-                          </select>
-                        </div>
-                        <div class="col-xl-6">
-                          <label for="submitted_by" class="form-label">Submitted By:</label>
-                          <input type="text" class="form-control" id="submitted_by" name="submitted_by" placeholder="Enter Name" maxlength="50" required/>
-                        </div>
-
-                        <div class="col-xl-6">
-                          <label for="description" class="form-label">Description</label>
-                          <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="3" maxlength="200" required></textarea>
-                        </div>
-
-                        <div id="membershipFeesContainer" class="container">
-                          <div class="row">
-                            <div class="col-xl-4 col-md-4">
-                              <label class="form-label" for="amount">Amount</label>
-                              <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" required/>
-                              <div class="form-check mt-2">
-                                <input class="form-check-input" type="checkbox" id="withGST" name="withGST">
-                                <label class="form-check-label" for="withGST">
-                                  Include GST
-                                </label>
-                              </div>
-                            </div>
-
-                            <div class="col-xl-4 col-md-4">
-                              <label for="payment_status" class="form-label">Payment Status</label>
-                              <select class="form-control" name="payment_status" id="payment_status">
-                                <option value="">Payment Status</option>
-                                <option value="paid">Paid</option>
-                                <option value="pending">Pending</option>
-                              </select>
-                            </div>
-
-                            <div class="col-xl-4 col-md-4">
-                              <label for="bill_date" class="form-label">Bill Date:</label>
-                              <input type="date" id="bill_date" name="bill_date" class="form-control"  required/>
-                            </div>
-                          </div>
-
-                          <div class="row">
-                            <div class="col-xl-4">
-                              <label for="upload_bill" class="form-label">Upload Bill</label>
-                              <input type="file" class="form-control" id="upload_bill" name="upload_bill" required />
-                            </div>
-                            <div class="col-xl-4">
-                              <label for="bill_no" class="form-label">Bill No.</label>
-                              <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20" required/>
-                            </div>
-                            <div class="col-xl-4">
-                              <label for="transaction_no" class="form-label">Transaction No.</label>
-                              <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" required />
-                            </div>
-                          </div>
-                        </br>
-                          <button type="button" id="updateExpenseButton" class="btn btn-success me-2 mb-2 mb-sm-0" style="background-color: #90EE90; border-color: #90EE90">Update Expense</button>
-                        </div>
+  (function checkAccess() {
+      try {
+          const loginType = getUserLoginType();
+          if (loginType !== 'ro_admin' && loginType !== 'chapter') {
+              document.body.innerHTML = `
+                  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                      <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                          <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                          <p style="color: #6c757d;">Only RO Admin and Chapter can access this page.</p>
+                          <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
                       </div>
-                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
-    <div id="formMessage"></div>
-  </div>
-</div>
-<!-- End::content -->
-
-<script>
-document.addEventListener("DOMContentLoaded", async function () {
-  // Extract the expense_id from the URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const expense_id = urlParams.get("expense_id"); // Assume the URL is like '/expense/update?expense_id=1'
-
-  if (!expense_id) {
-    Swal.fire('Error', 'No expense ID provided in the URL', 'error');
-    return;
-  }
-
-  // Fetch data for "Type of Expense"
-  try {
-    showLoader();
-    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
-    if (!response.ok) {
-      throw new Error('Failed to fetch expense types');
-    }
-    const data = await response.json();
-    const expenseTypeDropdown = document.getElementById("expense_type");
-
-    // Clear existing options and set initial loading state
-    expenseTypeDropdown.innerHTML = '<option value="">Select Expense Type</option>';
-
-    // Sort data by expense_name in ascending order
-    data.sort((a, b) => a.expense_name.localeCompare(b.expense_name));
-
-    // Populate dropdown with sorted data
-    data.forEach((expense) => {
-      const option = document.createElement("option");
-      option.value = expense.expense_id;
-      option.textContent = expense.expense_name;
-      expenseTypeDropdown.appendChild(option);
-    });
-    hideLoader();
-  } catch (error) {
-    console.error("Error fetching expense types:", error);
-    const expenseTypeDropdown = document.getElementById("expense_type");
-    expenseTypeDropdown.innerHTML = '<option value="">Failed to load options</option>';
-  }
-
-  // Fetch the specific expense details using the expense_id
-  try {
-    showLoader();
-    const response = await fetch(`https://backend.bninewdelhi.com/api/expense/${expense_id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch expense data');
-    }
-    const expenseData = await response.json();
-
-    // Format the date properly before setting it
-    const billDate = expenseData.bill_date ? new Date(expenseData.bill_date).toISOString().split('T')[0] : '';
-
-    // Populate the form with the fetched data
-    document.getElementById("expense_type").value = expenseData.expense_type;
-    document.getElementById("submitted_by").value = expenseData.submitted_by;
-    document.getElementById("description").value = expenseData.description;
-    document.getElementById("amount").value = expenseData.amount;
-    document.getElementById("payment_status").value = expenseData.payment_status;
-    document.getElementById("bill_date").value = billDate;
-    document.getElementById("bill_no").value = expenseData.bill_no;
-    document.getElementById("transaction_no").value = expenseData.transaction_no;
-    document.getElementById("withGST").checked = expenseData.is_gst;
-    hideLoader();
-  } catch (error) {
-    console.error("Error fetching expense details:", error);
-    Swal.fire('Error', 'Failed to fetch expense details', 'error');
-    hideLoader();
-  }
-
-  // Handle the form submission
-  const updateExpenseButton = document.getElementById("updateExpenseButton");
-
-  updateExpenseButton.addEventListener("click", async function () {
-    const form = document.getElementById("updateExpenseForm");
-    const formData = new FormData(form);
-
-    try {
-      showLoader();
-      formData.append('withGST', document.getElementById('withGST').checked);
-
-      const response = await fetch(`https://backend.bninewdelhi.com/api/expense/${expense_id}`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        Swal.fire({
-          title: 'Success!',
-          text: data.message,
-          icon: 'success',
-          confirmButtonText: 'OK'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = '/exp/manage-expenses';
+              `;
           }
-        });
-      } else {
-        const errorResponse = await response.json();
-        Swal.fire('Failed!', errorResponse.message, 'error');
+      } catch (error) {
+          console.error('Access check failed:', error);
+          window.location.href = '/';
       }
-    } catch (error) {
-      console.error('Error updating expense:', error);
-      Swal.fire('Error!', 'Failed to update expense. Please try again.', 'error');
-    } finally {
-      hideLoader();
-    }
-  });
-});
+  })();
 </script>
+<script>
+  console.log('=== Back to Admin Button Rendering Process Started ===');
+  
+  // Get login type from token
+  const userType = getUserLoginType();
+  console.log('Current User Type:', userType);
+  
+  // Prepare button HTML
+  // const backToAdminButton = `
+  //     <div class="btn-list" style="margin-left: 30em; margin-top: -3em; ">
+  //         <a href="/d/ro-dashboard" id="backToAdminBtn">
+  //             <button class="btn btn-danger btn-wave me-0">
+  //                 <i class="ri-admin-line me-1"></i> Back to Admin
+  //             </button>
+  //         </a>
+  //     </div>
+  // `;
+  
+  // Add button if user is ro_admin
+  // if (userType === 'ro_admin') {
+  //     console.log('User is ro_admin, injecting Back to Admin button...');
+      
+  //     // Add button to DOM when it's ready
+  //     document.addEventListener('DOMContentLoaded', () => {
+  //         const headerContainer = document.querySelector('.page-title');
+  //         if (headerContainer) {
+  //             console.log('Found header container, adding Back to Admin button');
+  //             headerContainer.insertAdjacentHTML('afterend', backToAdminButton);
+              
+  //             // Add click handler
+  //             const backToAdminBtn = document.getElementById('backToAdminBtn');
+  //             if (backToAdminBtn) {
+  //                 backToAdminBtn.addEventListener('click', () => {
+  //                     console.log('Back to Admin button clicked');
+  //                     // Clear chapter-specific data
+  //                     localStorage.removeItem('current_chapter_email');
+  //                     localStorage.removeItem('current_chapter_id');
+  //                     console.log('Cleared chapter-specific localStorage data');
+  //                     console.log('Redirecting to ro-dashboard...');
+  //                 });
+  //                 console.log('Back to Admin button setup completed');
+  //             }
+  //         } else {
+  //             console.error('Header container not found in DOM');
+  //         }
+  //     });
+  // } else {
+  //     console.log('User is not ro_admin, skipping Back to Admin button');
+  // }
+  
+  console.log('=== Back to Admin Button Rendering Process Completed ===');
+</script>
+ 
+ <!-- header -->
+ <%- include('../partials/header') %> 
+ <!-- end header -->
+<!-- Loader -->
+<div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+<img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
 
-<script src="../../assets/js/expense.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<%- include('../partials/footer') %> 
+<!-- Loader -->
+ <!-- sidebar -->
+
+ <%- include('../partials/chapter-sidebar') %>
+
+ <!-- end sidebar -->
+
+ <!-- Start::app-content -->
+ <div class="main-content app-content">
+   <div class="container-fluid">
+     <!-- Page Header -->
+     <div
+       class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+     >
+       <div>
+         <nav>
+           <ol class="breadcrumb mb-1">
+             <li class="breadcrumb-item">
+               <a href="javascript:void(0);" style="color: #d01f2f"
+                 >Expenses Management</a
+               >
+             </li>
+             <li class="breadcrumb-item 989178547 " aria-current="page">
+               View All Expenses
+             </li>
+           </ol>
+         </nav>
+         <h1 class="page-title fw-medium fs-18 mb-0">
+           Manage All Expenses
+         </h1>
+       </div>
+       <div class="btn-list">
+         <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+           Total Expenses <br />
+           <span> <b data-total-expenses>₹ 0.00</b></span> 
+         </button>
+         <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+           Paid Expenses <br />
+           <span> <b data-paid-expenses>₹ 0.00</b></span> 
+         </button>
+         <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+           Pending Expenses <br />
+           <span> <b data-pending-expenses>₹ 0.00</b></span> 
+         </button>
+        <a href="https://backend.bninewdelhi.com/api/exportRegions"><button class="btn btn-danger btn-wave me-0">
+         <i class="ri-share-forward-line me-1"></i> Export Expenses
+       </button></a> 
+       </div>
+     </div>
+     <!-- Page Header Close -->
+
+     <!-- Start::row-1 -->
+     <div class="card custom-card" style="background-color: gainsboro">
+       <div class="card-header justify-content-between">
+         <div class="card-title">All Expenses</div>
+         <div class="d-flex gap-3 align-items-center flex-wrap">
+           <div class="btn-group">
+
+             <div class="dropdown me-2" >
+               <a
+                 href="javascript:void(0);"
+                 class="btn btn-sm btn-light text-muted dropdown-toggle"
+                 data-bs-toggle="dropdown"
+                 aria-expanded="false"
+               >
+                 <i class="ti ti-sort-descending-2 me-1"></i>
+                 Sort
+               </a>
+               <ul class="dropdown-menu" role="menu" data-popper-placement="bottom-end">
+                 <li>
+                   <a class="dropdown-item filter-option" id="sortButton" href="javascript:void(0);" data-filter="ascending">Ascending</a>
+                 </li>
+                 
+               </ul>
+             </div>
+             
+             
+             <button
+                  class="btn btn-outline-light border"
+                  type="button"
+                  id="addNewExpenseBtn"
+                  data-region-id="123" 
+                >
+                  + Add New Expense
+                </button> 
+           </div>
+      
+           
+         </div>
+       </div>
+       <div class="card-body p-0">
+         <div class="table-responsive">
+           <table class="table table-hover text-nowrap" style="border: 1px solid grey">
+             <thead>
+              <tr>
+                <th scope="col" style="border: 1px solid grey;">S.No.</th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="expense_type">
+                  Expense Type
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="submitted_by">
+                  Submitted By
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="description">
+                  Description
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="amount">
+                  Amount
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="payment_status">
+                  Payment Status
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="bill_date">
+                  Bill Date
+                  <i class="ri-sort-asc"></i>
+                </th>
+                <th scope="col" style="border: 1px solid grey;">View Bill</th>
+                <th scope="col" style="border: 1px solid grey;">View Receipt</th>
+                <th scope="col" style="border: 1px solid grey;">Actions</th>
+              </tr>
+             </thead>
+             <tbody id="expensesTableBody">
+             </tbody>
+           </table>
+         </div>
+       </div>
+       <div class="card-footer border-top-0">
+         <div class="d-flex align-items-center flex-wrap overflow-auto">
+           <div class="mb-2 mb-sm-0">
+             Total Expenses: <b id="totalExpensesCount">0</b>
+           </div>
+         </div>
+       </div>
+     </div>
+     <!--End::row-1 -->
+   </div>
+ </div>
+ <!-- End::content  -->
+
+ <script src="../../assets/js/chapterExpenseEdit.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+ <%- include('../partials/footer') %> 

@@ -1351,15 +1351,15 @@ function showLoader() {
                         document.getElementById("remaining-balance").value.replace(/[₹,\s]/g, '')
                     ) || 0;
                     
-                    // Calculate order amount by subtracting GST from partial amount
-                    const orderAmount = isGstIncluded ? partialAmount - gstAmount : partialAmount;
+                    // Order amount should always be the partial amount entered
+                    const orderAmount = partialAmount;
                     
                     Object.assign(invoiceData, {
                         order_amount: orderAmount,
                         partial_amount: partialAmount,
                         payment_type: "partial",
                         payment_note: "meeting-payments-partial",
-                        remaining_balance_with_gst: remainingBalanceWithGst,
+                        remaining_balance_with_gst: remainingBalanceWithGst,  
                         tax_amount: isGstIncluded ? gstAmount : 0,
                         created_at: invoiceDateIssued,
                         member_pending_balance: remainingBalanceWithGst

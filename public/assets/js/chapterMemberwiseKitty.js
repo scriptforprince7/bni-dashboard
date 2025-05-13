@@ -428,34 +428,40 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// Add sorting state tracking
+const sortState = {};
+
 // Add sorting functionality
 document.addEventListener('DOMContentLoaded', function() {
   const tableHeaders = document.querySelectorAll('.sortable');
   
   tableHeaders.forEach(header => {
     header.addEventListener('click', function() {
+      // Get the column index
+      const columnIndex = Array.from(this.parentNode.children).indexOf(this);
+      
+      // Toggle sort direction
+      if (!sortState[columnIndex]) {
+        sortState[columnIndex] = 'asc';
+      } else {
+        sortState[columnIndex] = sortState[columnIndex] === 'asc' ? 'desc' : 'asc';
+      }
+
       // Remove active class from all headers
       tableHeaders.forEach(h => {
         h.classList.remove('asc', 'desc');
         h.querySelector('.sort-icon').className = 'ti ti-arrows-sort sort-icon';
       });
 
-      // Toggle sort direction
-      if (this.classList.contains('asc')) {
-        this.classList.remove('asc');
-        this.classList.add('desc');
-        this.querySelector('.sort-icon').className = 'ti ti-sort-descending sort-icon';
-      } else {
-        this.classList.remove('desc');
-        this.classList.add('asc');
-        this.querySelector('.sort-icon').className = 'ti ti-sort-ascending sort-icon';
-      }
+      // Add active class to current header
+      this.classList.add(sortState[columnIndex]);
+      this.querySelector('.sort-icon').className = 
+        sortState[columnIndex] === 'asc' ? 
+        'ti ti-sort-ascending sort-icon' : 
+        'ti ti-sort-descending sort-icon';
 
-      // Get the column index
-      const columnIndex = Array.from(this.parentNode.children).indexOf(this);
-      
-      // Call sorting function
-      sortTable(columnIndex, this.classList.contains('asc'));
+      // Call sorting function with current direction
+      sortTable(columnIndex, sortState[columnIndex] === 'asc');
     });
   });
 });

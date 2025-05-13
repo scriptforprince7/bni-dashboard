@@ -13,10 +13,8 @@ function formatDate(dateStr) {
     console.error("Error: incoming date is not valid");
     return "Invalid Date";
   }
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const year = date.getUTCFullYear();
-  return `${day}/${month}/${year}`;
+  // Use local time for display
+  return date.toLocaleDateString('en-GB'); // DD/MM/YYYY
 }
 
 function formatCurrency(amount) {
@@ -1088,8 +1086,127 @@ function showPendingExpensesPopup(mode) {
     allTransactionItems.sort((a, b) => a.date - b.date);
     console.log("Total transaction items after adding expenses and other payments:", allTransactionItems.length);
 
-    // Insert opening balance as the very first transaction
-    allTransactionItems.unshift({
+    // Group transactions by month/year (using local time)
+    const monthGroups = {};
+    allTransactionItems.forEach((item, idx) => {
+      const d = new Date(item.date);
+      // Use local time for grouping
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      if (!monthGroups[key]) monthGroups[key] = [];
+      monthGroups[key].push({ ...item, _originalIndex: idx });
+    });
+
+    // Get available fund month/year
+    const availableFundDate = new Date(loggedInChapter.available_fund_date || new Date());
+    const availableFundMonth = availableFundDate.getMonth();
+    const availableFundYear = availableFundDate.getFullYear();
+
+    // Prepare new transaction list with opening/closing balances
+    let newTransactionItems = [];
+    let runningBalance = parseFloat(loggedInChapter.available_fund) || 0;
+
+    // Sort month keys chronologically
+    const sortedMonthKeys = Object.keys(monthGroups).sort((a, b) => {
+      const [ay, am] = a.split('-').map(Number);
+      const [by, bm] = b.split('-').map(Number);
+      return ay !== by ? ay - by : am - bm;
+    });
+
+    // Find the first month with real transactions (not just the opening balance)
+    let firstMonthWithTransactionsIdx = -1;
+    for (let i = 0; i < sortedMonthKeys.length; i++) {
+      const group = monthGroups[sortedMonthKeys[i]];
+      // Check if this month has any real transactions (not just the opening balance)
+      if (group.some(item => item.type !== 'opening')) {
+        firstMonthWithTransactionsIdx = i;
+        break;
+      }
+    }
+
+    sortedMonthKeys.forEach((key, monthIdx) => {
+      const [year, month] = key.split('-').map(Number);
+      let group = monthGroups[key];
+      if (!group.length) return;
+
+      // Show opening balance for every month except the very first/top with real transactions
+      if (monthIdx === firstMonthWithTransactionsIdx) {
+        // Insert opening balance on the 1st of the month (local time)
+        const firstDate = new Date(group[0].date);
+        newTransactionItems.push({
+          date: new Date(firstDate.getFullYear(), firstDate.getMonth(), 1, 0, 0, 0, 0), // Always 1st of the month
+          type: "monthly_opening",
+          description: `Opening Balance for ${firstDate.toLocaleString('default', { month: 'long' })} ${firstDate.getFullYear()}`,
+          amount: 0,
+          gst: 0,
+          totalAmount: 0,
+          balance: runningBalance,
+          _sortOrder: -1 // ensure it comes before any transaction that day
+        });
+      } else if (monthIdx > firstMonthWithTransactionsIdx) {
+        // Insert opening balance for all subsequent months
+        const firstDate = new Date(group[0].date);
+        newTransactionItems.push({
+          date: new Date(firstDate.getFullYear(), firstDate.getMonth(), 1, 0, 0, 0, 0),
+          type: "monthly_opening",
+          description: `Opening Balance for ${firstDate.toLocaleString('default', { month: 'long' })} ${firstDate.getFullYear()}`,
+          amount: 0,
+          gst: 0,
+          totalAmount: 0,
+          balance: runningBalance,
+          _sortOrder: -1
+        });
+      }
+
+      // Sort group by local date, then by type (expenses last), then by original index
+      group.sort((a, b) => {
+        const da = new Date(a.date);
+        const db = new Date(b.date);
+        // Compare local time
+        const daTime = new Date(da.getFullYear(), da.getMonth(), da.getDate(), da.getHours(), da.getMinutes(), da.getSeconds(), da.getMilliseconds()).getTime();
+        const dbTime = new Date(db.getFullYear(), db.getMonth(), db.getDate(), db.getHours(), db.getMinutes(), db.getSeconds(), db.getMilliseconds()).getTime();
+        if (daTime !== dbTime) return daTime - dbTime;
+        // Expenses last if on same date
+        if (a.type === 'expense' && b.type !== 'expense') return 1;
+        if (a.type !== 'expense' && b.type === 'expense') return -1;
+        // Otherwise, preserve original order
+        return (a._originalIndex || 0) - (b._originalIndex || 0);
+      });
+
+      // Add all transactions for this month (now sorted)
+      group.forEach(item => {
+        newTransactionItems.push({ ...item, _sortOrder: 0 });
+        // Update running balance as we go
+        if (item.type === "expense") {
+          runningBalance -= item.amount;
+        } else if (item.type !== "opening") {
+          runningBalance += item.amount;
+        }
+      });
+
+      // Insert closing balance after last transaction (use last day of the month, not last transaction date)
+      const lastDay = new Date(year, month + 1, 0); // last day of the month
+      newTransactionItems.push({
+        date: new Date(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate(), 23, 59, 59, 999),
+        type: "monthly_closing",
+        description: `Closing Balance for ${lastDay.toLocaleString('default', { month: 'long' })} ${lastDay.getFullYear()}`,
+        amount: 0,
+        gst: 0,
+        totalAmount: 0,
+        balance: runningBalance,
+        _sortOrder: 9999 // ensure it comes after all transactions that day
+      });
+    });
+
+    // Sort by date and _sortOrder
+    newTransactionItems.sort((a, b) => {
+      const da = new Date(a.date).getTime();
+      const db = new Date(b.date).getTime();
+      if (da !== db) return da - db;
+      return (a._sortOrder || 0) - (b._sortOrder || 0);
+    });
+
+    // Insert opening balance as the very first transaction (for the ledger start)
+    newTransactionItems.unshift({
       date: openingBalanceDate,
       type: "opening",
       description: "Opening Balance",
@@ -1100,10 +1217,10 @@ function showPendingExpensesPopup(mode) {
       balance: currentBalance
     });
 
-    // Now process allTransactionItems in order to build ledgerData
+    // Now process newTransactionItems in order to build ledgerData
     currentBalance = parseFloat(loggedInChapter.available_fund) || 0;
     ledgerData = [];
-    allTransactionItems.forEach((item, idx) => {
+    newTransactionItems.forEach((item, idx) => {
       if (item.type === "opening") {
         ledgerData.push({
           sNo: ledgerData.length + 1,
@@ -1115,6 +1232,18 @@ function showPendingExpensesPopup(mode) {
           gst: 0,
           balance: Math.round(currentBalance * 100) / 100,
           balanceColor: currentBalance >= 0 ? "green" : "red"
+        });
+      } else if (item.type === "monthly_closing" || item.type === "monthly_opening") {
+        ledgerData.push({
+          sNo: ledgerData.length + 1,
+          date: formatDate(item.date),
+          description: `<div style=\"color: #666; font-style: italic;\">${item.description}</div>`,
+          billAmount: 0,
+          debit: 0,
+          credit: 0,
+          gst: 0,
+          balance: Math.round(item.balance * 100) / 100,
+          balanceColor: item.balance >= 0 ? "green" : "red"
         });
       } else if (item.type === "expense") {
         currentBalance -= item.amount;
