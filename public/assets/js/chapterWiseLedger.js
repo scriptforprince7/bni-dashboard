@@ -1237,7 +1237,17 @@ function showPendingExpensesPopup(mode) {
         ledgerData.push({
           sNo: ledgerData.length + 1,
           date: formatDate(item.date),
-          description: `<div style=\"color: #666; font-style: italic;\">${item.description}</div>`,
+          description: `<div style="background-color: #f8f9fa; padding: 8px 12px; border-radius: 6px; border-left: 4px solid ${item.type === 'monthly_opening' ? '#28a745' : '#dc3545'};">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="ri-${item.type === 'monthly_opening' ? 'bank-line' : 'bank-card-line'}" style="color: ${item.type === 'monthly_opening' ? '#28a745' : '#dc3545'}; font-size: 1.2em;"></i>
+              <div>
+                <div style="color: ${item.type === 'monthly_opening' ? '#28a745' : '#dc3545'}; font-weight: 600; font-size: 1.1em;">${item.description}</div>
+                <div style="color: #666; font-size: 0.9em; margin-top: 2px;">
+                  <i class="ri-calendar-line"></i> ${formatDate(item.date)}
+                </div>
+              </div>
+            </div>
+          </div>`,
           billAmount: 0,
           debit: 0,
           credit: 0,
