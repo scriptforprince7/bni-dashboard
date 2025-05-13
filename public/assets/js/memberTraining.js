@@ -103,7 +103,7 @@ async function renderPage(page) {
                         `<span class="badge bg-secondary" style="opacity: 0.7;">Already Registered ✓</span>` :
                         `<span class="badge bg-${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' ? 'success' : 'danger'}">
                             ${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' 
-                                ? `<a href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1" style="color: white; text-decoration: none;">Register Now</a>` 
+                                ? `<a href="javascript:void(0)" onclick="handleRegistration(${training.training_id})" style="color: white; text-decoration: none;">Register Now</a>` 
                                 : 'Registration Closed'}
                         </span>`
                     }
@@ -343,7 +343,7 @@ function renderFilteredPage(page) {
                 <td>
                     <span class="badge bg-${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' ? 'success' : 'danger'}">
                         ${(training.training_status || '').toLowerCase() === 'scheduled' || (training.training_status || '').toLowerCase() === 'postponed' 
-                            ? `<a href="https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1" style="color: white; text-decoration: none;">Register Now</a>` 
+                            ? `<a href="javascript:void(0)" onclick="handleRegistration(${training.training_id})" style="color: white; text-decoration: none;">Register Now</a>` 
                             : 'Registration Closed'}
                     </span>
                 </td>
@@ -493,6 +493,56 @@ async function checkRegistrationStatus(training) {
     } catch (error) {
         console.error('Error checking registration:', error);
         return false;
+    }
+}
+
+// Add this new function to create registration link
+async function createRegistrationLink(training_id) {
+    try {
+        const loginType = getUserLoginType();
+        let memberEmail, memberId;
+
+        if (loginType === 'ro_admin') {
+            // For RO Admin, get member details from localStorage
+            memberEmail = localStorage.getItem('current_member_email');
+            memberId = localStorage.getItem('current_member_id');
+        } else {
+            // For regular members, get email from token
+            memberEmail = getUserEmail();
+        }
+
+        if (!memberEmail) {
+            console.error('No member email found');
+            return null;
+        }
+
+        // Fetch members data
+        const response = await fetch('https://backend.bninewdelhi.com/api/members');
+        const members = await response.json();
+        
+        // Find the member with matching email
+        const member = members.find(m => m.member_email_address === memberEmail);
+        if (!member) {
+            console.error('Member not found');
+            return null;
+        }
+
+        // Create the registration link with all required parameters
+        const baseUrl = 'https://bninewdelhi.com/training-payments/3/bdbe4592-738e-42b1-ad02-beea957a3f9d/1';
+        return `${baseUrl}?region_id=${member.region_id}&chapter_id=${member.chapter_id}&member_id=${member.member_id}&training_id=${training_id}`;
+    } catch (error) {
+        console.error('Error creating registration link:', error);
+        return null;
+    }
+}
+
+// Add this new function to handle registration click
+async function handleRegistration(training_id) {
+    const registrationLink = await createRegistrationLink(training_id);
+    if (registrationLink) {
+        window.location.href = registrationLink;
+    } else {
+        alert('Unable to create registration link. Please try again later.');
     }
 }
 

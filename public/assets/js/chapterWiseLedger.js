@@ -214,11 +214,37 @@ function updateFilteredTotals(visibleRows) {
   let filteredOnlineExpenseAmount = 0;
   let filteredCashVisitorAmount = 0;
   let filteredOnlineVisitorAmount = 0;
+  let filteredCashKittyAmount = 0;
+  let filteredOnlineKittyAmount = 0;
+  let filteredCashOtherPayments = 0;
+  let filteredOnlineOtherPayments = 0;
+  let filteredCashGSTAmount = 0;
+  let filteredPendingExpenseAmount = 0;
+  let filteredCashPendingExpenseAmount = 0;
+  let filteredOnlinePendingExpenseAmount = 0;
+
+  // Track unique members and visitors for filtered data
+  const filteredMeetingMembers = new Set();
+  const filteredMeetingMembersCash = new Set();
+  const filteredMeetingMembersOnline = new Set();
+  const filteredVisitorMembers = new Set();
+  const filteredVisitorMembersCash = new Set();
+  const filteredVisitorMembersOnline = new Set();
+
+  // Store filtered details for popups
+  const filteredMeetingMemberDetailsCash = [];
+  const filteredMeetingMemberDetailsOnline = [];
+  const filteredVisitorMemberDetailsCash = [];
+  const filteredVisitorMemberDetailsOnline = [];
+  const filteredPendingExpenseDetails = [];
+  const filteredPaidExpenseDetails = [];
 
   visibleRows.forEach(row => {
     const description = row.cells[2].innerHTML;
     const debit = parseFloat(row.cells[4].textContent.replace(/[^0-9.-]+/g, '') || 0);
     const credit = parseFloat(row.cells[5].textContent.replace(/[^0-9.-]+/g, '') || 0);
+    const gst = parseFloat(row.cells[6].textContent.replace(/[^0-9.-]+/g, '') || 0);
+    const date = row.cells[1].textContent;
 
     // Check for expense (red E icon)
     const isExpense = description.includes('background-color: #ff4444') || description.includes('E</div>');
@@ -231,12 +257,65 @@ function updateFilteredTotals(visibleRows) {
 
     if (isKitty) {
       filteredKittyAmount += credit;
+      if (isCashPayment) {
+        filteredCashKittyAmount += credit;
+        filteredCashGSTAmount += gst;
+      } else {
+        filteredOnlineKittyAmount += credit;
+      }
+
+      // Track meeting members
+      const nameMatch = description.match(/Meeting Fee - ([^<]+)/);
+      const companyMatch = description.match(/<small class=\"text-muted\">([^|]*)\|/);
+      const memberName = nameMatch && nameMatch[1] ? nameMatch[1].trim() : '';
+      const company = companyMatch && companyMatch[1] ? companyMatch[1].trim() : '';
+      
+      if (memberName) {
+        filteredMeetingMembers.add(memberName);
+        const detailObj = {
+          name: memberName,
+          company,
+          date: date,
+          amount: credit
+        };
+        if (isCashPayment) {
+          filteredMeetingMembersCash.add(memberName);
+          filteredMeetingMemberDetailsCash.push(detailObj);
+        } else {
+          filteredMeetingMembersOnline.add(memberName);
+          filteredMeetingMemberDetailsOnline.push(detailObj);
+        }
+      }
     } else if (isVisitor) {
       filteredVisitorAmount += credit;
       if (isCashPayment) {
         filteredCashVisitorAmount += credit;
+        filteredCashGSTAmount += gst;
       } else {
         filteredOnlineVisitorAmount += credit;
+      }
+
+      // Track visitor members
+      const nameMatch = description.match(/Visitor Fee - ([^<]+)/);
+      const invitedByMatch = description.match(/Invited by ([^|<]+)/);
+      const visitorName = nameMatch && nameMatch[1] && nameMatch[1] !== 'N/A' ? nameMatch[1].trim() : '';
+      const invitedBy = invitedByMatch && invitedByMatch[1] ? invitedByMatch[1].trim() : '';
+      
+      if (visitorName) {
+        filteredVisitorMembers.add(visitorName);
+        const detailObj = {
+          name: visitorName,
+          invitedBy,
+          date: date,
+          amount: credit
+        };
+        if (isCashPayment) {
+          filteredVisitorMembersCash.add(visitorName);
+          filteredVisitorMemberDetailsCash.push(detailObj);
+        } else {
+          filteredVisitorMembersOnline.add(visitorName);
+          filteredVisitorMemberDetailsOnline.push(detailObj);
+        }
       }
     } else if (isExpense) {
       filteredExpenseAmount += debit;
@@ -245,18 +324,78 @@ function updateFilteredTotals(visibleRows) {
       } else {
         filteredOnlineExpenseAmount += debit;
       }
+
+      // Track expense details for popup
+      const expenseMatch = description.match(/<span style="color: #ff4444; font-weight: 500;">([^<]+)<\/span>/);
+      const submittedByMatch = description.match(/By: ([^|]+)/);
+      const billNoMatch = description.match(/Bill #([^<]+)/);
+      
+      if (expenseMatch) {
+        const expenseDetail = {
+          description: expenseMatch[1],
+          date: date,
+          submittedBy: submittedByMatch ? submittedByMatch[1].trim() : 'N/A',
+          billNo: billNoMatch ? billNoMatch[1].trim() : '-',
+          amount: debit,
+          mode: isCashPayment ? 'Cash' : 'Online',
+          gstAmount: gst,
+          baseAmount: debit - gst
+        };
+        filteredPaidExpenseDetails.push(expenseDetail);
+      }
     }
   });
 
-  // Update the totals with filtered amounts
+  // Calculate filtered current balance
+  const filteredCurrentBalance = visibleRows.length > 0 ? 
+    parseFloat(visibleRows[visibleRows.length - 1].cells[7].textContent.replace(/[^0-9.-]+/g, '') || 0) : 0;
+
+  // Calculate filtered cash and online balances
+  const filteredCashBalance = filteredCurrentBalance * (filteredCashKittyAmount + filteredCashVisitorAmount + filteredCashOtherPayments) / 
+    (filteredKittyAmount + filteredVisitorAmount + filteredCashOtherPayments + filteredOnlineOtherPayments);
+  const filteredOnlineBalance = filteredCurrentBalance - filteredCashBalance;
+
+  // Update the UI with filtered amounts
   const kittyElement = document.getElementById('total-kitty-amount');
   const visitorElement = document.getElementById('total-visitor-amount');
   const expenseElement = document.getElementById('total-expense-amount');
+  const currentBalanceElement = document.getElementById('current-balance');
+  const meetingMemberCountElement = document.getElementById('meeting-member-count');
+  const visitorMemberCountElement = document.getElementById('visitor-member-count');
 
-  // Update main amounts
-  kittyElement.firstElementChild.firstChild.textContent = formatCurrency(filteredKittyAmount);
-  
-  // Update visitor amount with bifurcation
+  // Update kitty amount with click handler
+  kittyElement.innerHTML = `
+    <div>
+      ${formatCurrency(filteredKittyAmount)}
+      <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+        <span style="cursor: pointer;" id="cash-breakdown">
+          <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(filteredCashKittyAmount)}
+        </span>
+        <span style="margin-left: 8px; cursor: pointer;" id="online-breakdown">
+          <i class="ri-bank-card-line"></i> Online: ${formatCurrency(filteredOnlineKittyAmount)}
+        </span>
+      </div>
+    </div>
+  `;
+
+  // Add click handlers for kitty breakdown
+  document.getElementById('cash-breakdown').addEventListener('click', function() {
+    showPaymentModeBreakdownPopup('Cash', filteredCashKittyAmount, {
+      kitty: filteredCashKittyAmount,
+      visitor: filteredCashVisitorAmount,
+      other: filteredCashOtherPayments
+    });
+  });
+
+  document.getElementById('online-breakdown').addEventListener('click', function() {
+    showPaymentModeBreakdownPopup('Online', filteredOnlineKittyAmount, {
+      kitty: filteredOnlineKittyAmount,
+      visitor: filteredOnlineVisitorAmount,
+      other: filteredOnlineOtherPayments
+    });
+  });
+
+  // Update visitor amount
   visitorElement.innerHTML = `
     <div>
       ${formatCurrency(filteredVisitorAmount)}
@@ -271,20 +410,163 @@ function updateFilteredTotals(visibleRows) {
     </div>
   `;
 
-  // Update expense amount with bifurcation
+  // Update expense amount with click handler
   expenseElement.innerHTML = `
-    <div>
+    <div style="cursor: pointer;">
       ${formatCurrency(filteredExpenseAmount)}
       <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
-        <span>
+        <span id="expense-cash-breakdown" style="cursor:pointer;">
           <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(filteredCashExpenseAmount)}
         </span>
-        <span style="margin-left: 8px;">
+        <span id="expense-online-breakdown" style="margin-left:8px; cursor:pointer;">
           <i class="ri-bank-card-line"></i> Online: ${formatCurrency(filteredOnlineExpenseAmount)}
         </span>
       </div>
     </div>
   `;
+
+  // Add click handlers for expense breakdown
+  expenseElement.addEventListener('click', () => showTotalExpensesPopup('all', filteredPaidExpenseDetails));
+  document.getElementById('expense-cash-breakdown').addEventListener('click', () => showTotalExpensesPopup('cash', filteredPaidExpenseDetails));
+  document.getElementById('expense-online-breakdown').addEventListener('click', () => showTotalExpensesPopup('online', filteredPaidExpenseDetails));
+
+  // Update current balance with click handler
+  currentBalanceElement.innerHTML = `
+    <div style="cursor: pointer;">
+      ${formatCurrency(filteredCurrentBalance)}
+      <div style="font-size: 0.5em; margin-top: 2px; color: #666;">
+        <span>
+          <i class="ri-money-dollar-circle-line"></i> Cash: ${formatCurrency(filteredCashBalance)}
+        </span>
+        <span style="margin-left: 8px;">
+          <i class="ri-bank-card-line"></i> Online: ${formatCurrency(filteredOnlineBalance)}
+        </span>
+      </div>
+    </div>
+  `;
+
+  // Add click handler for current balance
+  currentBalanceElement.addEventListener('click', function() {
+    showCurrentBalanceBreakdownPopup(filteredCurrentBalance, {
+      total: filteredCashBalance,
+      receipts: filteredCashKittyAmount + filteredCashVisitorAmount + filteredCashOtherPayments,
+      expenses: filteredCashExpenseAmount,
+      expenseGST: filteredCashExpenseGST
+    }, {
+      total: filteredOnlineBalance,
+      receipts: filteredOnlineKittyAmount + filteredOnlineVisitorAmount + filteredOnlineOtherPayments,
+      expenses: filteredOnlineExpenseAmount,
+      expenseGST: filteredOnlineExpenseGST
+    },
+    parseFloat(loggedInChapter.available_fund) || 0,
+    filteredCashGSTAmount
+    );
+  });
+
+  // Update meeting member count
+  meetingMemberCountElement.textContent = filteredMeetingMembers.size;
+  document.getElementById('meeting-member-cash-count').innerHTML = '<i class="ri-money-dollar-circle-line"></i> Cash: <span>' + filteredMeetingMembersCash.size + '</span>';
+  document.getElementById('meeting-member-online-count').innerHTML = '<i class="ri-bank-card-line"></i> Online: <span>' + filteredMeetingMembersOnline.size + '</span>';
+
+  // Update visitor member count
+  visitorMemberCountElement.textContent = filteredVisitorMembers.size;
+  document.getElementById('visitor-member-cash-count').innerHTML = '<i class="ri-money-dollar-circle-line"></i> Cash: <span>' + filteredVisitorMembersCash.size + '</span>';
+  document.getElementById('visitor-member-online-count').innerHTML = '<i class="ri-bank-card-line"></i> Online: <span>' + filteredVisitorMembersOnline.size + '</span>';
+
+  // Add click handlers for member lists
+  document.getElementById('meeting-member-cash-count').addEventListener('click', () => showMemberListPopup('Meeting Payment Members (Cash)', filteredMeetingMemberDetailsCash, 'meeting'));
+  document.getElementById('meeting-member-online-count').addEventListener('click', () => showMemberListPopup('Meeting Payment Members (Online)', filteredMeetingMemberDetailsOnline, 'meeting'));
+  document.getElementById('visitor-member-cash-count').addEventListener('click', () => showMemberListPopup('Visitor Payment Members (Cash)', filteredVisitorMemberDetailsCash, 'visitor'));
+  document.getElementById('visitor-member-online-count').addEventListener('click', () => showMemberListPopup('Visitor Payment Members (Online)', filteredVisitorMemberDetailsOnline, 'visitor'));
+}
+
+// Update showTotalExpensesPopup to accept filtered details
+function showTotalExpensesPopup(mode, filteredDetails) {
+  const filteredExpenses = filteredDetails.filter(expense => {
+    if (mode === 'all') return true;
+    return expense.mode.toLowerCase() === mode.toLowerCase();
+  });
+
+  if (filteredExpenses.length === 0) {
+    Swal.fire({
+      title: mode === 'all' ? 'Total Expenses' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Expenses`,
+      html: '<p>No expenses found</p>',
+      width: 500,
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        container: 'kitty-breakdown-popup',
+        popup: 'kitty-breakdown-popup',
+        content: 'kitty-breakdown-content'
+      }
+    });
+    return;
+  }
+
+  // Calculate totals for the filtered expenses
+  const totalBaseAmount = filteredExpenses.reduce((sum, e) => sum + e.baseAmount, 0);
+  const totalGST = filteredExpenses.reduce((sum, e) => sum + e.gstAmount, 0);
+  const totalAmount = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+  let html = `<div style="padding:0.5em 0;">
+    <div style="margin-bottom: 1em; padding: 0.5em; background: #f8f9fa; border-radius: 4px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5em;">
+        <span style="font-weight: 600;">Total Base Amount:</span>
+        <span style="font-weight: 600;">${formatCurrency(totalBaseAmount)}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5em;">
+        <span style="font-weight: 600;">Total GST:</span>
+        <span style="font-weight: 600;">${formatCurrency(totalGST)}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="font-weight: 600;">Total Amount (including GST):</span>
+        <span style="font-weight: 600;">${formatCurrency(totalAmount)}</span>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:separate;border-spacing:0 8px;">
+      <thead>
+        <tr style="background:#f8f9fa;color:#495057;font-size:1em;">
+          <th style="text-align:center;padding:6px 8px;">#</th>
+          <th style="text-align:center;padding:6px 8px;">Description</th>
+          <th style="text-align:center;padding:6px 8px;">Date</th>
+          <th style="text-align:center;padding:6px 8px;">Submitted By</th>
+          <th style="text-align:center;padding:6px 8px;">Bill No.</th>
+          <th style="text-align:center;padding:6px 8px;">Base Amount</th>
+          <th style="text-align:center;padding:6px 8px;">GST %</th>
+          <th style="text-align:center;padding:6px 8px;">GST Amount</th>
+          <th style="text-align:center;padding:6px 8px;">Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  
+  filteredExpenses.forEach((expense, i) => {
+    html += `<tr style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+      <td style="padding:6px 8px;font-weight:600;color:#d01f2f;">${i+1}</td>
+      <td style="padding:6px 8px;font-weight:600;">${expense.description}</td>
+      <td style="padding:6px 8px;">${expense.date}</td>
+      <td style="padding:6px 8px;">${expense.submittedBy}</td>
+      <td style="padding:6px 8px;">${expense.billNo}</td>
+      <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.baseAmount)}</td>
+      <td style="padding:6px 8px;text-align:right;">${expense.gstPercentage || '-'}</td>
+      <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.gstAmount)}</td>
+      <td style="padding:6px 8px;text-align:right;font-weight:600;">${formatCurrency(expense.amount)}</td>
+    </tr>`;
+  });
+  
+  html += `</tbody></table></div>`;
+
+  Swal.fire({
+    title: mode === 'all' ? 'Total Expenses' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Expenses`,
+    html,
+    width: 1200,
+    showCloseButton: true,
+    showConfirmButton: false,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    }
+  });
 }
 
 // Add this function at the top level of your file
@@ -1340,18 +1622,18 @@ function showPendingExpensesPopup(mode) {
     `;
 
     // Add click handlers for total expenses
-    expenseElement.addEventListener('click', () => showTotalExpensesPopup('all'));
-    document.getElementById('expense-cash-breakdown').addEventListener('click', () => showTotalExpensesPopup('cash'));
-    document.getElementById('expense-online-breakdown').addEventListener('click', () => showTotalExpensesPopup('online'));
+    expenseElement.addEventListener('click', () => showTotalExpensesPopup('all', paidExpenseDetails));
+    document.getElementById('expense-cash-breakdown').addEventListener('click', () => showTotalExpensesPopup('cash', paidExpenseDetails));
+    document.getElementById('expense-online-breakdown').addEventListener('click', () => showTotalExpensesPopup('online', paidExpenseDetails));
 
     // Add function to show total expenses popup
-    function showTotalExpensesPopup(mode) {
-      const filteredDetails = paidExpenseDetails.filter(expense => {
+    function showTotalExpensesPopup(mode, filteredDetails) {
+      const filteredExpenses = filteredDetails.filter(expense => {
         if (mode === 'all') return true;
         return expense.mode.toLowerCase() === mode.toLowerCase();
       });
 
-      if (filteredDetails.length === 0) {
+      if (filteredExpenses.length === 0) {
         Swal.fire({
           title: mode === 'all' ? 'Total Expenses' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Expenses`,
           html: '<p>No expenses found</p>',
@@ -1368,9 +1650,9 @@ function showPendingExpensesPopup(mode) {
       }
 
       // Calculate totals for the filtered expenses
-      const totalBaseAmount = filteredDetails.reduce((sum, e) => sum + e.baseAmount, 0);
-      const totalGST = filteredDetails.reduce((sum, e) => sum + e.gstAmount, 0);
-      const totalAmount = filteredDetails.reduce((sum, e) => sum + e.amount, 0);
+      const totalBaseAmount = filteredExpenses.reduce((sum, e) => sum + e.baseAmount, 0);
+      const totalGST = filteredExpenses.reduce((sum, e) => sum + e.gstAmount, 0);
+      const totalAmount = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
 
       let html = `<div style="padding:0.5em 0;">
         <div style="margin-bottom: 1em; padding: 0.5em; background: #f8f9fa; border-radius: 4px;">
@@ -1403,13 +1685,13 @@ function showPendingExpensesPopup(mode) {
           </thead>
           <tbody>`;
       
-      filteredDetails.forEach((expense, i) => {
+      filteredExpenses.forEach((expense, i) => {
         html += `<tr style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);">
           <td style="padding:6px 8px;font-weight:600;color:#d01f2f;">${i+1}</td>
           <td style="padding:6px 8px;font-weight:600;">${expense.description}</td>
-          <td style="padding:6px 8px;">${formatDate(expense.date)}</td>
+          <td style="padding:6px 8px;">${expense.date}</td>
           <td style="padding:6px 8px;">${expense.submittedBy}</td>
-          <td style="padding:6px 8px;">${expense.billNo || '-'}</td>
+          <td style="padding:6px 8px;">${expense.billNo}</td>
           <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.baseAmount)}</td>
           <td style="padding:6px 8px;text-align:right;">${expense.gstPercentage || '-'}</td>
           <td style="padding:6px 8px;text-align:right;">${formatCurrency(expense.gstAmount)}</td>
