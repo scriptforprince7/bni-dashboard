@@ -170,7 +170,30 @@ async function fetchMemberWiseKitty() {
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.chapterName}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.memberName}</strong></td>
-              <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(member.pendingAmount)}</strong></td>
+              <td style="border: 1px solid lightgrey; text-align: center;">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <strong>₹ ${formatInIndianStyle(member.pendingAmount)}</strong>
+    <span 
+      onclick="sendReminder(${member.memberId}, event)" 
+      style="
+        color: #00b894;
+        font-size: 0.8rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      "
+      onmouseover="this.style.color='#00a884';this.style.textDecoration='underline'"
+      onmouseout="this.style.color='#00b894';this.style.textDecoration='none'"
+    >
+      <i class="ri-notification-3-line" style="font-size: 0.9rem;"></i>
+      Remind
+    </span>
+  </div>
+</td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.lastPayment ? '₹ ' + formatInIndianStyle(member.lastPayment) : '-'}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(member.totalPaid)}</strong></td>
               <td style="border: 1px solid lightgrey; text-align: center;"><strong>₹ ${formatInIndianStyle(member.creditAmount)}</strong></td>
@@ -552,3 +575,167 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+async function sendReminder(memberId, event) {
+  // Store the element reference at the start
+  const reminderElement = event.currentTarget;
+  
+  try {
+    // Show loading state
+    const originalContent = reminderElement.innerHTML;
+    reminderElement.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Sending...';
+    reminderElement.style.pointerEvents = 'none'; // Disable clicking while sending
+
+    // Call the API
+    const response = await fetch('https://backend.bninewdelhi.com/api/sendKittyReminder', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ member_id: memberId })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Show success message
+      Swal.fire({
+        title: 'Reminder Sent!',
+        text: 'Payment reminder has been sent successfully.',
+        icon: 'success',
+        confirmButtonColor: '#00b894',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } else {
+      throw new Error(data.message || 'Failed to send reminder');
+    }
+
+  } catch (error) {
+    console.error('Error sending reminder:', error);
+    // Show error message
+    Swal.fire({
+      title: 'Error!',
+      text: error.message || 'Failed to send reminder. Please try again.',
+      icon: 'error',
+      confirmButtonColor: '#00b894'
+    });
+  } finally {
+    // Use the stored element reference instead of accessing event.currentTarget
+    reminderElement.innerHTML = `
+      <i class="ri-notification-3-line" style="font-size: 0.9rem;"></i>
+      Remind
+    `;
+    reminderElement.style.pointerEvents = 'auto'; // Re-enable clicking
+  }
+}
+
+// Add event listener for the send reminder to all button
+document.addEventListener('DOMContentLoaded', function() {
+  const sendReminderBtn = document.getElementById('send-reminder-btn');
+  if (sendReminderBtn) {
+    sendReminderBtn.addEventListener('click', async function() {
+      try {
+        // Get all member IDs from the table
+        const tableRows = document.querySelectorAll('#paymentsTableBody tr');
+        const memberIds = Array.from(tableRows).map(row => {
+          // The member ID is stored in the onclick attribute of the remind button
+          const remindButton = row.querySelector('[onclick^="sendReminder"]');
+          if (remindButton) {
+            const match = remindButton.getAttribute('onclick').match(/sendReminder\((\d+)/);
+            return match ? parseInt(match[1]) : null;
+          }
+          return null;
+        }).filter(id => id !== null);
+
+        if (memberIds.length === 0) {
+          Swal.fire({
+            title: 'No Members Found',
+            text: 'There are no members to send reminders to.',
+            icon: 'warning',
+            confirmButtonColor: '#dc3545'
+          });
+          return;
+        }
+
+        // Show confirmation dialog
+        const result = await Swal.fire({
+          title: 'Send Reminders to All?',
+          text: `Are you sure you want to send reminders to ${memberIds.length} members?`,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Yes, send reminders',
+          cancelButtonText: 'Cancel'
+        });
+
+        if (result.isConfirmed) {
+          // Show loading state
+          const originalContent = this.innerHTML;
+          this.innerHTML = '<i class="ti ti-loader-2 animate-spin me-1"></i>Sending...';
+          this.disabled = true;
+
+          // Call the API
+          const response = await fetch('https://backend.bninewdelhi.com/api/sendKittyReminderToAll', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ member_ids: memberIds })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Show success message with details
+            const successfulReminders = data.results.filter(r => r.success);
+            const failedReminders = data.results.filter(r => !r.success);
+            
+            // Group failed reminders by reason
+            const failureReasons = failedReminders.reduce((acc, curr) => {
+              const reason = curr.message || 'Unknown reason';
+              acc[reason] = (acc[reason] || 0) + 1;
+              return acc;
+            }, {});
+
+            // Create detailed failure message
+            const failureDetails = Object.entries(failureReasons)
+              .map(([reason, count]) => `<li>❌ ${count} failed: ${reason}</li>`)
+              .join('');
+
+            Swal.fire({
+              title: 'Reminders Sent!',
+              html: `
+                <div style="text-align: left;">
+                  <p>Processed ${memberIds.length} reminders:</p>
+                  <ul style="list-style: none; padding-left: 0;">
+                    <li>✅ ${successfulReminders.length} successful</li>
+                    ${failureDetails}
+                  </ul>
+                </div>
+              `,
+              icon: 'success',
+              confirmButtonColor: '#dc3545',
+              width: '600px'
+            });
+          } else {
+            throw new Error(data.message || 'Failed to send reminders');
+          }
+        }
+      } catch (error) {
+        console.error('Error sending reminders:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: error.message || 'Failed to send reminders. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      } finally {
+        // Reset button state
+        this.innerHTML = '<i class="ti ti-bell-ringing me-1"></i>Send Reminder to All';
+        this.disabled = false;
+      }
+    });
+  }
+});
