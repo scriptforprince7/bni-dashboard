@@ -189,16 +189,54 @@ const amountInWords = formatAmount(invoiceData.amount);
 console.log(invoiceData);
 // Calculate base amount
 const baseAmount = orderAmount - taxAmount;
-const invoiceDate = ackDate;
-const formattedDate = invoiceDate 
-  ? `${invoiceDate.getDate().toString().padStart(2, '0')}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}-${invoiceDate.getFullYear()}`
-  : "N/A";
+let invoiceDate = ackDate;
+
+// Function to fetch payment time from transactions API
+async function fetchPaymentTime(orderId) {
+    try {
+        const response = await fetch("https://backend.bninewdelhi.com/api/alltransactions");
+        const transactions = await response.json();
+        const transaction = transactions.find(t => t.order_id === orderId);
+        if (transaction && transaction.payment_time) {
+            return new Date(transaction.payment_time);
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching payment time:", error);
+        return null;
+    }
+}
+
+// Use IIFE to handle async operation
+(async () => {
+    if (!invoiceDate) {
+        invoiceDate = await fetchPaymentTime(invoiceData.orderId.order_id);
+    }
+    const formattedDate = invoiceDate 
+        ? `${invoiceDate.getDate().toString().padStart(2, '0')}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}-${invoiceDate.getFullYear()}`
+        : "N/A";
+    
+    document.querySelector(".invoice_date").textContent = formattedDate;
+})();
+
 // Populate each field
-document.querySelector(".irn_number").textContent = einvoiceData.irn || "N/A";
-document.querySelector(".ack_no").textContent = einvoiceData.ack_no || "N/A";
-document.querySelector(".ack_date").textContent = ackDate 
-  ? `${ackDate.getDate().toString().padStart(2, '0')}-${(ackDate.getMonth() + 1).toString().padStart(2, '0')}-${ackDate.getFullYear().toString().slice(-2)}` 
-  : "N/A";
+if (einvoiceData.irn === null || einvoiceData.irn === undefined) {
+    document.querySelector(".irn_number").parentElement.style.display = "none";
+} else {
+    document.querySelector(".irn_number").textContent = einvoiceData.irn;
+}
+
+if (einvoiceData.ack_no === null || einvoiceData.ack_no === undefined) {
+    document.querySelector(".ack_no").parentElement.style.display = "none";
+} else {
+    document.querySelector(".ack_no").textContent = einvoiceData.ack_no;
+}
+
+if (ackDate === null || ackDate === undefined) {
+    document.querySelector(".ack_date").parentElement.style.display = "none";
+} else {
+    document.querySelector(".ack_date").textContent = `${ackDate.getDate().toString().padStart(2, '0')}-${(ackDate.getMonth() + 1).toString().padStart(2, '0')}-${ackDate.getFullYear().toString().slice(-2)}`;
+}
   fetch(apiUrl)
 .then((response) => response.json())
 .then(async (data) => {
@@ -287,24 +325,27 @@ document.querySelector(".buyer_phone").innerHTML = `${invoiceData.orderId.custom
 // document.querySelector(".payment_time").innerHTML = `${invoiceData.transactionId.payment_time || "N/A"}`;
 document.querySelector(".bill_to_name").innerHTML = `<strong>${invoiceData.orderId.member_name || "N/A"}</strong>`;
 document.querySelector(".bill_to_gst").textContent = invoiceData.orderId.gstin || "N/A";
-document.querySelector(".invoice_date").textContent = formattedDate;
 document.querySelector(".grand_total").innerHTML = `<b>₹ ${invoiceData.amount || 0}</b>`;
 document.querySelector(".amount_in_words").innerHTML = `<b><i>${amountInWords || "N/A"}</i></b>`;
 const qrCodeData = einvoiceData.qrcode;
 // Generate the QR code and set it as an image
-QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
-if (err) {
-  console.error('Error generating QR Code:', err);
-  document.querySelector(".qr_code").src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAMqZnH06aHaLByvcc_8rX1901i-KaLmbYrA&s"; // Fallback image in case of error
+if (einvoiceData.irn === null || einvoiceData.irn === undefined) {
+    document.querySelector(".qr_code").parentElement.style.display = "none";
 } else {
-  // Display the generated QR code by setting the image src to the generated URL
-  document.querySelector(".qr_code").src = url;
-  
-  // Optionally, store the QR code URL in localStorage if you want to cache it
-  const qrCodeKey = `qrCode_${einvoiceData.orderId}`; // Unique key for this QR code
-  localStorage.setItem(qrCodeKey, url);
+    QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+        if (err) {
+            console.error('Error generating QR Code:', err);
+            document.querySelector(".qr_code").parentElement.style.display = "none";
+        } else {
+            // Display the generated QR code by setting the image src to the generated URL
+            document.querySelector(".qr_code").src = url;
+            
+            // Optionally, store the QR code URL in localStorage if you want to cache it
+            const qrCodeKey = `qrCode_${einvoiceData.orderId}`; // Unique key for this QR code
+            localStorage.setItem(qrCodeKey, url);
+        }
+    });
 }
-});
 
 // Fetch document numbers and update invoice number
 async function fetchAndUpdateInvoiceNumber(orderId) {
