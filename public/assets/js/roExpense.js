@@ -326,6 +326,66 @@ function displayExpenses(expenses) {
       <td style="border: 1px solid grey;"><b>${expense.submitted_by}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.description}</b></td>
       <td style="border: 1px solid grey;"><b>₹ ${expense.amount}</b></td>
+      <td style="border: 1px solid grey;"><b>₹ ${expense.gst_amount || 0}</b></td>
+      <td style="border: 1px solid grey;"><b>₹ ${expense.total_amount}</b></td>
+      <td style="border: 1px solid grey;">
+        ${expense.tds_process ? `
+          <button class="btn btn-success btn-sm view-tds-btn" 
+                  data-expense-id="${expense.expense_id}"
+                  data-tds-section="${expense.tds_section_list}"
+                  data-tds-type="${expense.tds_type}"
+                  data-tds-percentage="${expense.tds_percentage}"
+                  data-tds-amount="${expense.tds_amount}"
+                  data-ca-comment="${expense.ca_comment}"
+                  data-final-amount="${expense.final_amount}"
+                  style="background: linear-gradient(45deg, #4CAF50, #45a049);
+                         border: none;
+                         border-radius: 20px;
+                         padding: 8px 16px;
+                         color: white;
+                         font-weight: 500;
+                         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                         transition: all 0.3s ease;
+                         display: flex;
+                         align-items: center;
+                         gap: 5px;">
+            <i class="ri-eye-line"></i>
+            View TDS Details
+          </button>
+        ` : `
+          <button class="btn btn-primary btn-sm add-tds-btn" 
+                  data-expense-id="${expense.expense_id}"
+                  data-amount="${expense.amount}"
+                  data-gst-amount="${expense.gst_amount}"
+                  style="background: linear-gradient(45deg, #2196F3, #1976D2);
+                         border: none;
+                         border-radius: 20px;
+                         padding: 8px 16px;
+                         color: white;
+                         font-weight: 500;
+                         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                         transition: all 0.3s ease;
+                         display: flex;
+                         align-items: center;
+                         gap: 5px;">
+            <i class="ri-add-circle-line"></i>
+            Add TDS Detail
+          </button>
+        `}
+      </td>
+      <td style="border: 1px solid grey;">
+        <div style="background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 100%);
+                    padding: 6px;
+                    border-radius: 6px;
+                    border: 2px solid #e0e0e0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    text-align: center;">
+          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">Final Amount</div>
+          <div style="font-size: 16px; font-weight: 700; color: #1976D2;">
+            ₹ ${expense.final_amount || expense.total_amount}
+          </div>
+        </div>
+      </td>
       <td style="border: 1px solid grey;">
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
@@ -507,6 +567,14 @@ const sortByColumn = (columnName) => {
         valueA = parseFloat(a.amount);
         valueB = parseFloat(b.amount);
         break;
+      case 'gst_amount':
+        valueA = parseFloat(a.gst_amount || 0);
+        valueB = parseFloat(b.gst_amount || 0);
+        break;
+      case 'total_amount':
+        valueA = parseFloat(a.total_amount || 0);
+        valueB = parseFloat(b.total_amount || 0);
+        break;
       case 'payment_status':
         valueA = a.payment_status.toLowerCase();
         valueB = b.payment_status.toLowerCase();
@@ -514,6 +582,10 @@ const sortByColumn = (columnName) => {
       case 'bill_date':
         valueA = new Date(a.bill_date);
         valueB = new Date(b.bill_date);
+        break;
+      case 'final_payable':
+        valueA = parseFloat(a.total_amount || 0);
+        valueB = parseFloat(b.total_amount || 0);
         break;
       default:
         return 0;
@@ -554,4 +626,525 @@ document.addEventListener('DOMContentLoaded', () => {
       sortByColumn(columnName);
     });
   });
+});
+
+// Add this after the displayExpenses function
+document.addEventListener('click', async (event) => {
+  if (event.target.closest('.add-tds-btn')) {
+    const button = event.target.closest('.add-tds-btn');
+    const expenseId = button.getAttribute('data-expense-id');
+
+    const { value: formValues } = await Swal.fire({
+      title: `
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <i class="ri-money-dollar-circle-line" style="font-size: 24px; color: #1976D2;"></i>
+          <h2 style="color: #1976D2; font-weight: 600; margin: 0;">TDS Details</h2>
+        </div>
+      `,
+      html: `
+        <div style="text-align: left; margin-top: 0; background: #f8f9fa; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <label for="tdsSection" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+              <i class="ri-file-list-3-line" style="color: #1976D2; margin-right: 8px;"></i>
+              TDS Section List
+            </label>
+            <select id="tdsSection" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+              <option value="">Select TDS Section</option>
+              <option value="194C">194C</option>
+              <option value="194H">194H</option>
+              <option value="194I">194I</option>
+              <option value="194J">194J</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <label for="tdsType" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+              <i class="ri-user-settings-line" style="color: #1976D2; margin-right: 8px;"></i>
+              Individual/Others
+            </label>
+            <select id="tdsType" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+              <option value="">Select Type</option>
+              <option value="individual">Individual</option>
+              <option value="others">Others</option>
+            </select>
+          </div>
+
+          <div id="tdsPercentageSection" style="display: none; margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <label for="tdsPercentage" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+              <i class="ri-percent-line" style="color: #1976D2; margin-right: 8px;"></i>
+              TDS Percentage
+            </label>
+            <select id="tdsPercentage" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+              <option value="">Select Percentage</option>
+            </select>
+          </div>
+
+          <div id="commentSection" style="margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <label for="tdsComment" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+              <i class="ri-message-2-line" style="color: #1976D2; margin-right: 8px;"></i>
+              Add Comment
+            </label>
+            <textarea id="tdsComment" class="form-control" 
+                      style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; font-size: 15px; background-color: #f8f9fa;"
+                      placeholder="Enter your comment here..."></textarea>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="ri-check-line"></i>
+          Submit
+        </div>
+      `,
+      cancelButtonText: `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="ri-close-line"></i>
+          Cancel
+        </div>
+      `,
+      confirmButtonColor: '#1976D2',
+      cancelButtonColor: '#6c757d',
+      customClass: {
+        popup: 'animated fadeInDown',
+        confirmButton: 'btn btn-primary',
+        cancelButton: 'btn btn-secondary',
+        title: 'swal2-title-custom',
+        htmlContainer: 'swal2-html-container-custom'
+      },
+      didOpen: () => {
+        const tdsSection = document.getElementById('tdsSection');
+        const tdsType = document.getElementById('tdsType');
+        const tdsPercentageSection = document.getElementById('tdsPercentageSection');
+        const tdsPercentage = document.getElementById('tdsPercentage');
+
+        const updateTdsPercentage = () => {
+          const section = tdsSection.value;
+          const type = tdsType.value;
+          
+          if (!section || !type) {
+            tdsPercentageSection.style.display = 'none';
+            return;
+          }
+
+          tdsPercentageSection.style.display = 'block';
+          tdsPercentage.innerHTML = '<option value="">Select Percentage</option>';
+
+          if (section === '194C') {
+            if (type === 'individual') {
+              tdsPercentage.innerHTML += '<option value="1">1%</option>';
+            } else {
+              tdsPercentage.innerHTML += '<option value="2">2%</option>';
+            }
+          } else if (section === '194H') {
+            tdsPercentage.innerHTML += '<option value="2">2%</option>';
+          } else if (section === '194I') {
+            tdsPercentage.innerHTML += `
+              <option value="2">2%</option>
+              <option value="10">10%</option>
+            `;
+          } else if (section === '194J') {
+            tdsPercentage.innerHTML += '<option value="10">10%</option>';
+          }
+        };
+
+        tdsSection.addEventListener('change', updateTdsPercentage);
+        tdsType.addEventListener('change', updateTdsPercentage);
+      },
+      preConfirm: () => {
+        const tdsSection = document.getElementById('tdsSection').value;
+        const tdsType = document.getElementById('tdsType').value;
+        const tdsPercentage = document.getElementById('tdsPercentage').value;
+        const comment = document.getElementById('tdsComment').value;
+
+        if (!tdsSection) {
+          Swal.showValidationMessage('Please select a TDS Section');
+          return false;
+        }
+
+        if (!tdsType) {
+          Swal.showValidationMessage('Please select Individual/Others');
+          return false;
+        }
+
+        if (!tdsPercentage) {
+          Swal.showValidationMessage('Please select TDS Percentage');
+          return false;
+        }
+
+        // Get the clicked button instead of querying all buttons
+        const clickedButton = event.target.closest('.add-tds-btn');
+        const baseAmount = parseFloat(clickedButton.getAttribute('data-amount'));
+        const gstAmount = parseFloat(clickedButton.getAttribute('data-gst-amount')) || 0;
+        
+        // Calculate TDS amount
+        const tdsAmount = (baseAmount * parseFloat(tdsPercentage)) / 100;
+        
+        // Calculate final amount
+        const finalAmount = Math.round(baseAmount - tdsAmount + gstAmount);
+
+        // Log calculations
+        console.log('TDS Calculations:', {
+          'Base Amount': baseAmount,
+          'TDS Percentage': tdsPercentage,
+          'TDS Amount': tdsAmount,
+          'GST Amount': gstAmount,
+          'Final Amount': finalAmount
+        });
+
+        return {
+          tdsSection,
+          tdsType,
+          tdsPercentage,
+          comment,
+          tdsAmount,
+          finalAmount
+        };
+      }
+    });
+
+    if (formValues) {
+      await handleTdsSubmit(expenseId, formValues);
+    }
+  }
+});
+
+// Add this after your existing SweetAlert form code
+const handleTdsSubmit = async (expenseId, formData) => {
+  try {
+    const requestData = {
+      expense_id: expenseId,
+      tds_percentage: formData.tdsPercentage,
+      tds_amount: formData.tdsAmount,
+      tds_process: true,
+      ca_comment: formData.comment,
+      final_amount: formData.finalAmount,
+      tds_section_list: formData.tdsSection,
+      tds_type: formData.tdsType
+    };
+
+    // Show confirmation SweetAlert with details
+    const result = await Swal.fire({
+      title: `
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+          <i class="ri-file-list-3-line" style="font-size: 28px; color: #4CAF50;"></i>
+          <h2 style="color: #4CAF50; font-weight: 600; margin: 0;">TDS Details</h2>
+        </div>
+      `,
+      html: `
+        <div style="text-align: left; padding: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-file-list-3-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Section</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${formData.tdsSection}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-user-settings-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Type</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${formData.tdsType}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-percent-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Percentage</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${formData.tdsPercentage}%</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-money-dollar-circle-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Amount</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">₹${formData.tdsAmount}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-message-2-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">CA Comment</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${formData.comment || 'No comment'}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 0; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-calculator-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">Final Amount</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">₹${formData.finalAmount}</div>
+            </div>
+          </div>
+        </div>
+      `,
+      showConfirmButton: true,
+      confirmButtonText: `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <i class="ri-check-line"></i>
+          Close
+        </div>
+      `,
+      confirmButtonColor: '#4CAF50',
+      customClass: {
+        popup: 'animated fadeInDown',
+        title: 'swal2-title-custom',
+        htmlContainer: 'swal2-html-container-custom',
+        confirmButton: 'btn btn-success'
+      },
+      didOpen: () => {
+        // Add hover effect to each detail box
+        const detailBoxes = document.querySelectorAll('.swal2-html-container > div > div');
+        detailBoxes.forEach(box => {
+          box.addEventListener('mouseover', () => {
+            box.style.transform = 'translateY(-2px)';
+            box.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+          });
+          box.addEventListener('mouseout', () => {
+            box.style.transform = 'translateY(0)';
+            box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+          });
+        });
+      }
+    });
+
+    if (result.isConfirmed) {
+      console.log('Request Data to be sent:', requestData);
+      
+      
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Swal.fire({
+          title: "Success!",
+          text: "TDS details updated successfully",
+          icon: "success",
+          confirmButtonText: "OK"
+        }).then(() => {
+          fetchExpenses();
+        });
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: data.message || "Failed to update TDS details",
+          icon: "error",
+          confirmButtonText: "OK"
+        });
+      }
+      
+    }
+
+  } catch (error) {
+    console.error('Error in TDS calculations:', error);
+    Swal.fire({
+      title: "Error!",
+      text: "Failed to calculate TDS details",
+      icon: "error",
+      confirmButtonText: "OK"
+    });
+  }
+};
+
+// Enhanced CSS styles
+const style = document.createElement('style');
+style.textContent = `
+  .swal2-popup {
+    border-radius: 15px !important;
+    padding: 1.5rem !important;
+    background: #ffffff !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+  }
+  
+  .swal2-title {
+    margin-bottom: 0.5rem !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .swal2-html-container {
+    margin-top: 0.5rem !important;
+  }
+  
+  .form-check-input:checked {
+    background-color: #1976D2 !important;
+    border-color: #1976D2 !important;
+  }
+  
+  .form-select:focus, .form-control:focus {
+    border-color: #1976D2 !important;
+    box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25) !important;
+  }
+  
+  .swal2-confirm, .swal2-cancel {
+    padding: 12px 30px !important;
+    font-weight: 500 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .swal2-confirm:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.2) !important;
+  }
+  
+  .swal2-cancel:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.2) !important;
+  }
+  
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -20px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animated {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+  }
+  
+  .fadeInDown {
+    animation-name: fadeInDown;
+  }
+  
+  .swal2-title-custom {
+    font-size: 1.5rem !important;
+    color: #1976D2 !important;
+  }
+  
+  .swal2-html-container-custom {
+    margin: 1rem 0 !important;
+  }
+  
+  .form-select, .form-control {
+    transition: all 0.3s ease !important;
+  }
+  
+  .form-select:hover, .form-control:hover {
+    border-color: #1976D2 !important;
+  }
+`;
+document.head.appendChild(style);
+
+// Add event listener for View TDS Details button
+document.addEventListener('click', function(event) {
+  if (event.target.closest('.view-tds-btn')) {
+    console.log('View TDS Details button clicked');
+    const button = event.target.closest('.view-tds-btn');
+    
+    Swal.fire({
+      title: `
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+          <i class="ri-file-list-3-line" style="font-size: 28px; color: #4CAF50;"></i>
+          <h2 style="color: #4CAF50; font-weight: 600; margin: 0;">TDS Details</h2>
+        </div>
+      `,
+      html: `
+        <div style="text-align: left; padding: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-file-list-3-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Section</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-section')}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-user-settings-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Type</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-type')}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-percent-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Percentage</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-percentage')}%</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-money-dollar-circle-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Amount</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">₹${button.getAttribute('data-tds-amount')}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-message-2-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">CA Comment</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-ca-comment') || 'No comment'}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; margin-bottom: 0; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+            <i class="ri-calculator-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+            <div>
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">Final Amount</div>
+              <div style="font-weight: 600; color: #333; font-size: 14px;">₹${button.getAttribute('data-final-amount')}</div>
+            </div>
+          </div>
+        </div>
+      `,
+      showConfirmButton: true,
+      confirmButtonText: `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <i class="ri-check-line"></i>
+          Close
+        </div>
+      `,
+      confirmButtonColor: '#4CAF50',
+      customClass: {
+        popup: 'animated fadeInDown',
+        title: 'swal2-title-custom',
+        htmlContainer: 'swal2-html-container-custom',
+        confirmButton: 'btn btn-success'
+      },
+      didOpen: () => {
+        // Add hover effect to each detail box
+        const detailBoxes = document.querySelectorAll('.swal2-html-container > div > div');
+        detailBoxes.forEach(box => {
+          box.addEventListener('mouseover', () => {
+            box.style.transform = 'translateY(-2px)';
+            box.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+          });
+          box.addEventListener('mouseout', () => {
+            box.style.transform = 'translateY(0)';
+            box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+          });
+        });
+      }
+    });
+  }
 });

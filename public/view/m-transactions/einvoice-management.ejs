@@ -1,0 +1,712 @@
+<script src="/assets/js/tokenUtils.js"></script>
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/sidebar') %>
+    <div id="loader">
+      <img src="../../assets/images/media/loader.svg" alt="" />
+    </div>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >E-Invoice Management</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item Approved" aria-current="page">
+                    View All E-Invoices
+                  </li>
+                </ol>
+              </nav>
+
+              <!-- Radio Button Filter Group -->
+              <div class="d-flex justify-content-center mb-4">
+                <div class="btn-group" role="group" aria-label="EOI Status Filter">
+                  <input type="radio" class="btn-check" name="eoi-status" id="all" checked>
+                  <label class="btn btn-outline-primary" for="all" style="border-radius: 20px 0 0 20px;">
+                    View All
+                  </label>
+
+                  <input type="radio" class="btn-check" name="eoi-status" id="ready">
+                  <label class="btn btn-outline-success" for="ready">
+                    GST E-Invoices
+                  </label>
+
+                  <input type="radio" class="btn-check" name="eoi-status" id="maybe">
+                  <label class="btn btn-outline-warning" for="maybe">
+                    Without GST E-Invoices
+                  </label>
+
+                  <input type="radio" class="btn-check" name="eoi-status" id="no">
+                  <label class="btn btn-outline-danger" for="no">
+                    Cash E-Invoices
+                  </label>
+
+                </div>
+              </div>
+
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                Manage E-Invoices
+              </h1>
+            </div>
+            <div class="btn-list">
+                <button id="exportCsvBtn" class="btn btn-primary btn-wave me-0"
+                  style="background-color: #fb3e4eee!important; border: #fb3e4e">
+                    <i class="ri-share-forward-line me-1"></i> Export All
+                    E-Invoices Data
+                </button>
+                <button id="exportJsonBtn" class="btn btn-outline-primary btn-wave me-0" style="margin-left: 8px;">
+                  <i class="ti ti-download me-1"></i> Export JSON
+                </button>
+                <!-- <button id="printSelectedEinvoicesBtn" class="btn btn-success btn-wave me-0" style="margin-left: 8px;">
+                  <i class="ti ti-printer"></i> Print Selected E-Invoices
+                </button> -->
+                <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
+                  Total E-Invoices Generated <br />
+                  <span id="total-visitors-count"><b>0</b></span>
+                </button>
+            </div>
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">All E-Invoices List</div>
+              <div class="d-flex gap-3 align-items-center flex-wrap">
+                <!-- <div class="btn-group"> 
+
+                  <a href="/acc/add-accolades"><button
+                    class="btn btn-outline-light border"
+                    type="button"
+                  >
+                    + Add New Visitor
+                  </button></a>
+                </div> -->
+
+                <!-- Region Filter -->
+                <div class="dropdown me-2">
+                    <a href="javascript:void(0);"
+                       class="btn btn-sm btn-light text-muted dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="true">
+                        <i class="ti ti-map-pin me-1"></i> Region
+                    </a>
+                    <ul class="dropdown-menu" id="region-filter" role="menu">
+                        <!-- Region items will be dynamically inserted here -->
+                    </ul>
+                </div>
+
+                <!-- Chapter Filter -->
+                <div class="dropdown me-2">
+                    <a href="javascript:void(0);"
+                       class="btn btn-sm btn-light text-muted dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="true">
+                        <i class="ti ti-building me-1"></i> Chapter
+                    </a>
+                    <ul class="dropdown-menu" id="chapter-filter" role="menu">
+                        <!-- Chapter items will be dynamically inserted here -->
+                    </ul>
+                </div>
+
+                <!-- Month Filter (existing) -->
+                <div class="dropdown me-2">
+                    <a href="javascript:void(0);"
+                       class="btn btn-sm btn-light text-muted dropdown-toggle"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="true">
+                        <i class="ti ti-calendar me-1"></i> Month
+                    </a>
+                    <ul class="dropdown-menu" id="month-filter" role="menu">
+                        <!-- Month items will be dynamically inserted here -->
+                    </ul>
+                </div>
+  
+                <div class="custom-form-group flex-grow-1">
+                  <input
+                    type="text"
+                    id="searchEinvoice"
+                    class="form-control"
+                    placeholder="Search E-Invoices.."
+                    aria-label="Search E-Invoices"
+                    aria-describedby="button-addon2"
+                  />
+                  <a
+                    href="javascript:void(0);"
+                    class="text-muted custom-form-btn"
+                    ><i class="ti ti-search"></i
+                  ></a>
+                </div>
+                
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap chaptersTableBody"
+                  style="border: 1px solid grey"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col"><input type="checkbox" id="selectAllEinvoices"></th>
+                      <th scope="col">S.No. <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Doc No. <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Member Name <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Chapter Name <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Company Name <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">IRN Generated <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Ack. Date <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Total Bill Amount <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Tax (18%) <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Transaction ID <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">GSTIN <i class="ti ti-arrows-sort"></i></th>
+                    </tr>
+                  </thead>
+                  
+                  <tbody id="einvoiceTableBody">
+                    <!-- No accolades message will be shown here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b>1</b> to <b>10</b> entries
+                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                </div>
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto">
+                    <li class="page-item disabled">
+                      <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item Approved" aria-current="page">
+                      <a class="page-link" href="javascript:void(0)">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script src="../../assets/js/einvoiceManagement.js"></script>
+      
+
+      <%- include('../partials/footer') %> 
+
+<!-- Visitor Details Modal -->
+<div class="modal fade" id="visitorDetailsModal" tabindex="-1" aria-labelledby="visitorDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="visitorDetailsModalLabel">Visitor Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Full Name:</label>
+                            <p id="modal-visitor-name"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Interest Status:</label>
+                            <p id="modal-is-interested"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Region:</label>
+                            <p id="modal-region"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Chapter:</label>
+                            <p id="modal-chapter"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Invited By:</label>
+                            <p id="modal-invited-by"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Visit Date:</label>
+                            <p id="modal-visit-date"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Company Name:</label>
+                            <p id="modal-company-name"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="detail-item">
+                            <label class="fw-bold">Company Address:</label>
+                            <p id="modal-company-address"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">GST Number:</label>
+                            <p id="modal-gstin"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Business:</label>
+                            <p id="modal-business"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Email:</label>
+                            <p id="modal-email"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Phone Number:</label>
+                            <p id="modal-phone"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Best Time to Reach:</label>
+                            <p id="modal-best-time"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">How did you hear about us?</label>
+                            <p id="modal-hear-about"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Previous Member:</label>
+                            <p id="modal-previous-member"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <label class="fw-bold">Experience Rating:</label>
+                            <p id="modal-exp-rating"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Details Modal -->
+<div class="modal fade" id="documentDetailsModal" tabindex="-1" aria-labelledby="documentDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="documentDetailsModalLabel">
+                    <i class="ti ti-file-invoice me-2"></i>
+                    Document Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-3 text-primary">Basic Information</h6>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Document Number</label>
+                                    <p class="mb-0 fw-semibold" id="modal-doc-no"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Company Name</label>
+                                    <p class="mb-0 fw-semibold" id="modal-company"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Member Name</label>
+                                    <p class="mb-0 fw-semibold" id="modal-member-name"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Chapter Name</label>
+                                    <p class="mb-0 fw-semibold" id="modal-chapter-name"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">GSTIN</label>
+                                    <p class="mb-0 fw-semibold" id="modal-gstin"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-3 text-primary">Transaction Details</h6>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Transaction ID</label>
+                                    <p class="mb-0 fw-semibold" id="modal-transaction-id"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Order ID</label>
+                                    <p class="mb-0 fw-semibold" id="modal-order-id"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">IRN</label>
+                                    <p class="mb-0 fw-semibold" id="modal-irn"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Ack. No</label>
+                                    <p class="mb-0 fw-semibold" id="modal-ack-no"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted small">Ack. Date</label>
+                                    <p class="mb-0 fw-semibold" id="modal-ack-date"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- QR Code Section -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <h6 class="card-subtitle mb-3 text-primary">QR Code</h6>
+                                <div id="modal-qr-code" class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+                                    <!-- QR code will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- E-Invoice PDF Modal -->
+<div class="modal fade" id="einvoicePdfModal" tabindex="-1" aria-labelledby="einvoicePdfModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="einvoicePdfModalLabel">E-Invoice PDF</h5>
+        <button type="button" class="btn btn-outline-success btn-sm" id="einvoicePdfPrintBtn" title="Print / Save as PDF" style="margin-right:8px;">
+          <i class="ti ti-printer"></i>
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="einvoicePdfFullscreenBtn" title="Full Screen" style="margin-right:8px;">
+          <i class="ti ti-arrows-maximize"></i>
+        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="height:80vh;">
+        <iframe id="einvoicePdfIframe" src="" width="100%" height="100%" style="border:none;"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+    /* Custom styles for radio buttons */
+    .btn-group {
+        gap: 5px;
+        background: #f8f9fa;
+        padding: 5px;
+        border-radius: 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+       
+    }
+
+    .btn-check + .btn {
+        border: 1.5px solid #6c757d;
+        padding: 8px 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-check:checked + .btn {
+        transform: scale(1.02);
+        font-weight: 500;
+        border-width: 0.8px;
+    }
+
+    .btn-check + .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Custom colors for orange button */
+    .btn-outline-warning {
+        color: #ff6b00 !important; /* Orange color */
+        border-color: #ff6b00 !important;
+    }
+
+    .btn-outline-warning:hover,
+    .btn-check:checked + .btn-outline-warning {
+        background-color: #ff6b00 !important;
+        border-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    /* Override any Bootstrap default warning colors */
+    .btn-outline-warning:not(:disabled):not(.disabled):active,
+    .btn-outline-warning:not(:disabled):not(.disabled).active,
+    .show > .btn-outline-warning.dropdown-toggle {
+        background-color: #ff6b00 !important;
+        border-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    /* Specific hover state override */
+    .btn-outline-warning:hover {
+        background-color: #ff6b00 !important;
+        border-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    /* Custom colors */
+    .btn-outline-primary {
+        color: #d01f2f;
+        border-color: #d01f2f;
+    }
+
+    .btn-outline-primary:hover,
+    .btn-check:checked + .btn-outline-primary {
+        background-color: #d01f2f;
+        border-color: #d01f2f;
+        color: white;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .btn-check + .btn {
+            border-radius: 15px !important;
+            margin: 2px 0;
+        }
+    }
+
+    /* Table styling with vertical lines */
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .table th, 
+    .table td {
+        border-right: 1px solid #e2e8f0;  /* Vertical lines */
+        border-left: 1px solid #e2e8f0;   /* Vertical lines */
+        padding: 12px;
+    }
+
+    .table th {
+        background-color: #f8fafc;
+        font-weight: 600;
+    }
+
+    .table tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Remove double borders */
+    .table th:first-child,
+    .table td:first-child {
+        border-left: none;
+    }
+
+    .table th:last-child,
+    .table td:last-child {
+        border-right: none;
+    }
+
+    /* Modal Styles */
+    .detail-item {
+        margin-bottom: 15px;
+    }
+
+    .detail-item label {
+        color: #666;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .detail-item p {
+        margin: 0;
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+    }
+
+    #visitorDetailsModal .modal-content {
+        border-radius: 15px;
+    }
+
+    #visitorDetailsModal .modal-header {
+        border-radius: 15px 15px 0 0;
+        background-color: #d01f2f;
+        color: white;
+    }
+
+    #visitorDetailsModal .btn-close {
+        color: white;
+        filter: brightness(0) invert(1);
+    }
+
+    #visitorDetailsModal .modal-body {
+        padding: 20px;
+    }
+
+    #visitorDetailsModal .modal-footer {
+        border-radius: 0 0 15px 15px;
+    }
+
+    /* Document Details Modal Styles */
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+        border-radius: 15px 15px 0 0;
+        padding: 1.5rem;
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        border-radius: 0 0 15px 15px;
+        padding: 1rem 1.5rem;
+    }
+
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Clickable document number style */
+    .clickable-doc {
+        color: #d01f2f !important;
+        background: #fde4e1;
+        cursor: pointer;
+        text-decoration: none;
+        padding: 3px 12px;
+        border-radius: 999px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        border: 1px solid #f8cfc7;
+        box-shadow: 0 1px 3px rgba(208,31,47,0.06);
+        transition: transform 0.14s cubic-bezier(.4,2,.6,1), box-shadow 0.14s cubic-bezier(.4,2,.6,1), background 0.14s, color 0.14s;
+        display: inline-block;
+        letter-spacing: 0.2px;
+    }
+    .clickable-doc:hover, .clickable-doc:focus {
+        background: #fbb8b0;
+        color: #a81b23 !important;
+        transform: scale(1.04) translateY(-1px);
+        box-shadow: 0 2px 8px rgba(208,31,47,0.10);
+        text-decoration: none;
+        outline: none;
+        border-color: #fbb8b0;
+    }
+
+    /* Animation for modal */
+    .modal.fade .modal-dialog {
+        transform: scale(0.8);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .modal.show .modal-dialog {
+        transform: scale(1);
+    }
+
+    /* QR Code container */
+    #modal-qr-code {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+    }
+
+    #modal-qr-code img {
+        max-width: 200px;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Label styles */
+    .text-muted.small {
+        font-size: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .fw-semibold {
+        font-weight: 600;
+    }
+</style> 

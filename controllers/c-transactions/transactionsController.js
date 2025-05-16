@@ -68,6 +68,10 @@ exports.manageUpcomingMembers = (req, res) => {
     res.render('m-visitor/manage-upcoming-members', { title: 'Manage Upcoming Members' });
 };
 
+exports.einvoiceManagement = (req, res) => {
+    res.render('m-transactions/einvoice-management', { title: 'E-Invoice Management' });
+};
+
 
 
 
