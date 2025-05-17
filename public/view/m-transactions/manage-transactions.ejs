@@ -786,7 +786,7 @@
   async function fetchAllUniversalLinks() {
     try {
       const response = await fetch(
-        "https://backend.bninewdelhi.com/api/universalLinks"
+        "http://localhost:5000/api/universalLinks"
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -826,7 +826,7 @@
       // Make an API request to fetch all transactions
 
       const response = await fetch(
-        "https://backend.bninewdelhi.com/api/allTransactions"
+        "http://localhost:5000/api/allTransactions"
       );
 
       // Check if the response is successful (status 200)
@@ -852,7 +852,7 @@
     try {
       // Make an API request to fetch all transactions
       const response = await fetch(
-        "https://backend.bninewdelhi.com/api/allOrders"
+        "http://localhost:5000/api/allOrders"
       );
 
       // Check if the response is successful (status 200)
@@ -878,7 +878,7 @@
     try {
       // Make an API request to fetch all transactions
       const response = await fetch(
-        "https://backend.bninewdelhi.com/api/paymentGateway"
+        "http://localhost:5000/api/paymentGateway"
       );
 
       // Check if the response is successful (status 200)
@@ -903,7 +903,7 @@
     try {
       // Make an API request to fetch all transactions
       const response = await fetch(
-        "https://backend.bninewdelhi.com/api/chapters"
+        "http://localhost:5000/api/chapters"
       );
 
       // Check if the response is successful (status 200)
@@ -955,7 +955,7 @@
         // Make an API request to fetch all transactions
 
         const response = await fetch(
-          "https://backend.bninewdelhi.com/api/allTransactions"
+          "http://localhost:5000/api/allTransactions"
         );
 
         // Check if the response is successful (status 200)

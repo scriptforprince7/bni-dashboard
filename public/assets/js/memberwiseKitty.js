@@ -38,13 +38,13 @@ async function fetchMemberWiseKitty() {
     });
 
     const [orders, transactions, bankOrders, activeBill, members, credits, chapters] = await Promise.all([
-      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json())
+      fetch('http://localhost:5000/api/allOrders').then(res => res.json()),
+      fetch('http://localhost:5000/api/allTransactions').then(res => res.json()),
+      fetch('http://localhost:5000/api/getbankOrder').then(res => res.json()),
+      fetch('http://localhost:5000/api/getKittyPayments').then(res => res.json()),
+      fetch('http://localhost:5000/api/members').then(res => res.json()),
+      fetch('http://localhost:5000/api/getAllMemberCredit').then(res => res.json()),
+      fetch('http://localhost:5000/api/chapters').then(res => res.json())
     ]);
 
     console.log('✅ All data fetched successfully');
@@ -270,7 +270,7 @@ function populateRegionFilter() {
       return;
     }
 
-    fetch('https://backend.bninewdelhi.com/api/regions')
+    fetch('http://localhost:5000/api/regions')
       .then(res => res.json())
       .then(regions => {
         console.log('🌍 Fetched regions:', regions);
@@ -301,7 +301,7 @@ function populateChapterFilter(regionId) {
       return;
     }
 
-    fetch('https://backend.bninewdelhi.com/api/chapters')
+    fetch('http://localhost:5000/api/chapters')
       .then(res => res.json())
       .then(chapters => {
         console.log('🏢 Fetched all chapters:', chapters);

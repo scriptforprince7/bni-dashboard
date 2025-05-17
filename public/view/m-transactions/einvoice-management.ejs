@@ -43,11 +43,11 @@
                 <ol class="breadcrumb mb-1">
                   <li class="breadcrumb-item">
                     <a href="javascript:void(0);" style="color: #d01f2f"
-                      >E-Invoice Management</a
+                      >Invoice Management</a
                     >
                   </li>
                   <li class="breadcrumb-item Approved" aria-current="page">
-                    View All E-Invoices
+                    View All Invoices
                   </li>
                 </ol>
               </nav>
@@ -62,31 +62,31 @@
 
                   <input type="radio" class="btn-check" name="eoi-status" id="ready">
                   <label class="btn btn-outline-success" for="ready">
-                    GST E-Invoices
+                    GST Invoices
                   </label>
 
                   <input type="radio" class="btn-check" name="eoi-status" id="maybe">
                   <label class="btn btn-outline-warning" for="maybe">
-                    Without GST E-Invoices
+                    Without GST Invoices
                   </label>
 
                   <input type="radio" class="btn-check" name="eoi-status" id="no">
                   <label class="btn btn-outline-danger" for="no">
-                    Cash E-Invoices
+                    Cash Invoices
                   </label>
 
                 </div>
               </div>
 
               <h1 class="page-title fw-medium fs-18 mb-0">
-                Manage E-Invoices
+                Manage Invoices
               </h1>
             </div>
             <div class="btn-list">
                 <button id="exportCsvBtn" class="btn btn-primary btn-wave me-0"
                   style="background-color: #fb3e4eee!important; border: #fb3e4e">
                     <i class="ri-share-forward-line me-1"></i> Export All
-                    E-Invoices Data
+                    Invoices Data
                 </button>
                 <button id="exportJsonBtn" class="btn btn-outline-primary btn-wave me-0" style="margin-left: 8px;">
                   <i class="ti ti-download me-1"></i> Export JSON
@@ -95,7 +95,7 @@
                   <i class="ti ti-printer"></i> Print Selected E-Invoices
                 </button> -->
                 <button class="btn btn-white btn-wave" style="background-color: gainsboro !important; border-radius: 10px;">
-                  Total E-Invoices Generated <br />
+                  Total Invoices Generated <br />
                   <span id="total-visitors-count"><b>0</b></span>
                 </button>
             </div>
@@ -105,7 +105,7 @@
           <!-- Start::row-1 -->
           <div class="card custom-card" style="background-color: gainsboro">
             <div class="card-header justify-content-between">
-              <div class="card-title">All E-Invoices List</div>
+              <div class="card-title">All Invoices List</div>
               <div class="d-flex gap-3 align-items-center flex-wrap">
                 <!-- <div class="btn-group"> 
 
@@ -185,11 +185,11 @@
                       <th scope="col"><input type="checkbox" id="selectAllEinvoices"></th>
                       <th scope="col">S.No. <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Doc No. <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">Ack. Date <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Member Name <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Chapter Name <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Company Name <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">IRN Generated <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col">Ack. Date <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Total Bill Amount <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Tax (18%) <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col">Transaction ID <i class="ti ti-arrows-sort"></i></th>
@@ -444,7 +444,7 @@
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="einvoicePdfModalLabel">E-Invoice PDF</h5>
+        <h5 class="modal-title" id="einvoicePdfModalLabel">Invoice PDF</h5>
         <button type="button" class="btn btn-outline-success btn-sm" id="einvoicePdfPrintBtn" title="Print / Save as PDF" style="margin-right:8px;">
           <i class="ti ti-printer"></i>
         </button>

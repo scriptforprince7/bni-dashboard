@@ -857,7 +857,7 @@ document.getElementById("addHotelButton").addEventListener("click", function() {
                 return false;
             }
 
-            return fetch('https://backend.bninewdelhi.com/api/addHotel', {
+            return fetch('http://localhost:5000/api/addHotel', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -890,7 +890,7 @@ document.getElementById("addHotelButton").addEventListener("click", function() {
 
 // Function to fetch and display hotels
 function fetchAndDisplayHotels() {
-    fetch("https://backend.bninewdelhi.com/api/getHotels")
+    fetch("http://localhost:5000/api/getHotels")
         .then((response) => response.json())
         .then((data) => {
             const hotelsContainer = document.getElementById("hotelsContainer");

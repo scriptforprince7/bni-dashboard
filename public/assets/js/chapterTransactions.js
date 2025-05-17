@@ -162,7 +162,7 @@ async function fetchTransactions() {
         }
 
         // Fetch chapters to get chapter_id
-        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
         const chapters = await chaptersResponse.json();
         
         const matchingChapter = chapters.find(chapter =>
@@ -180,8 +180,8 @@ async function fetchTransactions() {
 
         // Fetch orders and transactions
         const [ordersResponse, transactionsResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/allOrders'),
-            fetch('https://backend.bninewdelhi.com/api/allTransactions')
+            fetch('http://localhost:5000/api/allOrders'),
+            fetch('http://localhost:5000/api/allTransactions')
         ]);
 
         const allOrders = await ordersResponse.json();

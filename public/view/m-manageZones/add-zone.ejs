@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const formData = new FormData(form);
                 console.log('📤 Sending form data to server');
 
-                const response = await fetch('https://backend.bninewdelhi.com/api/addZone', {
+                const response = await fetch('http://localhost:5000/api/addZone', {
                     method: 'POST',
                     body: formData
                 });

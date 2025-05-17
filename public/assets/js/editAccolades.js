@@ -34,7 +34,7 @@ function formatDateForInput(dateString) {
 async function fetchAccoladeDetails() {
     try {
         showLoader();
-        const response = await fetch(`https://backend.bninewdelhi.com/api/getAccolade/${accoladeId}`);
+        const response = await fetch(`http://localhost:5000/api/getAccolade/${accoladeId}`);
         if (!response.ok) throw new Error('Failed to fetch accolade details');
         
         const accoladeData = await response.json();
@@ -113,7 +113,7 @@ const updateAccoladeData = async () => {
 
         try {
             showLoader();
-            const response = await fetch(`https://backend.bninewdelhi.com/api/updateAccolade/${accoladeId}`, {
+            const response = await fetch(`http://localhost:5000/api/updateAccolade/${accoladeId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
