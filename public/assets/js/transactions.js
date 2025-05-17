@@ -1057,7 +1057,7 @@ const filteredTransactions = transactions.filter((transaction) => {
             if (!window.isAutoTracking) {
                 toastr.error('An error occurred while tracking the settlement.');
             }
-            console.error('Error tracking settlement:', error.message);
+            // console.error('Error tracking settlement:', error.message);
             button.textContent = originalText; // Restore button text
             button.disabled = false; // Re-enable the button
           }
@@ -1475,25 +1475,27 @@ async function calculateExpenseBaseAmount() {
   try {
     const response = await fetch('https://backend.bninewdelhi.com/api/allexpenses');
     const expenses = await response.json();
-    
+
+    // Filter only paid expenses with valid gst_amount
+    const paidExpenses = expenses.filter(expense => 
+      expense.payment_status === 'paid' && 
+      expense.gst_amount != null && 
+      !isNaN(parseFloat(expense.gst_amount))
+    );
+
     let totalAmount = 0;
-    expenses.forEach(expense => {
-      const amount = parseFloat(expense.amount);
-      console.log('💵 Individual Expense Amount:', amount);
+    paidExpenses.forEach(expense => {
+      const amount = parseFloat(expense.gst_amount);
+      console.log('💵 Valid GST Amount from Paid Expense:', amount);
       totalAmount += amount;
     });
-    
-    console.log('💰 Total Sum of Expenses:', totalAmount);
-    const calculation = (totalAmount * 18);
-    console.log('📊 After multiplying by 18:', calculation);
-    const finalAmount = Math.round(calculation / 100);
-    console.log('🎯 Final Base Amount:', finalAmount);
-    
-    // Make sure the element exists
+
+    console.log('💰 Total GST from Paid Expenses:', totalAmount);
+
     const baseAmountElement = document.getElementById('total_base_amount');
     if (baseAmountElement) {
-      baseAmountElement.textContent = `₹${finalAmount.toLocaleString("en-IN")}`;
-      console.log('✅ UI Updated with amount:', `₹${finalAmount.toLocaleString("en-IN")}`);
+      baseAmountElement.textContent = `₹${totalAmount.toLocaleString("en-IN")}`;
+      console.log('✅ UI Updated with amount:', `₹${totalAmount.toLocaleString("en-IN")}`);
     } else {
       console.error('❌ Could not find total_base_amount element');
     }
@@ -1501,6 +1503,9 @@ async function calculateExpenseBaseAmount() {
     console.error('❌ Error calculating base amount:', error);
   }
 }
+
+
+
 
 // Call the function after the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
