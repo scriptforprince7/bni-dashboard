@@ -13,7 +13,7 @@ let otherPaymentsTotal = 0;
 async function populateGatewayFilter() {
   try {
     const response = await fetch(
-      "http://localhost:5000/api/paymentGateway"
+      "https://backend.bninewdelhi.com/api/paymentGateway"
     );
     const gateways = await response.json();
 
@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Get chapter_id from chapters API
       const chaptersResponse = await fetch(
-        "http://localhost:5000/api/chapters"
+        "https://backend.bninewdelhi.com/api/chapters"
       );
       const chapters = await chaptersResponse.json();
       const chapter = chapters.find(ch =>
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Fetch write-off data and calculate total
     console.log("Fetching write-off data for chapter:", chapter_id);
     const writeoffResponse = await fetch(
-      "http://localhost:5000/api/getAllMemberWriteOff"
+      "https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
     );
     const writeoffData = await writeoffResponse.json();
 
@@ -301,7 +301,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
     const chapterResponse = await fetch(
-      "http://localhost:5000/api/chapters"
+      "https://backend.bninewdelhi.com/api/chapters"
     );
     const chaptersData = await chapterResponse.json();
     console.log("Chapters data received:", chaptersData.length, "chapters");
@@ -329,6 +329,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     console.log("Logged-in chapter ID:", chapterId);
 
+    // Ensure paid expense card is updated
+    await fetchAndDisplayPaidExpenses(chapterId);
+
     // After you have the chapterId
     console.log('🔄 Fetching visitor amount for chapter:', chapterId);
     visitorAmountTotal = await fetchVisitorAmountTotal(chapterId);
@@ -337,7 +340,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
     const membersResponse = await fetch(
-      "http://localhost:5000/api/members"
+      "https://backend.bninewdelhi.com/api/members"
     );
     const allMembers = await membersResponse.json();
     const chapterMembersWithBalance = allMembers.filter(
@@ -349,7 +352,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // console.log("chapter member",chapterMembersWithBalance);
 
     const bankOrderResponse = await fetch(
-      "http://localhost:5000/api/getbankOrder"
+      "https://backend.bninewdelhi.com/api/getbankOrder"
     );
     const bankOrders = await bankOrderResponse.json();
     console.log("Bank Orders Data:", bankOrders);
@@ -394,7 +397,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Continue with existing code
     const expenseResponse = await fetch(
-      "http://localhost:5000/api/allExpenses"
+      "https://backend.bninewdelhi.com/api/allExpenses"
     );
     const expenses = await expenseResponse.json();
     console.log("expense", expenses);
@@ -414,7 +417,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Total Paid Expense:", total_paid_expense);
 
     const creditResponse = await fetch(
-      "http://localhost:5000/api/getAllMemberCredit"
+      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
     );
     const memberCredits = await creditResponse.json();
     console.log("Member Credits Data:", memberCredits);
@@ -435,7 +438,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
-      "http://localhost:5000/api/getKittyPayments"
+      "https://backend.bninewdelhi.com/api/getKittyPayments"
     );
     const kittyPayments = await kittyResponse.json();
     const chapterKittyPayment = kittyPayments.find(
@@ -477,7 +480,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
       } else {
         const ordersResponse = await fetch(
-          "http://localhost:5000/api/allOrders"
+          "https://backend.bninewdelhi.com/api/allOrders"
         );
         const allOrders = await ordersResponse.json();
 
@@ -525,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // else 0
         else {
           const transactionsResponse = await fetch(
-            "http://localhost:5000/api/allTransactions"
+            "https://backend.bninewdelhi.com/api/allTransactions"
           );
           const allTransactions = await transactionsResponse.json();
           console.log("Fetched Transactions:", allTransactions);
@@ -1034,7 +1037,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 6: Fetch all orders for the chapter
     const ordersResponse = await fetch(
-      "http://localhost:5000/api/allOrders"
+      "https://backend.bninewdelhi.com/api/allOrders"
     );
     const allOrders = await ordersResponse.json();
 
@@ -1085,7 +1088,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Fetched Orders:", chapterOrders);
 
     const transactionsResponse = await fetch(
-      "http://localhost:5000/api/allTransactions"
+      "https://backend.bninewdelhi.com/api/allTransactions"
     );
     const allTransactions = await transactionsResponse.json();
     console.log("Fetched Transactions:", allTransactions);
@@ -1249,7 +1252,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.querySelector(".total_weeks").textContent = total_weeks;
     document.querySelector(".member_count").textContent = memberCount;
     document.querySelector(".total_miscellaneous_amount").textContent = formattedMiscellaneousAmount;
-    document.querySelector("#total_expense_amount").textContent = formattedTotalPaidExpense;
     document.querySelector("#total_pexpense_amount").textContent = indianCurrencyFormatter.format(total_pending_expense);
     document.querySelector("#total_credit_amount").textContent = indianCurrencyFormatter.format(totalCreditAmount);
     document.querySelector("#no_of_late_payment").textContent = totalLatePayment;
@@ -1573,7 +1575,7 @@ async function fetchVisitorAmountTotal(chapterId) {
     try {
         // 1. Fetch Orders
         console.log('📥 Fetching orders...');
-        const ordersResponse = await fetch("http://localhost:5000/api/allOrders");
+        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
         const allOrders = await ordersResponse.json();
         console.log('📦 Total orders:', allOrders.length);
 
@@ -1592,7 +1594,7 @@ async function fetchVisitorAmountTotal(chapterId) {
 
         // 3. Fetch Transactions
         console.log('💳 Fetching transactions...');
-        const transactionsResponse = await fetch("http://localhost:5000/api/allTransactions");
+        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
         const allTransactions = await transactionsResponse.json();
         console.log('Total transactions:', allTransactions.length);
 
@@ -1614,8 +1616,13 @@ async function fetchVisitorAmountTotal(chapterId) {
         let totalAmount = 0;
         let cashPayments = 0;
         let onlinePayments = 0;
+        
+        // Store payment details for modal
+        const cashPaymentDetails = [];
+        const onlinePaymentDetails = [];
 
         successfulOrders.forEach(order => {
+            const transaction = allTransactions.find(t => t.order_id === order.order_id);
             let amount = parseFloat(order.order_amount || 0);
             
             // Handle GST and payment mode
@@ -1624,10 +1631,27 @@ async function fetchVisitorAmountTotal(chapterId) {
                 amount = Math.ceil(amount - (amount * 18) / 118);
                 onlinePayments += amount;
                 console.log(`💰 Added online payment ${amount} from order ${order.order_id}`);
+                
+                // Store online payment details
+                onlinePaymentDetails.push({
+                    visitorName: order.visitor_name || "N/A",
+                    invitedBy: order.member_name || "N/A",
+                    amount: amount,
+                    date: new Date(transaction.payment_time).toLocaleDateString("en-IN", { timeZone: "UTC" }),
+                    transactionId: transaction.cf_payment_id || "N/A"
+                });
             } else if (order.payment_note === "Visitor Payment") {
                 // Cash payment - use full amount
                 cashPayments += amount;
                 console.log(`💰 Added cash payment ${amount} from order ${order.order_id}`);
+                
+                // Store cash payment details
+                cashPaymentDetails.push({
+                    visitorName: order.visitor_name || "N/A",
+                    invitedBy: order.member_name || "N/A",
+                    amount: amount,
+                    date: new Date(order.created_at).toLocaleDateString("en-IN")
+                });
             }
             
             totalAmount += amount;
@@ -1652,6 +1676,38 @@ async function fetchVisitorAmountTotal(chapterId) {
                     </span>
                 </div>
             `;
+            
+            // Add click handler to show modal
+            amountElement.style.cursor = 'pointer';
+            amountElement.addEventListener('click', () => {
+                // Populate cash payments table
+                const cashTableBody = document.getElementById('cashPaymentsTable');
+                cashTableBody.innerHTML = cashPaymentDetails.map(payment => `
+                    <tr>
+                        <td>${payment.visitorName}</td>
+                        <td>${payment.invitedBy}</td>
+                        <td>₹${payment.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+                        <td>${payment.date}</td>
+                    </tr>
+                `).join('');
+
+                // Populate online payments table
+                const onlineTableBody = document.getElementById('onlinePaymentsTable');
+                onlineTableBody.innerHTML = onlinePaymentDetails.map(payment => `
+                    <tr>
+                        <td>${payment.visitorName}</td>
+                        <td>${payment.invitedBy}</td>
+                        <td>₹${payment.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+                        <td>${payment.date}</td>
+                        <td>${payment.transactionId}</td>
+                    </tr>
+                `).join('');
+
+                // Show modal
+                const visitorPaymentModal = new bootstrap.Modal(document.getElementById('visitorPaymentModal'));
+                visitorPaymentModal.show();
+            });
+            
             console.log('✨ UI updated successfully');
         } else {
             console.error('❌ Element #total_V_amount not found');
@@ -1753,7 +1809,7 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
 
   // Fetch and add other payments
   try {
-    const response = await fetch("http://localhost:5000/api/allOtherPayment");
+    const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const otherPayments = await response.json();
     
     // Filter cash payments for current chapter
@@ -1785,7 +1841,7 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
 async function fetchOtherPaymentsTotal(chapterId) {
   try {
     console.log('Fetching other payments for chapter:', chapterId);
-    const response = await fetch("http://localhost:5000/api/allOtherPayment");
+    const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const otherPayments = await response.json();
     
     // Filter payments for current chapter
@@ -1872,4 +1928,100 @@ function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAm
                 parseFloat(total_paid_expense || 0);
   
   totalAvailable.textContent = formatter.format(total);
+}
+
+// Add this function to handle paid expenses
+async function fetchAndDisplayPaidExpenses(chapterId) {
+    try {
+        console.log('📊 Starting fetchAndDisplayPaidExpenses');
+        
+        // Fetch expenses
+        const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+        const expenses = await expenseResponse.json();
+        
+        // Filter expenses for current chapter and paid status
+        const chapterExpenses = expenses.filter(expense => 
+            expense.chapter_id === chapterId && 
+            expense.payment_status === "paid"
+        );
+        
+        console.log('Found paid expenses:', chapterExpenses.length);
+        
+        // Separate cash and online expenses
+        const cashExpenses = [];
+        const onlineExpenses = [];
+        let totalCashAmount = 0;
+        let totalOnlineAmount = 0;
+        
+        chapterExpenses.forEach(expense => {
+            const amount = parseFloat(expense.amount || 0);
+            const expenseData = {
+                title: expense.expense_title || "N/A",
+                description: expense.description || "N/A",
+                amount: amount,
+                date: new Date(expense.created_at).toLocaleDateString("en-IN"),
+                paidBy: expense.paid_by || "N/A",
+                transactionId: expense.transaction_id || "N/A"
+            };
+            
+            if (expense.payment_mode === "cash") {
+                cashExpenses.push(expenseData);
+                totalCashAmount += amount;
+            } else {
+                onlineExpenses.push(expenseData);
+                totalOnlineAmount += amount;
+            }
+        });
+        
+        // Update the total paid expense display
+        const totalPaidElementMain = document.querySelector('#total_expense_amount_main');
+        const totalPaidBreakdown = document.querySelector('#total_expense_breakdown');
+        if (totalPaidElementMain && totalPaidBreakdown) {
+            const totalAmount = totalCashAmount + totalOnlineAmount;
+            totalPaidElementMain.textContent = `₹${totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
+            totalPaidBreakdown.innerHTML = `
+                <span class="ms-2 fs-12 fw-semibold" style="color: #666;">
+                    Cash: ₹${totalCashAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})} | 
+                    Online: ₹${totalOnlineAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+                </span>
+            `;
+            // Add click handler to show modal on main amount
+            totalPaidElementMain.style.cursor = 'pointer';
+            totalPaidElementMain.addEventListener('click', () => {
+                // Populate cash expenses table
+                const cashTableBody = document.getElementById('cashExpensesTable');
+                cashTableBody.innerHTML = cashExpenses.map(expense => `
+                    <tr>
+                        <td>${expense.title}</td>
+                        <td>${expense.description}</td>
+                        <td>₹${expense.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+                        <td>${expense.date}</td>
+                        <td>${expense.paidBy}</td>
+                    </tr>
+                `).join('');
+
+                // Populate online expenses table
+                const onlineTableBody = document.getElementById('onlineExpensesTable');
+                onlineTableBody.innerHTML = onlineExpenses.map(expense => `
+                    <tr>
+                        <td>${expense.title}</td>
+                        <td>${expense.description}</td>
+                        <td>₹${expense.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+                        <td>${expense.date}</td>
+                        <td>${expense.paidBy}</td>
+                        <td>${expense.transactionId}</td>
+                    </tr>
+                `).join('');
+
+                // Show modal
+                const paidExpensesModal = new bootstrap.Modal(document.getElementById('paidExpensesModal'));
+                paidExpensesModal.show();
+            });
+        }
+        
+        return totalCashAmount + totalOnlineAmount;
+    } catch (error) {
+        console.error('Error fetching paid expenses:', error);
+        return 0;
+    }
 }

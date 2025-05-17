@@ -13,11 +13,14 @@ async function generateQRCode(data) {
 // Function to format date
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
+    const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
 }
 
 // Function to check if an e-invoice is GST or non-GST
@@ -77,18 +80,18 @@ async function populateFilters(chaptersData, regionsData) {
     const monthFilter = document.getElementById('month-filter');
     const months = [
         { value: 'all', label: 'All Months' },
-        { value: '01', label: 'January' },
-        { value: '02', label: 'February' },
-        { value: '03', label: 'March' },
-        { value: '04', label: 'April' },
-        { value: '05', label: 'May' },
-        { value: '06', label: 'June' },
-        { value: '07', label: 'July' },
-        { value: '08', label: 'August' },
-        { value: '09', label: 'September' },
-        { value: '10', label: 'October' },
-        { value: '11', label: 'November' },
-        { value: '12', label: 'December' }
+        { value: 'Jan', label: 'January' },
+        { value: 'Feb', label: 'February' },
+        { value: 'Mar', label: 'March' },
+        { value: 'Apr', label: 'April' },
+        { value: 'May', label: 'May' },
+        { value: 'Jun', label: 'June' },
+        { value: 'Jul', label: 'July' },
+        { value: 'Aug', label: 'August' },
+        { value: 'Sep', label: 'September' },
+        { value: 'Oct', label: 'October' },
+        { value: 'Nov', label: 'November' },
+        { value: 'Dec', label: 'December' }
     ];
     monthFilter.innerHTML = months.map(month => 
         `<li><a class="dropdown-item" href="#" data-month="${month.value}">${month.label}</a></li>`
@@ -133,15 +136,25 @@ function filterTable() {
         const order = ordersMap.get(orderId);
         const chapter = order ? chaptersMap.get(order.chapter_id) : null;
         const region = chapter ? regionsMap.get(chapter.region_id) : null;
-        // Ack Date is now 8th column
-        const ackDate = row.querySelector('td:nth-child(8)').textContent;
-        // GSTIN is now 12th column
-        const gstin = row.querySelector('td:nth-child(12)').textContent;
+        
+        // Get invoice date (3rd column)
+        const invoiceDate = row.querySelector('td:nth-child(3)').textContent;
+        const gstin = row.querySelector('td:nth-child(14)').textContent;
 
         // Filter by region, chapter, and month
         const regionMatch = selectedRegion === 'all' || (region && region.region_id.toString() === selectedRegion);
         const chapterMatch = selectedChapter === 'all' || (chapter && chapter.chapter_id.toString() === selectedChapter);
-        const monthMatch = selectedMonth === 'all' || (ackDate && ackDate.split('/')[1] === selectedMonth);
+        
+        // Month filter - check only invoice date
+        let monthMatch = selectedMonth === 'all';
+        if (selectedMonth !== 'all' && invoiceDate !== 'N/A') {
+            // Extract month from the date string (DD-MMM-YYYY)
+            const dateParts = invoiceDate.split('-');
+            if (dateParts.length === 3) {
+                const month = dateParts[1]; // Get the month part (MMM)
+                monthMatch = month === selectedMonth;
+            }
+        }
 
         // Filter by invoice type
         let invoiceTypeMatch = true;
@@ -244,27 +257,27 @@ function showEinvoicePdfModal(order, transaction, einvoice) {
 async function fetchAndDisplayEinvoices() {
     try {
         // Fetch e-invoice data
-        const einvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
+        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
         const einvoiceData = await einvoiceResponse.json();
 
         // Fetch all orders data
-        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         const ordersData = await ordersResponse.json();
 
         // Fetch document numbers
-        const docNumbersResponse = await fetch('http://localhost:5000/api/getAllDocNumbers');
+        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
         const docNumbersData = await docNumbersResponse.json();
 
         // Fetch chapters data
-        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chaptersData = await chaptersResponse.json();
 
         // Fetch regions data
-        const regionsResponse = await fetch('http://localhost:5000/api/regions');
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
         const regionsData = await regionsResponse.json();
 
         // Fetch transactions data
-        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
 
         // Create maps for quick lookup
@@ -273,6 +286,15 @@ async function fetchAndDisplayEinvoices() {
         chaptersMap = new Map(chaptersData.map(chapter => [chapter.chapter_id, chapter]));
         regionsMap = new Map(regionsData.map(region => [region.region_id, region]));
         const transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
+
+        // Sort einvoice data based on doc_numbers id in descending order
+        einvoiceData.sort((a, b) => {
+            const docA = docNumbersMap.get(a.order_id);
+            const docB = docNumbersMap.get(b.order_id);
+            const idA = docA ? docA.id : Number.MIN_SAFE_INTEGER;
+            const idB = docB ? docB.id : Number.MIN_SAFE_INTEGER;
+            return idB - idA; // Changed to descending order
+        });
 
         // Populate filters
         await populateFilters(chaptersData, regionsData);
@@ -296,21 +318,42 @@ async function fetchAndDisplayEinvoices() {
             const qrCodeUrl = await generateQRCode(einvoice.qrcode);
 
             const row = document.createElement('tr');
+            // Calculate bill amount (before tax)
+            const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
+            const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
+            const billAmount = totalAmount - taxAmount;
+
+            // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
+            let invoiceDate = 'N/A';
+            if (isGST) {
+                invoiceDate = einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A';
+            } else {
+                invoiceDate = einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A';
+            }
+
+            // Get payment date
+            const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
+
+            // Get IRN status
+            const irnStatus = isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices';
+
             row.innerHTML = `
                 <td><input type="checkbox" class="einvoice-checkbox" value="${einvoice.order_id}"></td>
-                <td><span class="fw-bold">${i + 1}</span></td>
+                <td><span class="fw-bold">${einvoiceData.length - i}</span></td>
+                <td><span class="fw-bold">${invoiceDate}</span></td>
                 <td>
                     <span class="clickable-doc" style="cursor:pointer;">
                         ${docNumber?.doc_no || 'N/A'}
                     </span>
                 </td>
-                <td><span class="fw-bold">${isGST ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A') : 'Not applicable for NON-GST einvoices'}</span></td>
+                <td><span class="fw-bold">${paymentDate}</span></td>
                 <td><span class="fw-bold">${order?.member_name || 'N/A'}</span></td>
                 <td><span class="fw-bold">${chapter?.chapter_name || 'N/A'}</span></td>
                 <td><span class="fw-bold">${order?.company || 'N/A'}</span></td>
-                <td><span class="fst-italic">${isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices'}</span></td>
-                <td><span class="fw-bold">${order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount).toFixed(2) : 'N/A'}</span></td>
-                <td><span class="fw-bold">${order?.tax !== undefined && order?.tax !== null ? Number(order.tax).toFixed(2) : 'N/A'}</span></td>
+                <td><span class="fw-bold">${billAmount.toFixed(2)}</span></td>
+                <td><span class="fw-bold">${taxAmount.toFixed(2)}</span></td>
+                <td><span class="fw-bold">${totalAmount.toFixed(2)}</span></td>
+                <td><span class="fst-italic">${irnStatus}</span></td>
                 <td><span class="fw-bold">${transaction?.cf_payment_id || 'N/A'}</span></td>
                 <td><span class="fw-bold">${order?.gstin || 'N/A'}</span></td>
             `;
@@ -368,14 +411,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             rows.forEach(row => {
                 // Get all relevant cell values
-                const memberName = row.querySelector('td:nth-child(11)').textContent.toLowerCase();
-                const companyName = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                const gstin = row.querySelector('td:nth-child(10)').textContent.toLowerCase();
-                const docNumber = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                const ackNo = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-                const irn = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
-                const ackDate = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
-                const transactionId = row.querySelector('td:nth-child(8)').textContent.toLowerCase();
+                const memberName = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
+                const companyName = row.querySelector('td:nth-child(8)').textContent.toLowerCase();
+                const gstin = row.querySelector('td:nth-child(14)').textContent.toLowerCase();
+                const docNumber = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                const ackNo = row.querySelector('td:nth-child(7)').textContent.toLowerCase();
+                const irn = row.querySelector('td:nth-child(12)').textContent.toLowerCase();
+                const ackDate = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const paymentDate = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+                const billAmount = row.querySelector('td:nth-child(9)').textContent.toLowerCase();
+                const gstAmount = row.querySelector('td:nth-child(10)').textContent.toLowerCase();
+                const totalAmount = row.querySelector('td:nth-child(11)').textContent.toLowerCase();
+                const transactionId = row.querySelector('td:nth-child(13)').textContent.toLowerCase();
 
                 // Check if any field contains the search term
                 const matches = 
@@ -386,6 +433,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     ackNo.includes(searchTerm) ||
                     irn.includes(searchTerm) ||
                     ackDate.includes(searchTerm) ||
+                    paymentDate.includes(searchTerm) ||
+                    billAmount.includes(searchTerm) ||
+                    gstAmount.includes(searchTerm) ||
+                    totalAmount.includes(searchTerm) ||
                     transactionId.includes(searchTerm);
 
                 // Show/hide row based on match
@@ -432,12 +483,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/einvoiceData'),
-                    fetch('http://localhost:5000/api/allOrders'),
-                    fetch('http://localhost:5000/api/getAllDocNumbers'),
-                    fetch('http://localhost:5000/api/chapters'),
-                    fetch('http://localhost:5000/api/regions'),
-                    fetch('http://localhost:5000/api/allTransactions')
+                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
+                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
+                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
+                    fetch('https://backend.bninewdelhi.com/api/chapters'),
+                    fetch('https://backend.bninewdelhi.com/api/regions'),
+                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
                     einvoiceRes.json(),
@@ -467,21 +518,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     const chapter = order ? chaptersMap.get(order.chapter_id) : null;
                     const transaction = transactionsMap.get(einvoice.order_id);
                     const isGST = order && order.gstin && order.gstin.trim() !== '';
+
+                    // Calculate amounts
+                    const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
+                    const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
+                    const billAmount = totalAmount - taxAmount;
+
+                    // Get invoice date - use payment date for non-GST einvoices
+                    const invoiceDate = isGST 
+                        ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
+                        : (transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A');
+
+                    // Get payment date
+                    const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
+
                     return {
                         serial_no: i + 1,
-                        doc_no: docNumber?.doc_no || 'N/A',
+                        invoice_no: docNumber?.doc_no || 'N/A',
+                        invoice_date: invoiceDate,
+                        payment_date: paymentDate,
                         company: order?.company || 'N/A',
                         irn: isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         ack_no: isGST ? (einvoice.ack_no || 'N/A') : 'Not applicable for NON-GST einvoices',
-                        ack_date: isGST ? (einvoice.ack_dt || 'N/A') : 'Not applicable for NON-GST einvoices',
+                        ack_date: isGST ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A') : 'Not applicable for NON-GST einvoices',
                         qrcode_url: isGST && einvoice.qrcode ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(einvoice.qrcode)}` : 'Not applicable for NON-GST einvoices',
                         transaction_id: transaction?.cf_payment_id || 'N/A',
                         order_id: einvoice.order_id || 'N/A',
                         gstin: order?.gstin || 'N/A',
                         member_name: order?.member_name || 'N/A',
                         chapter_name: chapter?.chapter_name || 'N/A',
-                        total_bill_amount: order?.order_amount || 'N/A',
-                        tax: order?.tax || 'N/A'
+                        bill_amount: billAmount.toFixed(2),
+                        gst_18_percent: taxAmount.toFixed(2),
+                        total_bill_amount: totalAmount.toFixed(2)
                     };
                 });
 
@@ -514,12 +582,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources (same as for JSON export)
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/einvoiceData'),
-                    fetch('http://localhost:5000/api/allOrders'),
-                    fetch('http://localhost:5000/api/getAllDocNumbers'),
-                    fetch('http://localhost:5000/api/chapters'),
-                    fetch('http://localhost:5000/api/regions'),
-                    fetch('http://localhost:5000/api/allTransactions')
+                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
+                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
+                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
+                    fetch('https://backend.bninewdelhi.com/api/chapters'),
+                    fetch('https://backend.bninewdelhi.com/api/regions'),
+                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
                     einvoiceRes.json(),
@@ -549,16 +617,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     const chapter = order ? chaptersMap.get(order.chapter_id) : null;
                     const transaction = transactionsMap.get(einvoice.order_id);
                     const isGST = order && order.gstin && order.gstin.trim() !== '';
+
+                    // Calculate amounts
+                    const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
+                    const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
+                    const billAmount = totalAmount - taxAmount;
+
+                    // Get invoice date - use payment date for non-GST einvoices
+                    const invoiceDate = isGST 
+                        ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
+                        : (transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A');
+
+                    // Get payment date
+                    const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
+
                     return {
                         'S.No.': i + 1,
-                        'Doc No.': docNumber?.doc_no || 'N/A',
+                        'Invoice No.': docNumber?.doc_no || 'N/A',
+                        'Invoice Date': invoiceDate,
+                        'Payment Date': paymentDate,
                         'Member Name': order?.member_name || 'N/A',
                         'Chapter Name': chapter?.chapter_name || 'N/A',
                         'Company Name': order?.company || 'N/A',
                         'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
-                        'Ack. Date': isGST ? (einvoice.ack_dt || 'N/A') : 'Not applicable for NON-GST einvoices',
-                        'Total Bill Amount': order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount).toFixed(2) : 'N/A',
-                        'Tax (18%)': order?.tax !== undefined && order?.tax !== null ? Number(order.tax).toFixed(2) : 'N/A',
+                        'Bill Amount': billAmount.toFixed(2),
+                        'GST (18%)': taxAmount.toFixed(2),
+                        'Total Bill Amount': totalAmount.toFixed(2),
                         'Transaction ID': transaction?.cf_payment_id || 'N/A',
                         'GSTIN': order?.gstin || 'N/A'
                     };
@@ -623,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iframeUrl = iframe.src;
             // Build the correct PDF endpoint URL
             const urlParams = iframeUrl.split('?')[1];
-            const pdfUrl = `http://localhost:5000/api/v/einvoice/pdf?${urlParams}`;
+            const pdfUrl = `https://backend.bninewdelhi.com/api/v/einvoice/pdf?${urlParams}`;
             // Open the PDF in a new tab (for direct download)
             window.open(pdfUrl, '_blank');
         });

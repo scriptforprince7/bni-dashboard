@@ -36,6 +36,8 @@ const eoiManagementRoutes = require('./r-eoiManagement/eoiManagementRoutes');
 const chapterEoiRoutes = require('./r-chapterEoi/chapterEoiRoutes');
 const linkRoutes = require('./r-links/linksRoutes');
 const visitorRoutes = require('./r-visitor/visitorRoutes');
+const chapterVisitorRoutes = require('./r-chapterVisitor/chapterVisitorRoutes');
+const roVisitorRoutes = require('./r-roVisitor/roVisitorRoutes');
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -70,6 +72,8 @@ router.use('/eoi', eoiManagementRoutes);
 router.use('/chap-eoi', chapterEoiRoutes);
 router.use('/links', linkRoutes);
 router.use('/vi', visitorRoutes);
+router.use('/cv', chapterVisitorRoutes);
+router.use('/ro', roVisitorRoutes);
 
 
 

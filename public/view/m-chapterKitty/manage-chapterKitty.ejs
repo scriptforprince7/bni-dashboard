@@ -493,8 +493,11 @@
                             >Total Paid Expense</span
                           >
                           <h4 class="fw-medium mb-0 bol">
-                            <b><span class="total_Expense_amount" id="total_expense_amount">-</span></b>
+                            <b><span class="total_Expense_amount" id="total_expense_amount_main">-</span></b>
                           </h4>
+                          <div class="d-flex align-items-center mt-2">
+                            <span class="fs-12 text-muted" id="total_expense_breakdown"></span>
+                          </div>
                         </div>
                         <div class="lh-1">
                           <span
@@ -880,6 +883,140 @@
     </div>
   </div>
 </div> 
+
+<!-- Visitor Payment Details Modal -->
+<div class="modal fade" id="visitorPaymentModal" tabindex="-1" aria-labelledby="visitorPaymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="visitorPaymentModalLabel">Visitor Payment Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs" id="visitorPaymentTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="cash-tab" data-bs-toggle="tab" data-bs-target="#cash-payments" type="button" role="tab">
+              Cash Payments
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="online-tab" data-bs-toggle="tab" data-bs-target="#online-payments" type="button" role="tab">
+              Online Payments
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content mt-3" id="visitorPaymentTabContent">
+          <div class="tab-pane fade show active" id="cash-payments" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Visitor Name</th>
+                    <th>Invited By</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="cashPaymentsTable">
+                  <!-- Cash payments will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="online-payments" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Visitor Name</th>
+                    <th>Invited By</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Transaction ID</th>
+                  </tr>
+                </thead>
+                <tbody id="onlinePaymentsTable">
+                  <!-- Online payments will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Paid Expenses Details Modal -->
+<div class="modal fade" id="paidExpensesModal" tabindex="-1" aria-labelledby="paidExpensesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="paidExpensesModalLabel">Paid Expenses Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs" id="paidExpensesTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="expense-cash-tab" data-bs-toggle="tab" data-bs-target="#expense-cash-payments" type="button" role="tab">
+              Cash Expenses
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="expense-online-tab" data-bs-toggle="tab" data-bs-target="#expense-online-payments" type="button" role="tab">
+              Online Expenses
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content mt-3" id="paidExpensesTabContent">
+          <div class="tab-pane fade show active" id="expense-cash-payments" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Expense Title</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Paid By</th>
+                  </tr>
+                </thead>
+                <tbody id="cashExpensesTable">
+                  <!-- Cash expenses will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="expense-online-payments" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Expense Title</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Paid By</th>
+                    <th>Transaction ID</th>
+                  </tr>
+                </thead>
+                <tbody id="onlineExpensesTable">
+                  <!-- Online expenses will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Total Available Fund -->
 
