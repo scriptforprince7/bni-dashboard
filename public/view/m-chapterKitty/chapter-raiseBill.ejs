@@ -360,16 +360,19 @@ th {
                 >
                   <div class="card-title">All Bill's Raised</div>
                   <div class="d-flex">
-                    <!-- Region Filter -->
-
+                    <button type="button" class="btn btn-danger" id="makeBillInactive">
+                      Make Bill Inactive
+                    </button>
                   </div>
-                  
                 </div>
                 <div class="card-body p-0">
                   <div class="table-responsive">
                     <table class="table text-nowrap">
                       <thead>
                         <tr>
+                          <th scope="col">
+                            <input type="checkbox" id="selectAllBills" class="form-check-input">
+                          </th>
                           <th scope="col">S.No.</th>
                           <th scope="col">Raised On</th>
                           <!-- <th scope="col">Chapter Name</th> -->

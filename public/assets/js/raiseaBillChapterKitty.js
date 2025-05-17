@@ -123,11 +123,10 @@ function formatDate(dateStr) {
 const insertPaymentsIntoTable = () => {
     tableBody.innerHTML = ''; // Clear existing table rows
 
-    
     if(allCurrentUserPayments === undefined ||allCurrentUserPayments.length === 0){
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td colspan="11"><b>No Bill Raised yet.</b></td>
+            <td colspan="12"><b>No Bill Raised yet.</b></td>
         `;
         tableBody.appendChild(row);
     }
@@ -135,21 +134,13 @@ const insertPaymentsIntoTable = () => {
         allCurrentUserPayments.forEach((payment , index)=> {
             const row = document.createElement('tr');
             total_kitty_raised+=parseFloat(current_user.chapter_kitty_fees);
-            console.log("adding ................................");
             
-    
-            // const dateCell = document.createElement('td');
-            // dateCell.textContent = payment.date;
-            // row.appendChild(dateCell);
-    
-            // const amountCell = document.createElement('td');
-            // amountCell.textContent = payment.amount;
-            // row.appendChild(amountCell);
-    
-            // const descriptionCell = document.createElement('td');
-            // descriptionCell.textContent = payment.description;
-            // row.appendChild(descriptionCell);
             row.innerHTML = `
+                <td>
+                    <input type="checkbox" class="form-check-input bill-checkbox" 
+                           data-bill-id="${payment.kitty_bill_id}"
+                           ${payment.delete_status === 1 ? 'disabled' : ''}>
+                </td>
                 <td><b>${index + 1}</b></td>
                 <td><b>${formatDate(payment.raised_on) || 'N/A'}</b></td>
                 <td><b>${current_user.chapter_meeting_day || 'N/A'}</b></td>
@@ -163,9 +154,6 @@ const insertPaymentsIntoTable = () => {
                 <td><b style="color: ${payment.delete_status === 0 ? 'green' : 'red'};">
                 ${payment.delete_status === 0 ? 'Active' : 'Inactive'}</b></td>
             `;
-            // <td><b>${payment.date}</b></td> //this line removed from last 
-            
-    
             tableBody.appendChild(row);
         });
     }
@@ -479,6 +467,77 @@ document.addEventListener('DOMContentLoaded', async () => {
     await calculateBilling();
     updateTableWithPayments();
     fetchKittyPayments();
+});
+
+// Add event listeners for checkboxes and make bill inactive button
+document.addEventListener('DOMContentLoaded', () => {
+    // Select all checkbox functionality
+    const selectAllCheckbox = document.getElementById('selectAllBills');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.bill-checkbox:not(:disabled)');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+    }
+
+    // Make bill inactive button functionality
+    const makeBillInactiveBtn = document.getElementById('makeBillInactive');
+    if (makeBillInactiveBtn) {
+        makeBillInactiveBtn.addEventListener('click', async () => {
+            const selectedBills = document.querySelectorAll('.bill-checkbox:checked');
+            
+            if (selectedBills.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Selection',
+                    text: 'Please select at least one bill to make inactive.'
+                });
+                return;
+            }
+
+            try {
+                showLoader();
+                const updatePromises = Array.from(selectedBills).map(async (checkbox) => {
+                    const billId = checkbox.dataset.billId;
+                    const response = await fetch(`http://localhost:5000/api/updateKittyBillStatus/${billId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to update bill ${billId}`);
+                    }
+                    
+                    return response.json();
+                });
+
+                await Promise.all(updatePromises);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Selected bills have been made inactive successfully.'
+                }).then(() => {
+                    // Refresh the page instead of just updating the table
+                    window.location.reload();
+                });
+
+            } catch (error) {
+                console.error('Error updating bills:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to update bills. Please try again.'
+                });
+            } finally {
+                hideLoader();
+            }
+        });
+    }
 });
 
 
