@@ -708,6 +708,10 @@ const sortByColumn = (columnName) => {
         valueA = new Date(a.bill_date);
         valueB = new Date(b.bill_date);
         break;
+      case 'mode_of_payment':
+        valueA = (a.mode_of_payment || 'N/A').toLowerCase();
+        valueB = (b.mode_of_payment || 'N/A').toLowerCase();
+        break;
       default:
         return 0;
     }
