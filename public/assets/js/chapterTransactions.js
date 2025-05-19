@@ -261,39 +261,215 @@ document.getElementById('reset-filters-btn').addEventListener('click', () => {
 });
 
 // Function to update transactions display
-function updateTransactionsDisplay(transactionsToShow) {
+async function updateTransactionsDisplay(transactionsToShow) {
     const transactionsBody = document.querySelector('.member-all-transactions');
     transactionsBody.innerHTML = '';
 
-    // Sort transactions by date (most recent first)
-    const sortedTransactions = [...transactionsToShow].sort((a, b) => {
-        return new Date(b.payment_time) - new Date(a.payment_time);
-    });
+    try {
+        // Fetch all einvoice data first
+        const allEinvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
+        const allEinvoiceData = await allEinvoiceResponse.json();
 
-    sortedTransactions.forEach((transaction, index) => {
-        const order = chapterOrders.find(order => order.order_id === transaction.order_id);
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${new Date(transaction.payment_time).toLocaleDateString('en-IN')}</td>
-            <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br>
-                <a href="/minv/view-chapterInvoice?order_id=${transaction.order_id}" 
-                   class="fw-medium text-success">View</a></td>
-            <td>${getPaymentMethodDisplay(transaction.payment_method)}</td>
-            <td><em>${transaction.order_id}</em></td>
-            <td><b><em>${transaction.cf_payment_id}</em></b></td>
-            <td><span class="badge ${
-                transaction.payment_status === "SUCCESS" ? "bg-success" : "bg-danger"
-            }">${transaction.payment_status.toLowerCase()}</span></td>
-            <td><b><em>${getDisplayName(order)}</em></b></td>
-            <td><b><em>${order ? order.payment_note : 'Unknown'}</em></b></td>
-        `;
-        
-        transactionsBody.appendChild(row);
-    });
+        // Sort transactions by date (most recent first)
+        const sortedTransactions = [...transactionsToShow].sort((a, b) => {
+            return new Date(b.payment_time) - new Date(a.payment_time);
+        });
 
-    updateTotals(transactionsToShow);
+        sortedTransactions.forEach((transaction, index) => {
+            const order = chapterOrders.find(order => order.order_id === transaction.order_id);
+            // Find einvoice data for this specific order
+            const einvoiceData = allEinvoiceData.find(e => e.order_id === transaction.order_id);
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${new Date(transaction.payment_time).toLocaleDateString('en-IN')}</td>
+                <td><b>+₹${parseFloat(transaction.payment_amount).toFixed(2)}</b><br>
+                    <a href="/minv/view-chapterInvoice?order_id=${transaction.order_id}" 
+                       class="fw-medium text-success">View</a></td>
+                <td>${getPaymentMethodDisplay(transaction.payment_method)}</td>
+                <td><em>${transaction.order_id}</em></td>
+                <td><b><em>${transaction.cf_payment_id}</em></b></td>
+                <td><span class="badge ${
+                    transaction.payment_status === "SUCCESS" ? "bg-success" : "bg-danger"
+                }">${transaction.payment_status.toLowerCase()}</span></td>
+                <td><b><em>${getDisplayName(order)}</em></b></td>
+                <td><b><em>${order ? order.payment_note : 'Unknown'}</em></b></td>
+                <td>
+                  <button class="btn btn-sm btn-primary view-invoice-btn" 
+                          data-order-id="${order.order_id}"
+                          data-transaction-id="${transaction.cf_payment_id}"
+                          data-amount="${transaction.payment_amount}"
+                          data-chapter-name="${order.chapter_name || 'N/A'}"
+                          data-payment-type="${order ? order.payment_note : 'Unknown'}"
+                          ${!einvoiceData ? 'disabled' : ''}>
+                    <i class="ti ti-download me-1"></i>Download Invoice
+                  </button>
+                </td>
+            `;
+            
+            transactionsBody.appendChild(row);
+        });
+
+        // Add event listeners for invoice buttons
+        document.querySelectorAll('.view-invoice-btn:not([disabled])').forEach(button => {
+            button.addEventListener('click', async function() {
+                const orderId = this.dataset.orderId;
+                const transactionId = this.dataset.transactionId;
+                const amount = this.dataset.amount;
+                const chapterName = this.dataset.chapterName;
+                const paymentType = this.dataset.paymentType;
+
+                // Get the full order and transaction data
+                const order = chapterOrders.find(o => o.order_id === orderId);
+                const transaction = transactions.find(t => t.order_id === orderId);
+
+                try {
+                    // Find einvoice data for this specific order
+                    const einvoiceData = allEinvoiceData.find(e => e.order_id === orderId);
+
+                    // Get chapter name from chapters data
+                    const chapterResponse = await fetch('http://localhost:5000/api/chapters');
+                    const chaptersData = await chapterResponse.json();
+                    const chapter = chaptersData.find(c => c.chapter_id === order.chapter_id);
+                    const chapterName = chapter ? chapter.chapter_name : 'N/A';
+
+                    // Get universal link name
+                    const universalLinkResponse = await fetch('http://localhost:5000/api/universalLinks');
+                    const universalLinksData = await universalLinkResponse.json();
+                    const universalLink = universalLinksData.find(ul => ul.id === order.universal_link_id);
+                    const universalLinkName = 'Not Applicable'; // Always set to Not Applicable as per desired format
+
+                    // Structure the data exactly like einvoiceManagement.js
+                    const invoiceData = {
+                        orderId: {
+                            order_id: order.order_id,
+                            order_amount: order.order_amount,
+                            order_currency: order.order_currency,
+                            payment_gateway_id: order.payment_gateway_id,
+                            customer_id: order.customer_id,
+                            chapter_id: order.chapter_id,
+                            region_id: order.region_id,
+                            universal_link_id: order.universal_link_id,
+                            ulid: order.ulid,
+                            order_status: order.order_status,
+                            payment_session_id: order.payment_session_id,
+                            created_at: order.created_at,
+                            updated_at: order.updated_at,
+                            one_time_registration_fee: order.one_time_registration_fee,
+                            membership_fee: order.membership_fee,
+                            tax: order.tax,
+                            member_name: order.member_name,
+                            customer_email: order.customer_email,
+                            customer_phone: order.customer_phone,
+                            gstin: order.gstin,
+                            company: order.company,
+                            mobile_number: order.mobile_number,
+                            renewal_year: order.renewal_year,
+                            payment_note: order.payment_note,
+                            training_id: order.training_id,
+                            event_id: order.event_id,
+                            kitty_bill_id: order.kitty_bill_id,
+                            visitor_id: order.visitor_id,
+                            visitor_name: order.visitor_name,
+                            visitor_email: order.visitor_email,
+                            visitor_mobilenumber: order.visitor_mobilenumber,
+                            visitor_address: order.visitor_address,
+                            visitor_company: order.visitor_company,
+                            visitor_gstin: order.visitor_gstin,
+                            visitor_business: order.visitor_business,
+                            visitor_company_address: order.visitor_company_address,
+                            accolade_id: order.accolade_id
+                        },
+                        transactionId: {
+                            transaction_id: transaction.transaction_id,
+                            cf_payment_id: transaction.cf_payment_id,
+                            order_id: transaction.order_id,
+                            payment_gateway_id: transaction.payment_gateway_id,
+                            payment_amount: transaction.payment_amount,
+                            payment_currency: transaction.payment_currency,
+                            payment_status: transaction.payment_status,
+                            payment_message: transaction.payment_message,
+                            payment_time: transaction.payment_time,
+                            payment_completion_time: transaction.payment_completion_time,
+                            bank_reference: transaction.bank_reference,
+                            auth_id: transaction.auth_id,
+                            payment_method: transaction.payment_method,
+                            error_details: transaction.error_details,
+                            auth_details: transaction.auth_details,
+                            gateway_order_id: transaction.gateway_order_id,
+                            gateway_payment_id: transaction.gateway_payment_id,
+                            payment_group: transaction.payment_group
+                        },
+                        amount: order.order_amount,
+                        chapterName: chapterName,
+                        gatewayName: 'Unknown',
+                        universalLinkName: universalLinkName
+                    };
+
+                    // Use the einvoice data if it exists, otherwise create a default structure
+                    const formattedEinvoiceData = einvoiceData ? {
+                        invoice_id: einvoiceData.invoice_id,
+                        order_id: orderId,
+                        transaction_id: transaction.transaction_id.toString(),
+                        member_id: order.customer_id,
+                        ack_no: einvoiceData.ack_no,
+                        ack_dt: einvoiceData.ack_dt,
+                        irn: einvoiceData.irn,
+                        qrcode: einvoiceData.qrcode,
+                        invoice_dt: einvoiceData.invoice_dt
+                    } : {
+                        invoice_id: null,
+                        order_id: orderId,
+                        transaction_id: transaction.transaction_id.toString(),
+                        member_id: order.customer_id,
+                        ack_no: null,
+                        ack_dt: null,
+                        irn: null,
+                        qrcode: null,
+                        invoice_dt: new Date().toISOString()
+                    };
+
+                    const url = `http://localhost:3000/v/einvoice?invoiceData=${encodeURIComponent(JSON.stringify(invoiceData))}&einvoiceData=${encodeURIComponent(JSON.stringify(formattedEinvoiceData))}`;
+                    
+                    // Open in new tab
+                    window.open(url, '_blank');
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    // If fetch fails, use default structure
+                    const einvoiceData = {
+                        invoice_id: null,
+                        order_id: orderId,
+                        transaction_id: transaction.transaction_id.toString(),
+                        member_id: order.customer_id,
+                        ack_no: null,
+                        ack_dt: null,
+                        irn: null,
+                        qrcode: null,
+                        invoice_dt: new Date().toISOString()
+                    };
+
+                    const invoiceData = {
+                        orderId: order,
+                        transactionId: transaction,
+                        amount: order.order_amount,
+                        chapterName: 'N/A',
+                        gatewayName: 'Unknown',
+                        universalLinkName: 'Not Applicable'
+                    };
+
+                    const url = `https://dashboard.bninewdelhi.com/v/einvoice?invoiceData=${encodeURIComponent(JSON.stringify(invoiceData))}&einvoiceData=${encodeURIComponent(JSON.stringify(einvoiceData))}`;
+                    
+                    // Open in new tab
+                    window.open(url, '_blank');
+                }
+            });
+        });
+
+        updateTotals(transactionsToShow);
+    } catch (error) {
+        console.error('Error updating transactions display:', error);
+    }
 }
 
 // Function to update totals
