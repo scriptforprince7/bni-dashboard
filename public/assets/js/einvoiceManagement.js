@@ -257,27 +257,27 @@ function showEinvoicePdfModal(order, transaction, einvoice) {
 async function fetchAndDisplayEinvoices() {
     try {
         // Fetch e-invoice data
-        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
+        const einvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
         const einvoiceData = await einvoiceResponse.json();
 
         // Fetch all orders data
-        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
         const ordersData = await ordersResponse.json();
 
         // Fetch document numbers
-        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
+        const docNumbersResponse = await fetch('http://localhost:5000/api/getAllDocNumbers');
         const docNumbersData = await docNumbersResponse.json();
 
         // Fetch chapters data
-        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
         const chaptersData = await chaptersResponse.json();
 
         // Fetch regions data
-        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+        const regionsResponse = await fetch('http://localhost:5000/api/regions');
         const regionsData = await regionsResponse.json();
 
         // Fetch transactions data
-        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
 
         // Create maps for quick lookup
@@ -324,12 +324,9 @@ async function fetchAndDisplayEinvoices() {
             const billAmount = totalAmount - taxAmount;
 
             // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
-            let invoiceDate = 'N/A';
-            if (isGST) {
-                invoiceDate = einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A';
-            } else {
-                invoiceDate = einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A';
-            }
+            const invoiceDate = isGST 
+                ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
+                : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
 
             // Get payment date
             const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
@@ -483,12 +480,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
-                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
-                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
-                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
-                    fetch('https://backend.bninewdelhi.com/api/chapters'),
-                    fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
+                    fetch('http://localhost:5000/api/einvoiceData'),
+                    fetch('http://localhost:5000/api/allOrders'),
+                    fetch('http://localhost:5000/api/getAllDocNumbers'),
+                    fetch('http://localhost:5000/api/chapters'),
+                    fetch('http://localhost:5000/api/regions'),
+                    fetch('http://localhost:5000/api/allTransactions')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
                     einvoiceRes.json(),
@@ -511,6 +508,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (selectedIds.length > 0) {
                     filteredEinvoiceData = einvoiceData.filter(e => selectedIds.includes(e.order_id));
                 }
+
+                // Sort filtered data based on doc_numbers id in descending order
+                filteredEinvoiceData.sort((a, b) => {
+                    const docA = docNumbersMap.get(a.order_id);
+                    const docB = docNumbersMap.get(b.order_id);
+                    const idA = docA ? docA.id : Number.MIN_SAFE_INTEGER;
+                    const idB = docB ? docB.id : Number.MIN_SAFE_INTEGER;
+                    return idB - idA; // Descending order
+                });
+
                 // Build export data in table format
                 const exportData = filteredEinvoiceData.map((einvoice, i) => {
                     const order = ordersMap.get(einvoice.order_id);
@@ -524,16 +531,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
                     const billAmount = totalAmount - taxAmount;
 
-                    // Get invoice date - use payment date for non-GST einvoices
+                    // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
                     const invoiceDate = isGST 
                         ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
-                        : (transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A');
+                        : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
 
                     // Get payment date
                     const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
 
                     return {
-                        serial_no: i + 1,
+                        serial_no: filteredEinvoiceData.length - i,
                         invoice_no: docNumber?.doc_no || 'N/A',
                         invoice_date: invoiceDate,
                         payment_date: paymentDate,
@@ -582,12 +589,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources (same as for JSON export)
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
-                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
-                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
-                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
-                    fetch('https://backend.bninewdelhi.com/api/chapters'),
-                    fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
+                    fetch('http://localhost:5000/api/einvoiceData'),
+                    fetch('http://localhost:5000/api/allOrders'),
+                    fetch('http://localhost:5000/api/getAllDocNumbers'),
+                    fetch('http://localhost:5000/api/chapters'),
+                    fetch('http://localhost:5000/api/regions'),
+                    fetch('http://localhost:5000/api/allTransactions')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
                     einvoiceRes.json(),
@@ -610,6 +617,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (selectedIds.length > 0) {
                     filteredEinvoiceData = einvoiceData.filter(e => selectedIds.includes(e.order_id));
                 }
+
+                // Sort filtered data based on doc_numbers id in descending order
+                filteredEinvoiceData.sort((a, b) => {
+                    const docA = docNumbersMap.get(a.order_id);
+                    const docB = docNumbersMap.get(b.order_id);
+                    const idA = docA ? docA.id : Number.MIN_SAFE_INTEGER;
+                    const idB = docB ? docB.id : Number.MIN_SAFE_INTEGER;
+                    return idB - idA; // Descending order
+                });
+
                 // Build export data in table format for CSV
                 const exportData = filteredEinvoiceData.map((einvoice, i) => {
                     const order = ordersMap.get(einvoice.order_id);
@@ -623,16 +640,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
                     const billAmount = totalAmount - taxAmount;
 
-                    // Get invoice date - use payment date for non-GST einvoices
+                    // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
                     const invoiceDate = isGST 
                         ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
-                        : (transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A');
+                        : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
 
                     // Get payment date
                     const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
 
                     return {
-                        'S.No.': i + 1,
+                        'S.No.': filteredEinvoiceData.length - i,
                         'Invoice No.': docNumber?.doc_no || 'N/A',
                         'Invoice Date': invoiceDate,
                         'Payment Date': paymentDate,
@@ -707,7 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iframeUrl = iframe.src;
             // Build the correct PDF endpoint URL
             const urlParams = iframeUrl.split('?')[1];
-            const pdfUrl = `https://backend.bninewdelhi.com/api/v/einvoice/pdf?${urlParams}`;
+            const pdfUrl = `http://localhost:5000/api/v/einvoice/pdf?${urlParams}`;
             // Open the PDF in a new tab (for direct download)
             window.open(pdfUrl, '_blank');
         });

@@ -90,14 +90,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         paymentTypeResponse,
         visitorsResponse
       ] = await Promise.all([
-        fetch("https://backend.bninewdelhi.com/api/allOrders"),
-        fetch("https://backend.bninewdelhi.com/api/allTransactions"),
-        fetch("https://backend.bninewdelhi.com/api/chapters"),
-        fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
-        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
-        fetch("https://backend.bninewdelhi.com/api/regions"),
-        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
-        fetch("https://backend.bninewdelhi.com/api/getallVisitors")
+        fetch("http://localhost:5000/api/allOrders"),
+        fetch("http://localhost:5000/api/allTransactions"),
+        fetch("http://localhost:5000/api/chapters"),
+        fetch("http://localhost:5000/api/paymentGateway"),
+        fetch("http://localhost:5000/api/universalLinks"),
+        fetch("http://localhost:5000/api/regions"),
+        fetch("http://localhost:5000/api/universalLinks"),
+        fetch("http://localhost:5000/api/getallVisitors")
       ]);
   
       console.log('✅ All API calls completed');
@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
               // Step 1: Send request to save settlement data
               const saveResponse = await fetch(
-                `https://backend.bninewdelhi.com/api/orders/${orderId}/settlementStatus`,
+                `http://localhost:5000/api/orders/${orderId}/settlementStatus`,
                 { method: 'GET' }
               );
       
@@ -339,7 +339,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
       
               const fetchResponse = await fetch(
-                `https://backend.bninewdelhi.com/api/settlement/${cfPaymentId}`
+                `http://localhost:5000/api/settlement/${cfPaymentId}`
               );
       
               if (!fetchResponse.ok) {
@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               // Step 3: Update the table row based on settlement data
               if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
   
-                fetch(`https://backend.bninewdelhi.com/api/einvoice/${settlement.order_id}`)
+                fetch(`http://localhost:5000/api/einvoice/${settlement.order_id}`)
                 .then(response => response.json())
                 .then(einvoiceData => {
                     const irnCell = row.querySelector(".irn");
@@ -561,7 +561,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
                   try {
                     const backendResponse = await fetch(
-                      "https://backend.bninewdelhi.com/einvoice/generate-irn",
+                      "http://localhost:5000/einvoice/generate-irn",
                       {
                         method: "POST",
                         headers: {
@@ -578,7 +578,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     
                       // Fetch IRN and QR code details after successful generation
                       const einvoiceResponse = await fetch(
-                        `https://backend.bninewdelhi.com/api/einvoice/${orderId}`
+                        `http://localhost:5000/api/einvoice/${orderId}`
                       );
                       const einvoiceData = await einvoiceResponse.json();
                     
@@ -729,7 +729,7 @@ async function checkVisitorFormStatus(orderId) {
     
     try {
         // First get the order details
-        const orderResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+        const orderResponse = await fetch("http://localhost:5000/api/allOrders");
         const orders = await orderResponse.json();
         
         console.log('📦 Found orders:', orders.length);
@@ -750,7 +750,7 @@ async function checkVisitorFormStatus(orderId) {
         }
 
         // Get visitor details either by visitor_id or order_id
-        const visitorsResponse = await fetch("https://backend.bninewdelhi.com/api/getallvisitors");
+        const visitorsResponse = await fetch("http://localhost:5000/api/getallvisitors");
         const visitors = await visitorsResponse.json();
         
         console.log('👥 Total visitors:', visitors.length);

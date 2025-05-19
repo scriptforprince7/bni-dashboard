@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Fetch data for "Type of Expense"
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
+    const response = await fetch("http://localhost:5000/api/expenseType");
     const data = await response.json();
     console.log("Expense Types:", data);
     const expenseTypeDropdown = document.getElementById("expense_type");
@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Fetch and populate chapters dropdown
   try {
     console.log('Fetching chapters data...');
-    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("http://localhost:5000/api/chapters");
     const chapters = await response.json();
     console.log("All available chapters:", chapters);
 
@@ -323,7 +323,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     try {
     //   showLoader();
 
-      const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
+      const response = await fetch("http://localhost:5000/api/addExpense", {
         method: "POST",
         body: formData,
       });

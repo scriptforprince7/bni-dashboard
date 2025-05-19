@@ -330,7 +330,7 @@ async function loadVendorLedger(vendorId) {
     showLoader();
     
     // Fetch vendor details
-    const vendorsResponse = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+    const vendorsResponse = await fetch('http://localhost:5000/api/getAllVendors');
     const vendors = await vendorsResponse.json();
     const vendor = vendors.find(v => v.vendor_id === parseInt(vendorId));
 
@@ -339,7 +339,7 @@ async function loadVendorLedger(vendorId) {
     }
 
     // Fetch vendor's expenses
-    const expensesResponse = await fetch(`https://backend.bninewdelhi.com/api/vendor-expenses/${vendorId}`);
+    const expensesResponse = await fetch(`http://localhost:5000/api/vendor-expenses/${vendorId}`);
     const expensesData = await expensesResponse.json();
 
     // Ensure expenses is an array
@@ -441,7 +441,7 @@ document.addEventListener("DOMContentLoaded", async function() {
   // Get chapter ID for the logged-in user
   async function getCurrentChapterId() {
     try {
-      const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+      const response = await fetch("http://localhost:5000/api/chapters");
       const chapters = await response.json();
       const userChapter = chapters.find(chapter =>
         chapter.email_id === userEmail ||
@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         currentChapterId = await getCurrentChapterId();
       }
 
-      const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+      const response = await fetch('http://localhost:5000/api/getAllVendors');
       const vendors = await response.json();
 
       // Filter vendors for current chapter

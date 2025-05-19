@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("📤 Sending hotel data:", formData);
 
             try {
-                const response = await fetch("https://backend.bninewdelhi.com/api/addHotel", {
+                const response = await fetch("http://localhost:5000/api/addHotel", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
