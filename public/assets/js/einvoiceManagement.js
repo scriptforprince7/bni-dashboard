@@ -257,27 +257,27 @@ function showEinvoicePdfModal(order, transaction, einvoice) {
 async function fetchAndDisplayEinvoices() {
     try {
         // Fetch e-invoice data
-        const einvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
+        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
         const einvoiceData = await einvoiceResponse.json();
 
         // Fetch all orders data
-        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         const ordersData = await ordersResponse.json();
 
         // Fetch document numbers
-        const docNumbersResponse = await fetch('http://localhost:5000/api/getAllDocNumbers');
+        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
         const docNumbersData = await docNumbersResponse.json();
 
         // Fetch chapters data
-        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chaptersData = await chaptersResponse.json();
 
         // Fetch regions data
-        const regionsResponse = await fetch('http://localhost:5000/api/regions');
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
         const regionsData = await regionsResponse.json();
 
         // Fetch transactions data
-        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
 
         // Create maps for quick lookup
@@ -480,12 +480,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/einvoiceData'),
-                    fetch('http://localhost:5000/api/allOrders'),
-                    fetch('http://localhost:5000/api/getAllDocNumbers'),
-                    fetch('http://localhost:5000/api/chapters'),
-                    fetch('http://localhost:5000/api/regions'),
-                    fetch('http://localhost:5000/api/allTransactions')
+                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
+                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
+                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
+                    fetch('https://backend.bninewdelhi.com/api/chapters'),
+                    fetch('https://backend.bninewdelhi.com/api/regions'),
+                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
                     einvoiceRes.json(),
@@ -589,12 +589,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources (same as for JSON export)
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
-                    fetch('http://localhost:5000/api/einvoiceData'),
-                    fetch('http://localhost:5000/api/allOrders'),
-                    fetch('http://localhost:5000/api/getAllDocNumbers'),
-                    fetch('http://localhost:5000/api/chapters'),
-                    fetch('http://localhost:5000/api/regions'),
-                    fetch('http://localhost:5000/api/allTransactions')
+                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
+                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
+                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
+                    fetch('https://backend.bninewdelhi.com/api/chapters'),
+                    fetch('https://backend.bninewdelhi.com/api/regions'),
+                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
                     einvoiceRes.json(),
@@ -724,7 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iframeUrl = iframe.src;
             // Build the correct PDF endpoint URL
             const urlParams = iframeUrl.split('?')[1];
-            const pdfUrl = `http://localhost:5000/api/v/einvoice/pdf?${urlParams}`;
+            const pdfUrl = `https://backend.bninewdelhi.com/api/v/einvoice/pdf?${urlParams}`;
             // Open the PDF in a new tab (for direct download)
             window.open(pdfUrl, '_blank');
         });

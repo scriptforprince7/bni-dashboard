@@ -6,9 +6,9 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-const chaptersApiUrl = 'http://localhost:5000/api/chapters'; 
-const memberApiUrl = 'http://localhost:5000/api/members';
-const getBankOrderApi = 'http://localhost:5000/api/getBankOrder';
+const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
+const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
+const getBankOrderApi = 'https://backend.bninewdelhi.com/api/getBankOrder';
 let creditType;
 let chapterEmail;
 let current_User;
@@ -30,8 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const chapterFilter = document.getElementById('chapter-filter');
         
         // Fetch regions
-        console.log('Fetching regions from:', 'http://localhost:5000/api/regions');
-        const regionsResponse = await fetch('http://localhost:5000/api/regions');
+        console.log('Fetching regions from:', 'https://backend.bninewdelhi.com/api/regions');
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
         const regions = await regionsResponse.json();
         console.log('Fetched regions:', regions);
         
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Fetch writeoff data
                 console.log('Fetching writeoff data...');
-                const writeoffResponse = await fetch('http://localhost:5000/api/getAllMemberWriteOff');
+                const writeoffResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff');
                 const writeoffData = await writeoffResponse.json();
                 console.log('Writeoff data:', writeoffData);
 
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         };
                 
                         showLoader();
-                        const response = await fetch('http://localhost:5000/api/addMemberWriteOff', {
+                        const response = await fetch('https://backend.bninewdelhi.com/api/addMemberWriteOff', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

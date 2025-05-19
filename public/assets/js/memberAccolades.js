@@ -113,7 +113,7 @@ async function fetchMemberData() {
         // If no member_id in localStorage and not ro_admin, get from token
         if (!member_id && loginType !== 'ro_admin') {
             const userEmail = getUserEmail();
-            const membersResponse = await fetch('http://localhost:5000/api/members');
+            const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
             const membersData = await membersResponse.json();
             const member = membersData.find(m => m.member_email_address === userEmail);
             member_id = member?.member_id;
@@ -125,8 +125,8 @@ async function fetchMemberData() {
 
         // Step 2: Fetch member accolades and all accolades in parallel
         const [memberAccoladesResponse, accoladesResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/getAllMemberAccolades'),
-            fetch('http://localhost:5000/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
 
         const [memberAccoladesData, accoladesData] = await Promise.all([
@@ -226,7 +226,7 @@ function updateAccoladesCount() {
 async function populateAccoladesDropdown() {
     try {
         // Fetch accolades data
-        const accoladesResponse = await fetch('http://localhost:5000/api/accolades');
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accoladesData = await accoladesResponse.json();
         debugLog('Accolades data fetched for dropdown:', accoladesData);
 
@@ -312,8 +312,8 @@ async function handleRequestAndPay(accoladeId) {
 
         // Fetch both member and accolade details
         const [membersResponse, accoladesResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/members'),
-            fetch('http://localhost:5000/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
 
         const [members, accolades] = await Promise.all([
@@ -374,7 +374,7 @@ async function handleRequestAndPay(accoladeId) {
 
         try {
             // Fetch payment session from backend
-            const sessionResponse = await fetch('http://localhost:5000/api/generate-cashfree-session', {
+            const sessionResponse = await fetch('https://backend.bninewdelhi.com/api/generate-cashfree-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -400,7 +400,7 @@ async function handleRequestAndPay(accoladeId) {
                 cashfreeInstance.checkout({
                     paymentSessionId: sessionData.payment_session_id,
                     redirectTarget: "_self",  // Ensures redirection occurs
-                    returnUrl: `http://localhost:5000/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
+                    returnUrl: `https://backend.bninewdelhi.com/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
                 }).then(async (result) => {
                     if (result.paymentDetails) {
                         console.log("✅ Payment completed:", result.paymentDetails);
@@ -418,7 +418,7 @@ async function handleRequestAndPay(accoladeId) {
 
                             console.log('📝 Creating member requisition:', requisitionData);
 
-                            const requisitionResponse = await fetch('http://localhost:5000/api/member-requisition', {
+                            const requisitionResponse = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -496,7 +496,7 @@ function loadCashfreeSDK(callback) {
 async function showAccoladeDetails(accoladeId) {
     try {
         // Fetch accolades data
-        const response = await fetch('http://localhost:5000/api/accolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
         const accolades = await response.json();
         
         // Find the matching accolade
@@ -609,7 +609,7 @@ async function getPendingRequisitions() {
         if (loginType === 'ro_admin') {
             currentMemberId = parseInt(localStorage.getItem('current_member_id'));
         } else {
-            const membersResponse = await fetch('http://localhost:5000/api/members');
+            const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
             const members = await membersResponse.json();
             const currentMember = members.find(member => member.member_email_address === getUserEmail());
             currentMemberId = currentMember.member_id;
@@ -618,7 +618,7 @@ async function getPendingRequisitions() {
         console.log('👤 Current Member ID:', currentMemberId);
 
         // Fetch requisitions
-        const requisitionsResponse = await fetch('http://localhost:5000/api/getRequestedMemberRequisition');
+        const requisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
         const requisitions = await requisitionsResponse.json();
 
         console.log('📝 All Requisitions:', requisitions);
@@ -656,7 +656,7 @@ async function getPendingRequisitions() {
                 }
 
                 // Fetch accolades data for the modal
-                const accoladesResponse = await fetch('http://localhost:5000/api/accolades');
+                const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
                 const accolades = await accoladesResponse.json();
 
                 console.log('🏆 All Accolades:', accolades);

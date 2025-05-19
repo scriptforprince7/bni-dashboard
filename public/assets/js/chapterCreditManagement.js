@@ -24,7 +24,7 @@ let membersData = [];
 // Function to fetch member data
 async function fetchMembersData() {
     try {
-        const response = await fetch("http://localhost:5000/api/members");
+        const response = await fetch("https://backend.bninewdelhi.com/api/members");
         membersData = await response.json();
     } catch (error) {
         console.error("Error fetching members data:", error);
@@ -50,7 +50,7 @@ async function fetchAndFilterData() {
             }
         } else {
             chapterEmail = getUserEmail();
-            const chaptersResponse = await fetch('http://localhost:5000/api/chapters'); 
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters'); 
             const chapters = await chaptersResponse.json();
             const chapter = chapters.find(ch =>
                 ch.email_id === chapterEmail ||
@@ -70,7 +70,7 @@ async function fetchAndFilterData() {
         }
 
         // Fetch credit data
-        const response = await fetch("http://localhost:5000/api/getAllMemberCredit");
+        const response = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
         const data = await response.json();
         
         // Filter data for current chapter

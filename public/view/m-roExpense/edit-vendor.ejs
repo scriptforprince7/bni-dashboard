@@ -311,7 +311,7 @@
     async function fetchVendorDetails(vendorId) {
         try {
             // First fetch vendor details
-            const response = await fetch(`http://localhost:5000/api/getVendor/${vendorId}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/getVendor/${vendorId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -368,7 +368,7 @@
                 email_id: document.getElementById('email_id').value
             };
 
-            const response = await fetch(`http://localhost:5000/api/updateVendor/${vendorId}`, {
+            const response = await fetch(`https://backend.bninewdelhi.com/api/updateVendor/${vendorId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
