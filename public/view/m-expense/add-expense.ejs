@@ -167,24 +167,24 @@
 
                         <div class="col-xl-6">
                           <label for="expense_type" class="form-label">Type of Expense</label>
-                          <select class="form-control" name="expense_type" id="expense_type" required>
+                          <select class="form-control" name="expense_type" id="expense_type">
                             <option value="">Loading...</option>
                           </select>
                         </div>
                         <div class="col-xl-6">
                           <label for="submitted_by" class="form-label">Submitted By:</label>
-                          <input type="text" class="form-control" id="submitted_by" name="submitted_by" placeholder="Enter Name" maxlength="50" required />
+                          <input type="text" class="form-control" id="submitted_by" name="submitted_by" placeholder="Enter Name" maxlength="50" />
                         </div>
 
                         <div class="row">
                           <div class="col-xl-6">
                             <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="3" maxlength="200" required></textarea>
+                            <textarea class="form-control" id="description" name="description" placeholder="Enter description" rows="3" maxlength="200"></textarea>
                           </div>
 
                           <div class="col-xl-6">
                             <label for="chapter" class="form-label">Chapter</label>
-                            <select class="form-control" name="chapter" id="chapter" required>
+                            <select class="form-control" name="chapter" id="chapter">
                               <option value="">Select Chapter</option>
                             </select>
                           </div>
@@ -284,7 +284,7 @@
                           <div class="row">
                             <div class="col-xl-4 col-md-4">
                               <label class="form-label" for="amount">Amount</label>
-                              <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" required />
+                              <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" />
                               
                               <!-- Added GST Checkbox -->
                               <div class="form-check mt-2" style="margin-left: 4px;">
@@ -327,7 +327,7 @@
 
                             <div class="col-xl-4 col-md-4">
                               <label for="payment_status" class="form-label">Payment Status</label>
-                                <select class="form-control" name="payment_status" id="payment_status" required>
+                                <select class="form-control" name="payment_status" id="payment_status">
                                 <option value="">Payment Status</option>
                                 <option value="paid">Paid</option>
                                 <option value="pending">Pending</option>
@@ -336,7 +336,7 @@
 
                             <div class="col-xl-4 col-md-4">
                               <label for="bill_date" class="form-label">Bill Date:</label>
-                              <input type="date" id="bill_date" name="bill_date" class="form-control" required />
+                              <input type="date" id="bill_date" name="bill_date" class="form-control" />
                             </div>
                           </div>
 
@@ -351,16 +351,16 @@
                             </div>
                             <div class="col-xl-3">
                               <label for="bill_no" class="form-label">Bill No.</label>
-                              <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20" required/>
+                              <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20"/>
                             </div>
                             <div class="col-xl-3">
                               <label for="transaction_no" class="form-label">Transaction No.</label>
-                              <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" required />
+                              <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" />
                             </div>
                           </div>
                           <div class="col-xl-4">
                             <label for="payment_mode" class="form-label">Mode of Payment</label>
-                            <select class="form-control" name="payment_mode" id="payment_mode" required>
+                            <select class="form-control" name="payment_mode" id="payment_mode">
                               <option value="">Select Payment Mode</option>
                               <option value="cash">Cash</option>
                               <option value="online">Online</option>
@@ -932,90 +932,25 @@ function hideLoader() {
 
       // Get selected chapter and convert ID to number
       const selectedChapter = document.getElementById("chapter");
-      const selectedChapterId = parseInt(selectedChapter.value, 10);
+      const selectedChapterId = selectedChapter.value ? parseInt(selectedChapter.value, 10) : null;
       
-      // Validate chapter selection
-      if (!selectedChapterId || isNaN(selectedChapterId)) {
-        Swal.fire('Error!', 'Please select a valid chapter', 'error');
-        console.error('Invalid chapter selection:', {
-          originalValue: selectedChapter.value,
-          parsedValue: selectedChapterId
-        });
-        return;
-      }
-
-      // Validate payment status
-      const selectedPaymentStatus = document.getElementById('payment_status').value;
-      if (selectedPaymentStatus !== "paid" && selectedPaymentStatus !== "pending") {
-        console.log("selectedPaymentStatus", selectedPaymentStatus);
-        Swal.fire('Error!', 'Please select a valid payment status', 'error');
-        return;
-      }
-
-      // Validate expense type
-      const expenseType = document.getElementById('expense_type');
-      const selectedExpenseType = expenseType.options[expenseType.selectedIndex].textContent;
-      if (!expenseType.value) {
-        Swal.fire('Error!', 'Please select an expense type', 'error');
-        return;
-      }
-
-      // Validate amount
-      const amount = document.getElementById('amount').value;
-      if (!amount || parseFloat(amount) <= 0) {
-        Swal.fire('Error!', 'Please enter a valid amount', 'error');
-        return;
-      }
-
-      // Validate bill date
-      const billDate = document.getElementById('bill_date').value;
-      if (!billDate) {
-        Swal.fire('Error!', 'Please select a bill date', 'error');
-        return;
-      }
-
-      // Validate bill number
-      const billNo = document.getElementById('bill_no').value;
-      if (!billNo) {
-        Swal.fire('Error!', 'Please enter a bill number', 'error');
-        return;
-      }
-
-      // Validate transaction number
-      const transactionNo = document.getElementById('transaction_no').value;
-      if (!transactionNo) {
-        Swal.fire('Error!', 'Please enter a transaction number', 'error');
-        return;
-      }
-
-      // Validate payment mode
-      const paymentMode = document.getElementById('payment_mode').value;
-      if (!paymentMode) {
-        Swal.fire('Error!', 'Please select a payment mode', 'error');
-        return;
-      }
-
-      // Validate file uploads
-      const billFile = document.getElementById('upload_bill').files[0];
-      if (!billFile) {
-        Swal.fire('Error!', 'Please upload a bill', 'error');
-        return;
-      }
-
       // Add basic form fields
-      formData.append('expense_type', expenseType.value);
-      formData.append('submitted_by', document.getElementById('submitted_by').value);
-      formData.append('description', document.getElementById('description').value);
-      formData.append('chapter_id', selectedChapterId);
-      formData.append('amount', amount);
-      formData.append('payment_status', selectedPaymentStatus);
-      formData.append('bill_date', billDate);
-      formData.append('bill_no', billNo);
-      formData.append('transaction_no', transactionNo);
-      formData.append('payment_mode', paymentMode);
+      formData.append('expense_type', document.getElementById('expense_type').value || '');
+      formData.append('submitted_by', document.getElementById('submitted_by').value || '');
+      formData.append('description', document.getElementById('description').value || '');
+      formData.append('chapter_id', selectedChapterId || '');
+      formData.append('amount', document.getElementById('amount').value || '');
+      formData.append('payment_status', document.getElementById('payment_status').value || '');
+      formData.append('bill_date', document.getElementById('bill_date').value || '');
+      formData.append('bill_no', document.getElementById('bill_no').value || '');
+      formData.append('transaction_no', document.getElementById('transaction_no').value || '');
+      formData.append('payment_mode', document.getElementById('payment_mode').value || '');
 
-      // Add files
-      formData.append('upload_bill', billFile);
+      // Add files if they exist
+      const billFile = document.getElementById('upload_bill').files[0];
+      if (billFile) {
+        formData.append('upload_bill', billFile);
+      }
       const receiptFile = document.getElementById('upload_receipt').files[0];
       if (receiptFile) {
         formData.append('upload_receipt', receiptFile);
@@ -1034,43 +969,42 @@ function hideLoader() {
         formData.append('gstAmount', gstAmount);
         formData.append('totalAmount', totalAmount);
       } else {
-        formData.append('totalAmount', amount);
+        formData.append('totalAmount', document.getElementById('amount').value || '');
       }
 
       // Add vendor or hotel details based on expense type
+      const expenseType = document.getElementById('expense_type');
+      const selectedExpenseType = expenseType.options[expenseType.selectedIndex]?.textContent;
+      
       if (selectedExpenseType === 'Meeting Hotel Expenses') {
         const selectedHotel = document.getElementById('hotel').value;
-        if (!selectedHotel) {
-          Swal.fire('Error!', 'Please select a hotel', 'error');
-          return;
+        if (selectedHotel) {
+          formData.append('hotel_id', selectedHotel);
         }
-        formData.append('hotel_id', selectedHotel);
       } else {
         const selectedVendor = document.getElementById('vendor').value;
-        if (!selectedVendor || selectedVendor === 'show_others') {
-          Swal.fire('Error!', 'Please select a vendor', 'error');
-          return;
+        if (selectedVendor && selectedVendor !== 'show_others') {
+          formData.append('vendor_id', selectedVendor);
         }
-        formData.append('vendor_id', selectedVendor);
       }
 
       // Debug logging
       console.log('Form Data Object:', {
-        expense_type: parseInt(expenseType.value, 10),
+        expense_type: expenseType.value ? parseInt(expenseType.value, 10) : null,
         expense_type_name: selectedExpenseType,
         submitted_by: document.getElementById('submitted_by').value,
         description: document.getElementById('description').value,
         chapter_id: selectedChapterId,
-        chapter_name: selectedChapter.options[selectedChapter.selectedIndex].text,
-        amount: parseFloat(amount),
+        chapter_name: selectedChapter.options[selectedChapter.selectedIndex]?.text,
+        amount: document.getElementById('amount').value,
         withGST: withGST,
-        payment_status: selectedPaymentStatus,
-        bill_date: billDate,
-        bill_no: billNo,
-        transaction_no: transactionNo,
-        upload_bill: billFile.name,
+        payment_status: document.getElementById('payment_status').value,
+        bill_date: document.getElementById('bill_date').value,
+        bill_no: document.getElementById('bill_no').value,
+        transaction_no: document.getElementById('transaction_no').value,
+        upload_bill: billFile ? billFile.name : 'No file selected',
         upload_receipt: receiptFile ? receiptFile.name : 'No file selected',
-        payment_mode: paymentMode
+        payment_mode: document.getElementById('payment_mode').value
       });
 
       // Show loader and make API call
