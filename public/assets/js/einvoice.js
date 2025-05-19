@@ -207,16 +207,37 @@ async function fetchPaymentTime(orderId) {
     }
 }
 
+// Helper to fetch invoice_dt from einvoiceData API by order_id
+async function fetchInvoiceDtByOrderId(orderId) {
+  try {
+      const response = await fetch("http://localhost:5000/api/einvoiceData");
+      const einvoices = await response.json();
+      const match = einvoices.find(e => e.order_id === orderId);
+      if (match && match.invoice_dt) {
+          return new Date(match.invoice_dt);
+      }
+  } catch (err) {
+      console.error("Error fetching invoice_dt:", err);
+  }
+  return null;
+}
+
 // Use IIFE to handle async operation
 (async () => {
-    if (!invoiceDate) {
-        invoiceDate = await fetchPaymentTime(invoiceData.orderId.order_id);
-    }
-    const formattedDate = invoiceDate 
-        ? `${invoiceDate.getDate().toString().padStart(2, '0')}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}-${invoiceDate.getFullYear()}`
-        : "N/A";
-    
-    document.querySelector(".invoice_date").textContent = formattedDate;
+  if (!invoiceDate) {
+      if ((einvoiceData.irn === null || einvoiceData.irn === undefined) && 
+          (einvoiceData.ack_no === null || einvoiceData.ack_no === undefined) && 
+          (ackDate === null || ackDate === undefined)) {
+          invoiceDate = await fetchInvoiceDtByOrderId(invoiceData.orderId.order_id);
+      } else {
+          invoiceDate = await fetchPaymentTime(invoiceData.orderId.order_id);
+      }
+  }
+  const formattedDate = invoiceDate 
+      ? `${invoiceDate.getDate().toString().padStart(2, '0')}-${(invoiceDate.getMonth() + 1).toString().padStart(2, '0')}-${invoiceDate.getFullYear()}`
+      : "N/A";
+  
+  document.querySelector(".invoice_date").textContent = formattedDate;
 })();
 
 // Populate each field

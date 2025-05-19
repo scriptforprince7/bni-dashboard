@@ -731,11 +731,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (printBtn && iframe) {
         printBtn.addEventListener('click', function() {
-            if (iframe.contentWindow) {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            } else {
-                alert('Unable to access invoice for printing.');
+            try {
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } else {
+                    // Fallback: open PDF in a new tab/window
+                    const pdfUrl = iframe.src;
+                    window.open(pdfUrl, '_blank');
+                }
+            } catch (err) {
+                // Fallback: open PDF in a new tab/window
+                const pdfUrl = iframe.src;
+                window.open(pdfUrl, '_blank');
             }
         });
     }
