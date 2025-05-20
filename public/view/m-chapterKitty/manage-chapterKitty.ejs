@@ -462,6 +462,9 @@
                           <h4 class="fw-medium mb-0 bol">
                            <b><span class="total_kitty_amount_received" id="totalKittyAmountReceived">-</span></b> 
                           </h4>
+                          <div class="d-flex align-items-center mt-2">
+                            <span class="fs-12 text-muted" id="total_kitty_received_breakdown"></span>
+                          </div>
                         </div>
                         <div class="lh-1">
                           <span
@@ -532,6 +535,9 @@
                           <h4 class="fw-medium mb-0 bol">
                             <b><span class="total_pExpense_amount" id="total_pexpense_amount">-</span></b>
                           </h4>
+                          <div class="d-flex align-items-center mt-2">
+                            <span class="fs-12 text-muted" id="total_pending_expense_breakdown"></span>
+                          </div>
                         </div>
                         <div class="lh-1">
                           <span
@@ -887,64 +893,49 @@
 <!-- Visitor Payment Details Modal -->
 <div class="modal fade" id="visitorPaymentModal" tabindex="-1" aria-labelledby="visitorPaymentModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="visitorPaymentModalLabel">Visitor Payment Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-info text-white rounded-top-4" style="background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);">
+        <h4 class="modal-title fw-bold" id="visitorPaymentModalLabel">
+          <i class="ti ti-user-plus me-2"></i>Visitor Payment Details
+        </h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <ul class="nav nav-tabs" id="visitorPaymentTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="cash-tab" data-bs-toggle="tab" data-bs-target="#cash-payments" type="button" role="tab">
-              Cash Payments
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="online-tab" data-bs-toggle="tab" data-bs-target="#online-payments" type="button" role="tab">
-              Online Payments
-            </button>
-          </li>
-        </ul>
-        <div class="tab-content mt-3" id="visitorPaymentTabContent">
-          <div class="tab-pane fade show active" id="cash-payments" role="tabpanel">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Visitor Name</th>
-                    <th>Invited By</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody id="cashPaymentsTable">
-                  <!-- Cash payments will be populated here -->
-                </tbody>
-              </table>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-info bg-opacity-10 text-info px-3 py-2 rounded-3">
+              <i class="ti ti-user-plus"></i>
+              <span class="fw-semibold">Total Payments:</span>
+              <span id="visitorPaymentCount" class="fw-bold">-</span>
             </div>
-          </div>
-          <div class="tab-pane fade" id="online-payments" role="tabpanel">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Visitor Name</th>
-                    <th>Invited By</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    <th>Transaction ID</th>
-                  </tr>
-                </thead>
-                <tbody id="onlinePaymentsTable">
-                  <!-- Online payments will be populated here -->
-                </tbody>
-              </table>
+            <div class="bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="visitorPaymentTotalAmount" class="fw-bold">-</span>
             </div>
           </div>
         </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Visitor Name</th>
+                <th>Invited By</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Payment Method</th>
+                <th>Transaction ID</th>
+              </tr>
+            </thead>
+            <tbody id="visitorPaymentTableBody" class="table-striped">
+              <!-- Visitor payment details will be populated here -->
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -953,72 +944,420 @@
 <!-- Paid Expenses Details Modal -->
 <div class="modal fade" id="paidExpensesModal" tabindex="-1" aria-labelledby="paidExpensesModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="paidExpensesModalLabel">Paid Expenses Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-success text-white rounded-top-4" style="background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);">
+        <h4 class="modal-title fw-bold" id="paidExpensesModalLabel">
+          <i class="ti ti-cash me-2"></i>Paid Expenses Details
+        </h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <ul class="nav nav-tabs" id="paidExpensesTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="expense-cash-tab" data-bs-toggle="tab" data-bs-target="#expense-cash-payments" type="button" role="tab">
-              Cash Expenses
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="expense-online-tab" data-bs-toggle="tab" data-bs-target="#expense-online-payments" type="button" role="tab">
-              Online Expenses
-            </button>
-          </li>
-        </ul>
-        <div class="tab-content mt-3" id="paidExpensesTabContent">
-          <div class="tab-pane fade show active" id="expense-cash-payments" role="tabpanel">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Expense Title</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    <th>Paid By</th>
-                  </tr>
-                </thead>
-                <tbody id="cashExpensesTable">
-                  <!-- Cash expenses will be populated here -->
-                </tbody>
-              </table>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success bg-opacity-10 text-success px-3 py-2 rounded-3">
+              <i class="ti ti-cash"></i>
+              <span class="fw-semibold">Total Paid:</span>
+              <span id="paidExpensesCount" class="fw-bold">-</span>
             </div>
-          </div>
-          <div class="tab-pane fade" id="expense-online-payments" role="tabpanel">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Expense Title</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    <th>Paid By</th>
-                    <th>Transaction ID</th>
-                  </tr>
-                </thead>
-                <tbody id="onlineExpensesTable">
-                  <!-- Online expenses will be populated here -->
-                </tbody>
-              </table>
+            <div class="bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="paidExpensesTotalAmount" class="fw-bold">-</span>
             </div>
           </div>
         </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Expense Title</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Paid By</th>
+                <th>Mode</th>
+                <th>Bill No</th>
+              </tr>
+            </thead>
+            <tbody id="paidExpensesTableBody" class="table-striped">
+              <!-- Paid expenses will be populated here -->
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Total Available Fund -->
+<!-- Credit Note Details Modal -->
+<div class="modal fade" id="creditNoteModal" tabindex="-1" aria-labelledby="creditNoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-primary text-white rounded-top-4" style="background: linear-gradient(90deg, #4e54c8 0%, #8f94fb 100%);">
+        <h4 class="modal-title fw-bold" id="creditNoteModalLabel">
+          <i class="ti ti-cash me-2"></i>Credit Note Details
+        </h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success bg-opacity-10 text-success px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Credit Notes:</span>
+              <span id="creditNoteCount" class="fw-bold">-</span>
+            </div>
+            <div class="bg-info bg-opacity-10 text-info px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="creditNoteTotalAmount" class="fw-bold">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Member Name</th>
+                <th>Credit Amount</th>
+                <th>Date</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="creditNoteTableBody" class="table-striped">
+              <!-- Credit note details will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<style>
+  #creditNoteModal .modal-content {
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(80, 80, 180, 0.15);
+  }
+  #creditNoteModal .modal-header {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    border-bottom: none;
+  }
+  #creditNoteModal .modal-footer {
+    border-bottom-left-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+    border-top: none;
+  }
+  #creditNoteModal .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #f6f8fc;
+  }
+  #creditNoteModal .table-striped > tbody > tr:nth-of-type(even) {
+    background-color: #fff;
+  }
+  #creditNoteModal th, #creditNoteModal td {
+    vertical-align: middle;
+  }
+</style>
 
-<!-- Total Kitty Amount Received -->
+<!-- Write Off Details Modal -->
+<div class="modal fade" id="writeOffModal" tabindex="-1" aria-labelledby="writeOffModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-danger text-white rounded-top-4" style="background: linear-gradient(90deg, #ff5858 0%, #f09819 100%);">
+        <h4 class="modal-title fw-bold" id="writeOffModalLabel">
+          <i class="ti ti-eraser me-2"></i>Write Off Details
+        </h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-3">
+              <i class="ti ti-eraser"></i>
+              <span class="fw-semibold">Total Write Offs:</span>
+              <span id="writeOffCount" class="fw-bold">-</span>
+            </div>
+            <div class="bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="writeOffTotalAmount" class="fw-bold">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Member Name</th>
+                <th>Write Off Amount</th>
+                <th>Date</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="writeOffTableBody" class="table-striped">
+              <!-- Write off details will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #writeOffModal .modal-content {
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(255, 88, 88, 0.10);
+  }
+  #writeOffModal .modal-header {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    border-bottom: none;
+  }
+  #writeOffModal .modal-footer {
+    border-bottom-left-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+    border-top: none;
+  }
+  #writeOffModal .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #fff6f6;
+  }
+  #writeOffModal .table-striped > tbody > tr:nth-of-type(even) {
+    background-color: #fff;
+  }
+  #writeOffModal th, #writeOffModal td {
+    vertical-align: middle;
+  }
+</style>
+
+<!-- Kitty Amount Received Details Modal -->
+<div class="modal fade" id="kittyReceivedModal" tabindex="-1" aria-labelledby="kittyReceivedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-success text-white rounded-top-4" style="background: linear-gradient(90deg, #43cea2 0%, #185a9d 100%);">
+        <h4 class="modal-title fw-bold" id="kittyReceivedModalLabel">
+          <i class="ti ti-wallet me-2"></i>Kitty Amount Received Details
+        </h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success bg-opacity-10 text-success px-3 py-2 rounded-3">
+              <i class="ti ti-wallet"></i>
+              <span class="fw-semibold">Total Payments:</span>
+              <span id="kittyReceivedCount" class="fw-bold">-</span>
+            </div>
+            <div class="bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="kittyReceivedTotalAmount" class="fw-bold">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Member Name</th>
+                <th>Amount Received</th>
+                <th>Date</th>
+                <th>Payment Method</th>
+                <th>Transaction ID</th>
+              </tr>
+            </thead>
+            <tbody id="kittyReceivedTableBody" class="table-striped">
+              <!-- Kitty received details will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #kittyReceivedModal .modal-content {
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(67, 206, 162, 0.10);
+  }
+  #kittyReceivedModal .modal-header {
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    border-bottom: none;
+  }
+  #kittyReceivedModal .modal-footer {
+    border-bottom-left-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+    border-top: none;
+  }
+  #kittyReceivedModal .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #f6fcfa;
+  }
+  #kittyReceivedModal .table-striped > tbody > tr:nth-of-type(even) {
+    background-color: #fff;
+  }
+  #kittyReceivedModal th, #kittyReceivedModal td {
+    vertical-align: middle;
+  }
+</style>
+
+<!-- Kitty Amount Pending Details Modal -->
+<div class="modal fade" id="kittyPendingModal" tabindex="-1" aria-labelledby="kittyPendingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-warning text-dark rounded-top-4">
+        <h4 class="modal-title fw-bold" id="kittyPendingModalLabel">
+          <i class="ti ti-clock-hour-4 me-2"></i>Kitty Amount Pending Details
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-3">
+              <i class="ti ti-clock-hour-4"></i>
+              <span class="fw-semibold">Total Pending:</span>
+              <span id="kittyPendingCount" class="fw-bold">-</span>
+            </div>
+            <div class="bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="kittyPendingTotalAmount" class="fw-bold">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Member Name</th>
+                <th>Pending Amount</th>
+              </tr>
+            </thead>
+            <tbody id="kittyPendingTableBody" class="table-striped">
+              <!-- Pending details will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending Expense Details Modal -->
+<div class="modal fade" id="pendingExpenseModal" tabindex="-1" aria-labelledby="pendingExpenseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-warning text-dark rounded-top-4">
+        <h4 class="modal-title fw-bold" id="pendingExpenseModalLabel">
+          <i class="ti ti-clock-hour-4 me-2"></i>Pending Expense Details
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-3">
+              <i class="ti ti-clock-hour-4"></i>
+              <span class="fw-semibold">Total Pending:</span>
+              <span id="pendingExpenseCount" class="fw-bold">-</span>
+            </div>
+            <div class="bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="pendingExpenseTotalAmount" class="fw-bold">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Expense Title</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Added By</th>
+              </tr>
+            </thead>
+            <tbody id="pendingExpenseTableBody" class="table-striped">
+              <!-- Pending expense details will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Late Payment Details Modal -->
+<div class="modal fade" id="latePaymentModal" tabindex="-1" aria-labelledby="latePaymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-lg rounded-4 border-0">
+      <div class="modal-header bg-warning text-dark rounded-top-4">
+        <h4 class="modal-title fw-bold" id="latePaymentModalLabel">
+          <i class="ti ti-clock-hour-4 me-2"></i>Late Payment Details
+        </h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-3">
+              <i class="ti ti-clock-hour-4"></i>
+              <span class="fw-semibold">Total Late Payments:</span>
+              <span id="latePaymentCount" class="fw-bold">-</span>
+            </div>
+            <div class="bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-3">
+              <i class="ti ti-currency-rupee"></i>
+              <span class="fw-semibold">Total Amount:</span>
+              <span id="latePaymentTotalAmount" class="fw-bold">-</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive rounded-3 shadow-sm">
+          <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 12px; overflow: hidden;">
+            <thead class="table-light">
+              <tr>
+                <th>Sr. No.</th>
+                <th>Member Name</th>
+                <th>No. of Late Payments</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="latePaymentTableBody" class="table-striped">
+              <!-- Late payment details will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light rounded-bottom-4">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -197,6 +197,30 @@ async function fetchMemberApplicationDetails(visitorId) {
     }
 }
 
+// Add this function to fetch document details
+async function getDocumentFileName(visitorId, chapterId, documentType) {
+    try {
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllVisitorDocuments');
+        const documents = await response.json();
+        
+        console.log('📄 All Documents:', documents);
+        
+        // Find the matching document
+        const document = documents.find(doc => 
+            doc.visitor_id === visitorId && 
+            doc.chapter_id === chapterId && 
+            doc.document_type === documentType
+        );
+        
+        console.log('🔍 Found Document:', document);
+        
+        return document ? document.file_name : null;
+    } catch (error) {
+        console.error('❌ Error fetching document:', error);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -290,6 +314,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Function to create status icon with view link
         const getStatusIcon = async (status, type = null, visitor = null) => {
+            console.log('📋 Document Status Check:');
+            console.log('📄 Type:', type);
+            console.log('✅ Status:', status);
+            console.log('👤 Visitor:', visitor);
+
             // For new member form, check payment status
             if (type === 'payment') {
                 const isPaid = await checkMembershipPayment(visitor.visitor_id);
@@ -300,8 +329,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 '<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>' : 
                 '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
             
-            // Only add View link for specified types when status is true
-            if (status && type && visitor) {
                 let pageUrl;
                 let verificationStatus = false;
 
@@ -383,15 +410,75 @@ document.addEventListener('DOMContentLoaded', async function() {
                         break;
                 }
 
-                // For all other form types, show verification badge
-                console.log('🎨 Rendering with verification status:', verificationStatus);
+            // Add upload button for specific document types
+            let uploadButton = '';
+            let previewButton = '';
+            if (['member_application', 'interview', 'commitment', 'inclusion'].includes(type)) {
+                const documentTypeMap = {
+                    'member_application': 'member_application_form',
+                    'interview': 'interview_sheet',
+                    'commitment': 'commitment_sheet',
+                    'inclusion': 'inclusion_exclusion_sheet'
+                };
+                
+                console.log('📝 Document Type Mapping:', documentTypeMap[type]);
+                
+                // Add preview button if document exists
+                if (status) {
+                    const baseUrl = 'https://backend.bninewdelhi.com/api/uploads/visitor_documents';
+                    const docType = documentTypeMap[type];
+                    
+                    // Get the file name from the API
+                    const fileName = await getDocumentFileName(visitor.visitor_id, visitor.chapter_id, docType);
+                    
+                    console.log('🔍 File Details:');
+                    console.log('📄 File Name from API:', fileName);
+                    
+                    if (fileName) {
+                        const fullUrl = `${baseUrl}/${docType}/${fileName}`;
+                        
+                        console.log('🔗 Document URL Details:');
+                        console.log('📁 Base URL:', baseUrl);
+                        console.log('📄 Document Type:', docType);
+                        console.log('🆔 Visitor ID:', visitor.visitor_id);
+                        console.log('📎 File Name:', fileName);
+                        console.log('🔗 Full URL:', fullUrl);
+                        
+                        previewButton = `
+                            <a href="javascript:void(0)" 
+                               onclick="previewDocument('${fullUrl}', '${type.replace('_', ' ').toUpperCase()}', ${visitor.visitor_id})"
+                               class="preview-btn mt-2" 
+                               title="Preview ${type.replace('_', ' ').toUpperCase()}">
+                                <i class="ri-eye-line"></i> Preview
+                            </a>`;
+                    } else {
+                        console.log('⚠️ No file name found in documents');
+                    }
+                }
+                
+                uploadButton = `
+                    <label class="upload-btn mt-2" title="Upload ${type.replace('_', ' ').toUpperCase()}">
+                        <i class="ri-upload-2-line"></i> Upload
+                        <input type="file" 
+                               accept=".pdf,.jpg,.jpeg,.png" 
+                               style="display: none;" 
+                               onchange="handleDocumentUpload(event, ${visitor.visitor_id}, ${visitor.chapter_id}, '${documentTypeMap[type]}', ${visitor.invited_by})"
+                        >
+                    </label>`;
+            }
+
+            // Show verification badge, preview button, and upload button for all document types
                 return `
                     ${icon}<br>
+                ${status ? `
                     <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
                        target="_blank" 
                        class="view-sheet-link fw-medium text-success text-decoration-underline">
                        View
                     </a>
+                ` : ''}
+                ${previewButton}
+                ${uploadButton}
                     <div class="verification-badge" style="
                         margin-top: 5px;
                         padding: 2px 8px;
@@ -406,8 +493,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                         ${verificationStatus ? 'Verified' : 'Not Verified'}
                     </div>
                 `;
-            }
-            return icon;
         };
 
         // Add function to check induction status
@@ -854,7 +939,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <div class="doc-container">
                             <img src="https://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
                                  class="doc-preview" 
-                                 onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                                 onclick="previewDocument(this.src, 'Onboarding Call Screenshot', ${visitor.visitor_id})" 
                                  alt="Onboarding Call Preview"
                                  onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
                             />
@@ -868,6 +953,32 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     >
                                 </label>
                             </div>
+                            ${(() => {
+                                let verificationStatus = false;
+                                try {
+                                    const verificationData = typeof visitor.verification === 'string' 
+                                        ? JSON.parse(visitor.verification) 
+                                        : visitor.verification;
+                                    verificationStatus = verificationData.onboarding_call === "true";
+                                } catch (e) {
+                                    console.error('Error parsing verification:', e);
+                                }
+                                return `
+                                    <div class="verification-badge" style="
+                                        margin-top: 5px;
+                                        padding: 2px 8px;
+                                        background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                                        color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                                        border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                                        border-radius: 12px;
+                                        font-size: 11px;
+                                        font-weight: 600;
+                                        display: inline-block;
+                                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                                        ${verificationStatus ? 'Verified' : 'Not Verified'}
+                                    </div>
+                                `;
+                            })()}
                         </div>
                     `
                     : `
@@ -879,6 +990,32 @@ document.addEventListener('DOMContentLoaded', async function() {
                                    onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
                             >
                         </label>
+                        ${(() => {
+                            let verificationStatus = false;
+                            try {
+                                const verificationData = typeof visitor.verification === 'string' 
+                                    ? JSON.parse(visitor.verification) 
+                                    : visitor.verification;
+                                verificationStatus = verificationData.onboarding_call === "true";
+                            } catch (e) {
+                                console.error('Error parsing verification:', e);
+                            }
+                            return `
+                                <div class="verification-badge" style="
+                                    margin-top: 5px;
+                                    padding: 2px 8px;
+                                    background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                                    color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                                    border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                                    border-radius: 12px;
+                                    font-size: 11px;
+                                    font-weight: 600;
+                                    display: inline-block;
+                                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                                    ${verificationStatus ? 'Verified' : 'Not Verified'}
+                                </div>
+                            `;
+                        })()}
                     `;
 
                 // Add this function to handle induction kit status
@@ -1265,10 +1402,15 @@ document.head.querySelector('style').textContent += `
         gap: 4px;
         cursor: pointer;
         transition: all 0.3s ease;
+        margin-top: 5px;
     }
 
     .upload-btn:hover {
         background-color: #e5e7eb;
+    }
+
+    .upload-btn i {
+        font-size: 14px;
     }
 
     .doc-container {
@@ -1311,6 +1453,32 @@ document.head.querySelector('style').textContent += `
         font-size: 12px;
         text-align: center;
         padding: 5px;
+    }
+
+    .preview-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background-color: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        color: #4b5563;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        margin-right: 8px;
+    }
+
+    .preview-btn:hover {
+        background-color: #e5e7eb;
+        color: #1f2937;
+    }
+
+    .preview-btn i {
+        font-size: 14px;
     }
 `;
 
@@ -1358,7 +1526,7 @@ async function handleScreenshotUpload(event, visitor_id) {
                 <div class="doc-container">
                     <img src="${result.data.imageUrl}" 
                          class="doc-preview" 
-                         onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                         onclick="previewDocument(this.src, 'Onboarding Call Screenshot', ${visitor_id})" 
                          alt="Onboarding Call Preview"
                          onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
                     />
@@ -1388,25 +1556,180 @@ async function handleScreenshotUpload(event, visitor_id) {
     }
 }
 
-function previewDocument(src, title) {
-    console.log("🔍 Previewing document:", { src, title });
+function previewDocument(src, title, visitorId) {
+    console.log('🔍 Preview Document Details:');
+    console.log('📄 Title:', title);
+    console.log('🔗 Full URL:', src);
+    console.log('👤 Visitor ID:', visitorId);
+    
+    // Check if the file is a PDF
+    const isPDF = src.toLowerCase().endsWith('.pdf');
+    
+    // Get document type from title
+    const documentTypeMap = {
+        'MEMBER APPLICATION': 'member_application_form',
+        'INTERVIEW': 'interview_sheet',
+        'COMMITMENT': 'commitment_sheet',
+        'INCLUSION': 'inclusion_exclusion_sheet'
+    };
+    
+    // Special handling for onboarding call
+    if (title === 'Onboarding Call Screenshot') {
+        if (isPDF) {
     Swal.fire({
         title: title,
-        imageUrl: src,
-        imageAlt: title,
-        imageWidth: 400,
-        imageHeight: 400,
-        confirmButtonText: 'Close',
-        confirmButtonColor: '#2563eb',
+                html: `
+                    <div class="text-center">
+                        <p class="mb-3">This is a PDF document. Click below to view it.</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="${src}" target="_blank" class="btn btn-primary">
+                                <i class="ri-file-pdf-line me-2"></i>Open PDF
+                            </a>
+                            <button onclick="verifyDocument('onboarding_call', ${visitorId})" class="btn btn-success">
+                                <i class="ri-check-line me-2"></i>Verify Details
+                            </button>
+                        </div>
+                    </div>
+                `,
         showCloseButton: true,
-        imageErrorCallback: function() {
-            console.error("❌ Error loading image in preview");
-            Swal.update({
-                imageUrl: '../../assets/images/media/no-image.png',
-                text: 'Error loading image'
+                showConfirmButton: false,
+                width: 'auto'
+            });
+        } else {
+            Swal.fire({
+                title: title,
+                html: `
+                    <div class="text-center">
+                        <img src="${src}" style="max-width: 100%; max-height: 70vh;" class="mb-3" />
+                        <button onclick="verifyDocument('onboarding_call', ${visitorId})" class="btn btn-success">
+                            <i class="ri-check-line me-2"></i>Verify Details
+                        </button>
+                    </div>
+                `,
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: 'auto'
             });
         }
-    });
+        return;
+    }
+    
+    const docType = documentTypeMap[title.toUpperCase()];
+    console.log('📄 Document Type for Verification:', docType);
+    
+    if (isPDF) {
+        Swal.fire({
+            title: title,
+            html: `
+                <div class="text-center">
+                    <p class="mb-3">This is a PDF document. Click below to view it.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="${src}" target="_blank" class="btn btn-primary">
+                            <i class="ri-file-pdf-line me-2"></i>Open PDF
+                        </a>
+                        <button onclick="verifyDocument('${docType}', ${visitorId})" class="btn btn-success">
+                            <i class="ri-check-line me-2"></i>Verify Details
+                        </button>
+                    </div>
+                </div>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: 'auto'
+        });
+    } else {
+        Swal.fire({
+            title: title,
+            html: `
+                <div class="text-center">
+                    <img src="${src}" style="max-width: 100%; max-height: 70vh;" class="mb-3" />
+                    <button onclick="verifyDocument('${docType}', ${visitorId})" class="btn btn-success">
+                        <i class="ri-check-line me-2"></i>Verify Details
+                    </button>
+                </div>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: 'auto'
+        });
+    }
+}
+
+async function verifyDocument(docType, visitorId) {
+    try {
+        console.log('🔍 Verifying document:', docType);
+        console.log('👤 Visitor ID:', visitorId);
+        
+        if (!visitorId) {
+            throw new Error('Visitor ID is missing');
+        }
+
+        // Show loading state
+        Swal.fire({
+            title: 'Verifying...',
+            text: 'Please wait while we update the verification status',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // First get current verification status
+        const response = await fetch(`https://backend.bninewdelhi.com/api/getallVisitors`);
+        const visitors = await response.json();
+        const visitor = visitors.find(v => v.visitor_id === parseInt(visitorId));
+        
+        let verification = {};
+        if (visitor && visitor.verification) {
+            try {
+                verification = typeof visitor.verification === 'string'
+                    ? JSON.parse(visitor.verification)
+                    : visitor.verification;
+            } catch (e) { 
+                verification = {}; 
+            }
+        }
+        
+        // Update verification status for this document type
+        if (docType === 'onboarding_call') {
+            verification.onboarding_call = "true";
+        } else {
+            verification[docType] = "true";
+        }
+        console.log('📝 Updated verification:', verification);
+
+        // Update the verification status
+        const updateResponse = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                visitor_id: parseInt(visitorId),
+                verification: verification
+            })
+        });
+
+        if (!updateResponse.ok) {
+            throw new Error('Failed to update verification status');
+        }
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Document verified successfully'
+        });
+
+        // Refresh the page to show updated verification status
+        window.location.reload();
+
+    } catch (error) {
+        console.error('❌ Error verifying document:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Verification Failed',
+            text: error.message || 'Failed to verify document. Please try again.'
+            });
+        }
 }
 
 // Add this function to handle the approval process
@@ -1451,7 +1774,8 @@ async function handleInductionKitApproval(visitorId, chapterId) {
             body: JSON.stringify({
                 visitor_id: visitorId,
                 approve_induction_kit: true,
-                chapter_apply_kit: 'approved'
+                chapter_apply_kit: 'approved',
+                induction_status: 'true'
             })
         });
 
@@ -1762,4 +2086,89 @@ async function handleDocUpload(event, docType, visitorId) {
             text: error.message || 'Failed to upload document. Please try again.'
         });
     }
+}
+
+// Add this new function for handling document uploads
+async function handleDocumentUpload(event, visitorId, chapterId, documentType, memberId) {
+    try {
+        console.log('🔄 Starting document upload process');
+        console.log('📄 Document Type:', documentType);
+        console.log('👤 Visitor ID:', visitorId);
+        console.log('🏢 Chapter ID:', chapterId);
+        console.log('👥 Member ID:', memberId);
+
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('❌ No file selected');
+            return;
+        }
+
+        // Show loading state
+        Swal.fire({
+            title: 'Uploading...',
+            text: 'Please wait while we upload your document',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('visitor_id', visitorId);
+        formData.append('chapter_id', chapterId);
+        formData.append('document_type', documentType);
+        formData.append('member_id', memberId);
+
+        console.log('📤 Making API call with data:', {
+            visitor_id: visitorId,
+            chapter_id: chapterId,
+            document_type: documentType,
+            member_id: memberId,
+            fileName: file.name
+        });
+
+        const response = await fetch('https://backend.bninewdelhi.com/api/upload-visitor-document', {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log('📡 API Response Status:', response.status);
+        const data = await response.json();
+        console.log('📦 API Response Data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to upload document');
+        }
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Document uploaded successfully'
+        });
+
+        // Refresh the page to show updated documents
+        window.location.reload();
+
+    } catch (error) {
+        console.error('❌ Error uploading document:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload document. Please try again.'
+        });
+    }
+}
+
+// Add this helper function to get file extension
+function getFileExtension(filename) {
+    console.log('📎 Getting file extension for:', filename);
+    if (!filename) {
+        console.log('⚠️ No filename provided, using default extension: jpg');
+        return 'jpg'; // default extension
+    }
+    const extension = filename.split('.').pop().toLowerCase();
+    console.log('📎 Extracted extension:', extension);
+    return extension;
 }

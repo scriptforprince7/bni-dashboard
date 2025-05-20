@@ -365,7 +365,7 @@ async function handleInductionKitApply(visitor) {
             body: JSON.stringify({
                 visitor_id: visitor.visitor_id,
                 chapter_id: visitor.chapter_id,
-                accolade_ids: [47], // Assuming 1 is the accolade_id for induction kit
+                accolade_ids: [1], // Assuming 1 is the accolade_id for induction kit
                 comment: `Induction Kit Request for ${visitor.visitor_name}`,
                 request_status: 'open',
                 ro_comment: null,
@@ -463,6 +463,7 @@ async function handleSendEmail(visitor) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                visitor_id: visitor.visitor_id,
                 visitor_email: visitor.visitor_email,
                 visitor_name: visitor.visitor_name,
                 chapter_name: chapter?.chapter_name || 'New Delhi'

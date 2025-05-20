@@ -31,7 +31,7 @@ async function fetchAllOrders() {
         // First try: Filter orders for this visitor and payment_note = "visitor-payment"
         let visitorOrders = allOrders.filter(order => 
             order.visitor_id === parseInt(visitorId) && 
-            order.payment_note === "visitor-payment"
+            (order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
         );
         
         console.log("Initial filtered visitor orders:", visitorOrders);
@@ -54,7 +54,8 @@ async function fetchAllOrders() {
                 // Find the order in allOrders using the order_id from visitor
                 const matchingOrder = allOrders.find(order => 
                     order.order_id === matchingVisitor.order_id && 
-                    order.payment_note === "visitor-payment"
+                    (order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
+            
                 );
 
                 if (matchingOrder) {

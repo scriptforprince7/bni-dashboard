@@ -661,7 +661,6 @@ async function updateTotalKittyAmount() {
     console.error('Error updating amounts:', error);
   }
 }
-
 // Add sorting function
 function handleSort(column) {
   isAscending = !isAscending;

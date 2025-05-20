@@ -232,6 +232,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       maximumFractionDigits: 2,
     });
 
+    // Initialize totalCreditAmount at the beginning
+    let totalCreditAmount = 0;
+
     // Step 1: Get logged-in chapter email and type
     console.log("Step 1: Getting user login type...");
     const loginType = getUserLoginType();
@@ -275,6 +278,90 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (chapter) {
         chapter_id = chapter.chapter_id;
       }
+    }
+
+    // Calculate total credit amount
+    console.log("Fetching credit notes for chapter:", chapter_id);
+    const creditResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
+    const memberCredits = await creditResponse.json();
+    console.log("All member credits:", memberCredits);
+    
+    // Convert chapter_id to number for comparison
+    const numericChapterId = parseInt(chapter_id);
+    console.log("Numeric chapter ID for comparison:", numericChapterId);
+
+    const filteredMemberCredits = memberCredits.filter((credit) => {
+      const creditChapterId = parseInt(credit.chapter_id);
+      console.log("Comparing credit chapter ID:", creditChapterId, "with chapter ID:", numericChapterId);
+      return creditChapterId === numericChapterId;
+    });
+
+    console.log("Filtered member credits:", filteredMemberCredits);
+    
+    totalCreditAmount = filteredMemberCredits.reduce((total, credit) => {
+      const amount = parseFloat(credit.credit_amount || 0);
+      console.log("Adding credit amount:", amount, "from credit:", credit);
+      return total + amount;
+    }, 0);
+    
+    console.log("Total Credit Amount:", totalCreditAmount);
+
+    // Update credit note amount display
+    const creditAmountElement = document.querySelector("#total_credit_amount");
+    if (creditAmountElement) {
+      creditAmountElement.textContent = indianCurrencyFormatter.format(totalCreditAmount);
+      creditAmountElement.style.cursor = 'pointer';
+      
+      // Add click handler for credit note details
+      creditAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch members to get member names
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+          const allMembers = await membersResponse.json();
+          
+          // Prepare credit details
+          const creditDetails = filteredMemberCredits.map(credit => {
+            const member = allMembers.find(m => parseInt(m.member_id) === parseInt(credit.member_id));
+            let dateStr = credit.credit_date ? new Date(credit.credit_date).toLocaleDateString("en-IN") : "N/A";
+            if (dateStr === "Invalid Date") dateStr = "N/A";
+            return {
+              memberName: member ? (member.member_first_name + (member.member_last_name ? ' ' + member.member_last_name : '')) : "N/A",
+              amount: parseFloat(credit.credit_amount || 0),
+              date: dateStr,
+              description: credit.credit_type || "N/A"
+            };
+          });
+
+          // Populate credit note table
+          const creditTableBody = document.getElementById('creditNoteTableBody');
+          creditTableBody.innerHTML = creditDetails.map((credit, idx) => `
+            <tr>
+              <td>${idx + 1}</td>
+              <td>${credit.memberName}</td>
+              <td>₹${credit.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+              <td>${credit.date}</td>
+              <td>${credit.description}</td>
+            </tr>
+          `).join('');
+
+          // Populate summary fields
+          const creditNoteCount = document.getElementById('creditNoteCount');
+          const creditNoteTotalAmount = document.getElementById('creditNoteTotalAmount');
+          if (creditNoteCount) creditNoteCount.textContent = creditDetails.length;
+          if (creditNoteTotalAmount) {
+            const total = creditDetails.reduce((sum, c) => sum + c.amount, 0);
+            creditNoteTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+
+          // Show modal
+          const creditNoteModal = new bootstrap.Modal(document.getElementById('creditNoteModal'));
+          creditNoteModal.show();
+        } catch (error) {
+          console.error('Error showing credit note details:', error);
+        }
+      });
+    } else {
+      console.error("Credit amount element not found in DOM");
     }
 
     // Fetch write-off data and calculate total
@@ -415,26 +502,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     console.log("Total Pending Expense:", total_pending_expense);
     console.log("Total Paid Expense:", total_paid_expense);
-
-    const creditResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
-    );
-    const memberCredits = await creditResponse.json();
-    console.log("Member Credits Data:", memberCredits);
-    const filteredMemberCredits = memberCredits.filter(
-      (credit) => credit.chapter_id === chapterId
-    );
-    console.log(
-      "Filtered Member Credits for Chapter ID:",
-      chapterId,
-      filteredMemberCredits
-    );
-    let totalCreditAmount = 0;
-    filteredMemberCredits.forEach((credit) => {
-      totalCreditAmount += parseFloat(credit.credit_amount);
-    });
-    console.log("Total Credit Amount:", totalCreditAmount);
-
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
@@ -714,7 +781,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                   totalReceivedAmount,
                   visitorAmountTotal,
                   total_paid_expense,
-                  otherPaymentsTotal
+                  otherPaymentsTotal,
+                  allOrders,
+                  allTransactions,
+                  chapterId // Pass the correct chapterId variable
                 );
               });
               totalAvailableElement.setAttribute('data-modal-handler-added', 'true');
@@ -727,7 +797,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             totalReceivedAmount,
             visitorAmountTotal,
             total_paid_expense,
-            otherPaymentsTotal
+            otherPaymentsTotal,
+            allOrders,
+            allTransactions,
+            chapterId // Pass the correct chapterId variable
           );
 
           // Populate all filter dropdowns
@@ -1298,8 +1371,691 @@ document.addEventListener("DOMContentLoaded", async function () {
       totalReceivedAmount,
       visitorAmountTotal,
       total_paid_expense,
-      otherPaymentsTotal
+      otherPaymentsTotal,
+      allOrders,
+      allTransactions,
+      chapterId // Pass the correct chapterId variable
     );
+
+    // Add this function to handle credit note details
+    async function fetchAndDisplayCreditNoteDetails(chapterId) {
+        try {
+            console.log('📊 Starting fetchAndDisplayCreditNoteDetails');
+            
+            // Fetch credit notes
+            const creditResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
+            const memberCredits = await creditResponse.json();
+            console.log("Member Credits Data:", memberCredits);
+            const filteredMemberCredits = memberCredits.filter(
+              (credit) => credit.chapter_id === chapterId
+            );
+            console.log(
+              "Filtered Member Credits for Chapter ID:",
+              chapterId,
+              filteredMemberCredits
+            );
+            let totalCreditAmount = 0;
+            filteredMemberCredits.forEach((credit) => {
+              totalCreditAmount += parseFloat(credit.credit_amount || 0);
+            });
+            console.log("Total Credit Amount:", totalCreditAmount);
+            
+            // Fetch members to get member names
+            const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+            const allMembers = await membersResponse.json();
+            
+            // Prepare credit details
+            const creditDetails = filteredMemberCredits.map(credit => {
+              const member = allMembers.find(m => m.member_id === credit.member_id);
+              return {
+                memberName: member ? member.member_name : "N/A",
+                amount: parseFloat(credit.credit_amount || 0),
+                date: new Date(credit.created_at).toLocaleDateString("en-IN"),
+                description: credit.description || "N/A"
+              };
+            });
+
+            // Populate credit note table
+            const creditTableBody = document.getElementById('creditNoteTableBody');
+            creditTableBody.innerHTML = creditDetails.map(credit => `
+              <tr>
+                <td>${credit.memberName}</td>
+                <td>₹${credit.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+                <td>${credit.date}</td>
+                <td>${credit.description}</td>
+              </tr>
+            `).join('');
+
+            // Populate summary fields
+            const creditNoteCount = document.getElementById('creditNoteCount');
+            const creditNoteTotalAmount = document.getElementById('creditNoteTotalAmount');
+            if (creditNoteCount) creditNoteCount.textContent = creditDetails.length;
+            if (creditNoteTotalAmount) {
+              const total = creditDetails.reduce((sum, c) => sum + c.amount, 0);
+              creditNoteTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            }
+
+            // Show modal
+            const creditNoteModal = new bootstrap.Modal(document.getElementById('creditNoteModal'));
+            creditNoteModal.show();
+        } catch (error) {
+            console.error('Error showing credit note details:', error);
+        }
+    }
+
+    // Add this to the DOMContentLoaded event listener, after the existing credit note code
+    document.addEventListener('DOMContentLoaded', async function() {
+        // ... existing code ...
+        
+        // After the existing credit note code, add:
+        const totalCreditElement = document.querySelector('#total_credit_amount');
+        if (totalCreditElement) {
+            totalCreditElement.style.cursor = 'pointer';
+            totalCreditElement.addEventListener('click', async function() {
+              try {
+                // Fetch members to get member names
+                const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+                const allMembers = await membersResponse.json();
+                
+                // Prepare credit details
+                const creditDetails = filteredMemberCredits.map(credit => {
+                  const member = allMembers.find(m => parseInt(m.member_id) === parseInt(credit.member_id));
+                  return {
+                    memberName: member ? member.member_name : "N/A",
+                    amount: parseFloat(credit.credit_amount || 0),
+                    date: new Date(credit.created_at).toLocaleDateString("en-IN"),
+                    description: credit.description || "N/A"
+                  };
+                });
+
+                // Populate credit note table
+                const creditTableBody = document.getElementById('creditNoteTableBody');
+                creditTableBody.innerHTML = creditDetails.map(credit => `
+                  <tr>
+                    <td>${credit.memberName}</td>
+                    <td>₹${credit.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+                    <td>${credit.date}</td>
+                    <td>${credit.description}</td>
+                  </tr>
+                `).join('');
+
+                // Populate summary fields
+                const creditNoteCount = document.getElementById('creditNoteCount');
+                const creditNoteTotalAmount = document.getElementById('creditNoteTotalAmount');
+                if (creditNoteCount) creditNoteCount.textContent = creditDetails.length;
+                if (creditNoteTotalAmount) {
+                  const total = creditDetails.reduce((sum, c) => sum + c.amount, 0);
+                  creditNoteTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+                }
+
+                // Show modal
+                const creditNoteModal = new bootstrap.Modal(document.getElementById('creditNoteModal'));
+                creditNoteModal.show();
+              } catch (error) {
+                console.error('Error showing credit note details:', error);
+              }
+            });
+        }
+        
+        // ... rest of existing code ...
+    });
+
+    // Add click handler for write off details
+    const writeOffAmountElement = document.querySelector("#total_expse_amount");
+    if (writeOffAmountElement) {
+      writeOffAmountElement.style.cursor = 'pointer';
+      writeOffAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch write off data
+          const writeoffResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberWriteOff");
+          const writeoffData = await writeoffResponse.json();
+          // Fetch members to get member names
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+          const allMembers = await membersResponse.json();
+          // Get current chapter id
+          const numericChapterId = parseInt(chapter_id);
+          // Filter write offs for this chapter
+          const filteredWriteOffs = writeoffData.filter(w => parseInt(w.chapter_id) === numericChapterId);
+          // Prepare details
+          const writeOffDetails = filteredWriteOffs.map((w, idx) => {
+            const member = allMembers.find(m => parseInt(m.member_id) === parseInt(w.member_id));
+            let dateStr = w.rightoff_date ? new Date(w.rightoff_date).toLocaleDateString("en-IN") : "N/A";
+            if (dateStr === "Invalid Date") dateStr = "N/A";
+            return {
+              srNo: idx + 1,
+              memberName: member ? (member.member_first_name + (member.member_last_name ? ' ' + member.member_last_name : '')) : "N/A",
+              amount: parseFloat(w.total_pending_amount || 0),
+              date: dateStr,
+              description: w.writeoff_comment || "N/A"
+            };
+          });
+          // Populate table
+          const writeOffTableBody = document.getElementById('writeOffTableBody');
+          writeOffTableBody.innerHTML = writeOffDetails.map(w => `
+            <tr>
+              <td>${w.srNo}</td>
+              <td>${w.memberName}</td>
+              <td>₹${w.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+              <td>${w.date}</td>
+              <td>${w.description}</td>
+            </tr>
+          `).join('');
+          // Populate summary
+          const writeOffCount = document.getElementById('writeOffCount');
+          const writeOffTotalAmount = document.getElementById('writeOffTotalAmount');
+          if (writeOffCount) writeOffCount.textContent = writeOffDetails.length;
+          if (writeOffTotalAmount) {
+            const total = writeOffDetails.reduce((sum, w) => sum + w.amount, 0);
+            writeOffTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+          // Show modal
+          const writeOffModal = new bootstrap.Modal(document.getElementById('writeOffModal'));
+          writeOffModal.show();
+        } catch (error) {
+          console.error('Error showing write off details:', error);
+        }
+      });
+    }
+
+    // Add click handler for kitty amount received details
+    const kittyReceivedAmountElement = document.querySelector("#totalKittyAmountReceived");
+    if (kittyReceivedAmountElement) {
+      kittyReceivedAmountElement.style.cursor = 'pointer';
+      kittyReceivedAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch orders and transactions
+          const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+          const allOrders = await ordersResponse.json();
+          const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
+          const allTransactions = await transactionsResponse.json();
+          // Fetch members to get member names
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+          const allMembers = await membersResponse.json();
+          // Get current chapter id
+          const numericChapterId = parseInt(chapter_id);
+          // Filter orders for this chapter and meeting payments
+          const chapterOrders = allOrders.filter(order =>
+            parseInt(order.chapter_id) === numericChapterId &&
+            (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only")
+          );
+          // Find successful transactions for these orders
+          const kittyReceivedDetails = chapterOrders.map((order, idx) => {
+            const transaction = allTransactions.find(tran => tran.order_id === order.order_id && tran.payment_status === "SUCCESS");
+            if (!transaction) return null;
+            const member = allMembers.find(m => m.member_id === order.customer_id);
+            let dateStr = transaction.payment_time ? new Date(transaction.payment_time).toLocaleDateString("en-IN") : "N/A";
+            if (dateStr === "Invalid Date") dateStr = "N/A";
+            // Payment method
+            let paymentMethod = "N/A";
+            if (transaction.payment_method) {
+              let pm = transaction.payment_method;
+              if (typeof pm === 'string') {
+                try { pm = JSON.parse(pm); } catch (e) {}
+              }
+              if (typeof pm === 'object') {
+                if (pm.upi) paymentMethod = "UPI";
+                else if (pm.netbanking) paymentMethod = "Net Banking";
+                else if (pm.card) paymentMethod = "Card";
+                else if (pm.wallet) paymentMethod = "Wallet";
+              } else if (typeof pm === 'string') {
+                paymentMethod = pm;
+              }
+            }
+            // Calculate amount without GST: order_amount - tax
+            let amount = 0;
+            if (order.order_amount && order.tax) {
+              amount = parseFloat(order.order_amount) - parseFloat(order.tax);
+            } else if (transaction.payment_amount && order.tax) {
+              amount = parseFloat(transaction.payment_amount) - parseFloat(order.tax);
+            } else {
+              amount = parseFloat(transaction.payment_amount || 0);
+            }
+            return {
+              srNo: idx + 1,
+              memberName: member ? (member.member_first_name + (member.member_last_name ? ' ' + member.member_last_name : '')) : "N/A",
+              amount: amount,
+              date: dateStr,
+              paymentMethod: paymentMethod,
+              transactionId: transaction.cf_payment_id || "N/A"
+            };
+          }).filter(Boolean);
+          // Populate table
+          const kittyReceivedTableBody = document.getElementById('kittyReceivedTableBody');
+          kittyReceivedTableBody.innerHTML = kittyReceivedDetails.map(k => `
+            <tr>
+              <td>${k.srNo}</td>
+              <td>${k.memberName}</td>
+              <td>₹${k.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+              <td>${k.date}</td>
+              <td>${k.paymentMethod}</td>
+              <td>${k.transactionId}</td>
+            </tr>
+          `).join('');
+          // Populate summary
+          const kittyReceivedCount = document.getElementById('kittyReceivedCount');
+          const kittyReceivedTotalAmount = document.getElementById('kittyReceivedTotalAmount');
+          if (kittyReceivedCount) kittyReceivedCount.textContent = kittyReceivedDetails.length;
+          if (kittyReceivedTotalAmount) {
+            const total = kittyReceivedDetails.reduce((sum, k) => sum + k.amount, 0);
+            kittyReceivedTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+          // Show modal
+          const kittyReceivedModal = new bootstrap.Modal(document.getElementById('kittyReceivedModal'));
+          kittyReceivedModal.show();
+        } catch (error) {
+          console.error('Error showing kitty received details:', error);
+        }
+      });
+    }
+
+    // ... after fetching allOrders, allTransactions, and before setting totalKittyAmountReceived ...
+    let kittyReceivedTotal = 0;
+    const chapterOrdersForKitty = allOrders.filter(order =>
+      parseInt(order.chapter_id) === parseInt(chapterId) &&
+      (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only")
+    );
+    chapterOrdersForKitty.forEach(order => {
+      const transaction = allTransactions.find(tran => tran.order_id === order.order_id && tran.payment_status === "SUCCESS");
+      if (transaction) {
+        let amount = 0;
+        if (order.order_amount && order.tax) {
+          amount = parseFloat(order.order_amount) - parseFloat(order.tax);
+        } else if (transaction.payment_amount && order.tax) {
+          amount = parseFloat(transaction.payment_amount) - parseFloat(order.tax);
+        } else {
+          amount = parseFloat(transaction.payment_amount || 0);
+        }
+        kittyReceivedTotal += amount;
+      }
+    });
+    document.getElementById("totalKittyAmountReceived").textContent = indianCurrencyFormatter.format(kittyReceivedTotal);
+
+    const kittyPendingAmountElement = document.querySelector("#totalKittypendingamount");
+    if (kittyPendingAmountElement) {
+      kittyPendingAmountElement.style.cursor = 'pointer';
+      kittyPendingAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch members and pending data
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+          const allMembers = await membersResponse.json();
+          const bankOrderResponse = await fetch("https://backend.bninewdelhi.com/api/getbankOrder");
+          const bankOrders = await bankOrderResponse.json();
+
+          // Get current chapter id
+          const chapterId = localStorage.getItem('current_chapter_id');
+
+          // Filter for this chapter and pending only
+          const pendingOrders = bankOrders.filter(order =>
+            String(order.chapter_id) === String(chapterId) && parseFloat(order.amount_to_pay) > 0
+          );
+
+          // Prepare details
+          const pendingDetails = pendingOrders.map((order, idx) => {
+            const member = allMembers.find(m => String(m.member_id) === String(order.member_id));
+            return {
+              srNo: idx + 1,
+              memberName: member ? (member.member_first_name + (member.member_last_name ? ' ' + member.member_last_name : '')) : "N/A",
+              amount: parseFloat(order.amount_to_pay || 0)
+            };
+          });
+
+          // Populate table
+          const kittyPendingTableBody = document.getElementById('kittyPendingTableBody');
+          kittyPendingTableBody.innerHTML = pendingDetails.map(p => `
+            <tr>
+              <td>${p.srNo}</td>
+              <td>${p.memberName}</td>
+              <td>₹${p.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+            </tr>
+          `).join('');
+
+          // Populate summary
+          const kittyPendingCount = document.getElementById('kittyPendingCount');
+          const kittyPendingTotalAmount = document.getElementById('kittyPendingTotalAmount');
+          if (kittyPendingCount) kittyPendingCount.textContent = pendingDetails.length;
+          if (kittyPendingTotalAmount) {
+            const total = pendingDetails.reduce((sum, p) => sum + p.amount, 0);
+            kittyPendingTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+
+          // Show modal
+          const kittyPendingModal = new bootstrap.Modal(document.getElementById('kittyPendingModal'));
+          kittyPendingModal.show();
+        } catch (error) {
+          console.error('Error showing kitty pending details:', error);
+        }
+      });
+    }
+
+    const pendingExpenseAmountElement = document.querySelector("#total_pexpense_amount");
+    if (pendingExpenseAmountElement) {
+      pendingExpenseAmountElement.style.cursor = 'pointer';
+      pendingExpenseAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch all expenses
+          const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+          const expenses = await expenseResponse.json();
+
+          // Get current chapter id
+          const chapterId = localStorage.getItem('current_chapter_id');
+
+          // Filter for this chapter and pending only
+          const pendingExpenses = expenses.filter(expense =>
+            String(expense.chapter_id) === String(chapterId) && expense.payment_status === "pending"
+          );
+
+          // Prepare details
+          const pendingDetails = pendingExpenses.map((expense, idx) => ({
+            srNo: idx + 1,
+            title: expense.description || "N/A",
+            amount: parseFloat(expense.amount || 0),
+            date: expense.bill_date ? new Date(expense.bill_date).toLocaleDateString("en-IN") : "N/A",
+            addedBy: expense.submitted_by || "N/A"
+          }));
+
+          // Populate table
+          const pendingExpenseTableBody = document.getElementById('pendingExpenseTableBody');
+          pendingExpenseTableBody.innerHTML = pendingDetails.map(e => `
+            <tr>
+              <td>${e.srNo}</td>
+              <td>${e.title}</td>
+              <td>₹${e.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+              <td>${e.date}</td>
+              <td>${e.addedBy}</td>
+            </tr>
+          `).join('');
+
+          // Populate summary
+          const pendingExpenseCount = document.getElementById('pendingExpenseCount');
+          const pendingExpenseTotalAmount = document.getElementById('pendingExpenseTotalAmount');
+          if (pendingExpenseCount) pendingExpenseCount.textContent = pendingDetails.length;
+          if (pendingExpenseTotalAmount) {
+            const total = pendingDetails.reduce((sum, e) => sum + e.amount, 0);
+            pendingExpenseTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+
+          // Show modal
+          const pendingExpenseModal = new bootstrap.Modal(document.getElementById('pendingExpenseModal'));
+          pendingExpenseModal.show();
+        } catch (error) {
+          console.error('Error showing pending expense details:', error);
+        }
+      });
+    }
+
+    const latePaymentElement = document.querySelector("#no_of_late_payment");
+    if (latePaymentElement) {
+      latePaymentElement.style.cursor = 'pointer';
+      latePaymentElement.addEventListener('click', async function() {
+        try {
+          // Fetch all members and bank orders
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+          const allMembers = await membersResponse.json();
+          const bankOrderResponse = await fetch("https://backend.bninewdelhi.com/api/getbankOrder");
+          const bankOrders = await bankOrderResponse.json();
+
+          // Get current chapter id
+          const chapterId = localStorage.getItem('current_chapter_id');
+
+          // Filter for this chapter and late payments only
+          const lateOrders = bankOrders.filter(order =>
+            String(order.chapter_id) === String(chapterId) && parseInt(order.no_of_late_payment) > 0
+          );
+
+          // Prepare details
+          const lateDetails = lateOrders.map((order, idx) => {
+            const member = allMembers.find(m => String(m.member_id) === String(order.member_id));
+            return {
+              srNo: idx + 1,
+              memberName: member ? (member.member_first_name + (member.member_last_name ? ' ' + member.member_last_name : '')) : "N/A",
+              lateCount: order.no_of_late_payment || 0,
+              amount: parseFloat(order.amount_to_pay || 0)
+            };
+          });
+
+          // Populate table
+          const latePaymentTableBody = document.getElementById('latePaymentTableBody');
+          latePaymentTableBody.innerHTML = lateDetails.map(l => `
+            <tr>
+              <td>${l.srNo}</td>
+              <td>${l.memberName}</td>
+              <td>${l.lateCount}</td>
+              <td>₹${l.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+            </tr>
+          `).join('');
+
+          // Populate summary
+          const latePaymentCount = document.getElementById('latePaymentCount');
+          const latePaymentTotalAmount = document.getElementById('latePaymentTotalAmount');
+          if (latePaymentCount) latePaymentCount.textContent = lateDetails.length;
+          if (latePaymentTotalAmount) {
+            const total = lateDetails.reduce((sum, l) => sum + l.amount, 0);
+            latePaymentTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+
+          // Show modal
+          const latePaymentModal = new bootstrap.Modal(document.getElementById('latePaymentModal'));
+          latePaymentModal.show();
+        } catch (error) {
+          console.error('Error showing late payment details:', error);
+        }
+      });
+    }
+
+    const paidExpensesAmountElement = document.querySelector("#total_expense_amount_main");
+    if (paidExpensesAmountElement) {
+      paidExpensesAmountElement.style.cursor = 'pointer';
+      paidExpensesAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch all expenses
+          const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+          const expenses = await expenseResponse.json();
+
+          // Get current chapter id
+          const chapterId = localStorage.getItem('current_chapter_id');
+
+          // Filter for this chapter and paid only
+          const paidExpenses = expenses.filter(expense =>
+            String(expense.chapter_id) === String(chapterId) && expense.payment_status === "paid"
+          );
+
+          // Prepare details
+          const paidDetails = paidExpenses.map((expense, idx) => ({
+            srNo: idx + 1,
+            title: expense.description || "N/A",
+            amount: parseFloat(expense.amount || 0),
+            date: expense.bill_date ? new Date(expense.bill_date).toLocaleDateString("en-IN") : "N/A",
+            paidBy: expense.submitted_by || "N/A",
+            mode: expense.mode_of_payment || "N/A",
+            billNo: expense.bill_no || "N/A"
+          }));
+
+          // Populate table
+          const paidExpensesTableBody = document.getElementById('paidExpensesTableBody');
+          paidExpensesTableBody.innerHTML = paidDetails.map(e => `
+            <tr>
+              <td>${e.srNo}</td>
+              <td>${e.title}</td>
+              <td>₹${e.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+              <td>${e.date}</td>
+              <td>${e.paidBy}</td>
+              <td>${e.mode}</td>
+              <td>${e.billNo}</td>
+            </tr>
+          `).join('');
+
+          // Populate summary
+          const paidExpensesCount = document.getElementById('paidExpensesCount');
+          const paidExpensesTotalAmount = document.getElementById('paidExpensesTotalAmount');
+          if (paidExpensesCount) paidExpensesCount.textContent = paidDetails.length;
+          if (paidExpensesTotalAmount) {
+            const total = paidDetails.reduce((sum, e) => sum + e.amount, 0);
+            paidExpensesTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+
+          // Show modal
+          const paidExpensesModal = new bootstrap.Modal(document.getElementById('paidExpensesModal'));
+          paidExpensesModal.show();
+        } catch (error) {
+          console.error('Error showing paid expenses details:', error);
+        }
+      });
+    }
+
+    const visitorPaymentAmountElement = document.querySelector("#total_V_amount");
+    if (visitorPaymentAmountElement) {
+      visitorPaymentAmountElement.style.cursor = 'pointer';
+      visitorPaymentAmountElement.addEventListener('click', async function() {
+        try {
+          // Fetch all orders, transactions, and members
+          const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+          const allOrders = await ordersResponse.json();
+          const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
+          const allTransactions = await transactionsResponse.json();
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+          const allMembers = await membersResponse.json();
+
+          // Get current chapter id
+          const chapterId = localStorage.getItem('current_chapter_id');
+
+          // Filter visitor orders for this chapter
+          const visitorOrders = allOrders.filter(order =>
+            String(order.chapter_id) === String(chapterId) &&
+            (order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
+          );
+
+          // Prepare details
+          const visitorDetails = visitorOrders.map((order, idx) => {
+            const transaction = allTransactions.find(tran =>
+              tran.order_id === order.order_id && tran.payment_status === "SUCCESS"
+            );
+            if (!transaction) return null;
+            let amount = 0;
+            if (order.payment_note === "visitor-payment") {
+              amount = Math.ceil(parseFloat(order.order_amount || 0) - (parseFloat(order.order_amount || 0) * 18) / 118);
+            } else if (order.payment_note === "Visitor Payment") {
+              amount = parseFloat(order.order_amount || 0);
+            }
+            return {
+              srNo: idx + 1,
+              visitorName: order.visitor_name || "N/A",
+              invitedBy: order.member_name || "N/A",
+              amount: amount,
+              date: transaction.payment_time ? new Date(transaction.payment_time).toLocaleDateString("en-IN") : "N/A",
+              paymentMethod: transaction.payment_method?.upi ? "UPI" :
+                             transaction.payment_method?.netbanking ? "Net Banking" :
+                             transaction.payment_method?.card ? "Card" :
+                             transaction.payment_method?.wallet ? "Wallet" : "N/A",
+              transactionId: transaction.cf_payment_id || "N/A"
+            };
+          }).filter(Boolean);
+
+          // Populate table
+          const visitorPaymentTableBody = document.getElementById('visitorPaymentTableBody');
+          visitorPaymentTableBody.innerHTML = visitorDetails.map(v => `
+            <tr>
+              <td>${v.srNo}</td>
+              <td>${v.visitorName}</td>
+              <td>${v.invitedBy}</td>
+              <td>₹${v.amount.toLocaleString('en-IN', {maximumFractionDigits: 2})}</td>
+              <td>${v.date}</td>
+              <td>${v.paymentMethod}</td>
+              <td>${v.transactionId}</td>
+            </tr>
+          `).join('');
+
+          // Populate summary
+          const visitorPaymentCount = document.getElementById('visitorPaymentCount');
+          const visitorPaymentTotalAmount = document.getElementById('visitorPaymentTotalAmount');
+          if (visitorPaymentCount) visitorPaymentCount.textContent = visitorDetails.length;
+          if (visitorPaymentTotalAmount) {
+            const total = visitorDetails.reduce((sum, v) => sum + v.amount, 0);
+            visitorPaymentTotalAmount.textContent = '₹' + total.toLocaleString('en-IN', {maximumFractionDigits: 2});
+          }
+
+          // Show modal
+          const visitorPaymentModal = new bootstrap.Modal(document.getElementById('visitorPaymentModal'));
+          visitorPaymentModal.show();
+        } catch (error) {
+          console.error('Error showing visitor payment details:', error);
+        }
+      });
+    }
+
+    // After calculating and displaying totalKittyAmountReceived, add this:
+    let cashKittyAmount = 0;
+    let onlineKittyAmount = 0;
+
+    const kittyOrders = allOrders.filter(order =>
+      String(order.chapter_id) === String(chapterId) &&
+      (order.payment_note === "meeting-payments" || order.payment_note === "meeting-payments-opening-only")
+    );
+
+    kittyOrders.forEach(order => {
+      const transaction = allTransactions.find(
+        tran => tran.order_id === order.order_id && tran.payment_status === "SUCCESS"
+      );
+      if (transaction) {
+        // Determine payment mode
+        let isCash = false;
+        if (transaction.payment_method) {
+          let pm = transaction.payment_method;
+          if (typeof pm === 'string') {
+            try { pm = JSON.parse(pm); } catch (e) {}
+          }
+          if (typeof pm === 'object' && pm.cash) {
+            isCash = true;
+          }
+        }
+        // Calculate amount (without GST)
+        let amount = 0;
+        if (order.order_amount && order.tax) {
+          amount = parseFloat(order.order_amount) - parseFloat(order.tax);
+        } else if (transaction.payment_amount && order.tax) {
+          amount = parseFloat(transaction.payment_amount) - parseFloat(order.tax);
+        } else {
+          amount = parseFloat(transaction.payment_amount || 0);
+        }
+        if (isCash) {
+          cashKittyAmount += amount;
+        } else {
+          onlineKittyAmount += amount;
+        }
+      }
+    });
+
+    const kittyBreakdownElem = document.getElementById('total_kitty_received_breakdown');
+    if (kittyBreakdownElem) {
+      kittyBreakdownElem.innerHTML = `
+        Cash: ₹${cashKittyAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})} |
+        Online: ₹${onlineKittyAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+      `;
+    }
+
+    // After calculating and displaying total pending expense, add this:
+    let cashPendingAmount = 0;
+    let onlinePendingAmount = 0;
+
+    const pendingExpenses = expenses.filter(expense =>
+      String(expense.chapter_id) === String(chapterId) && expense.payment_status === "pending"
+    );
+
+    pendingExpenses.forEach(expense => {
+      const amount = parseFloat(expense.amount || 0);
+      if (expense.mode_of_payment === "cash") {
+        cashPendingAmount += amount;
+      } else {
+        onlinePendingAmount += amount;
+      }
+    });
+
+    const pendingBreakdownElem = document.getElementById('total_pending_expense_breakdown');
+    if (pendingBreakdownElem) {
+      pendingBreakdownElem.innerHTML = `
+        Cash: ₹${cashPendingAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})} |
+        Online: ₹${onlinePendingAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})}
+      `;
+    }
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
     console.error("Error details:", {
@@ -1897,10 +2653,10 @@ async function fetchOtherPaymentsTotal(chapterId) {
 }
 
 // Update the fund breakdown modal function
-function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal) {
+function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal, allOrders, allTransactions, chapterId) {
   // Get modal elements
   const openingBalance = document.getElementById('modal-opening-balance');
-  const meetingPayments = document.getElementById('modal-meeting-payments');
+  const meetingPaymentsElem = document.getElementById('modal-meeting-payments');
   const visitorPayments = document.getElementById('modal-visitor-payments');
   const otherPayments = document.getElementById('modal-other-payments');
   const paidExpenses = document.getElementById('modal-paid-expenses');
@@ -1915,19 +2671,50 @@ function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAm
 
   // Update modal values
   openingBalance.textContent = formatter.format(parseFloat(available_fund || 0));
-  meetingPayments.textContent = formatter.format(totalReceivedAmount || 0);
+  
+  // Calculate meeting payments using the same logic as calculateTotalReceivedAmount
+  let meetingPaymentsAmount = 0;
+  const kittyOrders = allOrders.filter(order =>
+    String(order.chapter_id) === String(chapterId) &&
+    (order.payment_note === "meeting-payments" ||
+     order.payment_note === "meeting-payments-opening-only")
+  );
+  kittyOrders.forEach(order => {
+    const transaction = allTransactions.find(
+      tran => tran.order_id === order.order_id && tran.payment_status === "SUCCESS"
+    );
+    if (transaction) {
+      let amount = 0;
+      if (order.order_amount && order.tax) {
+        amount = parseFloat(order.order_amount) - parseFloat(order.tax);
+      } else if (transaction.payment_amount && order.tax) {
+        amount = parseFloat(transaction.payment_amount) - parseFloat(order.tax);
+      } else {
+        amount = parseFloat(transaction.payment_amount || 0);
+      }
+      meetingPaymentsAmount += amount;
+    }
+  });
+
+  // Use meetingPaymentsAmount for both modal and dashboard card
+  meetingPaymentsElem.textContent = formatter.format(meetingPaymentsAmount);
   visitorPayments.textContent = formatter.format(visitorAmountTotal || 0);
   otherPayments.textContent = formatter.format(otherPaymentsTotal || 0);
   paidExpenses.textContent = formatter.format(total_paid_expense || 0);
   
-  // Calculate and display total
+  // Calculate and display total using the calculated meeting payments
   const total = parseFloat(available_fund || 0) + 
-                parseFloat(totalReceivedAmount || 0) + 
+                parseFloat(meetingPaymentsAmount || 0) + 
                 parseFloat(visitorAmountTotal || 0) + 
                 parseFloat(otherPaymentsTotal || 0) - 
                 parseFloat(total_paid_expense || 0);
-  
   totalAvailable.textContent = formatter.format(total);
+
+  // Update the dashboard card as well
+  const totalAvailableElement = document.querySelector("#total_available_amount");
+  if (totalAvailableElement) {
+    totalAvailableElement.textContent = formatter.format(total);
+  }
 }
 
 // Add this function to handle paid expenses
