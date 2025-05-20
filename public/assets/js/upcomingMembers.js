@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 verificationStatus = verificationData.eoi_form === "true";
                                 break;
                             case 'member_application':
-                                verificationStatus = verificationData.member_application === "true";
+                                verificationStatus = verificationData.member_application_form === "true";
                                 break;
                             case 'interview':
                                 verificationStatus = verificationData.interview_sheet === "true";
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Form completions
                 visitor_form: visitor.visitor_form,  // Added visitor form check
                 eoi_form: visitor.eoi_form && verificationData.eoi_form === "true",
-                member_application: visitor.member_application_form && verificationData.member_application === "true",
+                member_application: visitor.member_application_form && verificationData.member_application_form === "true",
                 interview_sheet: visitor.interview_sheet && verificationData.interview_sheet === "true",
                 commitment_sheet: visitor.commitment_sheet && verificationData.commitment_sheet === "true",
                 inclusion_exclusion_sheet: visitor.inclusion_exclusion_sheet && verificationData.inclusion_exclusion_sheet === "true",
@@ -889,7 +889,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     font-size: 11px;
                                     font-weight: 600;
                                     display: inline-block;
-                                    cursor: pointer;
                                     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);"
                                     onclick="handleDocVerification('${docType}', event, ${visitorId})">
                                     ${verificationStatus ? 'Verified' : 'Not Verified'}
