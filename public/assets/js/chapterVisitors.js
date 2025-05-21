@@ -238,25 +238,112 @@ async function handleScreenshotUpload(event, visitor_id) {
 }
 
 // Add this function for document preview
-function previewDocument(src, title) {
-    console.log("🔍 Previewing document:", { src, title });
-    Swal.fire({
-        title: title,
-        imageUrl: src,
-        imageAlt: title,
-        imageWidth: 400,
-        imageHeight: 400,
-        confirmButtonText: 'Close',
-        confirmButtonColor: '#2563eb',
-        showCloseButton: true,
-        imageErrorCallback: function() {
-            console.error("❌ Error loading image in preview");
-            Swal.update({
-                imageUrl: '../../assets/images/media/no-image.png',
-                text: 'Error loading image'
-            });
+async function handleDocumentUpload(event, visitorId, chapterId, documentType, memberId) {
+    try {
+        console.log('🔄 Starting document upload process');
+        console.log('📄 Document Type:', documentType);
+        console.log('👤 Visitor ID:', visitorId);
+        console.log('🏢 Chapter ID:', chapterId);
+        console.log('👥 Member ID:', memberId);
+
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('❌ No file selected');
+            return;
         }
-    });
+
+        // Show loading state
+        Swal.fire({
+            title: 'Uploading...',
+            text: 'Please wait while we upload your document',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('visitor_id', visitorId);
+        formData.append('chapter_id', chapterId);
+        formData.append('document_type', documentType);
+        formData.append('member_id', memberId);
+
+        console.log('📤 Making API call with data:', {
+            visitor_id: visitorId,
+            chapter_id: chapterId,
+            document_type: documentType,
+            member_id: memberId,
+            fileName: file.name
+        });
+
+        const response = await fetch('https://backend.bninewdelhi.com/api/upload-visitor-document', {
+            method: 'POST',
+            body: formData
+        });
+
+        console.log('📡 API Response Status:', response.status);
+        const data = await response.json();
+        console.log('📦 API Response Data:', data);
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to upload document');
+        }
+
+        // Show success message
+        await Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Document uploaded successfully'
+        });
+
+        // Refresh the page to show updated documents
+        window.location.reload();
+
+    } catch (error) {
+        console.error('❌ Error uploading document:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Upload Failed',
+            text: error.message || 'Failed to upload document. Please try again.'
+        });
+    }
+}
+
+function previewDocument(src, title) {
+    // Check if the file is a PDF
+    const isPDF = src.toLowerCase().endsWith('.pdf');
+    
+    if (isPDF) {
+        Swal.fire({
+            title: title,
+            html: `
+                <div class="text-center">
+                    <i class="ri-file-pdf-line text-danger" style="font-size: 3em;"></i>
+                    <p class="mt-3">This is a PDF file. Click below to open it.</p>
+                    <button class="btn btn-primary mt-2" onclick="window.open('${src}', '_blank')">
+                        <i class="ri-external-link-line"></i> Open PDF
+                    </button>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: {
+                container: 'pdf-preview-modal'
+            }
+        });
+    } else {
+        // For images, show the preview as before
+        Swal.fire({
+            title: title,
+            imageUrl: src,
+            imageWidth: 400,
+            imageHeight: 400,
+            imageAlt: title,
+            showConfirmButton: false,
+            showCloseButton: true
+        });
+    }
 }
 
 // Add this function to check induction readiness (if not already present)
@@ -730,6 +817,26 @@ async function handleDocVerification(docType, event, visitorId) {
     }
 }
 
+// Add this function to get document file name
+async function getDocumentFileName(visitorId, chapterId, documentType) {
+    try {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/getAllVisitorDocuments`);
+        const data = await response.json();
+        
+        // Find the document that matches visitor_id, chapter_id and document_type
+        const document = data.find(doc => 
+            doc.visitor_id === parseInt(visitorId) && 
+            doc.chapter_id === parseInt(chapterId) && 
+            doc.document_type === documentType
+        );
+        
+        return document ? document.file_name : null;
+    } catch (error) {
+        console.error('Error fetching document:', error);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
     const tableBody = document.getElementById('chaptersTableBody');
     const loader = document.getElementById('loader');
@@ -874,9 +981,51 @@ document.addEventListener('DOMContentLoaded', async function() {
                 '<i class="ri-checkbox-circle-fill text-success" style="font-size: 1.5em;"></i>' : 
                 '<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>';
             
+            let pageUrl;
+            let verificationStatus = false;
+
+            // Debug log for incoming data
+            console.log('🔍 Processing visitor:', visitor);
+            console.log('📋 Form type:', type);
+            console.log('📊 Verification data:', visitor.verification);
+
+            // Check verification status based on form type
+            if (visitor.verification) {
+                try {
+                    const verificationData = typeof visitor.verification === 'string' 
+                        ? JSON.parse(visitor.verification) 
+                        : visitor.verification;
+                    
+                    console.log('✅ Parsed verification data:', verificationData);
+
+                    switch(type) {
+                        case 'eoi':
+                            verificationStatus = verificationData.eoi_form === "true";
+                            break;
+                        case 'member_application':
+                            verificationStatus = verificationData.member_application_form === "true";
+                            break;
+                        case 'interview':
+                            verificationStatus = verificationData.interview_sheet === "true";
+                            break;
+                        case 'commitment':
+                            verificationStatus = verificationData.commitment_sheet === "true";
+                            break;
+                        case 'inclusion':
+                            verificationStatus = verificationData.inclusion_exclusion_sheet === "true";
+                            break;
+                        case 'onboarding':
+                            verificationStatus = verificationData.onboarding_call === "true";
+                            break;
+                    }
+                    console.log('🎯 Verification status:', verificationStatus);
+                } catch (error) {
+                    console.error('❌ Error parsing verification data:', error);
+                }
+            }
+
             // Only add View link for specified types when status is true
-            if (status && type && visitor) {
-                let pageUrl;
+            if (type && visitor) {
                 switch(type) {
                     case 'interview':
                         pageUrl = '/t/interview';
@@ -893,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     case 'visitor':
                         pageUrl = '/t/visitorForm';
                         break;
-                    case 'member_application':  // Add new case for member application
+                    case 'member_application':
                         pageUrl = '/t/memberApplication';
                         break;
                     case 'payment':
@@ -903,13 +1052,117 @@ document.addEventListener('DOMContentLoaded', async function() {
                         pageUrl = '/t/newmemberReceipt';
                         break;
                 }
+
+                // For payment and visitor form types, only show icon and view link without verification badge
+                if (type === 'payment' || type === 'visitor') {
+                    return `
+                        ${icon}<br>
+                        ${status ? `
+                            <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
+                               target="_blank" 
+                               class="view-sheet-link fw-medium text-success text-decoration-underline">
+                               View
+                            </a>
+                        ` : ''}
+                    `;
+                }
+
+                // For document types that need upload and preview
+                if (['interview', 'member_application', 'commitment', 'inclusion'].includes(type)) {
+                    const documentType = type === 'member_application' ? 'member_application_form' : 
+                                       type === 'inclusion' ? 'inclusion_exclusion_sheet' : 
+                                       type + '_sheet';
+                    
+                    const baseUrl = 'https://backend.bninewdelhi.com/api/uploads/visitor_documents';
+                    
+                    // Get the file name from the API
+                    const fileName = await getDocumentFileName(visitor.visitor_id, visitor.chapter_id, documentType);
+                    console.log('📄 File name from API:', fileName);
+                    
+                    // If status is false (red cross), show upload and preview
+                    if (!status) {
+                        return `
+                            ${icon}<br>
+                            <div class="verification-badge" style="
+                                margin-top: 5px;
+                                padding: 2px 8px;
+                                background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                                color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                                border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                                border-radius: 12px;
+                                font-size: 11px;
+                                font-weight: 600;
+                                display: inline-block;
+                                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                                ${verificationStatus ? 'Verified' : 'Not Verified'}
+                            </div>
+                            <div class="mt-2">
+                                <label class="btn btn-sm btn-outline-primary">
+                                    <i class="ri-upload-2-line"></i> Upload
+                                    <input type="file" 
+                                           accept=".pdf,.jpg,.jpeg,.png" 
+                                           style="display: none;" 
+                                           onchange="handleDocumentUpload(event, ${visitor.visitor_id}, ${visitor.chapter_id}, '${documentType}', ${visitor.invited_by})">
+                                </label>
+                                <button class="btn btn-sm btn-outline-info ms-1" onclick="previewDocument('${baseUrl}/${documentType}/${fileName || ''}', '${documentType}')">
+                                    <i class="ri-eye-line"></i> Preview
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    // If status is true (green tick), show view link and preview
+                    return `
+                        ${icon}<br>
+                        <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
+                           target="_blank" 
+                           class="view-sheet-link fw-medium text-success text-decoration-underline">
+                           View
+                        </a>
+                        <div class="verification-badge" style="
+                            margin-top: 5px;
+                            padding: 2px 8px;
+                            background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                            color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                            border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                            border-radius: 12px;
+                            font-size: 11px;
+                            font-weight: 600;
+                            display: inline-block;
+                            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                            ${verificationStatus ? 'Verified' : 'Not Verified'}
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-info" onclick="previewDocument('${baseUrl}/${documentType}/${fileName || ''}', '${documentType}')">
+                                <i class="ri-eye-line"></i> Preview
+                            </button>
+                        </div>
+                    `;
+                }
+
+                // Show verification badge for all other document types
                 return `
                     ${icon}<br>
-                    <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
-                       target="_blank" 
-                       class="view-sheet-link fw-medium text-success text-decoration-underline">
-                       View
-                    </a>
+                    ${status ? `
+                        <a href="${pageUrl}?visitor_id=${visitor.visitor_id}" 
+                           target="_blank" 
+                           class="view-sheet-link fw-medium text-success text-decoration-underline">
+                           View
+                        </a>
+                    ` : ''}
+                    <div class="verification-badge" style="
+                        margin-top: 5px;
+                        padding: 2px 8px;
+                        background-color: ${verificationStatus ? '#dcfce7' : '#fee2e2'};
+                        color: ${verificationStatus ? '#16a34a' : '#dc2626'};
+                        border: 1px solid ${verificationStatus ? '#86efac' : '#fecaca'};
+                        border-radius: 12px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        display: inline-block;
+                        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);">
+                        ${verificationStatus ? 'Verified' : 'Not Verified'}
+                    </div>
                 `;
             }
             return icon;

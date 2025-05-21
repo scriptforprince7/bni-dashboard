@@ -280,12 +280,17 @@ async function fetchAndDisplayEinvoices() {
         const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
 
+        // Fetch members data
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        const membersData = await membersResponse.json();
+
         // Create maps for quick lookup
         ordersMap = new Map(ordersData.map(order => [order.order_id, order]));
         const docNumbersMap = new Map(docNumbersData.map(doc => [doc.order_id, doc]));
         chaptersMap = new Map(chaptersData.map(chapter => [chapter.chapter_id, chapter]));
         regionsMap = new Map(regionsData.map(region => [region.region_id, region]));
         const transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
+        const membersMap = new Map(membersData.map(member => [member.member_id, member]));
 
         // Sort einvoice data based on doc_numbers id in descending order
         einvoiceData.sort((a, b) => {
@@ -478,22 +483,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (exportJsonBtn) {
         exportJsonBtn.addEventListener('click', async function() {
             try {
-                // Fetch all data sources
-                const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
+                // Fetch all data sources including members data
+                const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes, membersRes] = await Promise.all([
                     fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
                     fetch('https://backend.bninewdelhi.com/api/allOrders'),
                     fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
                     fetch('https://backend.bninewdelhi.com/api/chapters'),
                     fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
+                    fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+                    fetch('https://backend.bninewdelhi.com/api/members')
                 ]);
-                const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
+                const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData, membersData] = await Promise.all([
                     einvoiceRes.json(),
                     ordersRes.json(),
                     docNumbersRes.json(),
                     chaptersRes.json(),
                     regionsRes.json(),
-                    transactionsRes.json()
+                    transactionsRes.json(),
+                    membersRes.json()
                 ]);
 
                 // Create maps for quick lookup
@@ -526,6 +533,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const transaction = transactionsMap.get(einvoice.order_id);
                     const isGST = order && order.gstin && order.gstin.trim() !== '';
 
+                    // Get member data and address
+                    let memberAddress = 'N/A';
+                    if (order) {
+                        // First try to get address from visitor data if available
+                        if (order.visitor_company_address) {
+                            memberAddress = order.visitor_company_address;
+                        } else if (order.customer_id) {
+                            // If no visitor data, try to get from members data using customer_id
+                            const member = membersData.find(m => m.member_id === order.customer_id);
+                            if (member) {
+                                memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                            }
+                        }
+                    }
+
                     // Calculate amounts
                     const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
                     const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
@@ -545,6 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         invoice_date: invoiceDate,
                         payment_date: paymentDate,
                         company: order?.company || 'N/A',
+                        member_company_address: memberAddress,
                         irn: isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         ack_no: isGST ? (einvoice.ack_no || 'N/A') : 'Not applicable for NON-GST einvoices',
                         ack_date: isGST ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A') : 'Not applicable for NON-GST einvoices',
@@ -587,22 +610,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (exportCsvBtn) {
         exportCsvBtn.addEventListener('click', async function() {
             try {
-                // Fetch all data sources (same as for JSON export)
-                const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes] = await Promise.all([
+                // Fetch all data sources including members data
+                const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes, membersRes] = await Promise.all([
                     fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
                     fetch('https://backend.bninewdelhi.com/api/allOrders'),
                     fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
                     fetch('https://backend.bninewdelhi.com/api/chapters'),
                     fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions')
+                    fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+                    fetch('https://backend.bninewdelhi.com/api/members')
                 ]);
-                const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData] = await Promise.all([
+                const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData, membersData] = await Promise.all([
                     einvoiceRes.json(),
                     ordersRes.json(),
                     docNumbersRes.json(),
                     chaptersRes.json(),
                     regionsRes.json(),
-                    transactionsRes.json()
+                    transactionsRes.json(),
+                    membersRes.json()
                 ]);
 
                 // Create maps for quick lookup
@@ -635,6 +660,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const transaction = transactionsMap.get(einvoice.order_id);
                     const isGST = order && order.gstin && order.gstin.trim() !== '';
 
+                    // Get member data and address
+                    let memberAddress = 'N/A';
+                    if (order) {
+                        // First try to get address from visitor data if available
+                        if (order.visitor_company_address) {
+                            memberAddress = order.visitor_company_address;
+                        } else if (order.customer_id) {
+                            // If no visitor data, try to get from members data using customer_id
+                            const member = membersData.find(m => m.member_id === order.customer_id);
+                            if (member) {
+                                memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                            }
+                        }
+                    }
+
                     // Calculate amounts
                     const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
                     const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
@@ -656,6 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Member Name': order?.member_name || 'N/A',
                         'Chapter Name': chapter?.chapter_name || 'N/A',
                         'Company Name': order?.company || 'N/A',
+                        'Member Company Address': memberAddress,
                         'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         'Bill Amount': billAmount.toFixed(2),
                         'GST (18%)': taxAmount.toFixed(2),
