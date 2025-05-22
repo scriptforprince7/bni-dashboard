@@ -178,19 +178,33 @@ document.addEventListener("DOMContentLoaded", async function() {
 
       try {
         showLoader();
-        const response = await fetch(`https://backend.bninewdelhi.com/api/get-gst-details/${gstNumber}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/einvoice/get-gst-details/${gstNumber}`);
         const data = await response.json();
+        
+        console.log('GST API Response:', data); // Debug log
 
         if (data.error) {
           showToast('error', data.error);
           return;
         }
 
-        // Update company details with GST data
-        document.getElementById('visitor-company-name').value = data.legalName || data.tradeName || '';
-        document.getElementById('visitor-company-address').value = formatGSTAddress(data.address);
-        
-        showToast('success', 'GST details fetched successfully');
+        if (data.success) {
+          const details = data.extractedDetails;
+          console.log('Extracted Details:', details); // Debug log
+
+          // Update company details with GST data
+          document.getElementById('visitor-company-name').value = details.tradeName || details.legalName || '';
+          document.getElementById('visitor-company-address').value = details.address || '';
+          
+          console.log('Updated Values:', {
+            companyName: document.getElementById('visitor-company-name').value,
+            companyAddress: document.getElementById('visitor-company-address').value
+          }); // Debug log
+          
+          showToast('success', 'GST details fetched successfully');
+        } else {
+          showToast('error', data.message || 'Failed to fetch GST details');
+        }
       } catch (error) {
         console.error('Error fetching GST details:', error);
         showToast('error', 'Failed to fetch GST details');

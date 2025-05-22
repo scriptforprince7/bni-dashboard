@@ -178,19 +178,33 @@ document.addEventListener("DOMContentLoaded", async function() {
 
       try {
         showLoader();
-        const response = await fetch(`https://backend.bninewdelhi.com/api/get-gst-details/${gstNumber}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/einvoice/get-gst-details/${gstNumber}`);
         const data = await response.json();
+        
+        console.log('GST API Response:', data); // Debug log
 
         if (data.error) {
           showToast('error', data.error);
           return;
         }
 
-        // Update company details with GST data
-        document.getElementById('visitor-company-name').value = data.legalName || data.tradeName || '';
-        document.getElementById('visitor-company-address').value = formatGSTAddress(data.address);
-        
-        showToast('success', 'GST details fetched successfully');
+        if (data.success) {
+          const details = data.extractedDetails;
+          console.log('Extracted Details:', details); // Debug log
+
+          // Update company details with GST data
+          document.getElementById('visitor-company-name').value = details.tradeName || details.legalName || '';
+          document.getElementById('visitor-company-address').value = details.address || '';
+          
+          console.log('Updated Values:', {
+            companyName: document.getElementById('visitor-company-name').value,
+            companyAddress: document.getElementById('visitor-company-address').value
+          }); // Debug log
+          
+          showToast('success', 'GST details fetched successfully');
+        } else {
+          showToast('error', data.message || 'Failed to fetch GST details');
+        }
       } catch (error) {
         console.error('Error fetching GST details:', error);
         showToast('error', 'Failed to fetch GST details');
@@ -198,6 +212,120 @@ document.addEventListener("DOMContentLoaded", async function() {
         hideLoader();
       }
     });
+
+    // Add visitor dropdown functionality
+    const visitorNameContainer = document.getElementById('visitor-name').closest('.col-xl-12');
+    if (visitorNameContainer) {
+      // Create dropdown container with radio buttons
+      const dropdownContainer = document.createElement('div');
+      dropdownContainer.className = 'mb-3';
+      dropdownContainer.innerHTML = `
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="visitorInputType" id="selectVisitor" checked>
+          <label class="form-check-label" for="selectVisitor">Select Existing Visitor</label>
+        </div>
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="visitorInputType" id="newVisitor">
+          <label class="form-check-label" for="newVisitor">Add New Visitor</label>
+        </div>
+        <div id="visitor-dropdown-container">
+          <label class="form-label">Select Visitor</label>
+          <select class="form-control form-control-light" id="visitor-dropdown">
+            <option value="">Select Visitor</option>
+          </select>
+        </div>
+      `;
+      
+      // Insert dropdown before the visitor name input
+      visitorNameContainer.insertBefore(dropdownContainer, visitorNameContainer.firstChild);
+
+      // Get the visitor name input and its container
+      const visitorNameInput = document.getElementById('visitor-name');
+      const visitorNameInputContainer = visitorNameInput.closest('.mb-3');
+
+      // Handle radio button changes
+      document.getElementById('selectVisitor').addEventListener('change', function() {
+        if (this.checked) {
+          document.getElementById('visitor-dropdown-container').style.display = 'block';
+          visitorNameInputContainer.style.display = 'none';
+          // Clear manual input
+          visitorNameInput.value = '';
+        }
+      });
+
+      document.getElementById('newVisitor').addEventListener('change', function() {
+        if (this.checked) {
+          document.getElementById('visitor-dropdown-container').style.display = 'none';
+          visitorNameInputContainer.style.display = 'block';
+          // Clear dropdown selection
+          document.getElementById('visitor-dropdown').value = '';
+          // Clear all other fields
+          clearVisitorFields();
+        }
+      });
+
+      // Function to clear all visitor fields
+      function clearVisitorFields() {
+        document.getElementById('visitor-email').value = '';
+        document.getElementById('visitor-mobile').value = '';
+        document.getElementById('visitor-address').value = '';
+        document.getElementById('visitor-company-name').value = '';
+        document.getElementById('company-gstin').value = '';
+        document.getElementById('visitor-category').value = '';
+        document.getElementById('visitor-company-address').value = '';
+      }
+
+      try {
+        // Fetch visitors data
+        const response = await fetch('https://backend.bninewdelhi.com/api/getallvisitors');
+        const visitors = await response.json();
+        
+        // Populate dropdown
+        const visitorDropdown = document.getElementById('visitor-dropdown');
+        visitors.forEach(visitor => {
+          const option = document.createElement('option');
+          option.value = visitor.visitor_id;
+          option.textContent = visitor.visitor_name;
+          // Store visitor data in dataset
+          option.dataset.visitorData = JSON.stringify({
+            email: visitor.visitor_email,
+            phone: visitor.visitor_phone,
+            address: visitor.visitor_address,
+            companyName: visitor.visitor_company_name,
+            gst: visitor.visitor_gst,
+            business: visitor.visitor_business,
+            category: visitor.visitor_category,
+            companyAddress: visitor.visitor_company_address
+          });
+          visitorDropdown.appendChild(option);
+        });
+
+        // Handle visitor selection
+        visitorDropdown.addEventListener('change', function() {
+          const selectedOption = this.options[this.selectedIndex];
+          if (selectedOption.value) {
+            const visitorData = JSON.parse(selectedOption.dataset.visitorData);
+            
+            // Populate all fields
+            document.getElementById('visitor-name').value = selectedOption.textContent;
+            document.getElementById('visitor-email').value = visitorData.email || '';
+            document.getElementById('visitor-mobile').value = visitorData.phone || '';
+            document.getElementById('visitor-address').value = visitorData.address || '';
+            document.getElementById('visitor-company-name').value = visitorData.companyName || '';
+            document.getElementById('company-gstin').value = visitorData.gst || '';
+            document.getElementById('visitor-category').value = visitorData.category || '';
+            document.getElementById('visitor-company-address').value = visitorData.companyAddress || '';
+          }
+        });
+
+        // Initially hide the manual input field
+        visitorNameInputContainer.style.display = 'none';
+
+      } catch (error) {
+        console.error('Error fetching visitors:', error);
+       
+      }
+    }
 
     // Helper function to format GST address
     function formatGSTAddress(address) {
@@ -1371,7 +1499,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         confirmButtonText: 'View Transactions'
                     });
 
-                    window.location.href = '/trans/manage-transactions';
+                    window.location.href = '/t/all-transactions';
                 } else {
                     throw new Error(responseData.message || 'Failed to process visitor payment');
                 }

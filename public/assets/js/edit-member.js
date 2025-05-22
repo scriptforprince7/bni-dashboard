@@ -499,3 +499,88 @@ const updateMemberData = async () => {
 
 
 document.getElementById("updateChapterBtn").addEventListener("click", updateMemberData);
+
+// Add GST details fetching functionality
+document.getElementById("getGstDetailsBtn").addEventListener("click", function () {
+    const gstNo = document.getElementById("member_gst_number").value.trim();
+
+    if (gstNo === "") {
+        Swal.fire({
+            icon: "warning",
+            title: "Empty GST Number",
+            text: "Please enter a valid GSTIN number.",
+        });
+        return;
+    }
+
+    fetch(`https://backend.bninewdelhi.com/einvoice/get-gst-details/${gstNo}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const details = data.extractedDetails;
+                const formattedDetails = `
+                <b>GSTIN:</b> ${details.gstin}<br><br>
+                <b>Trade Name:</b> ${details.tradeName}<br><br>
+                <b>Legal Name:</b> ${details.legalName}<br><br>
+                <b>Address:</b> ${details.address}<br><br>
+                <b>Taxpayer Type:</b> ${details.taxpayerType}<br><br>
+                <b>Status:</b> ${details.status}<br><br>
+                <b>Registration Date:</b> ${details.registrationDate}
+                `;
+
+                Swal.fire({
+                    icon: "success",
+                    title: "<h4 style='font-size: 22px;'>GST Details Retrieved</h4>",
+                    html: `<div style="font-size: 14px; text-align: left;">${formattedDetails}</div>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Add Automatically',
+                    cancelButtonText: 'Add Manually'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Automatically populate fields
+                        document.getElementById("member_company_name").value = details.tradeName;
+                        document.getElementById("member_company_address").value = details.address;
+
+                        // Extract postal code and state from the address
+                        const addressParts = details.address.split(',');
+                        const lastPart = addressParts[addressParts.length - 1].trim(); // "Delhi - 110064"
+                        const postalCode = lastPart.match(/\d+/)[0];
+                        
+                        // Extract state from the last part
+                        const state = lastPart.split('-')[0].trim(); // "Delhi"
+                        
+                        // Extract city (take the third last part before state)
+                        const city = addressParts[addressParts.length - 3].trim();
+
+                        document.getElementById("member_company_pincode").value = postalCode;
+                        document.getElementById("member_company_state").value = state;
+                        document.getElementById("member_company_city").value = city;
+
+                        console.log("Trade Name:", details.tradeName);
+                        console.log("Address:", details.address);
+                        console.log("Postal Code:", postalCode);
+                        console.log("State:", state);
+                        console.log("City:", city);
+                        console.log("Legal Name:", details.legalName);
+                        console.log("Registration Date:", details.registrationDate);
+                    } else {
+                        console.log("User chose to add details manually.");
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.message || "Failed to fetch GST details.",
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Something went wrong. Please try again later.",
+            });
+            console.error("Error fetching GST details:", error);
+        });
+});
