@@ -848,7 +848,7 @@ function showLoader() {
                 const partialAmount = parseFloat(partialAmountInput.value) || 0;
                 
                 if (this.checked) {
-                    // Calculate GST (18%) on partial amount using (amount/118)*18 formula
+                    // Calculate GST amount if included using (partial amount/118)*18 formula
                     const gstAmount = Math.round((partialAmount / 118) * 18);
                     // Add GST to remaining balance instead of subtracting
                     const remainingBalance = baseAmount - partialAmount + gstAmount;
@@ -1144,7 +1144,7 @@ function showLoader() {
                 const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
                 
                 if (this.checked) {
-                    // Calculate GST (18%) on partial amount using (amount/118)*18 formula
+                    // Calculate GST amount if included using (partial amount/118)*18 formula
                     const gstAmount = Math.round((partialAmount / 118) * 18);
                     // Add GST to remaining balance instead of subtracting
                     const remainingBalance = baseAmount - partialAmount + gstAmount;
@@ -1332,8 +1332,8 @@ function showLoader() {
                     const partialAmount = parseFloat(document.getElementById("partial-amount").value || 0);
                     const isGstIncluded = document.getElementById("include-gst").checked;
                     
-                    // Calculate GST amount if included
-                    const gstAmount = isGstIncluded ? (partialAmount * 0.18) : 0;
+                    // Calculate GST amount if included using (partial amount/118)*18 formula
+                    const gstAmount = isGstIncluded ? Math.round((partialAmount / 118) * 18) : 0;
                     
                     // Get remaining balance from the input field
                     const remainingBalanceWithGst = parseFloat(
@@ -1349,7 +1349,7 @@ function showLoader() {
                         payment_type: "partial",
                         payment_note: "meeting-payments-partial",
                         remaining_balance_with_gst: remainingBalanceWithGst,  
-                        tax_amount: isGstIncluded ? gstAmount : 0,
+                        tax_amount: gstAmount,
                         created_at: invoiceDateIssued,
                         member_pending_balance: remainingBalanceWithGst
                     });
