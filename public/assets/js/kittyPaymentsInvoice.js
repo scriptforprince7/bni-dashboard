@@ -1487,38 +1487,38 @@ function showLoader() {
 
                 // Keep rest of the existing code (API call, success handling, etc.)
 
-                // showToast('success', "Check console for payment data");
+                showToast('success', "Check console for payment data");
 
-                // const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPaymentManually', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(invoiceData)
-                // });
+                const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPaymentManually', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(invoiceData)
+                });
 
-                // const responseData = await response.json();
-                // console.log("📥 API Response:", responseData);
+                const responseData = await response.json();
+                console.log("📥 API Response:", responseData);
 
-                // if (response.ok) {
-                //     showToast('success', "Invoice created successfully!");
-                //     await Swal.fire({
-                //         icon: 'success',
-                //         title: 'Invoice Created Successfully!',
-                //         html: `
-                //             <div style="text-align: left;">
-                //                 <p><strong>Member:</strong> ${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}</p>
-                //                 <p><strong>Amount:</strong> ₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                //                 <p><strong>Order ID:</strong> ${responseData.order_id}</p>
-                //             </div>
-                //         `,
-                //         timer: 3000,
-                //         showConfirmButton: true,
-                //         confirmButtonText: 'View Transactions'
-                //     });
+                if (response.ok) {
+                    showToast('success', "Invoice created successfully!");
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Invoice Created Successfully!',
+                        html: `
+                            <div style="text-align: left;">
+                                <p><strong>Member:</strong> ${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}</p>
+                                <p><strong>Amount:</strong> ₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <p><strong>Order ID:</strong> ${responseData.order_id}</p>
+                            </div>
+                        `,
+                        timer: 3000,
+                        showConfirmButton: true,
+                        confirmButtonText: 'View Transactions'
+                    });
 
-                //     window.location.href = '/t/all-transactions';
-                // } else {
-                //     throw new Error(responseData.message || 'Failed to create invoice');
-                // }
+                    window.location.href = '/t/all-transactions';
+                } else {
+                    throw new Error(responseData.message || 'Failed to create invoice');
+                }
                 
             } catch (error) {
                 console.error("❌ Error:", error);
