@@ -826,41 +826,30 @@ function showLoader() {
             const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
             
             if (selectedPaymentType === "full") {
-                // For full payment, only handle CGST and SGST
-                if (this.checked) {
-                    // Calculate GST (18% split into CGST and SGST)
-                    const gstAmount = baseAmount * 0.18;
-                    const cgstAmount = gstAmount / 2;
-                    const sgstAmount = gstAmount / 2;
-                    
-                    // Update CGST and SGST fields
-                    document.getElementById("cgst_amount").value = `₹ ${cgstAmount.toFixed(2)}`;
-                    document.getElementById("sgst_amount").value = `₹ ${sgstAmount.toFixed(2)}`;
-                    
-                    // Update grand total
-                    const grandTotal = baseAmount + gstAmount;
-                    document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
-                    
-                    console.log('💰 Full Payment GST Calculation:', {
-                        baseAmount,
-                        gstAmount,
-                        cgstAmount,
-                        sgstAmount,
-                        grandTotal
-                    });
-                } else {
-                    // Reset GST fields when unchecked
-                    document.getElementById("cgst_amount").value = "₹ 0.00";
-                    document.getElementById("sgst_amount").value = "₹ 0.00";
-                    document.getElementById("grand_total").value = `₹ ${baseAmount.toFixed(2)}`;
-                }
+                // For full payment, automatically include GST
+                const gstAmount = baseAmount * 0.18;
+                const grandTotal = baseAmount + gstAmount;
+                
+                // Update the GST checkbox and amounts
+                document.getElementById("include-gst").checked = true;
+                document.getElementById("cgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
+                document.getElementById("sgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
+                document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
+                
+                Object.assign(invoiceData, {
+                    order_amount: grandTotal,
+                    payment_type: "full",
+                    payment_note: "meeting-payments",
+                    tax_amount: gstAmount,
+                    created_at: invoiceDateIssued
+                });
             } else if (selectedPaymentType === "partial" && partialAmountInput.value) {
                 // Existing partial payment logic
                 const partialAmount = parseFloat(partialAmountInput.value) || 0;
                 
                 if (this.checked) {
-                    // Calculate GST (18%) on partial amount and round to nearest whole number
-                    const gstAmount = Math.round(partialAmount * 0.18);
+                    // Calculate GST (18%) on partial amount using (amount/118)*18 formula
+                    const gstAmount = Math.round((partialAmount / 118) * 18);
                     // Add GST to remaining balance instead of subtracting
                     const remainingBalance = baseAmount - partialAmount + gstAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
@@ -1155,13 +1144,13 @@ function showLoader() {
                 const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
                 
                 if (this.checked) {
-                    // Calculate GST (18%) on partial amount and round to nearest whole number
-                    const gstAmount = Math.round(partialAmount * 0.18);
+                    // Calculate GST (18%) on partial amount using (amount/118)*18 formula
+                    const gstAmount = Math.round((partialAmount / 118) * 18);
                     // Add GST to remaining balance instead of subtracting
                     const remainingBalance = baseAmount - partialAmount + gstAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
                     
-                    console.log('💰 GST Toggle for Partial Payment:', {
+                    console.log('💰 Partial Payment GST Calculation:', {
                         partialAmount,
                         gstAmount,
                         baseAmount,
@@ -1172,7 +1161,7 @@ function showLoader() {
                     const remainingBalance = baseAmount - partialAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
                     
-                    console.log('💰 GST Toggle for Partial Payment:', {
+                    console.log('💰 Partial Payment Calculation:', {
                         partialAmount,
                         baseAmount,
                         remainingBalance
@@ -1364,29 +1353,23 @@ function showLoader() {
                         created_at: invoiceDateIssued,
                         member_pending_balance: remainingBalanceWithGst
                     });
-
-                    // Remove the second Object.assign that was overwriting these values
-                    // and just add the remaining fields
-                    Object.assign(invoiceData, {
-                        penalty_amount: penaltyAmount,
-                        no_of_late_payment: noOfLatePayment,
-                        date_of_update: new Date().toISOString()
-                    });
-                } else if (selectedPaymentType === "advance") {
-                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
-                    const includeGst = document.getElementById("include-gst").checked;
+                } else if (selectedPaymentType === "full") {
+                    // For full payment, automatically include GST
+                    const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+                    const gstAmount = baseAmount * 0.18;
+                    const grandTotal = baseAmount + gstAmount;
                     
-                    paymentType = "advance";
+                    // Update the GST checkbox and amounts
+                    document.getElementById("include-gst").checked = true;
+                    document.getElementById("cgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
+                    document.getElementById("sgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
+                    document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
                     
-                    const advanceWithGST = includeGst ? advanceAmount * 1.18 : advanceAmount;
-                    const taxAmount = includeGst ? advanceAmount * 0.18 : 0;
-
                     Object.assign(invoiceData, {
-                        order_amount: advanceWithGST,
-                        payment_type: "advance",
-                        payment_note: "meeting-payments-advance",
-                        advance_amount: advanceAmount,
-                        tax_amount: includeGst ? taxAmount : 0,
+                        order_amount: grandTotal,
+                        payment_type: "full",
+                        payment_note: "meeting-payments",
+                        tax_amount: gstAmount,
                         created_at: invoiceDateIssued
                     });
                 }
@@ -1504,38 +1487,38 @@ function showLoader() {
 
                 // Keep rest of the existing code (API call, success handling, etc.)
 
-                showToast('success', "Check console for payment data");
+                // showToast('success', "Check console for payment data");
 
-                const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPaymentManually', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(invoiceData)
-                });
+                // const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPaymentManually', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(invoiceData)
+                // });
 
-                const responseData = await response.json();
-                console.log("📥 API Response:", responseData);
+                // const responseData = await response.json();
+                // console.log("📥 API Response:", responseData);
 
-                if (response.ok) {
-                    showToast('success', "Invoice created successfully!");
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Invoice Created Successfully!',
-                        html: `
-                            <div style="text-align: left;">
-                                <p><strong>Member:</strong> ${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}</p>
-                                <p><strong>Amount:</strong> ₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                                <p><strong>Order ID:</strong> ${responseData.order_id}</p>
-                            </div>
-                        `,
-                        timer: 3000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'View Transactions'
-                    });
+                // if (response.ok) {
+                //     showToast('success', "Invoice created successfully!");
+                //     await Swal.fire({
+                //         icon: 'success',
+                //         title: 'Invoice Created Successfully!',
+                //         html: `
+                //             <div style="text-align: left;">
+                //                 <p><strong>Member:</strong> ${selectedOption.dataset.firstName} ${selectedOption.dataset.lastName}</p>
+                //                 <p><strong>Amount:</strong> ₹${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                //                 <p><strong>Order ID:</strong> ${responseData.order_id}</p>
+                //             </div>
+                //         `,
+                //         timer: 3000,
+                //         showConfirmButton: true,
+                //         confirmButtonText: 'View Transactions'
+                //     });
 
-                    window.location.href = '/t/all-transactions';
-                } else {
-                    throw new Error(responseData.message || 'Failed to create invoice');
-                }
+                //     window.location.href = '/t/all-transactions';
+                // } else {
+                //     throw new Error(responseData.message || 'Failed to create invoice');
+                // }
                 
             } catch (error) {
                 console.error("❌ Error:", error);
