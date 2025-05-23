@@ -348,13 +348,14 @@ function previewDocument(src, title) {
 
 // Add this function to check induction readiness (if not already present)
 function getInductionStatus(visitor) {
-    return visitor.visitor_form && 
-           visitor.eoi_form && 
-           visitor.member_application_form && 
-           visitor.new_member_form && 
-           visitor.interview_sheet && 
-           visitor.commitment_sheet && 
-           visitor.inclusion_exclusion_sheet;
+    return  visitor.member_application_form && 
+    visitor.new_member_form 
+    
+        
+           
+        //    visitor.interview_sheet && 
+        //    visitor.commitment_sheet && 
+        //    visitor.inclusion_exclusion_sheet;
 }
 
 // Add this function to handle induction kit application

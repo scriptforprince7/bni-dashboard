@@ -139,7 +139,8 @@ function filterTable() {
         
         // Get invoice date (3rd column)
         const invoiceDate = row.querySelector('td:nth-child(3)').textContent;
-        const gstin = row.querySelector('td:nth-child(14)').textContent;
+        const gstin = row.querySelector('td:nth-child(15)').textContent; // Updated GSTIN column index
+        const paymentType = row.querySelector('td:nth-child(8)').textContent;
 
         // Filter by region, chapter, and month
         const regionMatch = selectedRegion === 'all' || (region && region.region_id.toString() === selectedRegion);
@@ -166,7 +167,7 @@ function filterTable() {
                 invoiceTypeMatch = gstin === 'N/A';
                 break;
             case 'no': // Cash E-Invoices
-                invoiceTypeMatch = orderId.toLowerCase().includes('cash');
+                invoiceTypeMatch = paymentType.includes('CASH');
                 break;
         }
 
@@ -359,6 +360,7 @@ async function fetchAndDisplayEinvoices() {
                 <td><span class="fw-bold">${paymentDate}</span></td>
                 <td><span class="fw-bold">${displayMemberName}</span></td>
                 <td><span class="fw-bold">${chapter?.chapter_name || 'N/A'}</span></td>
+                <td><span class="fw-bold">${order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A'}</span></td>
                 <td><span class="fw-bold">${displayCompanyName}</span></td>
                 <td><span class="fw-bold">${billAmount.toFixed(2)}</span></td>
                 <td><span class="fw-bold">${taxAmount.toFixed(2)}</span></td>
@@ -597,6 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         gstin: displayGstin,
                         member_name: displayMemberName,
                         chapter_name: chapter?.chapter_name || 'N/A',
+                        payment_type: order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A',
                         bill_amount: billAmount.toFixed(2),
                         gst_18_percent: taxAmount.toFixed(2),
                         total_bill_amount: totalAmount.toFixed(2)
@@ -727,6 +730,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Payment Date': paymentDate,
                         'Member Name': displayMemberName,
                         'Chapter Name': chapter?.chapter_name || 'N/A',
+                        'Payment Type': order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A',
                         'Company Name': displayCompanyName,
                         'Member Company Address': memberAddress,
                         'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',

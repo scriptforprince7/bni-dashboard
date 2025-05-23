@@ -372,8 +372,8 @@ let ledgerData = [];
 
       const kittyRaisedOnDate = new Date(kitty.raised_on);
 
-      // Compare the dates
-      if (memberInductionDate <= kittyRaisedOnDate) {
+      // Compare the dates - Changed logic to show kitties after member's publishing date
+      if (kittyRaisedOnDate >= memberInductionDate) {
         // Filter credits based on kitty.raised_on date
         const creditsBeforeKitty = filteredCredits.filter(
           credit => new Date(credit.credit_date) <= new Date(kitty.raised_on)
@@ -645,8 +645,8 @@ let ledgerData = [];
       console.log(`Active Kitty Raised on: ${formatDate(kitty.raised_on)}`);
       const kittyRaisedOnDate = new Date(kitty.raised_on);
 
-      // Compare the dates
-      if (memberInductionDate <= kittyRaisedOnDate) {
+      // Compare the dates - Changed logic to show kitties after member's publishing date
+      if (kittyRaisedOnDate >= memberInductionDate) {
         // Filter credits based on kitty.raised_on date
         const creditsBeforeKitty = filteredCredits.filter(
           credit => new Date(credit.credit_date) <= new Date(kitty.raised_on)

@@ -321,37 +321,121 @@ async function handleSubmit(event) {
     }
 }
 
-// Modify initializePage function
+// Function to handle GST details
+async function handleGstDetails() {
+    console.log('🔍 Starting GST details fetch');
+    const gstNo = document.getElementById('visitor_gst').value.trim();
+    
+    if (gstNo === "") {
+        console.log('❌ Empty GST number provided');
+        Swal.fire({
+            icon: "warning",
+            title: "Empty GST Number",
+            text: "Please enter a valid GSTIN number.",
+        });
+        return;
+    }
+
+    try {
+        console.log('📡 Fetching GST details for:', gstNo);
+        const response = await fetch(`https://backend.bninewdelhi.com/einvoice/get-gst-details/${gstNo}`);
+        const data = await response.json();
+        console.log('📥 Received GST details:', data);
+
+        if (data.success) {
+            const details = data.extractedDetails;
+            const formattedDetails = `
+                <b>GSTIN:</b> ${details.gstin}<br><br>
+                <b>Trade Name:</b> ${details.tradeName}<br><br>
+                <b>Legal Name:</b> ${details.legalName}<br><br>
+                <b>Address:</b> ${details.address}<br><br>
+                <b>Taxpayer Type:</b> ${details.taxpayerType}<br><br>
+                <b>Status:</b> ${details.status}<br><br>
+                <b>Registration Date:</b> ${details.registrationDate}
+            `;
+            
+            console.log('📋 Formatted GST details for display');
+            
+            Swal.fire({
+                icon: "success",
+                title: "<h4 style='font-size: 22px;'>GST Details Retrieved</h4>",
+                html: `<div style="font-size: 14px; text-align: left;">${formattedDetails}</div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Add Automatically',
+                cancelButtonText: 'Add Manually'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log('✅ User chose to auto-fill details');
+                    // Automatically populate fields
+                    document.getElementById("visitor_company_name").value = details.tradeName;
+                    document.getElementById("visitor_address").value = details.address;
+                    
+                    console.log('📝 Auto-filled details:', {
+                        companyName: details.tradeName,
+                        address: details.address
+                    });
+                } else {
+                    console.log('ℹ️ User chose to add details manually');
+                }
+            });
+        } else {
+            console.log('❌ Failed to fetch GST details:', data.message);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: data.message || "Failed to fetch GST details.",
+            });
+        }
+    } catch (error) {
+        console.error('❌ Error fetching GST details:', error);
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Something went wrong. Please try again later.",
+        });
+    }
+}
+
+// Modify initializePage function to add GST button handler
 function initializePage() {
-    console.log('Initializing page...');
+    console.log('🚀 Initializing page...');
     
     // Check if token exists
     const token = localStorage.getItem('token');
     if (!token) {
-        console.error('No token found in localStorage');
+        console.error('❌ No token found in localStorage');
         return;
     }
 
     // Get submit button
     const submitButton = document.getElementById('submit-event');
     if (submitButton) {
-        console.log('Found submit button, adding click listener');
+        console.log('✅ Found submit button, adding click listener');
         submitButton.addEventListener('click', handleSubmit);
     } else {
-        console.error('Submit button not found');
+        console.error('❌ Submit button not found');
     }
 
     // Get form
     const form = document.getElementById('visitorForm');
     if (form) {
-        console.log('Found form, adding submit listener');
+        console.log('✅ Found form, adding submit listener');
         form.addEventListener('submit', handleSubmit);
     } else {
-        console.error('Form not found');
+        console.error('❌ Form not found');
+    }
+
+    // Add GST details button handler
+    const gstButton = document.getElementById('getGstDetailsBtn');
+    if (gstButton) {
+        console.log('✅ Found GST button, adding click listener');
+        gstButton.addEventListener('click', handleGstDetails);
+    } else {
+        console.error('❌ GST button not found');
     }
 
     // Populate chapter dropdown
-    console.log('Calling populateChapterDropdown');
+    console.log('📋 Calling populateChapterDropdown');
     populateChapterDropdown();
 }
 

@@ -513,20 +513,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Check all required conditions
             const conditions = {
                 // Form completions
-                visitor_form: visitor.visitor_form,  // Added visitor form check
-                eoi_form: visitor.eoi_form && verificationData.eoi_form === "true",
+                // visitor_form: visitor.visitor_form,  
+                // eoi_form: visitor.eoi_form && verificationData.eoi_form === "true",
                 member_application: visitor.member_application_form && verificationData.member_application_form === "true",
-                interview_sheet: visitor.interview_sheet && verificationData.interview_sheet === "true",
-                commitment_sheet: visitor.commitment_sheet && verificationData.commitment_sheet === "true",
-                inclusion_exclusion_sheet: visitor.inclusion_exclusion_sheet && verificationData.inclusion_exclusion_sheet === "true",
+                // interview_sheet: visitor.interview_sheet && verificationData.interview_sheet === "true",
+                // commitment_sheet: visitor.commitment_sheet && verificationData.commitment_sheet === "true",
+                // inclusion_exclusion_sheet: visitor.inclusion_exclusion_sheet && verificationData.inclusion_exclusion_sheet === "true",
                 new_member_form: visitor.new_member_form,
                 // Document verifications
-                aadhar_verified: verificationData.aadharcard === "true",
-                pan_verified: verificationData.pancard === "true",
-                gst_verified: verificationData.gstcertificate === "true",
+                // aadhar_verified: verificationData.aadharcard === "true",
+                // pan_verified: verificationData.pancard === "true",
+                // gst_verified: verificationData.gstcertificate === "true",
                 // Mail verifications
-                vp_mail: verificationData.vp_mail === "true",
-                welcome_mail: verificationData.welcome_mail === "true"
+                // vp_mail: verificationData.vp_mail === "true",
+                // welcome_mail: verificationData.welcome_mail === "true"
             };
             console.log('✅ Checking conditions:', conditions);
             // Return true only if all conditions are met
@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Define the simplified condition for showing buttons
         const showUpdateButtons = (visitor) => {
-            return visitor.new_member_form && visitor.visitor_form && visitor.eoi_form;
+            return visitor.new_member_form && visitor.member_application_form ;
         };
 
         // Function to render visitors
@@ -1019,13 +1019,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 // Add this function to handle induction kit status
                 function createInductionKitStatus(visitor) {
-                    const isReady = visitor.visitor_form && 
-                                    visitor.eoi_form && 
+                    const isReady =
+                                    // visitor.eoi_form && 
                                     visitor.member_application_form && 
-                                    visitor.new_member_form && 
-                                    visitor.interview_sheet && 
-                                    visitor.commitment_sheet && 
-                                    visitor.inclusion_exclusion_sheet;
+                                    visitor.new_member_form 
+                                    // visitor.interview_sheet && 
+                                    // visitor.commitment_sheet && 
+                                    // visitor.inclusion_exclusion_sheet;
                     
                     if (!isReady) {
                         return `<i class="ri-close-circle-fill text-danger" style="font-size: 1.5em;"></i>`;
@@ -1044,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <button class="btn btn-primary btn-sm approve-kit-btn" 
                                 onclick="handleInductionKitApproval(${visitor.visitor_id}, ${visitor.chapter_id})"
                                 type="button">
-                            Yet to be applied
+                            Approve Induction kit
                         </button>
                     `;
                 }
