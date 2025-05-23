@@ -605,7 +605,7 @@ return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 async function fetchTrainingDetails() {
 try {
 showLoader();
-const response = await fetch(`http://localhost:5000/api/getTraining/${training_id}`);
+const response = await fetch(`https://backend.bninewdelhi.com/api/getTraining/${training_id}`);
 if (!response.ok) throw new Error('Failed to fetch event details');
 
 const trainingData = await response.json();
@@ -638,7 +638,7 @@ window.addEventListener('load', fetchTrainingDetails);
 // const training_id = urlParams.get('training_id');
 
 // Use the existing urlParams and training_id variables
-fetch('http://localhost:5000/api/allCheckins')
+fetch('https://backend.bninewdelhi.com/api/allCheckins')
 .then((response) => response.json())
 .then((data) => {
     console.log('All checkins data:', data);
@@ -728,7 +728,7 @@ fetch('http://localhost:5000/api/allCheckins')
       const totalRegistrations = tableBody ? tableBody.rows.length - 1 : 0; // Subtract 1 for header row
       
       // Get all checkins
-      const checkinsResponse = await fetch('http://localhost:5000/api/allCheckins');
+      const checkinsResponse = await fetch('https://backend.bninewdelhi.com/api/allCheckins');
       const checkinsData = await checkinsResponse.json();
       
       // Filter and deduplicate checkins
@@ -787,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check training status and update button accordingly
     async function checkTrainingStatus() {
         try {
-            const response = await fetch('http://localhost:5000/api/alltrainings');
+            const response = await fetch('https://backend.bninewdelhi.com/api/alltrainings');
             const trainings = await response.json();
             const training = trainings.find(t => t.training_id === parseInt(trainingId));
             
@@ -818,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (result.isConfirmed) {
-                const updateResponse = await fetch('http://localhost:5000/api/markTrainingCompleted', {
+                const updateResponse = await fetch('https://backend.bninewdelhi.com/api/markTrainingCompleted', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

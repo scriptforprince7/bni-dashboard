@@ -107,7 +107,7 @@ async function fetchUniversalLinkss() {
 
   try {
     showLoader();
-    const response = await fetch('http://localhost:5000/api/universalLinks');
+    const response = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
     const data = await response.json();
 
     if (data && Array.isArray(data)) {

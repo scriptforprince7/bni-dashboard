@@ -590,7 +590,7 @@ async function fetchKittyPayments() {
     try {
         showLoader();
 
-        const response = await fetch('http://localhost:5000/api/getKittyPayments');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getKittyPayments');
         const data = await response.json();
 
         if (!response.ok || !Array.isArray(data)) {
@@ -598,7 +598,7 @@ async function fetchKittyPayments() {
         }
 
         // Fetch chapter details from the API
-        const chapterResponse = await fetch('http://localhost:5000/api/chapters');
+        const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chapterResponse.json();
         const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter]));
         const totalKittys = document.getElementById("totalKitty");
@@ -669,7 +669,7 @@ const deleteKittyBill = async (payment_id) => {
   if (result.isConfirmed) {
       try {
           showLoader();  // Show loading indicator
-          const response = await fetch(`http://localhost:5000/api/deleteKittyBill/${payment_id}`, {
+          const response = await fetch(`https://backend.bninewdelhi.com/api/deleteKittyBill/${payment_id}`, {
               method: 'PUT',
           });
 
