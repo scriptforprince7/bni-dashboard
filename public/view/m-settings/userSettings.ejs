@@ -1035,7 +1035,7 @@ async function checkUserAuthorization() {
             return false;
         }
 
-        const response = await fetch('https://backend.bninewdelhi.com/api/getUsers');
+        const response = await fetch('http://localhost:5000/api/getUsers');
         const users = await response.json();
         
         // Check if logged in email matches any user
@@ -1111,7 +1111,7 @@ async function saveCompanyChanges() {
         console.log('Sending data:', data);
 
         // Update the API endpoint to match your backend
-        const response = await fetch('https://backend.bninewdelhi.com/api/updateUserSettings', {
+        const response = await fetch('http://localhost:5000/api/updateUserSettings', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1333,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function fetchGstTypes() {
     try {
         console.log('=== FETCH GST TYPES START ===');
-        const response = await fetch('https://backend.bninewdelhi.com/api/getGstType');
+        const response = await fetch('http://localhost:5000/api/getGstType');
         
         if (!response.ok) {
             throw new Error('Failed to fetch GST types');
@@ -1353,7 +1353,7 @@ async function fetchGstTypes() {
 async function fetchGstValues() {
     try {
         console.log('=== FETCH GST VALUES START ===');
-        const response = await fetch('https://backend.bninewdelhi.com/api/getGstTypeValues');
+        const response = await fetch('http://localhost:5000/api/getGstTypeValues');
         
         if (!response.ok) {
             throw new Error('Failed to fetch GST values');
@@ -1453,7 +1453,7 @@ async function saveTaxSettings() {
         
         console.log('Tax settings to save:', data);
         
-        const response = await fetch('https://backend.bninewdelhi.com/api/updateGstTypeValues', {
+        const response = await fetch('http://localhost:5000/api/updateGstTypeValues', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1531,7 +1531,7 @@ async function saveAccountSettings() {
 
             try {
                 console.log('Sending password update request...');
-                const passwordResponse = await fetch('https://backend.bninewdelhi.com/api/updateUserPassword', {
+                const passwordResponse = await fetch('http://localhost:5000/api/updateUserPassword', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1585,7 +1585,7 @@ async function saveAccountSettings() {
                 const formData = new FormData();
                 formData.append('logo', logoInput.files[0]);
 
-                const logoResponse = await fetch('https://backend.bninewdelhi.com/api/uploadLogo', {
+                const logoResponse = await fetch('http://localhost:5000/api/uploadLogo', {
                     method: 'POST',
                     body: formData
                 });
@@ -1766,7 +1766,7 @@ document.getElementById('confirm-password').addEventListener('input', function()
 function loadLogo() {
   console.log('Starting logo load...');
   
-  fetch('https://backend.bninewdelhi.com/api/getDisplayLogo')
+  fetch('http://localhost:5000/api/getDisplayLogo')
     .then(response => {
       console.log('Received response:', response.status);
       return response.json();
@@ -1780,7 +1780,7 @@ function loadLogo() {
         
         const logoPreview = document.getElementById('logo-preview');
         // Construct the full URL using the image name
-        const imageUrl = `https://backend.bninewdelhi.com/uploads/dynamicLogo/${imageName}`;
+        const imageUrl = `http://localhost:5000/uploads/dynamicLogo/${imageName}`;
         console.log('Setting image URL:', imageUrl);
         
         logoPreview.src = imageUrl + '?t=' + new Date().getTime();

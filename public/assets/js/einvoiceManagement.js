@@ -257,31 +257,31 @@ function showEinvoicePdfModal(order, transaction, einvoice) {
 async function fetchAndDisplayEinvoices() {
     try {
         // Fetch e-invoice data
-        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
+        const einvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
         const einvoiceData = await einvoiceResponse.json();
 
         // Fetch all orders data
-        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
         const ordersData = await ordersResponse.json();
 
         // Fetch document numbers
-        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
+        const docNumbersResponse = await fetch('http://localhost:5000/api/getAllDocNumbers');
         const docNumbersData = await docNumbersResponse.json();
 
         // Fetch chapters data
-        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
         const chaptersData = await chaptersResponse.json();
 
         // Fetch regions data
-        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+        const regionsResponse = await fetch('http://localhost:5000/api/regions');
         const regionsData = await regionsResponse.json();
 
         // Fetch transactions data
-        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
 
         // Fetch members data
-        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        const membersResponse = await fetch('http://localhost:5000/api/members');
         const membersData = await membersResponse.json();
 
         // Create maps for quick lookup
@@ -339,6 +339,14 @@ async function fetchAndDisplayEinvoices() {
             // Get IRN status
             const irnStatus = isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices';
 
+            // Check if it's a visitor payment
+            const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
+            
+            // Get member name, company name and GSTIN based on payment type
+            const displayMemberName = isVisitorPayment ? (order?.visitor_name || 'N/A') : (order?.member_name || 'N/A');
+            const displayCompanyName = isVisitorPayment ? (order?.visitor_company || 'N/A') : (order?.company || 'N/A');
+            const displayGstin = isVisitorPayment ? (order?.visitor_gstin || 'N/A') : (order?.gstin || 'N/A');
+
             row.innerHTML = `
                 <td><input type="checkbox" class="einvoice-checkbox" value="${einvoice.order_id}"></td>
                 <td><span class="fw-bold">${einvoiceData.length - i}</span></td>
@@ -349,15 +357,15 @@ async function fetchAndDisplayEinvoices() {
                     </span>
                 </td>
                 <td><span class="fw-bold">${paymentDate}</span></td>
-                <td><span class="fw-bold">${order?.member_name || 'N/A'}</span></td>
+                <td><span class="fw-bold">${displayMemberName}</span></td>
                 <td><span class="fw-bold">${chapter?.chapter_name || 'N/A'}</span></td>
-                <td><span class="fw-bold">${order?.company || 'N/A'}</span></td>
+                <td><span class="fw-bold">${displayCompanyName}</span></td>
                 <td><span class="fw-bold">${billAmount.toFixed(2)}</span></td>
                 <td><span class="fw-bold">${taxAmount.toFixed(2)}</span></td>
                 <td><span class="fw-bold">${totalAmount.toFixed(2)}</span></td>
                 <td><span class="fst-italic">${irnStatus}</span></td>
                 <td><span class="fw-bold">${transaction?.cf_payment_id || 'N/A'}</span></td>
-                <td><span class="fw-bold">${order?.gstin || 'N/A'}</span></td>
+                <td><span class="fw-bold">${displayGstin}</span></td>
             `;
             tableBody.appendChild(row);
         }
@@ -485,13 +493,13 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources including members data
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes, membersRes] = await Promise.all([
-                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
-                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
-                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
-                    fetch('https://backend.bninewdelhi.com/api/chapters'),
-                    fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-                    fetch('https://backend.bninewdelhi.com/api/members')
+                    fetch('http://localhost:5000/api/einvoiceData'),
+                    fetch('http://localhost:5000/api/allOrders'),
+                    fetch('http://localhost:5000/api/getAllDocNumbers'),
+                    fetch('http://localhost:5000/api/chapters'),
+                    fetch('http://localhost:5000/api/regions'),
+                    fetch('http://localhost:5000/api/allTransactions'),
+                    fetch('http://localhost:5000/api/members')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData, membersData] = await Promise.all([
                     einvoiceRes.json(),
@@ -533,17 +541,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     const transaction = transactionsMap.get(einvoice.order_id);
                     const isGST = order && order.gstin && order.gstin.trim() !== '';
 
-                    // Get member data and address
+                    // Check if it's a visitor payment
+                    const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
+                    
+                    // Get member data and address based on payment type
                     let memberAddress = 'N/A';
                     if (order) {
-                        // First try to get address from visitor data if available
-                        if (order.visitor_company_address) {
-                            memberAddress = order.visitor_company_address;
-                        } else if (order.customer_id) {
-                            // If no visitor data, try to get from members data using customer_id
-                            const member = membersData.find(m => m.member_id === order.customer_id);
-                            if (member) {
-                                memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                        if (isVisitorPayment) {
+                            memberAddress = order.visitor_company_address || 'N/A';
+                        } else {
+                            // First try to get address from visitor data if available
+                            if (order.visitor_company_address) {
+                                memberAddress = order.visitor_company_address;
+                            } else if (order.customer_id) {
+                                // If no visitor data, try to get from members data using customer_id
+                                const member = membersData.find(m => m.member_id === order.customer_id);
+                                if (member) {
+                                    memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                                }
                             }
                         }
                     }
@@ -561,12 +576,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Get payment date
                     const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
 
+                    // Get display values based on payment type
+                    const displayMemberName = isVisitorPayment ? (order?.visitor_name || 'N/A') : (order?.member_name || 'N/A');
+                    const displayCompanyName = isVisitorPayment ? (order?.visitor_company || 'N/A') : (order?.company || 'N/A');
+                    const displayGstin = isVisitorPayment ? (order?.visitor_gstin || 'N/A') : (order?.gstin || 'N/A');
+
                     return {
                         serial_no: filteredEinvoiceData.length - i,
                         invoice_no: docNumber?.doc_no || 'N/A',
                         invoice_date: invoiceDate,
                         payment_date: paymentDate,
-                        company: order?.company || 'N/A',
+                        company: displayCompanyName,
                         member_company_address: memberAddress,
                         irn: isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         ack_no: isGST ? (einvoice.ack_no || 'N/A') : 'Not applicable for NON-GST einvoices',
@@ -574,8 +594,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         qrcode_url: isGST && einvoice.qrcode ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(einvoice.qrcode)}` : 'Not applicable for NON-GST einvoices',
                         transaction_id: transaction?.cf_payment_id || 'N/A',
                         order_id: einvoice.order_id || 'N/A',
-                        gstin: order?.gstin || 'N/A',
-                        member_name: order?.member_name || 'N/A',
+                        gstin: displayGstin,
+                        member_name: displayMemberName,
                         chapter_name: chapter?.chapter_name || 'N/A',
                         bill_amount: billAmount.toFixed(2),
                         gst_18_percent: taxAmount.toFixed(2),
@@ -612,13 +632,13 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources including members data
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes, membersRes] = await Promise.all([
-                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
-                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
-                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
-                    fetch('https://backend.bninewdelhi.com/api/chapters'),
-                    fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-                    fetch('https://backend.bninewdelhi.com/api/members')
+                    fetch('http://localhost:5000/api/einvoiceData'),
+                    fetch('http://localhost:5000/api/allOrders'),
+                    fetch('http://localhost:5000/api/getAllDocNumbers'),
+                    fetch('http://localhost:5000/api/chapters'),
+                    fetch('http://localhost:5000/api/regions'),
+                    fetch('http://localhost:5000/api/allTransactions'),
+                    fetch('http://localhost:5000/api/members')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData, membersData] = await Promise.all([
                     einvoiceRes.json(),
@@ -660,17 +680,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     const transaction = transactionsMap.get(einvoice.order_id);
                     const isGST = order && order.gstin && order.gstin.trim() !== '';
 
-                    // Get member data and address
+                    // Check if it's a visitor payment
+                    const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
+                    
+                    // Get member data and address based on payment type
                     let memberAddress = 'N/A';
                     if (order) {
-                        // First try to get address from visitor data if available
-                        if (order.visitor_company_address) {
-                            memberAddress = order.visitor_company_address;
-                        } else if (order.customer_id) {
-                            // If no visitor data, try to get from members data using customer_id
-                            const member = membersData.find(m => m.member_id === order.customer_id);
-                            if (member) {
-                                memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                        if (isVisitorPayment) {
+                            memberAddress = order.visitor_company_address || 'N/A';
+                        } else {
+                            // First try to get address from visitor data if available
+                            if (order.visitor_company_address) {
+                                memberAddress = order.visitor_company_address;
+                            } else if (order.customer_id) {
+                                // If no visitor data, try to get from members data using customer_id
+                                const member = membersData.find(m => m.member_id === order.customer_id);
+                                if (member) {
+                                    memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                                }
                             }
                         }
                     }
@@ -688,21 +715,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Get payment date
                     const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
 
+                    // Get display values based on payment type
+                    const displayMemberName = isVisitorPayment ? (order?.visitor_name || 'N/A') : (order?.member_name || 'N/A');
+                    const displayCompanyName = isVisitorPayment ? (order?.visitor_company || 'N/A') : (order?.company || 'N/A');
+                    const displayGstin = isVisitorPayment ? (order?.visitor_gstin || 'N/A') : (order?.gstin || 'N/A');
+
                     return {
                         'S.No.': filteredEinvoiceData.length - i,
                         'Invoice No.': docNumber?.doc_no || 'N/A',
                         'Invoice Date': invoiceDate,
                         'Payment Date': paymentDate,
-                        'Member Name': order?.member_name || 'N/A',
+                        'Member Name': displayMemberName,
                         'Chapter Name': chapter?.chapter_name || 'N/A',
-                        'Company Name': order?.company || 'N/A',
+                        'Company Name': displayCompanyName,
                         'Member Company Address': memberAddress,
                         'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         'Bill Amount': billAmount.toFixed(2),
                         'GST (18%)': taxAmount.toFixed(2),
                         'Total Bill Amount': totalAmount.toFixed(2),
                         'Transaction ID': transaction?.cf_payment_id || 'N/A',
-                        'GSTIN': order?.gstin || 'N/A'
+                        'GSTIN': displayGstin
                     };
                 });
 
@@ -765,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iframeUrl = iframe.src;
             // Build the correct PDF endpoint URL
             const urlParams = iframeUrl.split('?')[1];
-            const pdfUrl = `https://backend.bninewdelhi.com/api/v/einvoice/pdf?${urlParams}`;
+            const pdfUrl = `http://localhost:5000/api/v/einvoice/pdf?${urlParams}`;
             // Open the PDF in a new tab (for direct download)
             window.open(pdfUrl, '_blank');
         });

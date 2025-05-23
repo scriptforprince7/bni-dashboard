@@ -6,9 +6,9 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
-const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
-const getBankOrderApi = 'https://backend.bninewdelhi.com/api/getBankOrder';
+const chaptersApiUrl = 'http://localhost:5000/api/chapters'; 
+const memberApiUrl = 'http://localhost:5000/api/members';
+const getBankOrderApi = 'http://localhost:5000/api/getBankOrder';
 let creditType;
 let allMembers = []; // Store all members for search functionality
 
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Step 2: Fetch writeoff data
         // console.log('Fetching existing writeoff data...');
-        const writeoffResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff');
+        const writeoffResponse = await fetch('http://localhost:5000/api/getAllMemberWriteOff');
         const writeoffData = await writeoffResponse.json();
         // console.log('Writeoff data received:', writeoffData);
 
@@ -316,7 +316,7 @@ fetch(getBankOrderApi)
                 console.log('Sending data to API:', data);
         
                 showLoader();
-                const response = await fetch('https://backend.bninewdelhi.com/api/addMemberWriteOff', {
+                const response = await fetch('http://localhost:5000/api/addMemberWriteOff', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
