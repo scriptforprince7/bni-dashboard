@@ -335,17 +335,48 @@ if (ackDate === null || ackDate === undefined) {
 document.querySelector(".base_amount").textContent = `₹ ${baseAmount.toFixed(2)}`;
 document.querySelector(".base_amountt").textContent = `₹${baseAmount.toFixed(2)}`;
 document.querySelector(".sub_total").innerHTML = `<strong>₹ ${baseAmount.toFixed(2)}</strong>`;
-document.querySelector(".ship_to_company").innerHTML = `<strong>${invoiceData.orderId.company || "N/A"}</strong>`;
-document.querySelector(".ship_to_gst").textContent = invoiceData.orderId.gstin || "N/A";
-document.querySelector(".bill_to_company").innerHTML = `<strong>${invoiceData.orderId.company || "N/A"}</strong>`;
+
+// Check if it's a visitor payment
+const isVisitorPayment = invoiceData.orderId.payment_note === 'visitor-payment' || invoiceData.orderId.payment_note === 'Visitor Payment';
+
+// Set company, address, GSTIN, and state based on payment type
+if (isVisitorPayment) {
+    // Set visitor details
+    document.querySelector(".ship_to_company").innerHTML = `<strong>${invoiceData.orderId.visitor_company || "N/A"}</strong>`;
+    document.querySelector(".ship_to_address").textContent = invoiceData.orderId.visitor_company_address || "N/A";
+    document.querySelector(".ship_to_gst").textContent = invoiceData.orderId.visitor_gstin || "N/A";
+    document.querySelector(".ship_to_state").textContent = invoiceData.orderId.visitor_state || "N/A";
+    
+    document.querySelector(".bill_to_company").innerHTML = `<strong>${invoiceData.orderId.visitor_company || "N/A"}</strong>`;
+    document.querySelector(".bill_to_address").textContent = invoiceData.orderId.visitor_company_address || "N/A";
+    document.querySelector(".bill_to_gst").textContent = invoiceData.orderId.visitor_gstin || "N/A";
+    document.querySelector(".bill_to_state").textContent = invoiceData.orderId.visitor_state || "N/A";
+    document.querySelector(".bill_to_name").innerHTML = `<strong>${invoiceData.orderId.visitor_name || "N/A"}</strong>`;
+    
+    // Set visitor contact details
+    document.querySelector(".buyer_email").innerHTML = `${invoiceData.orderId.visitor_email || "N/A"}`;
+    document.querySelector(".buyer_phone").innerHTML = `${invoiceData.orderId.visitor_mobilenumber || "N/A"}`;
+} else {
+    // Set member details
+    document.querySelector(".ship_to_company").innerHTML = `<strong>${invoiceData.orderId.company || "N/A"}</strong>`;
+    document.querySelector(".ship_to_address").textContent = invoiceData.orderId.member_company_address || "N/A";
+    document.querySelector(".ship_to_gst").textContent = invoiceData.orderId.gstin || "N/A";
+    document.querySelector(".ship_to_state").textContent = invoiceData.orderId.member_company_state || "N/A";
+    
+    document.querySelector(".bill_to_company").innerHTML = `<strong>${invoiceData.orderId.company || "N/A"}</strong>`;
+    document.querySelector(".bill_to_address").textContent = invoiceData.orderId.member_company_address || "N/A";
+    document.querySelector(".bill_to_gst").textContent = invoiceData.orderId.gstin || "N/A";
+    document.querySelector(".bill_to_state").textContent = invoiceData.orderId.member_company_state || "N/A";
+    document.querySelector(".bill_to_name").innerHTML = `<strong>${invoiceData.orderId.member_name || "N/A"}</strong>`;
+    
+    // Set member contact details
+    document.querySelector(".buyer_email").innerHTML = `${invoiceData.orderId.customer_email || "N/A"}`;
+    document.querySelector(".buyer_phone").innerHTML = `${invoiceData.orderId.customer_phone || "N/A"}`;
+}
+
 document.querySelector(".order_id").innerHTML = `${invoiceData.orderId.order_id || "N/A"}`;
 document.querySelector(".transaction_id").innerHTML = `${invoiceData.transactionId.cf_payment_id || "N/A"}`;
 document.querySelector(".payment_mode").innerHTML = `${invoiceData.transactionId.payment_group || "N/A"}`;
-document.querySelector(".buyer_email").innerHTML = `${invoiceData.orderId.customer_email || "N/A"}`;
-document.querySelector(".buyer_phone").innerHTML = `${invoiceData.orderId.customer_phone || "N/A"}`;
-// document.querySelector(".payment_time").innerHTML = `${invoiceData.transactionId.payment_time || "N/A"}`;
-document.querySelector(".bill_to_name").innerHTML = `<strong>${invoiceData.orderId.member_name || "N/A"}</strong>`;
-document.querySelector(".bill_to_gst").textContent = invoiceData.orderId.gstin || "N/A";
 document.querySelector(".grand_total").innerHTML = `<b>₹ ${invoiceData.amount || 0}</b>`;
 document.querySelector(".amount_in_words").innerHTML = `<b><i>${amountInWords || "N/A"}</i></b>`;
 const qrCodeData = einvoiceData.qrcode;
