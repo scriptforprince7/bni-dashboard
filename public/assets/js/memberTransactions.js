@@ -88,8 +88,11 @@ let ledgerData = [];
       meeting_payable_amount,
       chapter_id
     } = userData;
-    // // currentAvailable
-    // let currentBalance = 0;
+
+    // Fetch chapter info for the current member's chapter
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const chapters = await chaptersResponse.json();
+    const chapterInfo = chapters.find(ch => ch.chapter_id === chapter_id);
 
     const AllTimeRaisedKittyResponse = await fetch(
       "https://backend.bninewdelhi.com/api/getAllKittyPayments"
@@ -127,13 +130,14 @@ let ledgerData = [];
     currentBalance =
       parseFloat(currentBalance) - parseFloat(meeting_opening_balance);
     // Initialize ledgerData within the function
+    console.log('🟢 Using meeting_opening_balance from userData:', userData.meeting_opening_balance);
     ledgerData = [
       {
         sNo: 1,
         date: formatDate(userData.member_induction_date), //date wtf
         description: "Opening Balance",
         billAmount: 0,
-        debit: meeting_opening_balance,
+        debit: userData.meeting_opening_balance || 0,
         credit: 0,
         gst: 0,
         balance: currentBalance, // Display opening balance here
@@ -372,8 +376,8 @@ let ledgerData = [];
 
       const kittyRaisedOnDate = new Date(kitty.raised_on);
 
-      // Compare the dates - Changed logic to show kitties after member's publishing date
-      if (kittyRaisedOnDate >= memberInductionDate) {
+      // Compare the dates
+      if (memberInductionDate <= kittyRaisedOnDate) {
         // Filter credits based on kitty.raised_on date
         const creditsBeforeKitty = filteredCredits.filter(
           credit => new Date(credit.credit_date) <= new Date(kitty.raised_on)
@@ -640,13 +644,121 @@ let ledgerData = [];
       }
     });
 
+    // Helper function to calculate meeting dates between two dates for a specific meeting day
+    function getMeetingDatesInRange(startDate, endDate, meetingDay) {
+      const daysOfWeek = {
+        Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3,
+        Thursday: 4, Friday: 5, Saturday: 6
+      };
+      const meetingDates = [];
+      const meetingDayNum = daysOfWeek[meetingDay];
+
+      let current = new Date(startDate);
+      current.setHours(0, 0, 0, 0);
+
+      // Move to the first meeting day on/after startDate
+      while (current.getDay() !== meetingDayNum) {
+        current.setDate(current.getDate() + 1);
+      }
+
+      while (current <= endDate) {
+        meetingDates.push(new Date(current));
+        current.setDate(current.getDate() + 7);
+      }
+      return meetingDates;
+    }
+
     // Process activeKittyEntries similar to remainingKittyEntries
     activeKittyEntries.forEach(kitty => {
       console.log(`Active Kitty Raised on: ${formatDate(kitty.raised_on)}`);
       const kittyRaisedOnDate = new Date(kitty.raised_on);
+      const memberInductionDate = new Date(userData.date_of_publishing);
 
-      // Compare the dates - Changed logic to show kitties after member's publishing date
-      if (kittyRaisedOnDate >= memberInductionDate) {
+      // Separate conditions for different DOP scenarios
+      if (memberInductionDate > kittyRaisedOnDate) {
+        // Case 1: DOP is after bill raised date
+        console.log('📅 DOP is after bill raised date, using member meeting_payable_amount');
+        let proratedAmount = 0;
+        if (userData.meeting_payable_amount) {
+          proratedAmount = parseFloat(userData.meeting_payable_amount);
+          console.log('🟢 Using meeting_payable_amount from userData:', userData.meeting_payable_amount);
+        } else {
+          // fallback to previous calculation if not found
+          const meetingDay = chapterInfo && chapterInfo.chapter_meeting_day ? chapterInfo.chapter_meeting_day : 'Monday';
+          const billEndDate = new Date(kitty.kitty_due_date);
+          const meetingDates = getMeetingDatesInRange(
+            memberInductionDate,
+            billEndDate,
+            meetingDay
+          );
+          let numMeetings = meetingDates.length;
+          if (numMeetings > 0) numMeetings = numMeetings - 1;
+          const weeklyAmount = parseFloat(chapterInfo.chapter_kitty_fees);
+          proratedAmount = numMeetings * weeklyAmount;
+          console.log('🟡 Fallback calculation:', { numMeetings, weeklyAmount, proratedAmount });
+        }
+        // Split GST and base (assume 18% GST)
+        const baseAmount = proratedAmount / 1.18;
+        const gstAmount = proratedAmount - baseAmount;
+        currentBalance -= proratedAmount;
+        ledgerData.push({
+          sNo: ledgerData.length + 1,
+          date: formatDate(kitty.raised_on),
+          description: `\n            <b>Meeting Payable Amount (Prorated)</b><br>\n            <em>(bill for: ${kitty.bill_type})</em> - \n            <em>(${kitty.description})</em><br>\n            <em>Amount from member: ${proratedAmount.toFixed(2)}</em>\n        `,
+          billAmount: Math.round(proratedAmount),
+          debit: Math.round(baseAmount), // Show base amount (total - GST) in Debit
+          credit: 0,
+          gst: Math.round(gstAmount),
+          balance: parseFloat(currentBalance),
+          balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
+        });
+        // Process any payments made for this prorated amount
+        const filteredOrders = allAvailableOrders.filter(
+          order =>
+            order.kitty_bill_id === kitty.kitty_bill_id &&
+            order.customer_id === userData.member_id
+        );
+        filteredOrders.forEach(order => {
+          const successfulTransactions = allAvailableTransactions.filter(
+            transaction =>
+              transaction.order_id === order.order_id &&
+              transaction.payment_status === "SUCCESS"
+          );
+          successfulTransactions.forEach(transaction => {
+            // Add payment entry
+            currentBalance += parseFloat(transaction.payment_amount) - parseFloat(order.tax);
+            paid_amount_show += parseFloat(transaction.payment_amount) - parseFloat(order.tax);
+            ledgerData.push({
+              sNo: ledgerData.length + 1,
+              date: formatDate(transaction.payment_time),
+              description: "Meeting Fee Paid (Prorated)",
+              billAmount: Math.round(transaction.payment_amount),
+              debit: 0,
+              credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
+              gst: Math.round(parseFloat(order.tax)),
+              balance: parseFloat(currentBalance),
+              balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
+            });
+            // Check for late payment penalty
+            if (transaction.payment_time > kitty.kitty_due_date) {
+              no_of_late_payment++;
+              currentBalance -= parseFloat(kitty.penalty_fee);
+              ledgerData.push({
+                sNo: ledgerData.length + 1,
+                date: formatDate(kitty.kitty_due_date),
+                description: `Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
+                billAmount: 0,
+                debit: parseFloat(kitty.penalty_fee),
+                credit: 0,
+                gst: 0,
+                balance: parseFloat(currentBalance),
+                balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
+              });
+            }
+          });
+        });
+      } else {
+        // Case 2: DOP is before or equal to bill raised date (existing logic)
         // Filter credits based on kitty.raised_on date
         const creditsBeforeKitty = filteredCredits.filter(
           credit => new Date(credit.credit_date) <= new Date(kitty.raised_on)
