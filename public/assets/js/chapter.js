@@ -137,80 +137,129 @@ function updateChapterCounts() {
     updateReLaunchChaptersCount();
 }
 
-// Move this function OUTSIDE displayChapters, so it can accept pre-fetched data
-const calculateTotalAvailableFund = (chapterData, expenses, allOrders, allTransactions) => {
-    try {
-        // 1. Base available fund
-        const available_fund = parseFloat(chapterData.available_fund) || 0;
+// Add this function to show the breakdown popup
+function showCurrentBalanceBreakdownPopup(chapterName, breakdown) {
+    const formatCurrency = (amt) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amt);
+    };
+    const content = `
+        <div class="kitty-breakdown">
+          <div class="breakdown-section">
+            <h6 class="mb-3">Current Balance Breakdown</h6>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-wallet-3-line me-2"></i>Opening Balance</span>
+              <span class="fw-bold" style="color: #28a745;">${formatCurrency(breakdown.opening_balance)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-money-dollar-circle-line me-2"></i>Kitty + Visitor Payments</span>
+              <span class="fw-bold" style="color: #007bff;">${formatCurrency(breakdown.kittyAndVisitorTotal)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-bank-card-line me-2"></i>Other Payments</span>
+              <span class="fw-bold" style="color: #17a2b8;">${formatCurrency(breakdown.otherPaymentsTotal)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-file-list-3-line me-2"></i>Paid Expenses</span>
+              <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(breakdown.totalPaidExpense)}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between">
+              <span class="fw-bold">Total Current Balance</span>
+              <span class="fw-bold" style="color: #28a745;">${formatCurrency(breakdown.currentBalance)}</span>
+            </div>
+          </div>
+        </div>
+    `;
+    Swal.fire({
+        title: `Current Balance Breakdown for ${chapterName}`,
+        html: content,
+        customClass: {
+            container: 'kitty-breakdown-popup',
+            popup: 'kitty-breakdown-popup',
+            content: 'kitty-breakdown-content'
+        },
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 500
+    });
+}
 
-        // 2. Paid Expenses
-        let total_paid_expense = 0;
+// Move this function OUTSIDE displayChapters, so it can accept pre-fetched data
+const calculateCurrentBalance = (chapterData, expenses, allOrders, allTransactions, allOtherPayments) => {
+    try {
+        // 1. Opening Balance
+        const opening_balance = parseFloat(chapterData.available_fund) || 0;
+        console.log('🏦 [Opening Balance] for chapter', chapterData.chapter_name, ':', opening_balance);
+
+        // 2. Kitty & Visitor Payments (meeting-payments, visitor-payment, minus GST)
+        let kittyAndVisitorTotal = 0;
+        const paymentOrders = allOrders.filter(order => 
+            parseInt(order.chapter_id) === chapterData.chapter_id &&
+            (order.payment_note === "meeting-payments" || order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
+        );
+        paymentOrders.forEach(order => {
+            const transaction = allTransactions.find(tran => 
+                tran.order_id === order.order_id && 
+                tran.payment_status === "SUCCESS"
+            );
+            if (transaction) {
+                const tax = parseFloat(order.tax) || 0;
+                const netAmount = parseFloat(transaction.payment_amount) - tax;
+                kittyAndVisitorTotal += netAmount;
+            }
+        });
+        console.log('💸 [Kitty + Visitor Payments] for chapter', chapterData.chapter_name, ':', kittyAndVisitorTotal);
+
+        // 3. Other Payments (minus GST if present)
+        let otherPaymentsTotal = 0;
+        const chapterOtherPayments = allOtherPayments.filter(payment => 
+            parseInt(payment.chapter_id) === chapterData.chapter_id
+        );
+        chapterOtherPayments.forEach(payment => {
+            let baseAmount = parseFloat(payment.total_amount) || 0;
+            if (payment.is_gst && payment.gst_amount) {
+                baseAmount -= parseFloat(payment.gst_amount) || 0;
+            }
+            otherPaymentsTotal += baseAmount;
+        });
+        console.log('💳 [Other Payments] for chapter', chapterData.chapter_name, ':', otherPaymentsTotal);
+
+        // 4. Paid Expenses (base amount only)
+        let totalPaidExpense = 0;
         if (Array.isArray(expenses)) {
             expenses.forEach((expense) => {
-                if (expense.payment_status === "paid" && expense.chapter_id === chapterData.chapter_id) {
-                    total_paid_expense += parseFloat(expense.amount) || 0;
+                if (expense.payment_status === "paid" && parseInt(expense.chapter_id) === chapterData.chapter_id) {
+                    totalPaidExpense += parseFloat(expense.amount) || 0;
                 }
             });
         }
-
-        // 3. Visitor Amount
-        let visitorAmountTotal = 0;
-        const visitorOrders = allOrders.filter(order => 
-            order.chapter_id === chapterData.chapter_id && 
-            order.payment_note === "visitor-payment"
-        );
-        visitorOrders.forEach(order => {
-            const transaction = allTransactions.find(tran => 
-                tran.order_id === order.order_id && 
-                tran.payment_status === "SUCCESS"
-            );
-            if (transaction) {
-                visitorAmountTotal += parseFloat(order.order_amount) || 0;
-            }
-        });
-
-        // 4. Kitty Payments
-        let ReceivedAmount = 0;
-        const kittyBillIds = allOrders
-            .filter(order => order.chapter_id === chapterData.chapter_id && order.universal_link_id === 4 && order.kitty_bill_id)
-            .map(order => order.kitty_bill_id);
-        const latestKittyBillId = kittyBillIds.length > 0 ? kittyBillIds[kittyBillIds.length - 1] : null;
-
-        const kittyOrders = allOrders.filter(order => 
-            order.chapter_id === chapterData.chapter_id &&
-            order.universal_link_id === 4 &&
-            (
-                order.payment_note === "meeting-payments" ||
-                order.payment_note === "meeting-payments-opening-only"
-            ) &&
-            (
-                (latestKittyBillId ? order.kitty_bill_id === latestKittyBillId : true) ||
-                order.kitty_bill_id === null
-            )
-        );
-        kittyOrders.forEach(order => {
-            const transaction = allTransactions.find(tran => 
-                tran.order_id === order.order_id && 
-                tran.payment_status === "SUCCESS"
-            );
-            if (transaction) {
-                const payamount = Math.ceil(
-                    parseFloat(transaction.payment_amount) -
-                    (parseFloat(transaction.payment_amount) * 18) / 118
-                );
-                ReceivedAmount += parseFloat(payamount);
-            }
-        });
+        console.log('🧾 [Total Paid Expenses] for chapter', chapterData.chapter_name, ':', totalPaidExpense);
 
         // 5. Final Calculation
-        const totalAvailable = parseFloat(available_fund) - 
-                             parseFloat(total_paid_expense) + 
-                             parseFloat(visitorAmountTotal) +
-                             parseFloat(ReceivedAmount);
-
-        return totalAvailable;
+        const currentBalance = opening_balance + kittyAndVisitorTotal + otherPaymentsTotal - totalPaidExpense;
+        console.log('🟢 [Current Balance] for chapter', chapterData.chapter_name, ':', currentBalance);
+        // Return breakdown for popup as well
+        return {
+            currentBalance,
+            opening_balance,
+            kittyAndVisitorTotal,
+            otherPaymentsTotal,
+            totalPaidExpense
+        };
     } catch (error) {
-        return parseFloat(chapterData.available_fund) || 0;
+        console.error('❌ [Error] calculating current balance for chapter', chapterData.chapter_name, ':', error);
+        return {
+            currentBalance: parseFloat(chapterData.available_fund) || 0,
+            opening_balance: parseFloat(chapterData.available_fund) || 0,
+            kittyAndVisitorTotal: 0,
+            otherPaymentsTotal: 0,
+            totalPaidExpense: 0
+        };
     }
 };
 
@@ -237,10 +286,11 @@ async function displayChapters(chapters) {
         });
 
     // Fetch all required data ONCE
-    const [expenses, allOrders, allTransactions] = await Promise.all([
+    const [expenses, allOrders, allTransactions, allOtherPayments] = await Promise.all([
         fetch("https://backend.bninewdelhi.com/api/allExpenses").then(r => r.json()),
         fetch("https://backend.bninewdelhi.com/api/allOrders").then(r => r.json()),
-        fetch("https://backend.bninewdelhi.com/api/allTransactions").then(r => r.json())
+        fetch("https://backend.bninewdelhi.com/api/allTransactions").then(r => r.json()),
+        fetch("https://backend.bninewdelhi.com/api/allOtherPayment").then(r => r.json())
     ]);
 
     // Calculate pagination
@@ -272,8 +322,9 @@ async function displayChapters(chapters) {
             inactive_total++;
         }
 
-        // Calculate total available fund (now in-memory, no await)
-        const totalAvailable = calculateTotalAvailableFund(chapter, expenses, allOrders, allTransactions);
+        // Calculate current balance and breakdown
+        const breakdown = calculateCurrentBalance(chapter, expenses, allOrders, allTransactions, allOtherPayments);
+        const currentBalance = breakdown.currentBalance;
 
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -285,10 +336,10 @@ async function displayChapters(chapters) {
             </td>
             <td style="border: 1px solid grey;">${regionName}</td>
             <td style="border: 1px solid grey;"><b>${membersCount}</b></td>
-            <td style="border: 1px solid grey;"><b>₹${totalAvailable.toLocaleString('en-IN')}</b></td>
+            <td style="border: 1px solid grey; cursor:pointer;" class="available-fund-cell" data-chapter="${chapter.chapter_name}"><b>₹${currentBalance.toLocaleString('en-IN')}</b></td>
             <td style="border: 1px solid grey;">${chapter.chapter_meeting_day || 'N/A'}</td>
-            <td style="border: 1px solid grey;"><b>₹${chapter.chapter_kitty_fees || '0'}</b></td>
-            <td style="border: 1px solid grey;"><b>₹${chapter.chapter_visitor_fees || '0'}</b></td>
+            <td style="border: 1px solid grey;"><b>${chapter.chapter_kitty_fees || '0'}</b></td>
+            <td style="border: 1px solid grey;"><b>${chapter.chapter_visitor_fees || '0'}</b></td>
             <td style="border: 1px solid grey;"><b>${chapter.kitty_billing_frequency || 'N/A'}</b></td>
             <td style="border: 1px solid grey;">
                 <span class="badge bg-${
@@ -310,6 +361,17 @@ async function displayChapters(chapters) {
             </td>
         `;
         tableBody.appendChild(row);
+
+        // Add event listener for breakdown popup (on click)
+        setTimeout(() => {
+            const fundCell = row.querySelector('.available-fund-cell');
+            if (fundCell) {
+                fundCell.addEventListener('click', function(e) {
+                    showCurrentBalanceBreakdownPopup(chapter.chapter_name, breakdown);
+                });
+                fundCell.title = 'Click to see calculation breakdown';
+            }
+        }, 0);
     }
 
     // Update status counters display

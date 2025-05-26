@@ -2056,6 +2056,51 @@ document.addEventListener("DOMContentLoaded", async function () {
         Online: ₹${onlinePendingAmount.toLocaleString('en-IN', {maximumFractionDigits: 2})}
       `;
     }
+
+    // Fetch all other payments before calculation
+    const otherPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
+    const allOtherPayments = await otherPaymentsResponse.json();
+
+    // Now call the calculation
+    const breakdown = calculateCurrentBalance(loggedInChapter, expenses, allOrders, allTransactions, allOtherPayments);
+    document.querySelector("#total_available_amount").textContent = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(breakdown.currentBalance);
+
+    const calculateTotalBalanceForAllChapters = async (chapters, expenses, allOrders, allTransactions, allOtherPayments) => {
+        try {
+            let totalBalance = {
+                currentBalance: 0,
+                opening_balance: 0,
+                kittyAndVisitorTotal: 0,
+                otherPaymentsTotal: 0,
+                totalPaidExpense: 0
+            };
+
+            // Calculate balance for each chapter and sum up
+            for (const chapter of chapters) {
+                const chapterBalance = calculateCurrentBalance(chapter, expenses, allOrders, allTransactions, allOtherPayments);
+                
+                // Sum up all values
+                totalBalance.currentBalance += chapterBalance.currentBalance;
+                totalBalance.opening_balance += chapterBalance.opening_balance;
+                totalBalance.kittyAndVisitorTotal += chapterBalance.kittyAndVisitorTotal;
+                totalBalance.otherPaymentsTotal += chapterBalance.otherPaymentsTotal;
+                totalBalance.totalPaidExpense += chapterBalance.totalPaidExpense;
+            }
+
+            console.log('📊 [Total Balance Across All Chapters]:', totalBalance);
+            return totalBalance;
+
+        } catch (error) {
+            console.error('❌ [Error] calculating total balance for all chapters:', error);
+            return {
+                currentBalance: 0,
+                opening_balance: 0,
+                kittyAndVisitorTotal: 0,
+                otherPaymentsTotal: 0,
+                totalPaidExpense: 0
+            };
+        }
+    };
   } catch (error) {
     console.error("ERROR in Chapter Kitty:", error);
     console.error("Error details:", {
@@ -2525,6 +2570,20 @@ async function calculateTotalReceivedAmount(chapterId, allOrders, allTransaction
 // Function to calculate manual/cash payments
 async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund) {
   console.log('Starting calculateManualPayments with:', { chapterId, available_fund });
+  
+  // Format and display the available_fund in manual funds
+  const formattedAmount = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  }).format(available_fund || 0);
+
+  // Update the manual funds display
+  const manualFundsElement = document.getElementById('manual-funds-amount');
+  if (manualFundsElement) {
+    manualFundsElement.textContent = formattedAmount;
+  }
+
   let totalManualAmount = parseFloat(available_fund || 0);  // Start with available_fund
   console.log('Initial totalManualAmount:', totalManualAmount);
   
@@ -2652,69 +2711,100 @@ async function fetchOtherPaymentsTotal(chapterId) {
   }
 }
 
-// Update the fund breakdown modal function
-function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal, allOrders, allTransactions, chapterId) {
-  // Get modal elements
-  const openingBalance = document.getElementById('modal-opening-balance');
-  const meetingPaymentsElem = document.getElementById('modal-meeting-payments');
-  const visitorPayments = document.getElementById('modal-visitor-payments');
-  const otherPayments = document.getElementById('modal-other-payments');
-  const paidExpenses = document.getElementById('modal-paid-expenses');
-  const totalAvailable = document.getElementById('modal-total-available');
+// Add this function to show the breakdown popup
+function showCurrentBalanceBreakdownPopup(chapterName, breakdown) {
+    const formatCurrency = (amt) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amt);
+    };
+    const content = `
+        <div class="kitty-breakdown">
+          <div class="breakdown-section">
+            <h6 class="mb-3">Current Balance Breakdown</h6>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-wallet-3-line me-2"></i>Opening Balance</span>
+              <span class="fw-bold" style="color: #28a745;">${formatCurrency(breakdown.opening_balance)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-money-dollar-circle-line me-2"></i>Kitty + Visitor Payments</span>
+              <span class="fw-bold" style="color: #007bff;">${formatCurrency(breakdown.kittyAndVisitorTotal)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-bank-card-line me-2"></i>Other Payments</span>
+              <span class="fw-bold" style="color: #17a2b8;">${formatCurrency(breakdown.otherPaymentsTotal)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span><i class="ri-file-list-3-line me-2"></i>Paid Expenses</span>
+              <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(breakdown.totalPaidExpense)}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between">
+              <span class="fw-bold">Total Current Balance</span>
+              <span class="fw-bold" style="color: #28a745;">${formatCurrency(breakdown.currentBalance)}</span>
+            </div>
+          </div>
+        </div>
+    `;
+    Swal.fire({
+        title: `Current Balance Breakdown for ${chapterName}`,
+        html: content,
+        customClass: {
+            container: 'kitty-breakdown-popup',
+            popup: 'kitty-breakdown-popup',
+            content: 'kitty-breakdown-content'
+        },
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 500
+    });
+}
 
-  // Format currency
-  const formatter = new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 2
-  });
+// Replace the fund breakdown modal function to use the correct breakdown
+async function updateFundBreakdownModal(available_fund, totalReceivedAmount, visitorAmountTotal, total_paid_expense, otherPaymentsTotal, allOrders, allTransactions, chapterId) {
+  // Prepare chapter data object
+  const chapterData = {
+    chapter_id: chapterId,
+    available_fund: available_fund
+  };
 
-  // Update modal values
-  openingBalance.textContent = formatter.format(parseFloat(available_fund || 0));
-  
-  // Calculate meeting payments using the same logic as calculateTotalReceivedAmount
-  let meetingPaymentsAmount = 0;
-  const kittyOrders = allOrders.filter(order =>
-    String(order.chapter_id) === String(chapterId) &&
-    (order.payment_note === "meeting-payments" ||
-     order.payment_note === "meeting-payments-opening-only")
-  );
-  kittyOrders.forEach(order => {
-    const transaction = allTransactions.find(
-      tran => tran.order_id === order.order_id && tran.payment_status === "SUCCESS"
-    );
-    if (transaction) {
-      let amount = 0;
-      if (order.order_amount && order.tax) {
-        amount = parseFloat(order.order_amount) - parseFloat(order.tax);
-      } else if (transaction.payment_amount && order.tax) {
-        amount = parseFloat(transaction.payment_amount) - parseFloat(order.tax);
-      } else {
-        amount = parseFloat(transaction.payment_amount || 0);
-      }
-      meetingPaymentsAmount += amount;
-    }
-  });
-
-  // Use meetingPaymentsAmount for both modal and dashboard card
-  meetingPaymentsElem.textContent = formatter.format(meetingPaymentsAmount);
-  visitorPayments.textContent = formatter.format(visitorAmountTotal || 0);
-  otherPayments.textContent = formatter.format(otherPaymentsTotal || 0);
-  paidExpenses.textContent = formatter.format(total_paid_expense || 0);
-  
-  // Calculate and display total using the calculated meeting payments
-  const total = parseFloat(available_fund || 0) + 
-                parseFloat(meetingPaymentsAmount || 0) + 
-                parseFloat(visitorAmountTotal || 0) + 
-                parseFloat(otherPaymentsTotal || 0) - 
-                parseFloat(total_paid_expense || 0);
-  totalAvailable.textContent = formatter.format(total);
-
-  // Update the dashboard card as well
-  const totalAvailableElement = document.querySelector("#total_available_amount");
-  if (totalAvailableElement) {
-    totalAvailableElement.textContent = formatter.format(total);
+  // Fetch allOtherPayments
+  let allOtherPayments = [];
+  try {
+    const otherPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
+    allOtherPayments = await otherPaymentsResponse.json();
+  } catch (error) {
+    console.error("Error fetching other payments:", error);
   }
+
+  // Fetch expenses
+  let expenses = [];
+  try {
+    expenses = await fetchAndDisplayPaidExpenses(chapterId); // Make sure this returns the expenses array
+  } catch (error) {
+    console.error("Error fetching expenses:", error);
+  }
+
+  // Calculate the breakdown using the existing function
+  const breakdown = calculateCurrentBalance(
+    chapterData,
+    expenses,
+    allOrders,
+    allTransactions,
+    allOtherPayments
+  );
+
+  // Get chapter name for the popup
+  let chapterName = '';
+  if (typeof loggedInChapter !== 'undefined') {
+    chapterName = loggedInChapter.chapter_name || '';
+  }
+
+  // Show the breakdown popup
+  showCurrentBalanceBreakdownPopup(chapterName, breakdown);
 }
 
 // Add this function to handle paid expenses
@@ -2811,4 +2901,155 @@ async function fetchAndDisplayPaidExpenses(chapterId) {
         console.error('Error fetching paid expenses:', error);
         return 0;
     }
+}
+
+// 1. Add the exact calculateCurrentBalance function from chapter.js
+function calculateCurrentBalance(chapterData, expenses, allOrders, allTransactions, allOtherPayments) {
+    try {
+        // 1. Opening Balance
+        const opening_balance = parseFloat(chapterData.available_fund) || 0;
+        console.log('🏦 [Opening Balance] for chapter', chapterData.chapter_name, ':', opening_balance);
+
+        // 2. Kitty & Visitor Payments (meeting-payments, visitor-payment, minus GST)
+        let kittyAndVisitorTotal = 0;
+        const paymentOrders = allOrders.filter(order => 
+            parseInt(order.chapter_id) === chapterData.chapter_id &&
+            (order.payment_note === "meeting-payments" || order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
+        );
+        paymentOrders.forEach(order => {
+            const transaction = allTransactions.find(tran => 
+                tran.order_id === order.order_id && 
+                tran.payment_status === "SUCCESS"
+            );
+            if (transaction) {
+                const tax = parseFloat(order.tax) || 0;
+                const netAmount = parseFloat(transaction.payment_amount) - tax;
+                kittyAndVisitorTotal += netAmount;
+            }
+        });
+        console.log('💸 [Kitty + Visitor Payments] for chapter', chapterData.chapter_name, ':', kittyAndVisitorTotal);
+
+        // 3. Other Payments (minus GST if present)
+        let otherPaymentsTotal = 0;
+        const chapterOtherPayments = allOtherPayments.filter(payment => 
+            parseInt(payment.chapter_id) === chapterData.chapter_id
+        );
+        chapterOtherPayments.forEach(payment => {
+            let baseAmount = parseFloat(payment.total_amount) || 0;
+            if (payment.is_gst && payment.gst_amount) {
+                baseAmount -= parseFloat(payment.gst_amount) || 0;
+            }
+            otherPaymentsTotal += baseAmount;
+        });
+        console.log('💳 [Other Payments] for chapter', chapterData.chapter_name, ':', otherPaymentsTotal);
+
+        // 4. Paid Expenses (base amount only)
+        let totalPaidExpense = 0;
+        if (Array.isArray(expenses)) {
+            expenses.forEach((expense) => {
+                if (expense.payment_status === "paid" && parseInt(expense.chapter_id) === chapterData.chapter_id) {
+                    totalPaidExpense += parseFloat(expense.amount) || 0;
+                }
+            });
+        }
+        console.log('🧾 [Total Paid Expenses] for chapter', chapterData.chapter_name, ':', totalPaidExpense);
+
+        // 5. Final Calculation
+        const currentBalance = opening_balance + kittyAndVisitorTotal + otherPaymentsTotal - totalPaidExpense;
+        console.log('🟢 [Current Balance] for chapter', chapterData.chapter_name, ':', currentBalance);
+        // Return breakdown for popup as well
+        return {
+            currentBalance,
+            opening_balance,
+            kittyAndVisitorTotal,
+            otherPaymentsTotal,
+            totalPaidExpense
+        };
+    } catch (error) {
+        console.error('❌ [Error] calculating current balance for chapter', chapterData.chapter_name, ':', error);
+        return {
+            currentBalance: parseFloat(chapterData.available_fund) || 0,
+            opening_balance: parseFloat(chapterData.available_fund) || 0,
+            kittyAndVisitorTotal: 0,
+            otherPaymentsTotal: 0,
+            totalPaidExpense: 0
+        };
+    }
+}
+
+// 2. After fetching all data, use this function to set #total_available_amount
+// Example usage after all data is fetched:
+// const breakdown = calculateCurrentBalance(chapterData, expenses, allOrders, allTransactions, allOtherPayments);
+// document.querySelector("#total_available_amount").textContent = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(breakdown.currentBalance);
+// Optionally, use breakdown for the popup as well.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const totalAvailableAmount = document.getElementById('total_available_amount');
+  if (totalAvailableAmount) {
+    totalAvailableAmount.addEventListener('click', async function() {
+      const chapterId = localStorage.getItem('current_chapter_id');
+      if (!chapterId) {
+        console.error('Chapter ID not found');
+        return;
+      }
+
+      try {
+        // Fetch all required data
+        const [allOrders, allTransactions] = await Promise.all([
+          fetchAllOrders(chapterId),
+          fetchAllTransactions(chapterId)
+        ]);
+
+        // Calculate all the required amounts
+        const available_fund = parseFloat(totalAvailableAmount.textContent.replace(/[^\d.-]/g, '')) || 0;
+        const totalReceivedAmount = await calculateTotalReceivedAmount(chapterId, allOrders, allTransactions);
+        const visitorAmountTotal = await fetchVisitorAmountTotal(chapterId);
+        const total_paid_expense = await fetchAndDisplayPaidExpenses(chapterId);
+        const otherPaymentsTotal = await fetchOtherPaymentsTotal(chapterId);
+
+        // Call updateFundBreakdownModal with all the data
+        updateFundBreakdownModal(
+          available_fund,
+          totalReceivedAmount,
+          visitorAmountTotal,
+          total_paid_expense,
+          otherPaymentsTotal,
+          allOrders,
+          allTransactions,
+          chapterId
+        );
+      } catch (error) {
+        console.error('Error fetching data for fund breakdown:', error);
+      }
+    });
+  }
+});
+
+async function displayChapterAvailableFund(chapterId) {
+  try {
+    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const chapters = await response.json();
+    
+    const chapter = chapters.find(ch => ch.chapter_id === parseInt(chapterId));
+    if (!chapter) {
+      console.error("Chapter not found");
+      return;
+    }
+
+    // Format the amount in Indian currency format
+    const formattedAmount = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2
+    }).format(chapter.available_fund || 0);
+
+    // Update the manual funds display
+    const manualFundsElement = document.getElementById('manual-funds-amount');
+    if (manualFundsElement) {
+      manualFundsElement.textContent = formattedAmount;
+    }
+
+  } catch (error) {
+    console.error('Error fetching chapter available fund:', error);
+  }
 }

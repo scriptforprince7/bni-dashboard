@@ -1976,3 +1976,141 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// Add event listener for chapter name click in the expenses table
+// This should be placed after the table is rendered
+
+document.addEventListener('click', async function(event) {
+  // Check if a chapter name cell was clicked
+  if (event.target && event.target.tagName === 'TD' && event.target.cellIndex === 2) {
+    const chapterName = event.target.textContent.trim();
+    if (!chapterName || chapterName === 'All Chapters') return;
+
+    // Show loading SweetAlert immediately
+    Swal.fire({
+      title: `Current Balance for ${chapterName}`,
+      html: '<div style="text-align:center;padding:2em 0;">Loading breakdown...</div>',
+      showCloseButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      width: '500px',
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // Fetch all chapters to get chapter_id
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const chapters = await chaptersResponse.json();
+    const chapter = chapters.find(ch => ch.chapter_name === chapterName);
+    if (!chapter) {
+      Swal.fire('Error', 'Chapter not found', 'error');
+      return;
+    }
+    const chapterId = chapter.chapter_id;
+
+    // Fetch all orders, transactions, expenses, and other payments for this chapter
+    const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
+      fetch("https://backend.bninewdelhi.com/api/allOrders"),
+      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
+      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
+    ]);
+    const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([
+      ordersResponse.json(),
+      transactionsResponse.json(),
+      expensesResponse.json(),
+      otherPaymentsResponse.json()
+    ]);
+
+    // --- MATCH chapter.js LOGIC EXACTLY ---
+    const opening_balance = parseFloat(chapter.available_fund) || 0;
+    // 2. Kitty & Visitor Payments (meeting-payments, visitor-payment, minus GST)
+    let kittyAndVisitorTotal = 0;
+    const paymentOrders = allOrders.filter(order => 
+      parseInt(order.chapter_id) === chapterId &&
+      (order.payment_note === "meeting-payments" || order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
+    );
+    paymentOrders.forEach(order => {
+      const transaction = allTransactions.find(tran => 
+        tran.order_id === order.order_id && 
+        tran.payment_status === "SUCCESS"
+      );
+      if (transaction) {
+        const tax = parseFloat(order.tax) || 0;
+        const netAmount = parseFloat(transaction.payment_amount) - tax;
+        kittyAndVisitorTotal += netAmount;
+      }
+    });
+    // 3. Other Payments (minus GST if present)
+    let otherPaymentsTotal = 0;
+    const chapterOtherPayments = allOtherPayments.filter(payment => 
+      parseInt(payment.chapter_id) === chapterId
+    );
+    chapterOtherPayments.forEach(payment => {
+      let baseAmount = parseFloat(payment.total_amount) || 0;
+      if (payment.is_gst && payment.gst_amount) {
+        baseAmount -= parseFloat(payment.gst_amount) || 0;
+      }
+      otherPaymentsTotal += baseAmount;
+    });
+    // 4. Paid Expenses (base amount only)
+    let totalPaidExpense = 0;
+    if (Array.isArray(allExpenses)) {
+      allExpenses.forEach((expense) => {
+        if (expense.payment_status === "paid" && parseInt(expense.chapter_id) === chapterId) {
+          totalPaidExpense += parseFloat(expense.amount) || 0;
+        }
+      });
+    }
+    // 5. Final Calculation
+    const currentBalance = opening_balance + kittyAndVisitorTotal + otherPaymentsTotal - totalPaidExpense;
+
+    // Prepare attractive breakdown content (like chapter.js)
+    const formatCurrency = (amt) => {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amt);
+    };
+    const content = `
+      <div class="kitty-breakdown">
+        <div class="breakdown-section">
+          <h6 class="mb-3">Current Balance Breakdown</h6>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="ri-wallet-3-line me-2"></i>Opening Balance</span>
+            <span class="fw-bold" style="color: #28a745;">${formatCurrency(opening_balance)}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="ri-money-dollar-circle-line me-2"></i>Kitty + Visitor Payments</span>
+            <span class="fw-bold" style="color: #007bff;">${formatCurrency(kittyAndVisitorTotal)}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="ri-bank-card-line me-2"></i>Other Payments</span>
+            <span class="fw-bold" style="color: #17a2b8;">${formatCurrency(otherPaymentsTotal)}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span><i class="ri-file-list-3-line me-2"></i>Paid Expenses</span>
+            <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(totalPaidExpense)}</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between">
+            <span class="fw-bold">Total Current Balance</span>
+            <span class="fw-bold" style="color: #28a745;">${formatCurrency(currentBalance)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+    // Update SweetAlert with the breakdown
+    Swal.update({
+      html: content,
+      showCloseButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: true,
+      width: '500px',
+      didOpen: null
+    });
+  }
+});

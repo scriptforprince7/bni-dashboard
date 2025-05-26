@@ -1089,6 +1089,52 @@ let ledgerData = [];
       document.getElementById("pending_payment_amount").innerHTML = 
         `<span style="color: red;">${currentBalance.toFixed(2)}</span>`;
     }
+
+    // Set Total Kitty Amount Raised (in ₹)
+    let totalKittyAmountRaised = 0;
+    if (activeKittyEntries.length > 0) {
+      const kitty = activeKittyEntries[0];
+      const kittyRaisedOnDate = new Date(kitty.raised_on);
+      const memberInductionDate = new Date(userData.date_of_publishing);
+      if (memberInductionDate > kittyRaisedOnDate) {
+        // DOP > bill raised date: sum all total_bill_amount for this chapter
+        const allKittyPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/getAllKittyPayments");
+        const allKittyPayments = await allKittyPaymentsResponse.json();
+        const chapterKittyPayments = allKittyPayments.filter(bill => bill.chapter_id === chapter_id && bill.delete_status === 0);
+        totalKittyAmountRaised = chapterKittyPayments.reduce((sum, bill) => sum + parseFloat(bill.total_bill_amount), 0);
+        document.getElementById("total-kitty-amount").textContent = parseFloat(totalKittyAmountRaised).toFixed(2);
+      } else {
+        // Existing logic for other cases
+        document.getElementById("total-kitty-amount").textContent = kitty.total_bill_amount;
+      }
+    } else {
+      document.getElementById("total-kitty-amount").textContent = "No Bill Raised.";
+    }
+
+    // Set Latest Bill Details
+    if (activeKittyEntries.length > 0) {
+      const kitty = activeKittyEntries[0];
+      const kittyRaisedOnDate = new Date(kitty.raised_on);
+      const memberInductionDate = new Date(userData.date_of_publishing);
+      if (memberInductionDate > kittyRaisedOnDate) {
+        // DOP > bill raised date: show details from active kitty and userData
+        document.getElementById("billType").textContent = kitty.bill_type;
+        document.getElementById("tot_weeks").textContent = kitty.total_weeks;
+        document.querySelector(".description").innerHTML = kitty.description;
+        document.getElementById("due_date").textContent = formatDate(kitty.kitty_due_date);
+      } else {
+        // Existing logic for other cases
+        document.getElementById("billType").textContent = kitty.bill_type;
+        document.getElementById("tot_weeks").textContent = kitty.total_weeks;
+        document.querySelector(".description").innerHTML = kitty.description;
+        document.getElementById("due_date").textContent = formatDate(kitty.kitty_due_date);
+      }
+    } else {
+      document.getElementById("billType").textContent = "-";
+      document.getElementById("tot_weeks").textContent = "-";
+      document.querySelector(".description").innerHTML = "-";
+      document.getElementById("due_date").textContent = "-";
+    }
   } catch (error) {
     console.error("Error generating ledger:", error);
     alert("An error occurred while generating the ledger.");
