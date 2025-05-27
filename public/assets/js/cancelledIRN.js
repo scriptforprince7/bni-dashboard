@@ -42,12 +42,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             paymentGatewayResponse,
             universalLinksResponse
         ] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/getCancelIrn'),
-            fetch('https://backend.bninewdelhi.com/api/allOrders'),
-            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-            fetch('https://backend.bninewdelhi.com/api/chapters'),
-            fetch('https://backend.bninewdelhi.com/api/paymentGateway'),
-            fetch('https://backend.bninewdelhi.com/api/universalLinks')
+            fetch('http://localhost:5000/api/getCancelIrn'),
+            fetch('http://localhost:5000/api/allOrders'),
+            fetch('http://localhost:5000/api/allTransactions'),
+            fetch('http://localhost:5000/api/chapters'),
+            fetch('http://localhost:5000/api/paymentGateway'),
+            fetch('http://localhost:5000/api/universalLinks')
         ]);
 
         const cancelledIRNs = await cancelledIRNResponse.json();
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                             const universalLinkName = universalLinkMap.get(order.universal_link_id) || "Not Applicable";
 
                             // Fetch einvoice data using the correct endpoint
-                            const einvoiceResponse = await fetch(`https://backend.bninewdelhi.com/api/einvoice/${orderId}`);
+                            const einvoiceResponse = await fetch(`http://localhost:5000/api/einvoice/${orderId}`);
                             const einvoiceData = await einvoiceResponse.json();
 
                             // Prepare the complete data object
@@ -305,13 +305,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         regionsResponse,
         paymentTypeResponse,
       ] = await Promise.all([
-        fetch("https://backend.bninewdelhi.com/api/allOrders"),
-        fetch("https://backend.bninewdelhi.com/api/allTransactions"),
-        fetch("https://backend.bninewdelhi.com/api/chapters"),
-        fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
-        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
-        fetch("https://backend.bninewdelhi.com/api/regions"),
-        fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+        fetch("http://localhost:5000/api/allOrders"),
+        fetch("http://localhost:5000/api/allTransactions"),
+        fetch("http://localhost:5000/api/chapters"),
+        fetch("http://localhost:5000/api/paymentGateway"),
+        fetch("http://localhost:5000/api/universalLinks"),
+        fetch("http://localhost:5000/api/regions"),
+        fetch("http://localhost:5000/api/universalLinks"),
       ]);
   
       const orders = await ordersResponse.json();
@@ -782,7 +782,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             try {
               // Step 1: Send request to save settlement data
               const saveResponse = await fetch(
-                `https://backend.bninewdelhi.com/api/orders/${orderId}/settlementStatus`,
+                `http://localhost:5000/api/orders/${orderId}/settlementStatus`,
                 { method: 'GET' }
               );
       
@@ -795,7 +795,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               const cfPaymentId = row.querySelector('td:nth-child(8) em').innerText;
       
               const fetchResponse = await fetch(
-                `https://backend.bninewdelhi.com/api/settlement/${cfPaymentId}`
+                `http://localhost:5000/api/settlement/${cfPaymentId}`
               );
       
               if (!fetchResponse.ok) {
@@ -807,7 +807,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               // Step 3: Update the table row based on settlement data
               if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
   
-                fetch(`https://backend.bninewdelhi.com/api/einvoice/${settlement.order_id}`)
+                fetch(`http://localhost:5000/api/einvoice/${settlement.order_id}`)
                 .then(response => response.json())
                 .then(einvoiceData => {
                     const irnCell = row.querySelector(".irn");
@@ -1116,7 +1116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
                   try {
                     const backendResponse = await fetch(
-                      "https://backend.bninewdelhi.com/einvoice/generate-irn",
+                      "http://localhost:5000/einvoice/generate-irn",
                       {
                         method: "POST",
                         headers: {
@@ -1133,7 +1133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     
                       // Fetch IRN and QR code details after successful generation
                       const einvoiceResponse = await fetch(
-                        `https://backend.bninewdelhi.com/api/einvoice/${orderId}`
+                        `http://localhost:5000/api/einvoice/${orderId}`
                       );
                       const einvoiceData = await einvoiceResponse.json();
                     

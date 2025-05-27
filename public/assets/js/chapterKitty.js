@@ -2570,86 +2570,118 @@ async function calculateTotalReceivedAmount(chapterId, allOrders, allTransaction
 // Function to calculate manual/cash payments
 async function calculateManualPayments(chapterId, allOrders, allTransactions, available_fund) {
   console.log('Starting calculateManualPayments with:', { chapterId, available_fund });
-  
-  // Format and display the available_fund in manual funds
-  const formattedAmount = new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 2
-  }).format(available_fund || 0);
+  console.log('🔍 [DEBUG] Available Fund received:', available_fund);
+  console.log('🔍 [DEBUG] Available Fund type:', typeof available_fund);
+  console.log('🔍 [DEBUG] Available Fund parsed:', parseFloat(available_fund || 0));
 
-  // Update the manual funds display
-  const manualFundsElement = document.getElementById('manual-funds-amount');
-  if (manualFundsElement) {
-    manualFundsElement.textContent = formattedAmount;
-  }
+  // 1. Opening Balance
+  const opening_balance = parseFloat(available_fund || 0);
+  console.log('💰 [DEBUG] Opening Balance calculated:', opening_balance);
 
-  let totalManualAmount = parseFloat(available_fund || 0);  // Start with available_fund
-  console.log('Initial totalManualAmount:', totalManualAmount);
-  
-  // Filter orders for the chapter - include both meeting and visitor payments
-  const chapterOrders = allOrders.filter(order =>
-    order.chapter_id === chapterId &&
-    (
-      order.payment_note === "meeting-payments" ||
-      order.payment_note === "meeting-payments-opening-only" ||
-      order.payment_note === "visitor-payment" ||
-      order.payment_note === "Visitor Payment"
-    )
+  // 2. Kitty & Visitor Payments (cash only, minus GST)
+  let cashReceipts = 0;
+  let cashGSTAmount = 0;
+  const paymentOrders = allOrders.filter(order =>
+    parseInt(order.chapter_id) === parseInt(chapterId) &&
+    (order.payment_note === "meeting-payments" || order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
   );
-  console.log('Filtered chapter orders:', chapterOrders.length);
-
-  // Calculate total from successful cash transactions
-  chapterOrders.forEach(order => {
-    const transaction = allTransactions.find(
-      tran => tran.order_id === order.order_id && 
-              tran.payment_status === "SUCCESS" &&
-              (tran.payment_method?.cash || order.payment_note === "Visitor Payment")
+  paymentOrders.forEach(order => {
+    const transaction = allTransactions.find(tran =>
+      tran.order_id === order.order_id &&
+      tran.payment_status === "SUCCESS"
     );
-
     if (transaction) {
-      // For cash payments, use full amount
-      const amountToAdd = parseFloat(transaction.payment_amount || 0);
-      totalManualAmount += amountToAdd;
-
-      // Log for debugging
-      console.log(`Added cash payment:`, {
-        orderId: order.order_id,
-        amount: transaction.payment_amount,
-        paymentNote: order.payment_note,
-        newTotal: totalManualAmount
-      });
+      // Determine if cash
+      let isCash = false;
+      if (transaction.payment_method) {
+        let pm = transaction.payment_method;
+        if (typeof pm === 'string') {
+          try { pm = JSON.parse(pm); } catch (e) {}
+        }
+        if (typeof pm === 'object' && pm.cash) {
+          isCash = true;
+        }
+      }
+      if (isCash) {
+        const tax = parseFloat(order.tax) || 0;
+        const netAmount = parseFloat(transaction.payment_amount) - tax;
+        cashReceipts += netAmount;
+        cashGSTAmount += tax;
+      }
     }
   });
 
-  // Fetch and add other payments
+  // 3. Other Payments (cash only, add GST)
+  let cashOtherPayments = 0;
+  let cashOtherGST = 0;
   try {
     const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const otherPayments = await response.json();
-    
-    // Filter cash payments for current chapter
-    const chapterOtherPayments = otherPayments.filter(payment => 
-      payment.chapter_id === chapterId &&
+    const chapterOtherPayments = otherPayments.filter(payment =>
+      parseInt(payment.chapter_id) === parseInt(chapterId) &&
       payment.mode_of_payment === 'cash'
     );
-    
-    console.log('Found cash other payments for chapter:', chapterOtherPayments.length);
-    
     chapterOtherPayments.forEach(payment => {
-      const amount = parseFloat(payment.total_amount || 0);
-      totalManualAmount += amount;
-      console.log(`Added other payment:`, {
-        paymentId: payment.payment_id,
-        amount: amount,
-        newTotal: totalManualAmount
-      });
+      const totalAmount = parseFloat(payment.total_amount || 0);
+      const gstAmount = payment.is_gst && payment.gst_amount ? parseFloat(payment.gst_amount) : 0;
+      cashOtherPayments += totalAmount;
+      cashOtherGST += gstAmount;
     });
   } catch (error) {
     console.error('Error fetching other payments:', error);
   }
 
-  console.log('Final totalManualAmount:', totalManualAmount);
-  return totalManualAmount;
+  // 4. Paid Expenses (cash only, base amount)
+  let cashExpenses = 0;
+  try {
+    const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+    const expenses = await expenseResponse.json();
+    expenses.forEach(expense => {
+      if (
+        parseInt(expense.chapter_id) === parseInt(chapterId) &&
+        expense.payment_status === "paid" &&
+        expense.mode_of_payment === "cash"
+      ) {
+        cashExpenses += parseFloat(expense.amount || 0);
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching expenses:', error);
+  }
+
+  // 5. Calculate cash balance as in roExpense.js
+  const cashBalance = opening_balance + cashReceipts + cashOtherPayments + cashGSTAmount + cashOtherGST - cashExpenses;
+  console.log('📊 [DEBUG] Final Calculation:');
+  console.log('   Opening Balance:', opening_balance);
+  console.log('   Cash Receipts:', cashReceipts);
+  console.log('   Cash Other Payments:', cashOtherPayments);
+  console.log('   Cash GST Amount:', cashGSTAmount);
+  console.log('   Cash Other GST:', cashOtherGST);
+  console.log('   Cash Expenses:', cashExpenses);
+  console.log('   Final Cash Balance:', cashBalance);
+  
+  // Add opening balance to final amount
+  const finalAmount = cashBalance + opening_balance;
+  
+  // Show clear breakdown of amounts
+  console.log('💰 [DEBUG] Amount Breakdown:');
+  console.log('   Opening Balance: ₹' + opening_balance.toLocaleString('en-IN', {maximumFractionDigits: 2}));
+  console.log('   Cash Balance: ₹' + cashBalance.toLocaleString('en-IN', {maximumFractionDigits: 2}));
+  console.log('   Total Amount: ₹' + finalAmount.toLocaleString('en-IN', {maximumFractionDigits: 2}));
+
+  // Format and display the cash balance in manual funds
+  const formattedAmount = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  }).format(finalAmount);
+
+  const manualFundsElement = document.getElementById('manual-funds-amount');
+  if (manualFundsElement) {
+    manualFundsElement.textContent = formattedAmount;
+  }
+
+  return finalAmount;
 }
 
 // Function to fetch and calculate other payments total

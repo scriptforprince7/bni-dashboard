@@ -1030,7 +1030,7 @@ document.addEventListener('click', async (event) => {
       };
 
       try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+        const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1185,7 +1185,7 @@ const handleTdsSubmit = async (expenseId, formData) => {
       console.log('Request Data to be sent:', requestData);
       
       
-      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+      const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -1550,7 +1550,7 @@ document.addEventListener('click', function(event) {
         };
 
         // Send the request to update verification status
-        fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+        fetch('http://localhost:5000/api/tdsUpdateexpense', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1729,7 +1729,7 @@ const handleStatusModification = async (expenseId, currentStatus) => {
     const { option, comment } = result.value;
     
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+      const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -2023,30 +2023,140 @@ document.addEventListener('click', async function(event) {
       otherPaymentsResponse.json()
     ]);
 
-    // --- MATCH chapter.js LOGIC EXACTLY ---
-    const opening_balance = parseFloat(chapter.available_fund) || 0;
-    // 2. Kitty & Visitor Payments (meeting-payments, visitor-payment, minus GST)
-    let kittyAndVisitorTotal = 0;
-    const paymentOrders = allOrders.filter(order => 
-      parseInt(order.chapter_id) === chapterId &&
-      (order.payment_note === "meeting-payments" || order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment")
+    // === MATCH chapterWiseLedger.js LOGIC EXACTLY ===
+    let totalKittyAmount = 0;
+    let totalVisitorAmount = 0;
+    let cashKittyAmount = 0;
+    let onlineKittyAmount = 0;
+    let cashVisitorAmount = 0;
+    let onlineVisitorAmount = 0;
+    let cashOtherPayments = 0;
+    let onlineOtherPayments = 0;
+    let cashGSTAmount = 0;
+    let totalExpenseBaseAmount = 0;
+    let cashExpenseBaseAmount = 0;
+    let onlineExpenseBaseAmount = 0;
+
+    // 1. Kitty & Visitor Payments
+    const chapterOrders = allOrders.filter(order => 
+      parseInt(order.chapter_id) === chapterId && 
+      (order.payment_note === "meeting-payments" || 
+       order.payment_note === "visitor-payment" ||
+       order.payment_note === "Visitor Payment")
     );
-    paymentOrders.forEach(order => {
-      const transaction = allTransactions.find(tran => 
-        tran.order_id === order.order_id && 
-        tran.payment_status === "SUCCESS"
+    chapterOrders.forEach(order => {
+      const successfulTransaction = allTransactions.find(
+        transaction => 
+          transaction.order_id === order.order_id && 
+          transaction.payment_status === "SUCCESS"
       );
-      if (transaction) {
-        const tax = parseFloat(order.tax) || 0;
-        const netAmount = parseFloat(transaction.payment_amount) - tax;
-        kittyAndVisitorTotal += netAmount;
+      if (successfulTransaction) {
+        const amount = parseFloat(successfulTransaction.payment_amount) - parseFloat(order.tax);
+        const gst = parseFloat(order.tax);
+        const isKittyPayment = order.payment_note === "meeting-payments";
+        const isVisitorPayment = order.payment_note === "visitor-payment" || order.payment_note === "Visitor Payment";
+        // Determine payment method
+        let paymentMethod = "N/A";
+        if (successfulTransaction.payment_method) {
+          if (typeof successfulTransaction.payment_method === 'string') {
+            try {
+              const paymentMethodObj = JSON.parse(successfulTransaction.payment_method);
+              if (paymentMethodObj.upi) paymentMethod = "UPI";
+              else if (paymentMethodObj.netbanking) paymentMethod = "Net Banking";
+              else if (paymentMethodObj.card) paymentMethod = "Card";
+              else if (paymentMethodObj.cash) paymentMethod = "Cash";
+            } catch (e) {
+              paymentMethod = successfulTransaction.payment_method;
+            }
+          } else {
+            if (successfulTransaction.payment_method.upi) paymentMethod = "UPI";
+            else if (successfulTransaction.payment_method.netbanking) paymentMethod = "Net Banking";
+            else if (successfulTransaction.payment_method.card) paymentMethod = "Card";
+            else if (successfulTransaction.payment_method.cash) paymentMethod = "Cash";
+          }
+        }
+        if (isKittyPayment) {
+          totalKittyAmount += amount;
+          if (successfulTransaction.payment_method?.cash || paymentMethod.toLowerCase() === 'cash') {
+            cashKittyAmount += amount;
+            cashGSTAmount += gst;
+          } else {
+            onlineKittyAmount += amount;
+          }
+        } else if (isVisitorPayment) {
+          totalVisitorAmount += amount;
+          if (successfulTransaction.payment_method?.cash || paymentMethod.toLowerCase() === 'cash') {
+            cashVisitorAmount += amount;
+            cashGSTAmount += gst;
+          } else {
+            onlineVisitorAmount += amount;
+          }
+        }
       }
     });
-    // 3. Other Payments (minus GST if present)
-    let otherPaymentsTotal = 0;
+
+    // 2. Expenses (base amount only)
+    const chapterExpenses = allExpenses.filter(expense => 
+      parseInt(expense.chapter_id) === chapterId && 
+      expense.delete_status === 0 && 
+      expense.payment_status === "paid"
+    );
+    chapterExpenses.forEach(expense => {
+      const baseAmount = parseFloat(expense.amount) || 0;
+      if (expense.mode_of_payment && expense.mode_of_payment.toLowerCase() === 'cash') {
+        cashExpenseBaseAmount += baseAmount;
+      } else {
+        onlineExpenseBaseAmount += baseAmount;
+      }
+      totalExpenseBaseAmount += baseAmount;
+    });
+
+    // 3. Other Payments
     const chapterOtherPayments = allOtherPayments.filter(payment => 
       parseInt(payment.chapter_id) === chapterId
     );
+    chapterOtherPayments.forEach(payment => {
+      const baseAmount = parseFloat(payment.total_amount) - (payment.is_gst ? parseFloat(payment.gst_amount) : 0);
+      const gstAmount = payment.is_gst ? parseFloat(payment.gst_amount) : 0;
+      const totalAmount = parseFloat(payment.total_amount);
+      totalKittyAmount += totalAmount;
+      if (payment.mode_of_payment && payment.mode_of_payment.toLowerCase() === 'cash') {
+        cashOtherPayments += totalAmount;
+        cashGSTAmount += gstAmount;
+      } else {
+        onlineOtherPayments += totalAmount;
+      }
+    });
+
+    // 4. Calculate totals for breakdown
+    const opening_balance = parseFloat(chapter.available_fund) || 0;
+    const totalCashReceipts = cashKittyAmount + cashVisitorAmount + cashOtherPayments;
+    const totalOnlineReceipts = onlineKittyAmount + onlineVisitorAmount + onlineOtherPayments;
+    const cashExpenses = cashExpenseBaseAmount;
+    const onlineExpenses = onlineExpenseBaseAmount;
+    const cashBalance = opening_balance + totalCashReceipts + cashGSTAmount - cashExpenses;
+    const onlineBalance = totalOnlineReceipts - onlineExpenses - cashGSTAmount;
+
+    // --- Restore previous total current balance calculation for the popup only ---
+    // This matches: opening_balance + kittyAndVisitorTotal + otherPaymentsTotal - totalPaidExpense
+    // Recalculate these values for the total only:
+    let kittyAndVisitorTotal = 0;
+    let otherPaymentsTotal = 0;
+    let totalPaidExpense = 0;
+    // Kitty & Visitor Payments (meeting-payments, visitor-payment, minus GST)
+    chapterOrders.forEach(order => {
+      const successfulTransaction = allTransactions.find(
+        transaction => 
+          transaction.order_id === order.order_id && 
+          transaction.payment_status === "SUCCESS"
+      );
+      if (successfulTransaction) {
+        const tax = parseFloat(order.tax) || 0;
+        const netAmount = parseFloat(successfulTransaction.payment_amount) - tax;
+        kittyAndVisitorTotal += netAmount;
+      }
+    });
+    // Other Payments (minus GST if present)
     chapterOtherPayments.forEach(payment => {
       let baseAmount = parseFloat(payment.total_amount) || 0;
       if (payment.is_gst && payment.gst_amount) {
@@ -2054,63 +2164,187 @@ document.addEventListener('click', async function(event) {
       }
       otherPaymentsTotal += baseAmount;
     });
-    // 4. Paid Expenses (base amount only)
-    let totalPaidExpense = 0;
-    if (Array.isArray(allExpenses)) {
-      allExpenses.forEach((expense) => {
-        if (expense.payment_status === "paid" && parseInt(expense.chapter_id) === chapterId) {
-          totalPaidExpense += parseFloat(expense.amount) || 0;
-        }
-      });
-    }
-    // 5. Final Calculation
-    const currentBalance = opening_balance + kittyAndVisitorTotal + otherPaymentsTotal - totalPaidExpense;
-
-    // Prepare attractive breakdown content (like chapter.js)
-    const formatCurrency = (amt) => {
-      return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(amt);
-    };
-    const content = `
-      <div class="kitty-breakdown">
-        <div class="breakdown-section">
-          <h6 class="mb-3">Current Balance Breakdown</h6>
-          <div class="d-flex justify-content-between mb-2">
-            <span><i class="ri-wallet-3-line me-2"></i>Opening Balance</span>
-            <span class="fw-bold" style="color: #28a745;">${formatCurrency(opening_balance)}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span><i class="ri-money-dollar-circle-line me-2"></i>Kitty + Visitor Payments</span>
-            <span class="fw-bold" style="color: #007bff;">${formatCurrency(kittyAndVisitorTotal)}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span><i class="ri-bank-card-line me-2"></i>Other Payments</span>
-            <span class="fw-bold" style="color: #17a2b8;">${formatCurrency(otherPaymentsTotal)}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span><i class="ri-file-list-3-line me-2"></i>Paid Expenses</span>
-            <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(totalPaidExpense)}</span>
-          </div>
-          <hr>
-          <div class="d-flex justify-content-between">
-            <span class="fw-bold">Total Current Balance</span>
-            <span class="fw-bold" style="color: #28a745;">${formatCurrency(currentBalance)}</span>
-          </div>
-        </div>
-      </div>
-    `;
-    // Update SweetAlert with the breakdown
-    Swal.update({
-      html: content,
-      showCloseButton: true,
-      showConfirmButton: false,
-      allowOutsideClick: true,
-      width: '500px',
-      didOpen: null
+    // Paid Expenses (base amount only)
+    chapterExpenses.forEach(expense => {
+      totalPaidExpense += parseFloat(expense.amount) || 0;
     });
+    const currentBalance = opening_balance + kittyAndVisitorTotal + otherPaymentsTotal - totalPaidExpense;
+    // --- End restore ---
+
+    // 5. Prepare breakdown objects
+    const cashBreakdown = {
+      total: cashBalance,
+      receipts: totalCashReceipts,
+      expenses: cashExpenses
+    };
+    const onlineBreakdown = {
+      total: onlineBalance,
+      receipts: totalOnlineReceipts,
+      expenses: onlineExpenses
+    };
+
+    showCurrentBalanceBreakdownPopup(
+      currentBalance,
+      cashBreakdown,
+      onlineBreakdown,
+      opening_balance,
+      cashGSTAmount
+    );
   }
 });
+
+// Add this function for the exact same SweetAlert2 breakdown popup as in chapterWiseLedger.js
+function showCurrentBalanceBreakdownPopup(currentBalance, cashBreakdown, onlineBreakdown, availableFund, cashGST) {
+  const formatCurrency = (amt) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amt);
+  };
+  const content = `
+    <div class="kitty-breakdown">
+      <div class="breakdown-section">
+        <h6 class="mb-3">Current Balance Breakdown</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Balance</span>
+          <span class="fw-bold">${formatCurrency(cashBreakdown.total)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-wallet-3-line me-2"></i>Opening Balance (Available Fund)</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(availableFund)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Receipts</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(cashBreakdown.receipts)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash GST</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(cashGST)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Expenses</span>
+          <span class="fw-bold" style="color: #dc3545;">${formatCurrency(cashBreakdown.expenses)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Balance</span>
+          <span class="fw-bold">${formatCurrency(onlineBreakdown.total)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Receipts</span>
+          <span class="fw-bold" style="color: #28a745;">${formatCurrency(onlineBreakdown.receipts)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Online Expenses</span>
+          <span class="fw-bold" style="color: #dc3545;">${formatCurrency(onlineBreakdown.expenses)}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span><i class="ri-bank-card-line me-2"></i>Less: Cash GST</span>
+          <span class="fw-bold" style="color: #dc3545;">-${formatCurrency(cashGST)}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+          <span class="fw-bold">Total Current Balance</span>
+          <span class="fw-bold">${formatCurrency(currentBalance)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Add or update the CSS for .kitty-breakdown-popup to match the ledger design
+  const styleId = 'kitty-breakdown-popup-style';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      .kitty-breakdown-popup {
+        font-family: inherit;
+      }
+      .kitty-breakdown-popup .swal2-title {
+        color: #333;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+      .kitty-breakdown-popup .swal2-html-container {
+        margin: 0;
+        padding: 0;
+      }
+      .kitty-breakdown {
+        padding: 1rem;
+      }
+      .breakdown-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+      }
+      .breakdown-section h6 {
+        color: #495057;
+        font-weight: 600;
+      }
+      .breakdown-section .d-flex {
+        padding: 0.5rem 0;
+      }
+      .breakdown-section hr {
+        margin: 1rem 0;
+        opacity: 0.1;
+      }
+      .breakdown-section i {
+        color: #6c757d;
+      }
+      .breakdown-section .fw-bold {
+        color: #212529;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  Swal.fire({
+    title: 'Current Balance Breakdown',
+    html: content,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    },
+    showCloseButton: true,
+    showConfirmButton: false,
+    width: '500px'
+  });
+}
+// Add CSS for chapter name hover effect in the expenses table
+(function addChapterNameHoverStyle() {
+  const styleId = 'chapter-name-hover-style';
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      #expensesTableBody td.chapter-name-cell {
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      #expensesTableBody td.chapter-name-cell:hover {
+        background: #e6f0fa !important;
+        color: #1976D2 !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+})();
+
+// When rendering the expenses table, add the class 'chapter-name-cell' to the chapter name column (cellIndex 2)
+const originalDisplayExpenses = displayExpenses;
+displayExpenses = function(expenses) {
+  originalDisplayExpenses.call(this, expenses);
+  // Add the class to chapter name cells
+  const tableBody = document.getElementById("expensesTableBody");
+  if (tableBody) {
+    Array.from(tableBody.rows).forEach(row => {
+      if (row.cells[2]) {
+        row.cells[2].classList.add('chapter-name-cell');
+      }
+    });
+  }
+};

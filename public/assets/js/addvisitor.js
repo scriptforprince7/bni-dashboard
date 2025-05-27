@@ -2,7 +2,7 @@
 async function getMemberDetails(email) {
     try {
         console.log('Fetching member details for email:', email);
-        const response = await fetch('https://backend.bninewdelhi.com/api/members');
+        const response = await fetch('http://localhost:5000/api/members');
         const members = await response.json();
         console.log('All members fetched:', members);
         
@@ -138,7 +138,7 @@ async function handleSubmit(event) {
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
 
         // Send data to backend
-        const response = await fetch('https://backend.bninewdelhi.com/api/addVisitor', {
+        const response = await fetch('http://localhost:5000/api/addVisitor', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
