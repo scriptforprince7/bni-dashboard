@@ -995,7 +995,7 @@
 
 <script>
   // API URL
-  const apiUrl = "https://backend.bninewdelhi.com/api/getDisplayLogo";
+  const apiUrl = "http://localhost:5000/api/getDisplayLogo";
 
   // Fetch data from the API
   fetch(apiUrl)
@@ -1006,7 +1006,7 @@
         const displayImageName = data[0].display_image_name;
 
         // Construct the image path
-        const imagePath = `https://backend.bninewdelhi.com/uploads/dynamicLogo/${displayImageName}`;
+        const imagePath = `http://localhost:5000/uploads/dynamicLogo/${displayImageName}`;
 
         // Update the <img> src attribute
         const logoImg = document.getElementById("dynamic-logo");

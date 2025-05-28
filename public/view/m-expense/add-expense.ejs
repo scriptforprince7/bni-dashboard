@@ -483,7 +483,7 @@ function hideLoader() {
   // Function to fetch hotels
   async function fetchHotels() {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
+      const response = await fetch('http://localhost:5000/api/getHotels');
       if (!response.ok) throw new Error('Failed to fetch hotels');
       return await response.json();
     } catch (error) {
@@ -543,7 +543,7 @@ function hideLoader() {
   // Function to fetch vendors
   async function fetchVendors() {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+      const response = await fetch('http://localhost:5000/api/getAllVendors');
       if (!response.ok) throw new Error('Failed to fetch vendors');
       return await response.json();
     } catch (error) {
@@ -767,7 +767,7 @@ function hideLoader() {
 
   // Add this new code to prefill submitted_by field
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("http://localhost:5000/api/chapters");
     const chapters = await response.json();
     
     // Find matching chapter by email
@@ -796,7 +796,7 @@ function hideLoader() {
 
   // Fetch data for "Type of Expense"
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
+    const response = await fetch("http://localhost:5000/api/expenseType");
     const data = await response.json();
     console.log("Expense Types:", data);
     const expenseTypeDropdown = document.getElementById("expense_type");
@@ -821,7 +821,7 @@ function hideLoader() {
   // Fetch and populate chapters dropdown
   try {
     console.log('Fetching chapters data...');
-    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("http://localhost:5000/api/chapters");
     const chapters = await response.json();
     console.log("All available chapters:", chapters);
 
@@ -1009,7 +1009,7 @@ function hideLoader() {
 
       // Show loader and make API call
       showLoader();
-      const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
+      const response = await fetch("http://localhost:5000/api/addExpense", {
         method: "POST",
         body: formData,
       });
@@ -1127,7 +1127,7 @@ function hideLoader() {
       showLoader();
 
       // Send data as JSON instead of FormData
-      const response = await fetch('https://backend.bninewdelhi.com/api/addVendor', {
+      const response = await fetch('http://localhost:5000/api/addVendor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1169,7 +1169,7 @@ function hideLoader() {
   // Add click handler for view expense types button
   document.getElementById('viewExpenseBtn').addEventListener('click', async function() {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/expenseType');
+      const response = await fetch('http://localhost:5000/api/expenseType');
       const expenseTypes = await response.json();
       
       // Sort expense types alphabetically by name
@@ -1305,7 +1305,7 @@ function hideLoader() {
               if (result.isConfirmed) {
                 try {
                   showLoader();
-                  const response = await fetch('https://backend.bninewdelhi.com/api/updateExpenseType', {
+                  const response = await fetch('http://localhost:5000/api/updateExpenseType', {
                     method: 'PUT',
                     headers: {
                       'Content-Type': 'application/json',
@@ -1399,7 +1399,7 @@ function hideLoader() {
               if (result.isConfirmed) {
                 try {
                   showLoader();
-                  const response = await fetch('https://backend.bninewdelhi.com/api/deleteExpenseType', {
+                  const response = await fetch('http://localhost:5000/api/deleteExpenseType', {
                     method: 'DELETE',
                     headers: {
                       'Content-Type': 'application/json',
@@ -1856,7 +1856,7 @@ function hideLoader() {
         const { expenseType, status } = result.value;
         
         showLoader();
-        const response = await fetch('https://backend.bninewdelhi.com/api/expenseType', {
+        const response = await fetch('http://localhost:5000/api/expenseType', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1885,7 +1885,7 @@ function hideLoader() {
           });
           
           // Refresh the expense type dropdown
-          const expenseTypeResponse = await fetch("https://backend.bninewdelhi.com/api/expenseType");
+          const expenseTypeResponse = await fetch("http://localhost:5000/api/expenseType");
           const expenseTypes = await expenseTypeResponse.json();
           
           const expenseTypeDropdown = document.getElementById("expense_type");

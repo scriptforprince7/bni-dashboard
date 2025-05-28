@@ -131,7 +131,7 @@
                       }
                   
                       // Fetch members data and find member_id
-                      const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+                      const membersResponse = await fetch('http://localhost:5000/api/members');
                       const membersData = await membersResponse.json();
                       const memberInfo = membersData.find(m => m.member_email_address === memberEmail);
                       
@@ -143,13 +143,13 @@
                       console.log('Member ID found:', memberId);
                   
                       // Fetch all orders for this member
-                      const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+                      const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
                       const ordersData = await ordersResponse.json();
                       const memberOrders = ordersData.filter(order => order.customer_id === memberId);
                       console.log('Member Orders found:', memberOrders.length);
                   
                       // Fetch all transactions once
-                      const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+                      const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
                       const transactionsData = await transactionsResponse.json();
                   
                       // Calculate total spent amount
@@ -191,7 +191,7 @@
                   </div>
                 </div>
                 <a
-                  href="https://backend.bninewdelhi.com/m/member-allTransactions"
+                  href="http://localhost:5000/m/member-allTransactions"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -217,7 +217,7 @@
                   </div>
                 </div>
                 <a
-                  href="https://backend.bninewdelhi.com/m/member-transactions"
+                  href="http://localhost:5000/m/member-transactions"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -261,7 +261,7 @@
                               }
                           
                               // First get the member_id from members API
-                              const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+                              const membersResponse = await fetch('http://localhost:5000/api/members');
                               const members = await membersResponse.json();
                               
                               // Find the current member to get their member_id
@@ -273,7 +273,7 @@
                                   console.log('Member found:', currentMember.member_first_name);
                                   
                                   // Now fetch all member accolades
-                                  const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+                                  const accoladesResponse = await fetch('http://localhost:5000/api/getAllMemberAccolades');
                                   const allMemberAccolades = await accoladesResponse.json();
                                   
                                   // Filter accolades for current member
@@ -304,7 +304,7 @@
                   </div>
                 </div>
                 <a
-                  href="https://backend.bninewdelhi.com/macc/manage-memberAccolades"
+                  href="http://localhost:5000/macc/manage-memberAccolades"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -316,7 +316,7 @@
               <div class="card-header justify-content-between">
                 <div class="card-title">Transactions History</div>
                 <a
-                  href="https://backend.bninewdelhi.com/m/member-allTransactions"
+                  href="http://localhost:5000/m/member-allTransactions"
                   class="btn btn-light btn-wave btn-sm text-muted"
                   >View All<i class="ti ti-arrow-narrow-right ms-1"></i
                 ></a>
@@ -367,7 +367,7 @@
               
                   // Step 2: Fetch members data
                   console.log("Fetching members data...");
-                  const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
+                  const membersResponse = await fetch("http://localhost:5000/api/members");
                   const membersData = await membersResponse.json();
                   console.log("Members data received:", membersData);
               
@@ -385,7 +385,7 @@
                   console.log("Using Member ID:", member_id);
               
                   // Fetch orders data
-                  const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
+                  const ordersResponse = await fetch("http://localhost:5000/api/allOrders");
                   const ordersData = await ordersResponse.json();
               
                   // Filter orders for this member
@@ -4171,7 +4171,7 @@
                     "DOMContentLoaded",
                     async function () {
                       const trainingsResponse = await fetch(
-                        "https://backend.bninewdelhi.com/api/allTrainings"
+                        "http://localhost:5000/api/allTrainings"
                       );
                       const trainingsData = await trainingsResponse.json();
 
@@ -5324,7 +5324,7 @@
       }
   
       // Fetch members data and find member_id
-      const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+      const membersResponse = await fetch('http://localhost:5000/api/members');
       const membersData = await membersResponse.json();
       const memberInfo = membersData.find(m => m.member_email_address === userEmail);
       
@@ -5336,7 +5336,7 @@
       console.log('Member ID found:', memberId);
   
       // Fetch all orders for this member
-      const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+      const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
       const ordersData = await ordersResponse.json();
       const memberOrders = ordersData.filter(order => order.customer_id === memberId);
       console.log('Member Orders found:', memberOrders.length);
@@ -5352,7 +5352,7 @@
         totalPendingAmount += orderAmount;
         
         // Check if payment was successful
-        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
         
         const successfulPayment = transactionsData.find(

@@ -1,5 +1,5 @@
-const accoladesApiUrl = "https://backend.bninewdelhi.com/api/accolades";
-const membersApiUrl = "https://backend.bninewdelhi.com/api/members";
+const accoladesApiUrl = "http://localhost:5000/api/accolades";
+const membersApiUrl = "http://localhost:5000/api/members";
 let allMembers = [];
 let allAccolades = [];
 let selectedAccolades = [];
@@ -62,7 +62,7 @@ async function getCurrentChapterDetails() {
             chapterEmail = getUserEmail();
             console.log('🔑 Chapter email from token:', chapterEmail);
 
-            const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+            const response = await fetch('http://localhost:5000/api/chapters');
             const chapters = await response.json();
             
             const currentChapter = chapters.find(chapter =>
@@ -88,7 +88,7 @@ async function getCurrentChapterDetails() {
 // Modified function to get all member accolades at once
 async function getAllMemberAccolades() {
     try {
-        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const response = await fetch('http://localhost:5000/api/getAllMemberAccolades');
         const allMemberAccolades = await response.json();
         console.log(`📊 Fetched all member accolades:`, allMemberAccolades.length);
         return allMemberAccolades;

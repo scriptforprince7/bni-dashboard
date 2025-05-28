@@ -4,7 +4,6 @@ let allTransactions = [];
 let chapters = [];
 let universalLinks = [];
 let regions = []; // Add regions array
-let settlements = new Map(); // Store settlements data
 let currentFilters = {
     region: '',
     chapter: '',
@@ -51,22 +50,6 @@ function formatNA(val) {
     return val === 'Not Applicable' ? '<i>Not Applicable</i>' : val;
 }
 
-// Function to fetch settlement data
-async function fetchSettlementData(orderId) {
-    try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/getSettlementOrder/${orderId}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch settlement data');
-        }
-        const settlementData = await response.json();
-        settlements.set(orderId, settlementData);
-        return settlementData;
-    } catch (error) {
-        console.error('Error fetching settlement data:', error);
-        return null;
-    }
-}
-
 // Function to check if transaction is cash payment
 function isCashPayment(transaction) {
     return transaction.payment_method && transaction.payment_method.cash;
@@ -91,7 +74,7 @@ function getSettlementStatusHTML(transaction, order) {
 }
 
 // Function to get settlement details
-function getSettlementDetails(transaction, settlement) {
+function getSettlementDetails(transaction) {
     if (isCashPayment(transaction)) {
         return {
             utr: 'Cash Payment',
@@ -99,10 +82,10 @@ function getSettlementDetails(transaction, settlement) {
         };
     }
 
-    if (transaction.is_settled && settlement) {
+    if (transaction.is_settled) {
         return {
-            utr: settlement.transfer_utr,
-            time: formatDate(settlement.transfer_time)
+            utr: transaction.utr || 'Not Settled',
+            time: formatDate(transaction.settled_on) || 'Not Settled'
         };
     }
 
@@ -115,8 +98,8 @@ function getSettlementDetails(transaction, settlement) {
 // Function to track settlement
 async function trackSettlement(orderId) {
     try {
-        const settlementData = await fetchSettlementData(orderId);
-        if (settlementData) {
+        const transaction = allTransactions.find(t => t.order_id === orderId);
+        if (transaction && transaction.is_settled) {
             toastr.success('Settlement data fetched successfully');
             displayTransactions(); // Refresh the table to show updated settlement data
         } else {
@@ -136,11 +119,11 @@ async function fetchAllData() {
 
         // Fetch all data in parallel
         const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/allOrders'),
-            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-            fetch('https://backend.bninewdelhi.com/api/chapters'),
-            fetch('https://backend.bninewdelhi.com/api/universalLinks'),
-            fetch('https://backend.bninewdelhi.com/api/regions')
+            fetch('http://localhost:5000/api/allOrders'),
+            fetch('http://localhost:5000/api/allTransactions'),
+            fetch('http://localhost:5000/api/chapters'),
+            fetch('http://localhost:5000/api/universalLinks'),
+            fetch('http://localhost:5000/api/regions')
         ]);
 
         if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok) {
@@ -152,10 +135,6 @@ async function fetchAllData() {
         chapters = await chaptersResponse.json();
         universalLinks = await universalLinksResponse.json();
         regions = await regionsResponse.json();
-
-        // Fetch settlement data for settled transactions
-        const settledTransactions = allTransactions.filter(t => t.is_settled);
-        await Promise.all(settledTransactions.map(t => fetchSettlementData(t.order_id)));
 
         // Update dashboard stats
         updateDashboardStats();
@@ -262,7 +241,7 @@ function populateFilters() {
 // Function to fetch e-invoice data
 async function fetchEInvoiceData(orderId) {
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/einvoice/${orderId}`);
+        const response = await fetch(`http://localhost:5000/api/einvoice/${orderId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch e-invoice data');
         }
@@ -285,10 +264,8 @@ async function getEInvoiceDetails(transaction, order) {
         };
     }
 
-    const settlement = settlements.get(order.order_id);
-
-    // Only show e-invoice actions if einvoice_generated === 'yes'
-    if (!settlement || settlement.einvoice_generated !== 'yes') {
+    // Only show e-invoice actions if einvoice_generated === true
+    if (!transaction.einvoice_generated) {
         return {
             irn: 'Not Applicable',
             qrCode: 'Not Applicable',
@@ -328,7 +305,7 @@ async function getEInvoiceDetails(transaction, order) {
 // Function to generate e-invoice
 async function generateEInvoice(orderId) {
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/generate-einvoice/${orderId}`, {
+        const response = await fetch(`http://localhost:5000/api/generate-einvoice/${orderId}`, {
             method: 'POST'
         });
         
@@ -459,8 +436,7 @@ async function displayTransactions() {
 
         const chapter = chapters.find(c => c.chapter_id === order.chapter_id);
         const universalLink = universalLinks.find(ul => ul.id === order.universal_link_id);
-        const settlement = settlements.get(order.order_id);
-        const settlementDetails = getSettlementDetails(transaction, settlement);
+        const settlementDetails = getSettlementDetails(transaction);
         const eInvoiceDetails = await getEInvoiceDetails(transaction, order);
 
         const row = document.createElement('tr');
@@ -681,7 +657,7 @@ function handleFilterSelection(filterType, value) {
 // Function to cancel IRN
 async function cancelIRN(orderId) {
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/cancel-irn/${orderId}`, {
+        const response = await fetch(`http://localhost:5000/api/cancel-irn/${orderId}`, {
             method: 'POST'
         });
         
