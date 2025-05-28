@@ -6,9 +6,9 @@ function hideLoader() {
     document.getElementById('loader').style.display = 'none';
 }
 
-const chaptersApiUrl = 'http://localhost:5000/api/chapters'; 
-const memberApiUrl = 'http://localhost:5000/api/members';
-const lateNOApiUrl = 'http://localhost:5000/api/getbankOrder';
+const chaptersApiUrl = 'https://backend.bninewdelhi.com/api/chapters'; 
+const memberApiUrl = 'https://backend.bninewdelhi.com/api/members';
+const lateNOApiUrl = 'https://backend.bninewdelhi.com/api/getbankOrder';
 
 let creditType;
 let allMembers = []; // Store all members for search functionality
@@ -208,7 +208,7 @@ document.querySelector('.add_bill').addEventListener('click', async () => {
 
     try {
         showLoader();
-        const response = await fetch('http://localhost:5000/api/addMemberCredit', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/addMemberCredit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1030,7 +1030,7 @@ document.addEventListener('click', async (event) => {
       };
 
       try {
-        const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1185,7 +1185,7 @@ const handleTdsSubmit = async (expenseId, formData) => {
       console.log('Request Data to be sent:', requestData);
       
       
-      const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -1550,7 +1550,7 @@ document.addEventListener('click', function(event) {
         };
 
         // Send the request to update verification status
-        fetch('http://localhost:5000/api/tdsUpdateexpense', {
+        fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1729,7 +1729,7 @@ const handleStatusModification = async (expenseId, currentStatus) => {
     const { option, comment } = result.value;
     
     try {
-      const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

@@ -1,6 +1,6 @@
 // Global variables
 window.BNI = window.BNI || {};
-window.BNI.apiUrl = 'http://localhost:5000/api/getZones';
+window.BNI.apiUrl = 'https://backend.bninewdelhi.com/api/getZones';
 window.BNI.state = {
     allZones: [],
     filteredZones: [],
@@ -33,17 +33,17 @@ const fetchAllData = async () => {
     console.log('🚀 Starting to fetch all data...');
     try {
         // Fetch regions
-        const regionsResponse = await fetch('http://localhost:5000/api/regions');
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
         const regionsData = await regionsResponse.json();
         console.log('✅ Regions fetched:', regionsData.length);
 
         // Fetch chapters
-        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chaptersData = await chaptersResponse.json();
         console.log('✅ Chapters fetched:', chaptersData.length);
 
         // Fetch members
-        const membersResponse = await fetch('http://localhost:5000/api/members');
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         const membersData = await membersResponse.json();
         console.log('✅ Members fetched:', membersData.length);
 

@@ -54,7 +54,7 @@ function formatNA(val) {
 // Function to fetch settlement data
 async function fetchSettlementData(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/getSettlementOrder/${orderId}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/api/getSettlementOrder/${orderId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch settlement data');
         }
@@ -136,11 +136,11 @@ async function fetchAllData() {
 
         // Fetch all data in parallel
         const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/allOrders'),
-            fetch('http://localhost:5000/api/allTransactions'),
-            fetch('http://localhost:5000/api/chapters'),
-            fetch('http://localhost:5000/api/universalLinks'),
-            fetch('http://localhost:5000/api/regions')
+            fetch('https://backend.bninewdelhi.com/api/allOrders'),
+            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/universalLinks'),
+            fetch('https://backend.bninewdelhi.com/api/regions')
         ]);
 
         if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok) {
@@ -262,7 +262,7 @@ function populateFilters() {
 // Function to fetch e-invoice data
 async function fetchEInvoiceData(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/einvoice/${orderId}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/api/einvoice/${orderId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch e-invoice data');
         }
@@ -328,7 +328,7 @@ async function getEInvoiceDetails(transaction, order) {
 // Function to generate e-invoice
 async function generateEInvoice(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/generate-einvoice/${orderId}`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/generate-einvoice/${orderId}`, {
             method: 'POST'
         });
         
@@ -681,7 +681,7 @@ function handleFilterSelection(filterType, value) {
 // Function to cancel IRN
 async function cancelIRN(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/cancel-irn/${orderId}`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/cancel-irn/${orderId}`, {
             method: 'POST'
         });
         

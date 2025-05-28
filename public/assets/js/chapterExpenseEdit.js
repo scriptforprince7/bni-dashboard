@@ -22,14 +22,14 @@ const fetchExpenseDetails = async (expenseId) => {
     console.log('🔍 Fetching expense details for ID:', expenseId);
 
     // Fetch expense details
-    const response = await fetch(`http://localhost:5000/api/expense/${expenseId}`);
+    const response = await fetch(`https://backend.bninewdelhi.com/api/expense/${expenseId}`);
     if (!response.ok) throw new Error("Failed to fetch expense details");
     
     const expenseData = await response.json();
     console.log('📦 Fetched expense data:', expenseData);
 
     // Fetch chapters
-    const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
     if (!chaptersResponse.ok) throw new Error("Failed to fetch chapters");
     const chapters = await chaptersResponse.json();
     
@@ -50,7 +50,7 @@ const fetchExpenseDetails = async (expenseId) => {
     }
 
     // Fetch expense types
-    const expenseTypesResponse = await fetch('http://localhost:5000/api/expenseType');
+    const expenseTypesResponse = await fetch('https://backend.bninewdelhi.com/api/expenseType');
     if (!expenseTypesResponse.ok) throw new Error("Failed to fetch expense types");
     const expenseTypes = await expenseTypesResponse.json();
     
@@ -102,7 +102,7 @@ const fetchExpenseDetails = async (expenseId) => {
     }
 
     // Fetch all vendors
-    const vendorsResponse = await fetch('http://localhost:5000/api/getallvendors');
+    const vendorsResponse = await fetch('https://backend.bninewdelhi.com/api/getallvendors');
     const vendors = await vendorsResponse.json();
     const vendorSelect = document.getElementById('vendor');
     vendorSelect.innerHTML = '<option value="">Select Vendor</option>';
@@ -129,7 +129,7 @@ const fetchExpenseDetails = async (expenseId) => {
 async function handleVendorSelection(vendorId) {
   try {
     console.log('🔍 Fetching vendor details for ID:', vendorId);
-    const response = await fetch('http://localhost:5000/api/getallvendors');
+    const response = await fetch('https://backend.bninewdelhi.com/api/getallvendors');
     if (!response.ok) throw new Error('Failed to fetch vendors');
     
     const vendors = await response.json();
@@ -266,7 +266,7 @@ async function handleUpdateExpense(event) {
 
     // API call to update expense
     console.log('🚀 Sending PUT request to update expense:', expenseId);
-    const response = await fetch(`http://localhost:5000/api/expense/${expenseId}`, {
+    const response = await fetch(`https://backend.bninewdelhi.com/api/expense/${expenseId}`, {
       method: 'PUT',
       body: formData
     });

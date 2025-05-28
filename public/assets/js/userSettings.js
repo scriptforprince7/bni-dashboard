@@ -24,7 +24,7 @@ async function checkUserAuthorization() {
             return false;
         }
 
-        const response = await fetch('http://localhost:5000/api/getUsers');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getUsers');
         const users = await response.json();
         console.log('Users data:', users);
         
@@ -96,7 +96,7 @@ async function fetchCompanyInfo() {
         console.log('Token email:', decoded.email);
 
         // Fetch users and validate email
-        // const usersResponse = await fetch('http://localhost:5000/api/getUsers');
+        // const usersResponse = await fetch('https://backend.bninewdelhi.com/api/getUsers');
         // const users = await usersResponse.json();
         // console.log('Checking authorization for email:', decoded.email);
         
@@ -108,7 +108,7 @@ async function fetchCompanyInfo() {
         // }
 
         // Fetch company info
-        const response = await fetch('http://localhost:5000/api/company');
+        const response = await fetch('https://backend.bninewdelhi.com/api/company');
         if (!response.ok) {
             throw new Error('Failed to fetch company info');
         }
@@ -136,7 +136,7 @@ async function fetchCompanyInfo() {
 async function fetchLogoInfo() {
     try {
         console.log('=== FETCH LOGO INFO START ===');
-        const response = await fetch('http://localhost:5000/api/getDisplayLogo');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getDisplayLogo');
         
         if (!response.ok) {
             throw new Error('Failed to fetch logo info');
@@ -165,7 +165,7 @@ async function fetchLogoInfo() {
 async function fetchGstTypes() {
     try {
         console.log('=== FETCH GST TYPES START ===');
-        const response = await fetch('http://localhost:5000/api/getGstType');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getGstType');
         
         if (!response.ok) {
             throw new Error('Failed to fetch GST types');
@@ -185,7 +185,7 @@ async function fetchGstTypes() {
 async function fetchGstValues() {
     try {
         console.log('=== FETCH GST VALUES START ===');
-        const response = await fetch('http://localhost:5000/api/getGstTypeValues');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getGstTypeValues');
         
         if (!response.ok) {
             throw new Error('Failed to fetch GST values');
@@ -208,7 +208,7 @@ async function fetchGstValues() {
 async function fetchPaymentGateways() {
     try {
         console.log('=== FETCH PAYMENT GATEWAYS START ===');
-        const response = await fetch('http://localhost:5000/api/chapters');
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
         
         if (!response.ok) {
             throw new Error('Failed to fetch payment gateways');
@@ -238,7 +238,7 @@ async function handlePaymentGatewaySelection() {
     try {
         // Fetch gateways
         console.log('Fetching payment gateways...');
-        const response = await fetch('http://localhost:5000/api/paymentGateway');
+        const response = await fetch('https://backend.bninewdelhi.com/api/paymentGateway');
         console.log('API Response status:', response.status);
         
         const gateways = await response.json();
@@ -326,7 +326,7 @@ async function updatePaymentGatewayStatus(gatewayId) {
         }
 
         console.log('Making API call to update gateway status for ID:', gatewayId);
-        const response = await fetch(`http://localhost:5000/api/payment-gateway/${gatewayId}/status`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/payment-gateway/${gatewayId}/status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -360,7 +360,7 @@ async function confirmGatewayChange(gateway) {
     
     try {
         // Get gateway ID from selected gateway name
-        const response = await fetch('http://localhost:5000/api/paymentGateway');
+        const response = await fetch('https://backend.bninewdelhi.com/api/paymentGateway');
         const gateways = await response.json();
         console.log('Fetched gateways:', gateways);
 
