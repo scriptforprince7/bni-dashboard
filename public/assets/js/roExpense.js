@@ -1,4 +1,4 @@
-// let apiUrl = "http://localhost:5000/api/allExpenses"; // API for expenses
+// let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let expenseTypes = []; // Store expense types mapping
@@ -94,7 +94,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('Current user email:', userEmail);
 
     // First fetch chapters to get the user's chapter_id
-    const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     console.log('All chapters:', chapters);
     
@@ -122,7 +122,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
 
     // Fetch expense types for mapping
     const expenseTypesResponse = await fetch(
-      "http://localhost:5000/api/expenseType"
+      "https://backend.bninewdelhi.com/api/expenseType"
     );
     if (!expenseTypesResponse.ok) {
       throw new Error("Failed to fetch expense types");
@@ -131,7 +131,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('Expense types:', expenseTypes);
 
     // Fetch all expenses
-    const response = await fetch("http://localhost:5000/api/allExpenses");
+    const response = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
     if (!response.ok) throw new Error("Network response was not ok");
 
     const allExpensesData = await response.json();
@@ -242,7 +242,7 @@ const AddExpenseType = async () => {
         showLoader(); // Show loading indicator
 
         // Call the API to add the expense (replace with the actual API endpoint)
-        const response = await fetch(`http://localhost:5000/api/expenseType`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/expenseType`, {
           method: 'POST', // Use POST to add an expense
           headers: {
             'Content-Type': 'application/json',
@@ -562,7 +562,7 @@ const deleteExpense = async (expense_id) => {
       showLoader();
 
       const response = await fetch(
-        `http://localhost:5000/api/expense/${expense_id}`,
+        `https://backend.bninewdelhi.com/api/expense/${expense_id}`,
         {
           method: "DELETE",
         }
@@ -1030,7 +1030,7 @@ document.addEventListener('click', async (event) => {
       };
 
       try {
-        const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1185,7 +1185,7 @@ const handleTdsSubmit = async (expenseId, formData) => {
       console.log('Request Data to be sent:', requestData);
       
       
-      const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -1550,7 +1550,7 @@ document.addEventListener('click', function(event) {
         };
 
         // Send the request to update verification status
-        fetch('http://localhost:5000/api/tdsUpdateexpense', {
+        fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -1729,7 +1729,7 @@ const handleStatusModification = async (expenseId, currentStatus) => {
     const { option, comment } = result.value;
     
     try {
-      const response = await fetch('http://localhost:5000/api/tdsUpdateexpense', {
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -2000,7 +2000,7 @@ document.addEventListener('click', async function(event) {
     });
 
     // Fetch all chapters to get chapter_id
-    const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     const chapter = chapters.find(ch => ch.chapter_name === chapterName);
     if (!chapter) {
@@ -2011,10 +2011,10 @@ document.addEventListener('click', async function(event) {
 
     // Fetch all orders, transactions, expenses, and other payments for this chapter
     const [ordersResponse, transactionsResponse, expensesResponse, otherPaymentsResponse] = await Promise.all([
-      fetch("http://localhost:5000/api/allOrders"),
-      fetch("http://localhost:5000/api/allTransactions"),
-      fetch("http://localhost:5000/api/allExpenses"),
-      fetch("http://localhost:5000/api/allOtherPayment")
+      fetch("https://backend.bninewdelhi.com/api/allOrders"),
+      fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+      fetch("https://backend.bninewdelhi.com/api/allExpenses"),
+      fetch("https://backend.bninewdelhi.com/api/allOtherPayment")
     ]);
     const [allOrders, allTransactions, allExpenses, allOtherPayments] = await Promise.all([
       ordersResponse.json(),

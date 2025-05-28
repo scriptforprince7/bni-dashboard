@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (imagePreview) imagePreview.style.display = 'none';
     }
 
-    fetch('http://localhost:5000/api/members')
+    fetch('https://backend.bninewdelhi.com/api/members')
         .then(response => response.json())
         .then(members => {
             const member = members.find(m => m.member_email_address === targetEmail);
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Handle member photo display
                 if (member.member_photo) {
                     console.log('Loading member photo:', member.member_photo);
-                    const photoUrl = `http://localhost:5000/uploads/memberLogos/${member.member_photo}`;
+                    const photoUrl = `https://backend.bninewdelhi.com/uploads/memberLogos/${member.member_photo}`;
                     console.log('Member Photo URL:', photoUrl);
                     
                     const photoPreview = document.getElementById('member-photo-preview');
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Handle Aadhar card display
                 if (member.member_aadhar_image) {
-                    const aadharUrl = `http://localhost:5000/uploads/aadharCards/${member.member_aadhar_image}`;
+                    const aadharUrl = `https://backend.bninewdelhi.com/uploads/aadharCards/${member.member_aadhar_image}`;
                     const aadharPreview = document.getElementById('aadhar-preview');
                     const aadharPdfPreview = document.getElementById('aadhar-pdf-preview');
                     const noAadharMessage = document.getElementById('no-aadhar-message');
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Handle PAN card display
                 if (member.member_pan_image) {
-                    const panUrl = `http://localhost:5000/uploads/panCards/${member.member_pan_image}`;
+                    const panUrl = `https://backend.bninewdelhi.com/uploads/panCards/${member.member_pan_image}`;
                     const panPreview = document.getElementById('pan-preview');
                     const panPdfPreview = document.getElementById('pan-pdf-preview');
                     const noPanMessage = document.getElementById('no-pan-message');
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Handle GST certificate display
                 if (member.member_gst_certificate_image) {
-                    const gstUrl = `http://localhost:5000/uploads/gstCertificates/${member.member_gst_certificate_image}`;
+                    const gstUrl = `https://backend.bninewdelhi.com/uploads/gstCertificates/${member.member_gst_certificate_image}`;
                     const gstPreview = document.getElementById('gst-cert-preview');
                     const gstPdfPreview = document.getElementById('gst-cert-pdf-preview');
                     const noGstMessage = document.getElementById('no-gst-cert-message');
@@ -224,7 +224,7 @@ function saveChanges() {
 
     console.log('Data being sent:', updatedData);
 
-    fetch('http://localhost:5000/api/updateMemberSettings', {
+    fetch('https://backend.bninewdelhi.com/api/updateMemberSettings', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

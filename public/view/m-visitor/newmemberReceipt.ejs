@@ -321,7 +321,7 @@
             };
 
             try {
-                const response = await fetch("http://localhost:5000/api/getDisplayLogo");
+                const response = await fetch("https://backend.bninewdelhi.com/api/getDisplayLogo");
                 console.log('📥 API Response:', response.status);
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -329,7 +329,7 @@
                 const data = await response.json();
                 
                 if (data?.[0]?.display_image_name) {
-                    const imagePath = `http://localhost:5000/uploads/dynamicLogo/${data[0].display_image_name}`;
+                    const imagePath = `https://backend.bninewdelhi.com/uploads/dynamicLogo/${data[0].display_image_name}`;
                     console.log('🖼️ Loading logo from:', imagePath);
                     
                     await loadLogo(imagePath);

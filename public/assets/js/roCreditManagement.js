@@ -27,7 +27,7 @@ let selectedChapterId = null;
 // Function to fetch member data
 async function fetchMembersData() {
     try {
-        const response = await fetch("http://localhost:5000/api/members");
+        const response = await fetch("https://backend.bninewdelhi.com/api/members");
         membersData = await response.json();
     } catch (error) {
         console.error("Error fetching members data:", error);
@@ -37,7 +37,7 @@ async function fetchMembersData() {
 // Added new function to fetch chapters data
 async function fetchChaptersData() {
     try {
-        const response = await fetch("http://localhost:5000/api/chapters");
+        const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
         chaptersData = await response.json();
         console.log("📚 Fetched chapters data:", chaptersData);
     } catch (error) {
@@ -79,7 +79,7 @@ async function fetchAndFilterData() {
         showLoader();
         await Promise.all([fetchMembersData(), fetchChaptersData()]);
 
-        const response = await fetch("http://localhost:5000/api/getAllMemberCredit");
+        const response = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
         const creditData = await response.json();
         console.log("📊 All credit data:", creditData);
 
@@ -199,8 +199,8 @@ async function populateFilters() {
 
         // Fetch regions and chapters in parallel
         const [regionsResponse, chaptersResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/regions'),
-            fetch('http://localhost:5000/api/chapters')
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters')
         ]);
 
         const regions = await regionsResponse.json();

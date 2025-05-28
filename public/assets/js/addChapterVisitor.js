@@ -2,7 +2,7 @@
 async function getMemberDetails(email) {
     try {
         console.log('Fetching member details for email:', email);
-        const response = await fetch('http://localhost:5000/api/members');
+        const response = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await response.json();
         console.log('All members fetched:', members);
         
@@ -108,7 +108,7 @@ async function getChapterIdFromEmail(email) {
         }
 
         // For chapter login or if RO admin doesn't have chapter selected
-        const response = await fetch('http://localhost:5000/api/chapters');
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await response.json();
         console.log('Fetched chapters:', chapters);
         
@@ -149,7 +149,7 @@ async function populateMemberDropdown() {
         }
 
         // Fetch all members
-        const response = await fetch('http://localhost:5000/api/members');
+        const response = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await response.json();
         console.log('Fetched members:', members);
 
@@ -188,7 +188,7 @@ async function populateMemberDropdown() {
 // Function to get member details by ID
 async function getMemberDetailsById(memberId) {
     try {
-        const response = await fetch('http://localhost:5000/api/members');
+        const response = await fetch('https://backend.bninewdelhi.com/api/members');
         const members = await response.json();
         return members.find(member => member.member_id === memberId);
     } catch (error) {
@@ -247,7 +247,7 @@ async function handleSubmit(event) {
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
 
         // Send data to backend
-        const response = await fetch('http://localhost:5000/api/addVisitor', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/addVisitor', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

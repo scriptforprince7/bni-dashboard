@@ -46,63 +46,6 @@ border-radius: 4px; /* Rounded edges for the thumb */
 background-color: #555; /* Darker shade on hover */
 }
 
-.gradient-qr-text {
-  font-weight: 500;
-  font-size: 0.80rem;
-  background: linear-gradient(270deg, #0033ff 0%, #e52d27 100%);
-  background-size: 200% 100%;
-  background-position: 100% 0;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  padding: 0;
-  margin: 0;
-  transition: opacity 0.2s;
-  animation: move-gradient 2s linear infinite;
-}
-@keyframes move-gradient {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-.gradient-qr-text:hover {
-  opacity: 0.7;
-  text-decoration: underline;
-}
-
-.custom-qr-img {
-  width: 90px;
-  height: 90px;
-  border-radius: 8px;
-  padding: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: block;
-  margin: 0 auto;
-}
-
-.view-einvoice-link {
-  color: #1877f3;
-  font-weight: 500;
-  font-size: 0.80rem;
-  text-decoration: underline;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-  transition: opacity 0.2s;
-}
-.view-einvoice-link:hover {
-  opacity: 0.7;
-}
-
 </style>
 <!-- end header -->
 <div id="loader" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
@@ -143,7 +86,7 @@ background-color: #555; /* Darker shade on hover */
         >
           <i class="ri-share-plus me-1"></i> Generate Invoice +
         </button></a>
-       <a href="http://localhost:5000/api/export-orders"><button
+       <a href="https://backend.bninewdelhi.com/api/export-orders"><button
         class="btn btn-primary btn-wave me-0"
         style="background-color: #fb3e4e!important; border: #fb3e4e"
       >
@@ -151,7 +94,7 @@ background-color: #555; /* Darker shade on hover */
         Orders
       </button></a> 
 
-      <a href="http://localhost:5000/api/export-transactions"><button
+      <a href="https://backend.bninewdelhi.com/api/export-transactions"><button
         class="btn btn-primary btn-wave me-0"
         style="background-color: #fb3e4e!important; border: #fb3e4e"
       >
@@ -808,7 +751,19 @@ background-color: #555; /* Darker shade on hover */
                   <!-- Items will be dynamically inserted here -->
                 </ul>
               </div>
-
+            
+              <!-- Payment Gateway Filter -->
+              <div class="dropdown me-2">
+                <a href="javascript:void(0);"
+                   class="btn btn-sm btn-light text-muted dropdown-toggle"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="true">
+                  <i class="ti ti-sort-descending-2 me-1"></i> Gateway
+                </a>
+                <ul class="dropdown-menu" id="payment-gateway-filter" role="menu">
+                  <!-- Items will be dynamically inserted here -->
+                </ul>
+              </div>
             
               <!-- Payment Status Filter -->
               <div class="dropdown me-2">
@@ -860,12 +815,14 @@ background-color: #555; /* Darker shade on hover */
                     <th scope="col">Member Name</th>
                     <th scope="col">Chapter</th>
                     <th scope="col"> Total Amount</th>
+                    <!-- <th scope="col"> Actual Amount</th>
+                    <th scope="col"> GST</th> -->
                     <th scope="col">Payment Method</th>
-                    <th scope="col">Payment Type</th>
-                    <th scope="col">PG Status</th>
                     <th scope="col">Order ID</th>
                     <th scope="col">Transaction ID</th>
+                    <th scope="col">PG Status</th>
                     <th scope="col">Gateway</th>
+                    <th scope="col">Payment Type</th>
                     <th scope="col">Settlement Status</th>
                     <th scope="col">Transfer UTR</th>
                     <th scope="col">Transfer Time</th>
@@ -875,7 +832,6 @@ background-color: #555; /* Darker shade on hover */
                     <th scope="col">Cancel IRN</th>
                   </tr>
                 </thead>
-          
                 <tbody id="transactionsTableBody">
                   <!-- Placeholder for no transactions -->
                   <tr id="no-transactions-row" style="display: none;">
@@ -912,25 +868,300 @@ background-color: #555; /* Darker shade on hover */
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script>
+  // Function to get URL parameter
+function getUrlParameter(name) {
+const urlParams = new URLSearchParams(window.location.search);
+return urlParams.get(name);
+}
+
+// Function to fetch all universal links
+async function fetchAllUniversalLinks() {
+try {
+  const response = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
+  if (!response.ok) {
+      throw new Error('Network response was not ok');
+  }
+  const links = await response.json();
+  console.log('Fetched Links:', links); // Log the fetched links
+  return links;
+} catch (error) {
+  console.error("Error fetching universal links:", error);
+}
+}
+
+// Function to update the page with the universal link name based on ulid
+async function updatePageWithLinkName(ulid) {
+const links = await fetchAllUniversalLinks();
+if (links) {
+  const matchedLink = links.find(link => link.ulid === ulid); // Assuming 'ulid' is the key in the response
+  if (matchedLink) {
+      displayLinkName(matchedLink.universal_link_name);
+  } else {
+      console.error('No link found for the given ulid:', ulid);
+  }
+}
+}
+
+// Function to update the page with the universal link name
+function displayLinkName(universalLinkName) {
+const pageTitleElement = document.querySelector('.page-title');
+pageTitleElement.textContent = `Manage ${universalLinkName}`;
+}
+
+// On page load
+document.addEventListener('DOMContentLoaded', () => {
+const ulid = getUrlParameter('ulid');
+
+if (ulid) {
+  updatePageWithLinkName(ulid);
+
+} else {
+  console.error('No ulid found in the URL');
+}
+});
+
+</script>
 
 <script src="../../assets/js/transactions.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-<!-- Modal for Invoice View -->
-<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="invoiceModalLabel">Invoice</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" style="padding:0;">
-        <iframe id="invoiceIframe" src="" style="width:100%;height:70vh;border:none;"></iframe>
-      </div>
-    </div>
-  </div>
-</div>
+<script>
+// Function to fetch and update settlement data for a transaction
+async function fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks) {
+const orderId = transaction.order_id;
+console.log("hello--4444yyy---------------------------");
+
+const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+// if (!row) return; // Add null check for row
+const button = row.querySelector('.track-settlement');
+// if (!button) return; // Add null check for button
+const originalText = button.textContent;
+
+try {
+// Step 1: Send request to save settlement data
+const saveResponse = await fetch(
+  `https://backend.bninewdelhi.com/api/orders/${orderId}/settlementStatus`,
+  { method: 'GET' }
+);
+
+if (!saveResponse.ok) {
+  throw new Error('Failed to save settlement data.');
+}
+
+// Step 2: Fetch settlement data using cf_payment_id
+const cfPaymentId = transaction.cf_payment_id;
+const fetchResponse = await fetch(
+  `https://backend.bninewdelhi.com/api/settlement/${cfPaymentId}`
+);
+
+if (!fetchResponse.ok) {
+  throw new Error('Failed to fetch settlement data.');
+}
+
+const { settlement } = await fetchResponse.json();
+
+// Step 3: Update the table row based on settlement data
+if (settlement.transfer_utr && settlement.transfer_time && settlement.transfer_id) {
+  fetch(`https://backend.bninewdelhi.com/api/einvoice/${settlement.order_id}`)
+    .then(response => response.json())
+    .then(einvoiceData => {
+      const irnCell = row.querySelector(".irn");
+      const qrcodeCell = row.querySelector(".qrcode");
+      const btnCell = row.querySelector(".generate-invoice-btn");
+      const qrCodeKey = `qrCode_${settlement.order_id}`; // Unique key for each order
+      const orderId = settlement.order_id;
+      const orderr = orders.find((o) => o.order_id === orderId);
+      const transaction = transactions.find((t) => t.order_id === orderId);
+      const chapterName = chapterMap.get(settlement?.chapter_id) || "N/A";
+      const gatewayName = paymentGatewayMap.get(settlement?.payment_gateway_id) || "Unknown";
+      const universalLinkName = universalLinkMap.get(settlement?.universal_link_id) || "Not Applicable";
+
+      const invoiceData = {
+        orderId: orderr,
+        transactionId: transaction,
+        amount: transaction.payment_amount,
+        chapterName: chapterName,
+        gatewayName: gatewayName,
+        universalLinkName: universalLinkName,
+      };
+
+      // Display the IRN or a message if not available
+      irnCell.innerHTML = einvoiceData.irn || "<em>Not Applicable</em>";
+
+      // Check if both IRN and QR code are available
+      if (einvoiceData.irn && einvoiceData.qrcode) {
+        // Update the Generate E-Invoice button to View E-Invoice with link
+        const encodedInvoiceData = encodeURIComponent(JSON.stringify(invoiceData));
+        const encodedEinvoiceData = encodeURIComponent(JSON.stringify(einvoiceData));
+        btnCell.innerHTML = `<a href="/v/einvoice?invoiceData=${encodedInvoiceData}&einvoiceData=${encodedEinvoiceData}" class="btn btn-sm btn-link">View E-Invoice</a>`;
+      }
+
+      // Check if QR code is already stored in localStorage for this order
+      if (localStorage.getItem(qrCodeKey)) {
+        // If QR code is stored, show the QR code image
+        qrcodeCell.innerHTML = `<img src="${localStorage.getItem(qrCodeKey)}" alt="QR Code" width="100" height="100">`;
+      } else if (einvoiceData.qrcode) {
+        // If QR code is available but not yet stored, show the button
+        qrcodeCell.innerHTML = `<span class="generate-qr-btn">Generate QR Code</span>`;
+
+        // Add event listener to the button to display loading and then the QR code
+        row.querySelector(".generate-qr-btn").addEventListener("click", () => {
+          // Show "Loading..." message or spinner
+          qrcodeCell.innerHTML = "<em>Loading...</em>";
+
+          // Simulate loading for 3-4 seconds
+          setTimeout(() => {
+            // Generate the QR code using the qrcode.js library
+            const qrCodeData = einvoiceData.qrcode;
+
+            // Generate the QR code and set it as an image
+            QRCode.toDataURL(qrCodeData, { width: 100, height: 100 }, (err, url) => {
+              if (err) {
+                console.error('Error generating QR Code:', err);
+                qrcodeCell.innerHTML = "<em>Error generating QR Code</em>";
+              } else {
+                // Store the generated QR code URL in localStorage
+                localStorage.setItem(qrCodeKey, url);
+
+                // Display the generated QR code
+                qrcodeCell.innerHTML = `<img src="${url}" alt="QR Code" width="100" height="100">`;
+              }
+            });
+          }, 3000); // Delay for 3 seconds
+        });
+      } else {
+        qrcodeCell.innerHTML = "<em>Not Applicable</em>";
+      }
+    })
+    .catch(() => {
+      row.querySelector(".irn").innerHTML = "<em>Error Loading IRN</em>";
+      row.querySelector(".qrcode").innerHTML = "<em>Error Loading QR Code</em>";
+    });
+  button.textContent = 'Payment Settled ✔';
+  button.classList.remove('btn-success');
+  button.classList.add('btn-success');
+  button.setAttribute('disabled', 'true');
+  toastr.success('Payment successfully settled!');
+
+  let e_invoice = row.querySelector('.generate-invoice-btn');
+  e_invoice.innerHTML = `<a href="#" data-order-id="${settlement.order_id}" class="btn btn-sm btn-success btn-wave waves-light generate-invoice">Generate E-Invoice</a>`;
+
+  // Add UTR ID cell dynamically if it doesn't exist
+  let utrCell = row.querySelector('.utr-cell');
+  let settlementTime = row.querySelector('.settlement-time');
+  if (!utrCell) {
+    utrCell = document.createElement('td');
+    utrCell.classList.add('utr-cell');
+    utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+    row.appendChild(utrCell);
+  } else {
+    utrCell.innerHTML = `<b>${settlement.transfer_utr}</b>`;
+  }
+  if (!settlementTime) {
+    settlementTime = document.createElement('td');
+    settlementTime.classList.add('utr-cell');
+
+    // Format the transfer time
+    const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+      dateStyle: 'medium', // Example: Jul 25, 2021
+      timeStyle: 'short', // Example: 7:27 AM
+    });
+
+    settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+    row.appendChild(settlementTime);
+  } else {
+    // Format the transfer time
+    const formattedTime = new Date(settlement.transfer_time).toLocaleString('en-US', {
+      dateStyle: 'medium', // Example: Jul 25, 2021
+      timeStyle: 'short', // Example: 7:27 AM
+    });
+
+    settlementTime.innerHTML = `<b>${formattedTime}</b>`;
+  }
+
+} else {
+  toastr.info('Settlement in process. Please track after some time.');
+  button.textContent = originalText; // Restore button text
+  button.disabled = false; // Re-enable the button
+}
+} catch (error) {
+console.error('Error tracking settlement:', error.message);
+toastr.error('An error occurred while tracking the settlement.');
+button.textContent = originalText; // Restore button text
+button.disabled = false; // Re-enable the button
+}
+}
+
+// Function to automatically trigger track settlement on page load or refresh
+async function autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks) {
+for (const transaction of transactions) {
+const orderId = transaction.order_id;
+console.log("hello-----------------------------");
+const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+// if (!row) continue; // Add null check for row
+const button = row.querySelector('.track-settlement');
+// if (!button) continue; // Add null check for button
+
+// Check if all required fields are present
+const utrCell = row.querySelector('.utr-cell')?.textContent.trim() || 'Not Available';
+const settlementTimeCell = row.querySelector('.settlement-time')?.textContent.trim() || 'Not Available';
+const irnCell = row.querySelector('.irn')?.textContent.trim() || 'Not Applicable';
+const qrcodeCell = row.querySelector('.qrcode')?.textContent.trim() || 'Not Applicable';
+
+if (utrCell !== 'Not Available' && settlementTimeCell !== 'Not Available' && irnCell !== 'Not Applicable' && qrcodeCell !== 'Not Applicable') {
+// if((utrCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (settlementTimeCell.textContent.trim()==="NotAvailable" || null ||undefined ) && (irnCell.textContent.trim()==="NotAvailable" || null ||undefined ) && qrcodeCell.querySelector('img')){
+  // All required fields are present, disable the button
+  button.textContent = 'Payment Settled ✔';
+  button.classList.add('btn-success');
+  button.setAttribute('disabled', 'true');
+} else {
+  // Fetch and update settlement data
+  await fetchAndUpdateSettlementData(transaction, orders, chapters, paymentGateways, universalLinks);
+}
+}
+}
+
+// On page load
+document.addEventListener('DOMContentLoaded', async () => {
+// ...existing code...
+
+// Fetch data from all necessary endpoints
+const [
+ordersResponse,
+transactionsResponse,
+chaptersResponse,
+paymentGatewayResponse,
+universalLinksResponse,
+regionsResponse,
+paymentTypeResponse,
+] = await Promise.all([
+fetch("https://backend.bninewdelhi.com/api/allOrders"),
+fetch("https://backend.bninewdelhi.com/api/allTransactions"),
+fetch("https://backend.bninewdelhi.com/api/chapters"),
+fetch("https://backend.bninewdelhi.com/api/paymentGateway"),
+fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+fetch("https://backend.bninewdelhi.com/api/regions"),
+fetch("https://backend.bninewdelhi.com/api/universalLinks"),
+]);
+
+const orders = await ordersResponse.json();
+const transactions = await transactionsResponse.json();
+const chapters = await chaptersResponse.json();
+const paymentGateways = await paymentGatewayResponse.json();
+const universalLinks = await universalLinksResponse.json();
+const regions = await regionsResponse.json();
+const paymentType = await paymentTypeResponse.json();
+
+// ...existing code...
+
+// Automatically trigger track settlement on page load or refresh
+await autoTrackSettlement(transactions, orders, chapters, paymentGateways, universalLinks);
+
+// ...existing code...
+});
+</script>
+
+
 
 <%- include('../partials/footer') %>
-
-

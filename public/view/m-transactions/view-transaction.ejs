@@ -2,8 +2,7 @@
       <%- include('../partials/header') %> 
       <!-- end header -->
 
-      <!-- sidebar -->
-      <%- include('../partials/sidebar') %>
+     
 
     
 
@@ -118,6 +117,19 @@
             .row {
                 page-break-inside: avoid;
             }
+        }
+
+        /* Hide header but keep its dependencies */
+        header {
+            display: none !important;
+        }
+
+        /* Ensure receipt content takes full width */
+        #invoice-POS {
+            margin-left: 0 !important;  /* Remove the left margin */
+            width: 100% !important;
+            max-width: 800px !important;
+            margin: 0 auto !important;
         }
 
       </style>
