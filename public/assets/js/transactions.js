@@ -11,7 +11,8 @@ let currentFilters = {
     year: '',
     paymentType: '',
     paymentStatus: '',
-    paymentMethod: ''
+    paymentMethod: '',
+    einvoiceStatus: '' // Add new filter
 };
 
 // Pagination variables
@@ -19,6 +20,18 @@ let currentPage = 1;
 const itemsPerPage = 20;
 let totalPages = 1;
 let showAll = false; // Add show all flag
+
+// Mapping of dropdown menu IDs to currentFilters keys
+const filterIdToKey = {
+    'region-filter': 'region',
+    'chapter-filter': 'chapter',
+    'month-filter': 'month',
+    'year-filter': 'year',
+    'payment-type-filter': 'paymentType',
+    'payment-status-filter': 'paymentStatus',
+    'payment-method-filter': 'paymentMethod',
+    'einvoice-status-filter': 'einvoiceStatus'
+};
 
 // Helper function to handle loader visibility
 function toggleLoader(show) {
@@ -214,6 +227,26 @@ function updateDashboardStats() {
     document.getElementById('total_gst_amount').textContent = `₹${totalGstAmount.toFixed(2)}`;
 }
 
+// Function to attach filter dropdown listeners
+function attachFilterListeners() {
+    document.querySelectorAll('.dropdown-menu a').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const menuId = e.target.closest('.dropdown-menu').id;
+            const filterType = filterIdToKey[menuId];
+            const value = e.target.dataset.value;
+            handleFilterSelection(filterType, value);
+
+            // Update dropdown label to show selected value
+            const dropdown = e.target.closest('.dropdown');
+            const dropdownButton = dropdown.querySelector('.dropdown-toggle');
+            let baseLabel = dropdownButton.textContent.split(':')[0].trim();
+            if (baseLabel.includes(' ')) baseLabel = baseLabel.replace(/\s+$/, '');
+            dropdownButton.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${baseLabel}: ${e.target.textContent}`;
+        });
+    });
+}
+
 // Function to populate filter dropdowns
 function populateFilters() {
     // Region filter
@@ -268,6 +301,17 @@ function populateFilters() {
     methods.forEach(method => {
         methodFilter.innerHTML += `<li><a class="dropdown-item" href="#" data-value="${method}">${method.toUpperCase()}</a></li>`;
     });
+
+    // E-Invoice Status filter
+    const einvoiceStatusFilter = document.getElementById('einvoice-status-filter');
+    einvoiceStatusFilter.innerHTML = `
+        <li><a class="dropdown-item" href="#" data-value="">All Statuses</a></li>
+        <li><a class="dropdown-item" href="#" data-value="generated">Generated</a></li>
+        <li><a class="dropdown-item" href="#" data-value="to_be_generated">To Be Generated</a></li>
+        <li><a class="dropdown-item" href="#" data-value="cancelled">Cancelled IRN</a></li>
+    `;
+    // Attach listeners after populating
+    attachFilterListeners();
 }
 
 // Function to fetch e-invoice data
@@ -525,7 +569,7 @@ async function displayTransactions() {
     tableBody.innerHTML = '';
 
     // Filter transactions based on current filters
-    const filteredTransactions = filterTransactions();
+    const filteredTransactions = await filterTransactions();
     
     // Calculate pagination
     totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
@@ -697,75 +741,72 @@ function changePage(page) {
 }
 
 // Function to filter transactions based on current filters
-function filterTransactions() {
+async function filterTransactions() {
     const searchTerm = document.getElementById('searchChapterInput').value.toLowerCase().trim();
     
     let filteredTransactions = allTransactions.filter(transaction => {
         const order = allOrders.find(o => o.order_id === transaction.order_id);
         if (!order) return false;
 
-        // Apply search filter
-        if (searchTerm) {
-            const memberName = (order.member_name || '').toLowerCase();
-            if (!memberName.includes(searchTerm)) return false;
+        // Search by member name
+        if (searchTerm && !(order.member_name || '').toLowerCase().includes(searchTerm)) return false;
+
+        // Region filter
+        if (currentFilters.region && String(order.region_id) !== String(currentFilters.region)) return false;
+
+        // Chapter filter
+        if (currentFilters.chapter && String(order.chapter_id) !== String(currentFilters.chapter)) return false;
+
+        // Payment type filter
+        if (currentFilters.paymentType && String(order.universal_link_id) !== String(currentFilters.paymentType)) return false;
+
+        // Payment status filter
+        if (currentFilters.paymentStatus && transaction.payment_status !== currentFilters.paymentStatus) return false;
+
+        // Payment method filter
+        if (currentFilters.paymentMethod && transaction.payment_group !== currentFilters.paymentMethod) return false;
+
+        // Month filter
+        if (currentFilters.month) {
+            const month = new Date(transaction.payment_time).getMonth() + 1;
+            if (String(month) !== String(currentFilters.month)) return false;
         }
 
-        // Apply region filter
-        if (currentFilters.region && order.region_id !== parseInt(currentFilters.region)) {
-            return false;
-        }
-
-        // Apply chapter filter
-        if (currentFilters.chapter && order.chapter_id !== parseInt(currentFilters.chapter)) {
-            return false;
-        }
-
-        // Apply payment type filter
-        if (currentFilters.paymentType && order.universal_link_id !== parseInt(currentFilters.paymentType)) {
-            return false;
-        }
-
-        // Apply payment status filter
-        if (currentFilters.paymentStatus && transaction.payment_status !== currentFilters.paymentStatus) {
-            return false;
-        }
-
-        // Apply payment method filter
-        if (currentFilters.paymentMethod && transaction.payment_group !== currentFilters.paymentMethod) {
-            return false;
-        }
-
-        // Apply month and year filters
-        if (currentFilters.month || currentFilters.year) {
-            const paymentDate = new Date(transaction.payment_time);
-            if (currentFilters.month && paymentDate.getMonth() + 1 !== parseInt(currentFilters.month)) {
-                return false;
-            }
-            if (currentFilters.year && paymentDate.getFullYear() !== parseInt(currentFilters.year)) {
-                return false;
-            }
+        // Year filter
+        if (currentFilters.year) {
+            const year = new Date(transaction.payment_time).getFullYear();
+            if (String(year) !== String(currentFilters.year)) return false;
         }
 
         return true;
     });
 
-    // Sort transactions in descending order by payment time
-    return filteredTransactions.sort((a, b) => {
-        const dateA = new Date(a.payment_time);
-        const dateB = new Date(b.payment_time);
-        return dateB - dateA;
-    });
+    // E-Invoice Status filter
+    if (currentFilters.einvoiceStatus) {
+        if (currentFilters.einvoiceStatus === 'generated') {
+            filteredTransactions = filteredTransactions.filter(t => t.einvoice_generated === true);
+        } else if (currentFilters.einvoiceStatus === 'to_be_generated') {
+            filteredTransactions = filteredTransactions.filter(t => t.einvoice_generated === false);
+        } else if (currentFilters.einvoiceStatus === 'cancelled') {
+            const cancelledTransactions = [];
+            for (const transaction of filteredTransactions) {
+                const eInvoiceData = await fetchEInvoiceData(transaction.order_id);
+                if (eInvoiceData && eInvoiceData.is_cancelled) {
+                    cancelledTransactions.push(transaction);
+                }
+            }
+            filteredTransactions = cancelledTransactions;
+        }
+    }
+
+    console.log('Filtered Transactions Count:', filteredTransactions.length);
+    // Sort by payment_time descending
+    return filteredTransactions.sort((a, b) => new Date(b.payment_time) - new Date(a.payment_time));
 }
 
 // Function to handle filter selection
 function handleFilterSelection(filterType, value) {
     currentFilters[filterType] = value;
-    // Update the dropdown button text
-    const dropdownButton = document.querySelector(`[data-bs-toggle="dropdown"][aria-expanded="true"]`);
-    if (dropdownButton) {
-        const selectedText = value ? document.querySelector(`#${filterType}-filter a[data-value="${value}"]`).textContent : 'All';
-        dropdownButton.innerHTML = `<i class="ti ti-sort-descending-2 me-1"></i> ${filterType.charAt(0).toUpperCase() + filterType.slice(1)}: ${selectedText}`;
-    }
 }
 
 // Function to cancel IRN
@@ -860,7 +901,8 @@ function resetAllFilters() {
         year: '',
         paymentType: '',
         paymentStatus: '',
-        paymentMethod: ''
+        paymentMethod: '',
+        einvoiceStatus: '' // Reset new filter
     };
 
     // Reset dropdown button texts
@@ -885,21 +927,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial data fetch
     fetchAllData();
 
-    // Filter event listeners
-    document.querySelectorAll('.dropdown-menu a').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const filterType = e.target.closest('.dropdown-menu').id.split('-')[0];
-            const value = e.target.dataset.value;
-            handleFilterSelection(filterType, value);
-        });
-    });
-
     // Apply filters button
-    document.getElementById('apply-filters-btn').addEventListener('click', () => {
+    document.getElementById('apply-filters-btn').addEventListener('click', async () => {
         currentPage = 1;
         showAll = false;
-        displayTransactions();
+        console.log('Apply Filter Clicked. Current Filters:', currentFilters);
+        await displayTransactions();
     });
 
     // Reset filters button
