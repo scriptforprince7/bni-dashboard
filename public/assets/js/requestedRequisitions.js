@@ -1,6 +1,6 @@
-const accoladesApiUrl = "http://localhost:5000/api/accolades";
-const chaptersApiUrl = "http://localhost:5000/api/chapters";
-const requisitionsApiUrl = "http://localhost:5000/api/getRequestedChapterRequisition";
+const accoladesApiUrl = "https://backend.bninewdelhi.com/api/accolades";
+const chaptersApiUrl = "https://backend.bninewdelhi.com/api/chapters";
+const requisitionsApiUrl = "https://backend.bninewdelhi.com/api/getRequestedChapterRequisition";
 
 let allChapters = [];
 let allAccolades = [];
@@ -78,7 +78,7 @@ async function loadData() {
         const [requisitionsResponse, chaptersResponse, accoladesResponse] = await Promise.all([
             fetch(requisitionsApiUrl),
             fetch(chaptersApiUrl),
-            fetch('http://localhost:5000/api/accolades')  // Add accolades API
+            fetch('https://backend.bninewdelhi.com/api/accolades')  // Add accolades API
         ]);
 
         allRequisitions = await requisitionsResponse.json();
@@ -167,12 +167,12 @@ async function handleAccoladesClick(requisition) {
 
         // Fetch all required data
         const [accoladesResponse, chaptersResponse, membersResponse, memberRequisitionsResponse, visitorsResponse, chapterRequisitionResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/accolades'),
-            fetch('http://localhost:5000/api/chapters'),
-            fetch('http://localhost:5000/api/members'),
-            fetch('http://localhost:5000/api/getRequestedMemberRequisition'),
-            fetch('http://localhost:5000/api/getallvisitors'),
-            fetch('http://localhost:5000/api/getRequestedChapterRequisition')
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors'),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition')
         ]);
 
         const [allAccolades, allChapters, allMembers, memberRequisitions, visitors, chapterRequisitions] = await Promise.all([
@@ -293,6 +293,26 @@ async function handleAccoladesClick(requisition) {
                         >
                             <i class="ri-close-circle-line"></i>
                             Decline Selected
+                        </button>
+                        <button 
+                            id="exportAccoladeRequests"
+                            class="btn"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                background: #fbbf24;
+                                color: #92400e;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                transition: all 0.2s ease;
+                            "
+                            onmouseover="this.style.backgroundColor='#f59e0b'"
+                            onmouseout="this.style.backgroundColor='#fbbf24'"
+                        >
+                            <i class="ri-download-2-line"></i>
+                            Export
                         </button>
                     </div>
                    <button 
@@ -542,6 +562,71 @@ async function handleAccoladesClick(requisition) {
                 popup: 'swal-wide-popup'
             }
         });
+
+        // Add export functionality
+        setTimeout(() => {
+            const exportBtn = document.getElementById('exportAccoladeRequests');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    try {
+                        // Prepare CSV data with headers
+                        const csvRows = [
+                            ['S.No', 'Accolade Name', 'Member Name', 'Chapter Name', 'Chapter Comment', 'RO Comment', 'Status', 'Accolade Type']
+                        ];
+
+                        // Add data rows
+                        combinations.forEach((combo, idx) => {
+                            const status = combo.currentStatus === 'approved' ? 'Approved' : 
+                                         combo.currentStatus === 'declined' ? 'Declined' : 'Pending';
+                            
+                            csvRows.push([
+                                idx + 1,
+                                combo.accolade.accolade_name,
+                                combo.memberName,
+                                chapter ? chapter.chapter_name : 'Unknown Chapter',
+                                combo.comment || 'No comment provided',
+                                combo.roComment || 'No RO comment',
+                                status,
+                                combo.accolade.accolade_type
+                            ]);
+                        });
+
+                        // Convert to CSV string
+                        const csvContent = csvRows.map(row => 
+                            row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
+                        ).join('\n');
+
+                        // Create and download file
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.setAttribute('href', url);
+                        link.setAttribute('download', `accolade_requests_${new Date().toISOString().split('T')[0]}.csv`);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Export Successful!',
+                            text: 'Your data has been exported successfully.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } catch (error) {
+                        console.error('Export error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Export Failed',
+                            text: 'There was an error exporting the data. Please try again.'
+                        });
+                    }
+                });
+            }
+        }, 100);
+
     } catch (error) {
         console.error('❌ Error in handleAccoladesClick:', error);
         Swal.fire({
@@ -562,47 +647,50 @@ function selectAllCheckboxes() {
     });
 }
 
-function handleBulkAction(key, action) {
+// Replace the handleBulkAction function with the following:
+async function handleBulkAction(key, action) {
     const commentEl = document.querySelector(`#ro-comment-${key}`);
     const comment = commentEl ? commentEl.value : '';
 
-    // If action is provided, update the status. Otherwise, just update the comment
-    if (action) {
-        selectedActions[key] = {
-            status: action,
-            comment: comment
-        };
-        
-        // Update button styles
-        const row = document.querySelector(`[data-key="${key}"]`).closest('tr');
+    // Update status and comment in selectedActions for bulk, if needed
+    selectedActions[key] = {
+        status: action,
+        comment: comment
+    };
+
+    // Immediately blur (disable and fade) the Approve/Decline buttons for this row
+    const row = document.querySelector(`[data-key="${key}"]`).closest('tr');
+    if (row) {
         const approveBtn = row.querySelector('.approve-btn');
         const declineBtn = row.querySelector('.decline-btn');
-        
-        // Reset both buttons first
-        approveBtn.style.background = '#dcfce7';
-        approveBtn.style.opacity = '1';
-        declineBtn.style.background = '#fee2e2';
-        declineBtn.style.opacity = '1';
-        
-        // Then highlight the selected action
-        if (action === 'approved') {
-            approveBtn.style.background = '#bbf7d0';
-            approveBtn.style.opacity = '0.7';
-            declineBtn.style.background = '#fee2e2';
-            declineBtn.style.opacity = '1';
-        } else {
-            declineBtn.style.background = '#fecaca';
-            declineBtn.style.opacity = '0.7';
-            approveBtn.style.background = '#dcfce7';
-            approveBtn.style.opacity = '1';
+        if (approveBtn) {
+            approveBtn.disabled = true;
+            approveBtn.style.opacity = '0.5';
+            approveBtn.style.filter = 'blur(1px)';
+            approveBtn.style.cursor = 'not-allowed';
         }
-    } else {
-        // If no action is provided, just update the comment while preserving existing status
-        const existingAction = selectedActions[key];
-        selectedActions[key] = {
-            status: existingAction ? existingAction.status : undefined,
-            comment: comment
-        };
+        if (declineBtn) {
+            declineBtn.disabled = true;
+            declineBtn.style.opacity = '0.5';
+            declineBtn.style.filter = 'blur(1px)';
+            declineBtn.style.cursor = 'not-allowed';
+        }
+    }
+
+    // Immediately call the API for this row
+    const [memberId, accoladeId] = key.split('_');
+    try {
+        await handleRequisitionAction({
+            memberId: parseInt(memberId),
+            accoladeId: parseInt(accoladeId),
+            status: action,
+            requisitionId: currentRequisition.chapter_requisition_id,
+            skipRefresh: true // Don't reload the page
+        });
+        // Optionally, update the UI for this row (e.g., show status)
+    } catch (error) {
+        console.error('Error updating status for row:', key, error);
+        // Optionally, show a small inline error message for this row
     }
 }
 
@@ -652,7 +740,7 @@ function bulkDecline() {
 //         }
 
 //         // Make API call
-//         const response = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+//         const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
 //             method: 'PUT',
 //             headers: {
 //                 'Content-Type': 'application/json',
@@ -784,7 +872,7 @@ async function handleRequisitionAction(data) {
             console.log('📦 Visitor Request Data:', chapterRequestData);
 
             // Update chapter requisition for visitor
-            const chapterResponse = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+            const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -840,7 +928,7 @@ async function handleRequisitionAction(data) {
 
             try {
                 // Update chapter requisition
-                const chapterResponse = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+                const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -884,7 +972,7 @@ async function handleRequisitionAction(data) {
 
                     console.log('📝 Member Request Data:', memberRequestData);
 
-                    const memberResponse = await fetch('http://localhost:5000/api/updateMemberRequisition', {
+                    const memberResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -902,7 +990,7 @@ async function handleRequisitionAction(data) {
                     });
                 } else {
                     // For free accolades, check if member requisition exists
-                    const response = await fetch('http://localhost:5000/api/getRequestedMemberRequisition');
+                    const response = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
                     const allMemberRequisitions = await response.json();
                     
                     // Check if this specific free accolade exists in member requisitions
@@ -929,7 +1017,7 @@ async function handleRequisitionAction(data) {
                                 approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
                             };
 
-                            const freeResponse = await fetch('http://localhost:5000/api/updateMemberRequisition', {
+                            const freeResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
                                 method: 'PUT',
                                 headers: { 
                                     'Content-Type': 'application/json'
@@ -1542,7 +1630,7 @@ function handleCommentSubmit(requisitionId, commentText) {
         console.log('📦 Preparing comment submission:', requestData);
 
         // Make API call
-        fetch('http://localhost:5000/api/updateChapterRequisition', {
+        fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1629,7 +1717,7 @@ async function handlePickupConfirmation(requisitionId, currentStatus) {
             };
 
             // Make API call to update pickup status
-            const response = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1873,9 +1961,9 @@ async function handleViewAccoladeDetails(requisition) {
     try {
         // Fetch necessary data
         const [requisitionsResponse, accoladesResponse, membersResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/getRequestedChapterRequisition'),
-            fetch('http://localhost:5000/api/accolades'),
-            fetch('http://localhost:5000/api/members')
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
+            fetch('https://backend.bninewdelhi.com/api/accolades'),
+            fetch('https://backend.bninewdelhi.com/api/members')
         ]);
         console.log('🔍 Fetching data...');
 
@@ -2107,14 +2195,14 @@ async function handleViewAccoladeDetails(requisition) {
 async function handleApprovedView(chapterRequisitionId) {
     try {
         // Get requisition details
-        const requisitionResponse = await fetch(`http://localhost:5000/api/getRequestedChapterRequisition`);
+        const requisitionResponse = await fetch(`https://backend.bninewdelhi.com/api/getRequestedChapterRequisition`);
         const requisitions = await requisitionResponse.json();
         const requisition = requisitions.find(r => r.chapter_requisition_id === chapterRequisitionId);
 
         // Get members and accolades data
         const [membersResponse, accoladesResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/members'),
-            fetch('http://localhost:5000/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
         const members = await membersResponse.json();
         const accolades = await accoladesResponse.json();
@@ -2126,10 +2214,33 @@ async function handleApprovedView(chapterRequisitionId) {
         // Build the HTML content with improved styling
         let htmlContent = `
             <div style="margin: -32px -32px 0; padding: 24px 32px; background: linear-gradient(135deg, #dcfce7, #f0fdf4); border-bottom: 1px solid #86efac; border-radius: 8px 8px 0 0;">
-                <h3 style="margin: 0; color: #15803d; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
-                    <i class="ri-checkbox-circle-fill" style="font-size: 1.5rem;"></i>
-                    Approved Accolades Details
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: #15803d; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <i class="ri-checkbox-circle-fill" style="font-size: 1.5rem;"></i>
+                        Approved Accolades Details
+                    </h3>
+                    <button 
+                        id="exportApprovedAccolades"
+                        class="btn"
+                        style="
+                            padding: 8px 16px;
+                            border-radius: 6px;
+                            background: #fbbf24;
+                            color: #92400e;
+                            border: none;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            transition: all 0.2s ease;
+                            margin-right: 40px;
+                        "
+                        onmouseover="this.style.backgroundColor='#f59e0b'"
+                        onmouseout="this.style.backgroundColor='#fbbf24'"
+                    >
+                        <i class="ri-download-2-line"></i>
+                        Export
+                    </button>
+                </div>
             </div>
             <div style="width: 100%; overflow-x: auto; padding: 20px;">
                 <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
@@ -2202,6 +2313,75 @@ async function handleApprovedView(chapterRequisitionId) {
             }
         });
 
+        // Add this after the Swal.fire({ ... }) call in handleApprovedView function
+        setTimeout(() => {
+            const exportBtn = document.getElementById('exportApprovedAccolades');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    try {
+                        // Prepare CSV data with headers
+                        const csvRows = [
+                            ['S.No', 'Member Name', 'Accolade Name', 'Status', 'RO Comment']
+                        ];
+
+                        // Add data rows
+                        let rowCount = 1;
+                        for (const [key, status] of Object.entries(approveStatus)) {
+                            if (status === 'approved') {
+                                const [memberId, accoladeId] = key.split('_').map(Number);
+                                const member = members.find(m => m.member_id === memberId);
+                                const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                                
+                                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
+                                const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+                                const roComment = roComments[key] || 'No RO comment';
+
+                                csvRows.push([
+                                    rowCount++,
+                                    memberName,
+                                    accoladeName,
+                                    'Approved',
+                                    roComment
+                                ]);
+                            }
+                        }
+
+                        // Convert to CSV string
+                        const csvContent = csvRows.map(row => 
+                            row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
+                        ).join('\n');
+
+                        // Create and download file
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.setAttribute('href', url);
+                        link.setAttribute('download', `approved_accolades_${new Date().toISOString().split('T')[0]}.csv`);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Export Successful!',
+                            text: 'Your approved accolades data has been exported successfully.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } catch (error) {
+                        console.error('Export error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Export Failed',
+                            text: 'There was an error exporting the data. Please try again.'
+                        });
+                    }
+                });
+            }
+        }, 100);
+
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
@@ -2215,14 +2395,14 @@ async function handleApprovedView(chapterRequisitionId) {
 async function handleRejectedView(chapterRequisitionId) {
     try {
         // Get requisition details
-        const requisitionResponse = await fetch(`http://localhost:5000/api/getRequestedChapterRequisition`);
+        const requisitionResponse = await fetch(`https://backend.bninewdelhi.com/api/getRequestedChapterRequisition`);
         const requisitions = await requisitionResponse.json();
         const requisition = requisitions.find(r => r.chapter_requisition_id === chapterRequisitionId);
 
         // Get members and accolades data
         const [membersResponse, accoladesResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/members'),
-            fetch('http://localhost:5000/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
         const members = await membersResponse.json();
         const accolades = await accoladesResponse.json();
@@ -2234,10 +2414,33 @@ async function handleRejectedView(chapterRequisitionId) {
         // Build the HTML content with improved styling
         let htmlContent = `
             <div style="margin: -32px -32px 0; padding: 24px 32px; background: linear-gradient(135deg, #fee2e2, #fef2f2); border-bottom: 1px solid #fca5a5; border-radius: 8px 8px 0 0;">
-                <h3 style="margin: 0; color: #991b1b; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
-                    <i class="ri-close-circle-fill" style="font-size: 1.5rem;"></i>
-                    Rejected Accolades Details
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: #991b1b; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                        <i class="ri-close-circle-fill" style="font-size: 1.5rem;"></i>
+                        Rejected Accolades Details
+                    </h3>
+                    <button 
+                        id="exportRejectedAccolades"
+                        class="btn"
+                        style="
+                            padding: 8px 16px;
+                            border-radius: 6px;
+                            background: #fbbf24;
+                            color: #92400e;
+                            border: none;
+                            display: flex;
+                            align-items: center;
+                            gap: 6px;
+                            transition: all 0.2s ease;
+                            margin-right: 40px;
+                        "
+                        onmouseover="this.style.backgroundColor='#f59e0b'"
+                        onmouseout="this.style.backgroundColor='#fbbf24'"
+                    >
+                        <i class="ri-download-2-line"></i>
+                        Export
+                    </button>
+                </div>
             </div>
             <div style="width: 100%; overflow-x: auto; padding: 20px;">
                 <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
@@ -2310,6 +2513,75 @@ async function handleRejectedView(chapterRequisitionId) {
             }
         });
 
+        // Add export functionality for rejected accolades
+        setTimeout(() => {
+            const exportBtn = document.getElementById('exportRejectedAccolades');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    try {
+                        // Prepare CSV data with headers
+                        const csvRows = [
+                            ['S.No', 'Member Name', 'Accolade Name', 'Status', 'RO Comment']
+                        ];
+
+                        // Add data rows
+                        let rowCount = 1;
+                        for (const [key, status] of Object.entries(approveStatus)) {
+                            if (status === 'declined') {
+                                const [memberId, accoladeId] = key.split('_').map(Number);
+                                const member = members.find(m => m.member_id === memberId);
+                                const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                                
+                                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
+                                const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+                                const roComment = roComments[key] || 'No RO comment';
+
+                                csvRows.push([
+                                    rowCount++,
+                                    memberName,
+                                    accoladeName,
+                                    'Rejected',
+                                    roComment
+                                ]);
+                            }
+                        }
+
+                        // Convert to CSV string
+                        const csvContent = csvRows.map(row => 
+                            row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
+                        ).join('\n');
+
+                        // Create and download file
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.setAttribute('href', url);
+                        link.setAttribute('download', `rejected_accolades_${new Date().toISOString().split('T')[0]}.csv`);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Export Successful!',
+                            text: 'Your rejected accolades data has been exported successfully.',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } catch (error) {
+                        console.error('Export error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Export Failed',
+                            text: 'There was an error exporting the data. Please try again.'
+                        });
+                    }
+                });
+            }
+        }, 100);
+
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
@@ -2351,7 +2623,7 @@ async function handlePickupStatusChange(requisitionId, newStatus) {
             pick_up_status_ro: newStatus  // Changed from ro_pickup_status
         };
 
-        const response = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -2418,7 +2690,7 @@ async function handlePickupComment(requisitionId, currentComment) {
                 pick_up_status_ro_comment: comment  // Changed from ro_pickup_comment
             };
 
-            const response = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+            const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2482,8 +2754,8 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
         
         // Fetch visitor and accolade data
         const [visitorsResponse, accoladesResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/getallvisitors'),
-            fetch('http://localhost:5000/api/accolades')
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors'),
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
 
         const [visitors, accolades] = await Promise.all([
@@ -2657,7 +2929,7 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                             console.log('📦 Visitor Request Data:', chapterRequestData);
 
                             // Update chapter requisition for visitor
-                            const chapterResponse = await fetch('http://localhost:5000/api/updateChapterRequisition', {
+                            const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',

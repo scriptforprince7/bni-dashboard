@@ -14,7 +14,7 @@ let allMemberAccolades = [];
 // Function to fetch regions data
 async function fetchRegions() {
     try {
-        const response = await fetch('http://localhost:5000/api/regions');
+        const response = await fetch('https://backend.bninewdelhi.com/api/regions');
         if (!response.ok) throw new Error('Failed to fetch regions');
         const data = await response.json();
         allRegions = data.filter(region => region.delete_status === 0);
@@ -28,7 +28,7 @@ async function fetchRegions() {
 // Function to fetch chapters data
 async function fetchChapters() {
     try {
-        const response = await fetch('http://localhost:5000/api/chapters');
+        const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
         if (!response.ok) throw new Error('Failed to fetch chapters');
         const data = await response.json();
         allChapters = data.filter(chapter => chapter.delete_status === 0);
@@ -42,7 +42,7 @@ async function fetchChapters() {
 // Function to fetch members data
 async function fetchMembers() {
     try {
-        const response = await fetch('http://localhost:5000/api/members');
+        const response = await fetch('https://backend.bninewdelhi.com/api/members');
         if (!response.ok) throw new Error('Failed to fetch members');
         const data = await response.json();
         allMembers = data.filter(member => member.delete_status === 0);
@@ -56,7 +56,7 @@ async function fetchMembers() {
 // Function to fetch accolades data
 async function fetchAccolades() {
     try {
-        const response = await fetch('http://localhost:5000/api/accolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/accolades');
         if (!response.ok) throw new Error('Failed to fetch accolades');
         const data = await response.json();
         allAccolades = data.filter(accolade => accolade.delete_status === 0);
@@ -70,7 +70,7 @@ async function fetchAccolades() {
 // Function to fetch member accolades data
 async function fetchMemberAccolades() {
     try {
-        const response = await fetch('http://localhost:5000/api/getAllMemberAccolades');
+        const response = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
         if (!response.ok) throw new Error('Failed to fetch member accolades');
         const data = await response.json();
         allMemberAccolades = data;

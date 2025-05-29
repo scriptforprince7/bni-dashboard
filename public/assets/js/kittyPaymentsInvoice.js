@@ -47,41 +47,44 @@ function showLoader() {
           case 'cashOption':
               paymentData.mode_of_payment = {
                   cash: {
-                      payment_note: paymentNote
+                      payment_note: paymentNote || "Meeting Payment"
                   }
               };
               break;
   
           case 'upiOption':
+              const upiId = document.getElementById('upiId').value;
               paymentData.mode_of_payment = {
                   upi: {
-                      upi_id: document.getElementById('upiId').value,
-                      reference_number: document.getElementById('upiNumber').value,
-                      payment_note: paymentNote
+                      upi_id: upiId,
+                      channel: "collect"
                   }
               };
               break;
   
           case 'bankOption':
               const transferType = document.querySelector('input[name="bankTransferType"]:checked')?.id;
+              const ifscCode = document.getElementById('transferUTR').value;
               paymentData.mode_of_payment = {
-                  bank_transfer: {
-                      transfer_type: transferType === 'rtgsOption' ? 'RTGS' : 
-                                   transferType === 'neftOption' ? 'NEFT' : 
-                                   transferType === 'impsOption' ? 'IMPS' : '',
-                      transfer_utr: document.getElementById('transferUTR').value,
-                      transfer_id: document.getElementById('transferId').value,
-                      payment_note: paymentNote
+                  netbanking: {
+                      channel: "link",
+                      netbanking_ifsc: ifscCode || "",
+                      netbanking_bank_code: 3037,
+                      netbanking_bank_name: "Punjab & Sind Bank",
+                      netbanking_account_number: ""
                   }
               };
               break;
   
           case 'chequeOption':
+              const chequeIfsc = document.getElementById('ifscCode').value;
               paymentData.mode_of_payment = {
-                  cheque: {
-                      cheque_number: document.getElementById('chequeNo').value,
-                      ifsc_code: document.getElementById('ifscCode').value,
-                      payment_note: paymentNote
+                  netbanking: {
+                      channel: "link",
+                      netbanking_ifsc: chequeIfsc || "",
+                      netbanking_bank_code: 3037,
+                      netbanking_bank_name: "Punjab & Sind Bank",
+                      netbanking_account_number: ""
                   }
               };
               break;
@@ -196,7 +199,7 @@ function showLoader() {
   
         try {
           showLoader();
-          const response = await fetch(`http://localhost:5000/api/get-gst-details/${gstNumber}`);
+          const response = await fetch(`https://backend.bninewdelhi.com/api/get-gst-details/${gstNumber}`);
           const data = await response.json();
   
           if (data.error) {
@@ -247,7 +250,7 @@ function showLoader() {
       showLoader();
   
       const responses = await fetch(
-        "http://localhost:5000/api/universalLinks"
+        "https://backend.bninewdelhi.com/api/universalLinks"
       );
       const data = await responses.json();
       console.log("Fetched data:", data);
@@ -267,19 +270,19 @@ function showLoader() {
       }
       // Fetch regions
       const regionResponse = await fetch(
-        "http://localhost:5000/api/regions"
+        "https://backend.bninewdelhi.com/api/regions"
       );
       const regions = await regionResponse.json();
   
       // Fetch chapters
       const chapterResponse = await fetch(
-        "http://localhost:5000/api/chapters"
+        "https://backend.bninewdelhi.com/api/chapters"
       );
       const chapters = await chapterResponse.json();
   
       // Fetch members
       const memberResponse = await fetch(
-        "http://localhost:5000/api/members"
+        "https://backend.bninewdelhi.com/api/members"
       );
       const members = await memberResponse.json();
   
@@ -495,7 +498,7 @@ function showLoader() {
       async function fetchKittyBillData(chapterId) {
         try {
           showLoader();
-          const response = await fetch("http://localhost:5000/api/getKittyPayments");
+          const response = await fetch("https://backend.bninewdelhi.com/api/getKittyPayments");
           const kittyBills = await response.json();
           
           // Find the current kitty bill for the selected chapter
@@ -681,7 +684,7 @@ function showLoader() {
   
                   try {
                       console.log("🔄 Fetching bank order data...");
-                      const response = await fetch('http://localhost:5000/api/getbankorder');
+                      const response = await fetch('https://backend.bninewdelhi.com/api/getbankorder');
                       const bankOrders = await response.json();
                       
                       console.log("📦 Bank Orders received:", bankOrders);
@@ -881,7 +884,7 @@ function showLoader() {
   
       // Fetch company data
       const companyResponse = await fetch(
-        "http://localhost:5000/api/company"
+        "https://backend.bninewdelhi.com/api/company"
       );
       const companies = await companyResponse.json();
   
@@ -929,7 +932,7 @@ function showLoader() {
       });
       // Fetch universal link data
       const response = await fetch(
-        "http://localhost:5000/api/universalLinks"
+        "https://backend.bninewdelhi.com/api/universalLinks"
       );
       const universalLinks = await response.json();
   
@@ -942,7 +945,7 @@ function showLoader() {
       // If ID is 3, fetch training data and populate the dropdown
       if (selectedLink.id == 3) {
         const trainingResponse = await fetch(
-          "http://localhost:5000/api/allTrainings"
+          "https://backend.bninewdelhi.com/api/allTrainings"
         );
         const trainings = await trainingResponse.json();
         console.log("📋 Available Trainings:", trainings);
@@ -1031,7 +1034,7 @@ function showLoader() {
   
           try {
             // Fetch member's kitty data
-            const bankOrderResponse = await fetch(`http://localhost:5000/api/getbankOrder`);
+            const bankOrderResponse = await fetch(`https://backend.bninewdelhi.com/api/getbankOrder`);
             const bankOrderData = await bankOrderResponse.json();
             const memberBankOrder = bankOrderData.find(order => 
                 order.member_id === selectedMemberId && 
@@ -1039,7 +1042,7 @@ function showLoader() {
             );
 
             // Fetch member credits
-            const creditResponse = await fetch(`http://localhost:5000/api/getAllMemberCredit`);
+            const creditResponse = await fetch(`https://backend.bninewdelhi.com/api/getAllMemberCredit`);
             const creditData = await creditResponse.json();
             const memberCredits = creditData.filter(credit => 
                 credit.member_id === selectedMemberId && 
@@ -1053,7 +1056,7 @@ function showLoader() {
             );
 
             // Get current date
-            const currentDateResponse = await fetch(`http://localhost:5000/api/getCurrentDate`);
+            const currentDateResponse = await fetch(`https://backend.bninewdelhi.com/api/getCurrentDate`);
             const currentDate = await currentDateResponse.json();
 
             // Update UI with kitty bill info
@@ -1313,7 +1316,8 @@ function showLoader() {
                     kitty_bill_id: kittyBillId,
                     order_amount: grandTotal,
                     tax_amount: isGstIncluded ? totalTax : 0,
-                    created_at: invoiceDateIssued
+                    created_at: invoiceDateIssued,
+                    mode_of_payment: paymentDetails.mode_of_payment  // Add payment method details
                 };
 
                 // Add meeting payment specific data
@@ -1489,7 +1493,7 @@ function showLoader() {
 
                 showToast('success', "Check console for payment data");
 
-                const response = await fetch('http://localhost:5000/api/addKittyPaymentManually', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPaymentManually', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(invoiceData)

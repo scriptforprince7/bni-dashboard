@@ -616,7 +616,7 @@
             console.log('Fetching data for visitor_id:', visitorId);
 
             // Fetch Commitment Sheet data
-            const commitmentResponse = await fetch('http://localhost:5000/api/getCommitmentSheet');
+            const commitmentResponse = await fetch('https://backend.bninewdelhi.com/api/getCommitmentSheet');
             const commitmentData = await commitmentResponse.json();
             
             // Find matching commitment form
@@ -629,7 +629,7 @@
             }
 
             // Fetch chapters data
-            const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+            const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
             const chaptersData = await chaptersResponse.json();
             console.log('Chapters data:', chaptersData);
 
@@ -724,7 +724,7 @@
                 // Make API call to update verification status
                 console.log('🔄 Making API call to update verification status');
                 
-                const response = await fetch('http://localhost:5000/api/update-visitor', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/update-visitor', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'

@@ -4,6 +4,7 @@ let allTransactions = [];
 let chapters = [];
 let universalLinks = [];
 let regions = []; // Add regions array
+let allExpenses = [];
 let currentFilters = {
     region: '',
     chapter: '',
@@ -162,16 +163,17 @@ async function fetchAllData() {
         // Show loader
         toggleLoader(true);
 
-        // Fetch all data in parallel
-        const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/allOrders'),
-            fetch('http://localhost:5000/api/allTransactions'),
-            fetch('http://localhost:5000/api/chapters'),
-            fetch('http://localhost:5000/api/universalLinks'),
-            fetch('http://localhost:5000/api/regions')
+        // Fetch all data in parallel (add allExpenses)
+        const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse, expensesResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/allOrders'),
+            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/universalLinks'),
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/allExpenses')
         ]);
 
-        if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok) {
+        if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok || !expensesResponse.ok) {
             throw new Error('Failed to fetch data from one or more endpoints');
         }
 
@@ -180,6 +182,7 @@ async function fetchAllData() {
         chapters = await chaptersResponse.json();
         universalLinks = await universalLinksResponse.json();
         regions = await regionsResponse.json();
+        allExpenses = await expensesResponse.json();
 
         // Update dashboard stats
         updateDashboardStats();
@@ -204,27 +207,75 @@ function updateDashboardStats() {
     // Total transactions
     document.getElementById('no_of_transaction').textContent = allOrders.length;
     
-    // Total generated invoice (successful transactions)
-    const successfulTransactions = allTransactions.filter(t => t.payment_status === 'SUCCESS').length;
-    document.getElementById('settled_transaction').textContent = successfulTransactions;
+    // Total generated invoice (transactions with einvoice_generated = true)
+    const einvoiceGeneratedCount = allTransactions.filter(t => t.einvoice_generated === true).length;
+    document.getElementById('settled_transaction').textContent = einvoiceGeneratedCount;
     
-    // Total pending invoice
-    const pendingTransactions = allOrders.length - successfulTransactions;
-    document.getElementById('not_settle_transaction').textContent = pendingTransactions;
+    // Total pending invoice (transactions with payment_status = 'SUCCESS' and einvoice_generated = false)
+    const pendingEinvoiceCount = allTransactions.filter(t => t.payment_status === 'SUCCESS' && t.einvoice_generated === false).length;
+    document.getElementById('not_settle_transaction').textContent = pendingEinvoiceCount;
 
-    // Calculate total base amount and GST
-    let totalBaseAmount = 0;
+    // Calculate total GST from expenses where payment_status is 'paid'
+    let totalInputGst = 0;
+    if (Array.isArray(allExpenses)) {
+        allExpenses.forEach(exp => {
+            if (exp.payment_status === 'paid') {
+                const gst = parseFloat(exp.gst_amount);
+                if (!isNaN(gst)) totalInputGst += gst;
+            }
+        });
+    }
+    document.getElementById('total_base_amount').textContent = `₹${totalInputGst.toFixed(2)}`;
+
+    // Calculate total GST from orders where payment_status is 'SUCCESS'
     let totalGstAmount = 0;
-    
     allOrders.forEach(order => {
-        const amount = parseFloat(order.order_amount);
-        const tax = parseFloat(order.tax);
-        totalBaseAmount += (amount - tax);
-        totalGstAmount += tax;
+        // Find the transaction for this order
+        const transaction = allTransactions.find(t => t.order_id === order.order_id);
+        if (transaction && transaction.payment_status === 'SUCCESS') {
+            const tax = parseFloat(order.tax);
+            if (!isNaN(tax)) totalGstAmount += tax;
+        }
     });
-
-    document.getElementById('total_base_amount').textContent = `₹${totalBaseAmount.toFixed(2)}`;
     document.getElementById('total_gst_amount').textContent = `₹${totalGstAmount.toFixed(2)}`;
+
+    // Add click event for showing transaction status breakdown
+    const noOfTransactionElem = document.getElementById('no_of_transaction');
+    if (noOfTransactionElem && !noOfTransactionElem.hasAttribute('data-listener')) {
+        noOfTransactionElem.setAttribute('data-listener', 'true');
+        noOfTransactionElem.style.cursor = 'pointer';
+        noOfTransactionElem.addEventListener('click', function() {
+            const statusCounts = {
+                SUCCESS: 0,
+                USER_DROPPED: 0,
+                FAILED: 0,
+                NOT_ATTEMPTED: 0
+            };
+            allTransactions.forEach(t => {
+                const status = (t.payment_status || '').toUpperCase();
+                if (statusCounts.hasOwnProperty(status)) {
+                    statusCounts[status]++;
+                }
+            });
+            Swal.fire({
+                title: 'Transaction Status Breakdown',
+                html: `
+                    <div style="text-align:left;font-size:1.1em;">
+                        <b>Total Transactions:</b> ${allTransactions.length}<br><br>
+                        <b style="color:#22e2a1;">SUCCESS:</b> ${statusCounts.SUCCESS}<br>
+                        <b style="color:#ff9800;">USER_DROPPED:</b> ${statusCounts.USER_DROPPED}<br>
+                        <b style="color:#ff4d4f;">FAILED:</b> ${statusCounts.FAILED}<br>
+                        <b style="color:#607d8b;">NOT_ATTEMPTED:</b> ${statusCounts.NOT_ATTEMPTED}<br>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Close',
+                customClass: {
+                    popup: 'swal2-border-radius'
+                }
+            });
+        });
+    }
 }
 
 // Function to attach filter dropdown listeners
@@ -317,7 +368,7 @@ function populateFilters() {
 // Function to fetch e-invoice data
 async function fetchEInvoiceData(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/einvoice/${orderId}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/api/einvoice/${orderId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch e-invoice data');
         }
@@ -454,7 +505,7 @@ async function generateEInvoice(orderId) {
                 };
 
                 // Make API call
-                const response = await fetch('http://localhost:5000/einvoice/generate-irn', {
+                const response = await fetch('https://backend.bninewdelhi.com/einvoice/generate-irn', {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
@@ -861,7 +912,7 @@ async function cancelIRN(orderId) {
                 });
 
                 // Make API call
-                const response = await fetch('http://localhost:5000/einvoice/cancel-irn', {
+                const response = await fetch('https://backend.bninewdelhi.com/einvoice/cancel-irn', {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json"
