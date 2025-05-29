@@ -356,7 +356,7 @@ function hideLoader() {
 
   // Fetch data for "Type of Expense"
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/expenseType");
+    const response = await fetch("http://localhost:5000/api/expenseType");
     const data = await response.json();
     console.log("Expense Types:", data);
     const expenseTypeDropdown = document.getElementById("expense_type");
@@ -406,7 +406,7 @@ function hideLoader() {
   // Function to fetch hotels
   async function fetchHotels() {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
+      const response = await fetch('http://localhost:5000/api/getHotels');
       if (!response.ok) throw new Error('Failed to fetch hotels');
       return await response.json();
     } catch (error) {
@@ -519,7 +519,7 @@ function hideLoader() {
   // Fetch and populate chapters dropdown
   try {
     console.log('Fetching chapters data...');
-    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
+    const response = await fetch("http://localhost:5000/api/chapters");
     const chapters = await response.json();
     console.log("All available chapters:", chapters);
 
@@ -574,7 +574,7 @@ function hideLoader() {
   // Function to fetch vendors
   async function fetchVendors() {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+      const response = await fetch('http://localhost:5000/api/getAllVendors');
       if (!response.ok) throw new Error('Failed to fetch vendors');
       return await response.json();
     } catch (error) {
@@ -861,7 +861,7 @@ function hideLoader() {
     try {
         showLoader();
         
-        const response = await fetch("https://backend.bninewdelhi.com/api/addExpense", {
+        const response = await fetch("http://localhost:5000/api/addExpense", {
             method: "POST",
             body: formData
         });
@@ -898,7 +898,7 @@ function hideLoader() {
   const addNewVendor = async () => {
     // First fetch chapters for the dropdown
     try {
-      const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+      const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
       const chapters = await chaptersResponse.json();
       
       // Sort chapters alphabetically
@@ -1031,7 +1031,7 @@ function hideLoader() {
       if (result.isConfirmed && result.value) {
         try {
           showLoader();
-          const response = await fetch('https://backend.bninewdelhi.com/api/addVendor', {
+          const response = await fetch('http://localhost:5000/api/addVendor', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

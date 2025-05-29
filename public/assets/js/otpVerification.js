@@ -37,7 +37,7 @@ document.getElementById('otpVerificationForm').addEventListener('submit', async 
 
     try {
         console.log('Preparing API request with data:', { email, otpCode, login_type });
-        const response = await fetch('https://backend.bninewdelhi.com/api/auth/verify-otp', {
+        const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -172,7 +172,7 @@ document.querySelector('.text-primary').addEventListener('click', async (e) => {
 
     try {
         console.log('Requesting OTP resend for email:', email, 'login_type:', login_type);
-        const response = await fetch('https://backend.bninewdelhi.com/api/auth/login', {  // Using login endpoint as it handles OTP generation and sending
+        const response = await fetch('http://localhost:5000/api/auth/login', {  // Using login endpoint as it handles OTP generation and sending
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
