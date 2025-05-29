@@ -326,6 +326,16 @@ async function getEInvoiceDetails(transaction, order) {
         };
     }
 
+    // Check if IRN is cancelled
+    if (eInvoiceData.is_cancelled) {
+        return {
+            irn: eInvoiceData.irn || 'N/A',
+            qrCode: `<span class="gradient-qr-text" onclick="generateQRCode('${order.order_id}')">Generate QR Code</span>`,
+            eInvoiceStatus: `<span class="view-einvoice-link" onclick="viewEInvoice('${order.order_id}')">View E-Invoice</span>`,
+            cancelIRN: `<button class="btn btn-danger btn-sm" style="background-color: #ffcccc; border-color: #ffcccc; color: #666; cursor: not-allowed;" disabled>Cancelled</button>`
+        };
+    }
+
     return {
         irn: eInvoiceData.irn || 'N/A',
         qrCode: `<span class="gradient-qr-text" onclick="generateQRCode('${order.order_id}')">Generate QR Code</span>`,
@@ -761,16 +771,78 @@ function handleFilterSelection(filterType, value) {
 // Function to cancel IRN
 async function cancelIRN(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/cancel-irn/${orderId}`, {
-            method: 'POST'
-        });
+        // Find the order and get IRN
+        const order = allOrders.find(o => o.order_id === orderId);
+        const eInvoiceData = await fetchEInvoiceData(orderId);
         
-        if (response.ok) {
-            toastr.success('IRN cancelled successfully');
-            // Refresh data
-            await fetchAllData();
-        } else {
-            toastr.error('Failed to cancel IRN');
+        if (!eInvoiceData || !eInvoiceData.irn) {
+            toastr.error('IRN not found');
+            return;
+        }
+
+        const irn = eInvoiceData.irn;
+
+        // First SweetAlert - Initial confirmation
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            html: `Are you sure to cancel IRN for <b>${irn}</b>?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Cancel IRN",
+            cancelButtonText: "No"
+        });
+
+        if (result.isConfirmed) {
+            // Second SweetAlert - Enter cancellation reason
+            const secondResult = await Swal.fire({
+                title: "Enter Cancel Reason",
+                input: "textarea",
+                inputPlaceholder: "Enter the reason for cancellation...",
+                showCancelButton: true,
+                confirmButtonText: "Cancel IRN",
+                preConfirm: (remarks) => {
+                    if (!remarks) {
+                        Swal.showValidationMessage("Please enter a reason!");
+                    }
+                    return remarks;
+                }
+            });
+
+            if (secondResult.isConfirmed) {
+                // Show loading SweetAlert
+                const loadingSwal = Swal.fire({
+                    title: "Cancelling IRN",
+                    html: "Please wait while we process your request...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Make API call
+                const response = await fetch('http://localhost:5000/einvoice/cancel-irn', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        Irn: irn,
+                        CnlRsn: 1,
+                        CnlRem: secondResult.value
+                    })
+                });
+
+                // Close loading SweetAlert
+                await loadingSwal.close();
+
+                if (response.ok) {
+                    toastr.success('IRN cancelled successfully');
+                    // Redirect to cancelled IRNs page
+                    window.location.href = '/t/cancelled-irns';
+                } else {
+                    toastr.error('Failed to cancel IRN');
+                }
+            }
         }
     } catch (error) {
         console.error('Error cancelling IRN:', error);
