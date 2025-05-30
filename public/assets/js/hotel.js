@@ -160,3 +160,119 @@ async function deleteHotel(hotelId) {
     }
 }
 
+// Function to format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+// Function to format currency
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount);
+};
+
+// Function to view hotel ledger
+async function viewLedger(hotelId) {
+  try {
+    showLoader();
+    
+    // Find hotel details
+    const hotel = allHotels.find(h => h.hotel_id === parseInt(hotelId));
+    if (!hotel) throw new Error('Hotel not found');
+
+    // Fetch chapters data
+    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    if (!chaptersResponse.ok) throw new Error('Failed to fetch chapters');
+    const chapters = await chaptersResponse.json();
+    
+    // Create a map of chapter_id to chapter_name for quick lookup
+    const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
+
+    // Fetch all expenses
+    const response = await fetch(`https://backend.bninewdelhi.com/api/allExpenses`);
+    if (!response.ok) throw new Error('Failed to fetch expenses');
+    const allExpenses = await response.json();
+
+    // Filter expenses for this hotel
+    const hotelExpenses = allExpenses.filter(expense => expense.hotel_id === parseInt(hotelId));
+
+    // Update modal with hotel information
+    document.querySelector('.hotel-name').textContent = hotel.hotel_name;
+    document.querySelector('.hotel-address').textContent = hotel.hotel_address;
+    document.querySelector('.hotel-contact').textContent = `${hotel.hotel_phone || 'N/A'} | ${hotel.hotel_email || 'N/A'}`;
+
+    // Calculate total expenses
+    const totalAmount = hotelExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    document.querySelector('.total-expenses .amount').textContent = formatCurrency(totalAmount);
+
+    // Get last expense date
+    const lastExpense = hotelExpenses.length > 0 
+      ? formatDate(hotelExpenses[hotelExpenses.length - 1].bill_date)
+      : 'No expenses';
+    document.querySelector('.last-expense .date').textContent = lastExpense;
+
+    // Populate expense history table
+    const tableBody = document.querySelector('#hotelLedgerTable tbody');
+    tableBody.innerHTML = '';
+
+    if (hotelExpenses.length === 0) {
+      document.getElementById('hotelLedgerTable').style.display = 'none';
+      document.getElementById('noExpensesMessage').style.display = 'block';
+    } else {
+      document.getElementById('hotelLedgerTable').style.display = 'table';
+      document.getElementById('noExpensesMessage').style.display = 'none';
+
+      hotelExpenses.forEach(expense => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${formatDate(expense.bill_date)}</td>
+          <td>${expense.expense_type}</td>
+          <td>${expense.description}</td>
+          <td>${formatCurrency(expense.amount)}</td>
+          <td>${expense.gst_percentage ? `${expense.gst_percentage}% (${formatCurrency(expense.gst_amount)})` : 'N/A'}</td>
+          <td>${formatCurrency(expense.total_amount || expense.amount)}</td>
+          <td>${chapterMap.get(expense.chapter_id) || 'N/A'}</td>
+          <td>
+            <span class="payment-status-badge payment-status-${expense.payment_status}">
+              ${expense.payment_status.toUpperCase()}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary view-bill-btn" onclick="window.open('/uploads/${expense.upload_bill}', '_blank')">
+              View Bill
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('hotelLedgerModal'));
+    modal.show();
+
+  } catch (error) {
+    console.error('Error viewing hotel ledger:', error);
+    Swal.fire('Error!', 'Failed to load hotel ledger', 'error');
+  } finally {
+    hideLoader();
+  }
+}
+
+// Add event listener for export ledger button
+document.addEventListener('DOMContentLoaded', function() {
+  const exportLedgerBtn = document.getElementById('exportLedgerBtn');
+  if (exportLedgerBtn) {
+    exportLedgerBtn.addEventListener('click', () => {
+      Swal.fire('Coming Soon!', 'Export functionality will be available soon.', 'info');
+    });
+  }
+});
+

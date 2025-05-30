@@ -465,9 +465,22 @@ async function generateEInvoice(orderId) {
 
         if (result.isConfirmed) {
             // Second SweetAlert - Details confirmation
-            const secondResult = await Swal.fire({
-                title: "Please check the details",
-                html: `
+            let detailsHTML = '';
+            
+            if (order.payment_note && (order.payment_note.toLowerCase() === 'visitor payment' || 
+                order.payment_note.toLowerCase() === 'visitor-payment' || 
+                order.payment_note.toLowerCase() === 'new member payment')) {
+                detailsHTML = `
+                    <strong>Visitor Name:</strong> ${order.visitor_name || 'N/A'}<br>
+                    <strong>Visitor Email:</strong> ${order.visitor_email || 'N/A'}<br>
+                    <strong>Visitor Mobile:</strong> ${order.visitor_mobilenumber || 'N/A'}<br>
+                    <strong>Visitor GSTIN:</strong> ${order.visitor_gstin || 'N/A'}<br>
+                    <strong>Chapter Name:</strong> ${chapter?.chapter_name || 'N/A'}<br>
+                    <strong>Payment Description:</strong> ${universalLink?.universal_link_name || 'N/A'}<br>
+                    <strong>Amount:</strong> ₹ ${transaction.payment_amount}
+                `;
+            } else {
+                detailsHTML = `
                     <strong>Member Name:</strong> ${order?.member_name || 'N/A'}<br>
                     <strong>Chapter Name:</strong> ${chapter?.chapter_name || 'N/A'}<br>
                     <strong>Email:</strong> ${order?.customer_email || 'N/A'}<br>
@@ -476,7 +489,12 @@ async function generateEInvoice(orderId) {
                     <strong>Company GST No:</strong> ${order?.gstin || 'N/A'}<br>
                     <strong>Payment Description:</strong> ${universalLink?.universal_link_name || 'N/A'}<br>
                     <strong>Amount:</strong> ₹ ${transaction.payment_amount}
-                `,
+                `;
+            }
+
+            const secondResult = await Swal.fire({
+                title: "Please check the details",
+                html: detailsHTML,
                 icon: "info",
                 showCancelButton: true,
                 confirmButtonText: "Confirm and Generate",
@@ -596,6 +614,8 @@ function getPaymentMethodHTML(method) {
         return `<img src="../../assets/images/mastercard.jpg" alt="Debit Card" style="height:18px;vertical-align:middle;margin-right:6px;"> <span style="vertical-align:middle;">DEBIT CARD</span>`;
     } else if (normalized === 'credit_card') {
         return `<img src="../../assets/images/mastercard.jpg" alt="Credit Card" style="height:18px;vertical-align:middle;margin-right:6px;"> <span style="vertical-align:middle;">CREDIT CARD</span>`;
+    } else if (normalized === 'cash') {
+        return `<img src="../../assets/images/cash4.jpg" alt="Cash" style="height:18px;vertical-align:middle;margin-right:6px;"> <span style="vertical-align:middle;">CASH</span>`;
     } else {
         return `<span>${method.toUpperCase()}</span>`;
     }
@@ -648,11 +668,24 @@ async function displayTransactions() {
         const settlementDetails = getSettlementDetails(transaction);
         const eInvoiceDetails = await getEInvoiceDetails(transaction, order);
 
+        // Format member name based on payment_note
+        let memberNameHTML = '';
+        if (order.payment_note && (order.payment_note.toLowerCase() === 'visitor payment' || 
+            order.payment_note.toLowerCase() === 'visitor-payment' || 
+            order.payment_note.toLowerCase() === 'new member payment')) {
+            memberNameHTML = `
+                <div><img src="../../assets/images/avatar.png" alt="avatar" style="height:22px;width:22px;border-radius:50%;vertical-align:middle;margin-right:8px;"> ${order.visitor_name || formatNA('Not Applicable')}</div>
+                <div style="font-size:0.85em;color:#666;margin-left:30px;">Invited by: <b>${order.member_name || formatNA('Not Applicable')}</b></div>
+            `;
+        } else {
+            memberNameHTML = `<img src="../../assets/images/avatar.png" alt="avatar" style="height:22px;width:22px;border-radius:50%;vertical-align:middle;margin-right:8px;"> ${order.member_name || formatNA('Not Applicable')}`;
+        }
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${startIndex + i + 1}</td>
             <td>${formatDate(transaction.payment_time)}</td>
-            <td><img src="../../assets/images/avatar.png" alt="avatar" style="height:22px;width:22px;border-radius:50%;vertical-align:middle;margin-right:8px;"> ${order.member_name || formatNA('Not Applicable')}</td>
+            <td>${memberNameHTML}</td>
             <td><b><i>${chapter ? chapter.chapter_name : formatNA('Not Applicable')}</i></b></td>
             <td><div><b>${formatINR(order.order_amount)}</b></div><div><span class="text-success" style="cursor:pointer;font-weight:500;" onclick="showInvoiceModal('${order.order_id}')">View</span></div></td>
             <td>${getPaymentMethodHTML(transaction.payment_group)}</td>

@@ -238,3 +238,137 @@
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
       <%- include('../partials/footer') %> 
+
+<!-- Add Hotel Ledger Modal -->
+<div class="modal fade" id="hotelLedgerModal" tabindex="-1" aria-labelledby="hotelLedgerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="hotelLedgerModalLabel">Hotel Expense History</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="hotel-info mb-4">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="hotel-name mb-2"></h6>
+              <p class="hotel-address mb-1"></p>
+              <p class="hotel-contact mb-1"></p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="total-expenses mb-2">
+                <strong>Total Expenses:</strong> <span class="amount"></span>
+              </div>
+              <div class="last-expense mb-2">
+                <strong>Last Expense:</strong> <span class="date"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover" id="hotelLedgerTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Expense Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>GST</th>
+                <th>Total Amount</th>
+                <th>Chapter</th>
+                <th>Payment Status</th>
+                <th>Bill</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Expense history will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        <div id="noExpensesMessage" class="text-center py-4" style="display: none;">
+          <p class="text-muted">No expenses found for this hotel.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="exportLedgerBtn">Export Ledger</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hotel Ledger Modal Styles */
+  .hotel-info {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hotel-name {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .hotel-address {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+  }
+
+  .hotel-contact {
+    font-size: 0.875rem;
+    color: #777;
+  }
+
+  .total-expenses, .last-expense {
+    font-size: 0.875rem;
+    color: #444;
+  }
+
+  .total-expenses .amount {
+    color: #d01f2f;
+    font-weight: 600;
+  }
+
+  #hotelLedgerTable {
+    border: 1px solid #dee2e6;
+  }
+
+  #hotelLedgerTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  #hotelLedgerTable td {
+    vertical-align: middle;
+  }
+
+  .payment-status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .payment-status-paid {
+    background-color: #198754;
+    color: white;
+  }
+
+  .payment-status-pending {
+    background-color: #ffc107;
+    color: #000;
+  }
+
+  .view-bill-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+</style>
+
+</body>
+</html> 
