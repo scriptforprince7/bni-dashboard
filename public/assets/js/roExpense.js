@@ -310,6 +310,10 @@ function displayExpenses(expenses) {
     const billDate = new Date(expense.bill_date);
     const formattedBillDate = billDate.toLocaleDateString();
 
+    // Format entry date
+    const entryDate = new Date(expense.entry_date);
+    const formattedEntryDate = entryDate.toLocaleDateString();
+
     // Get just the filename from upload_bill (remove any path if present)
     const filename = expense.upload_bill ? expense.upload_bill.split('/').pop() : null;
     
@@ -331,6 +335,7 @@ function displayExpenses(expenses) {
 
     row.innerHTML = `
       <td>${index + 1}</td>
+      <td style="border: 1px solid grey;"><b>${formattedEntryDate}</b></td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.chapter_id}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.vendor_name}</b></td>
@@ -670,6 +675,10 @@ const sortByColumn = (columnName) => {
     let valueA, valueB;
 
     switch (columnName) {
+      case 'entry_date':
+        valueA = new Date(a.entry_date);
+        valueB = new Date(b.entry_date);
+        break;
       case 'expense_type':
         const expenseNameA = expenseTypes.find(type => type.expense_id === a.expense_type)?.expense_name || '';
         const expenseNameB = expenseTypes.find(type => type.expense_id === b.expense_type)?.expense_name || '';
@@ -1992,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.addEventListener('click', async function(event) {
   // Check if a chapter name cell was clicked
-  if (event.target && event.target.tagName === 'TD' && event.target.cellIndex === 2) {
+  if (event.target && event.target.tagName === 'TD' && event.target.cellIndex === 3) {
     const chapterName = event.target.textContent.trim();
     if (!chapterName || chapterName === 'All Chapters') return;
 
@@ -2352,8 +2361,8 @@ displayExpenses = function(expenses) {
   const tableBody = document.getElementById("expensesTableBody");
   if (tableBody) {
     Array.from(tableBody.rows).forEach(row => {
-      if (row.cells[2]) {
-        row.cells[2].classList.add('chapter-name-cell');
+      if (row.cells[3]) { // Changed from 2 to 3
+        row.cells[3].classList.add('chapter-name-cell');
       }
     });
   }

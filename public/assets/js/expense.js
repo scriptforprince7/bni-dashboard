@@ -12,6 +12,8 @@ const sortState = {};
 // Helper to get value for sorting
 function getSortValue(expense, column) {
   switch (column) {
+    case 'entry_date':
+      return new Date(expense.entry_date);
     case 'expense_type': {
       const expenseTypeObj = expenseTypes.find(type => type.expense_id === expense.expense_type);
       return expenseTypeObj ? expenseTypeObj.expense_name : '';
@@ -302,7 +304,7 @@ function displayExpenses(expenses) {
     console.log('No expenses to display');
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="11" class="text-center">No expenses found</td>
+      <td colspan="12" class="text-center">No expenses found</td>
     `;
     tableBody.appendChild(row);
     return;
@@ -324,6 +326,10 @@ function displayExpenses(expenses) {
     const billDate = new Date(expense.bill_date);
     const formattedBillDate = billDate.toLocaleDateString();
 
+    // Format entry date
+    const entryDate = new Date(expense.entry_date);
+    const formattedEntryDate = entryDate.toLocaleDateString();
+
     // Get just the filename from upload_bill (remove any path if present)
     const filename = expense.upload_bill ? expense.upload_bill.split('/').pop() : null;
     
@@ -341,6 +347,7 @@ function displayExpenses(expenses) {
       amount: expense.amount,
       status: expense.payment_status,
       date: formattedBillDate,
+      entryDate: formattedEntryDate,
       billUrl: billUrl,
       receiptUrl: receiptUrl,
       modeOfPayment: expense.mode_of_payment
@@ -348,6 +355,7 @@ function displayExpenses(expenses) {
 
     row.innerHTML = `
       <td>${index + 1}</td>
+      <td style="border: 1px solid grey;"><b>${formattedEntryDate}</b></td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.submitted_by}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.description}</b></td>
@@ -376,7 +384,10 @@ function displayExpenses(expenses) {
         ` : 'No receipt uploaded'}
       </td>
       <td style="border: 1px solid grey">
-        <a href="/exp/edit-expense/?expense_id=${expense.expense_id}" class="badge" style="background-color: #10b981; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); transition: all 0.3s ease; hover: {opacity: 0.9};">Edit Bill</a>
+        ${expense.payment_status === 'paid' ? 
+          `<span class="badge" style="background-color: #9ca3af; color: #ffffff; cursor: not-allowed;">Edit Bill</span>` :
+          `<a href="/exp/edit-expense/?expense_id=${expense.expense_id}" class="badge" style="background-color: #10b981; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); transition: all 0.3s ease; hover: {opacity: 0.9};">Edit Bill</a>`
+        }
         <span class="badge bg-danger delete-btn" style="cursor:pointer; color: #ffffff; text-shadow: 1px 1px 1px rgba(0,0,0,0.5); font-weight: bold;" data-expense-id="${expense.expense_id}">Delete</span>
       </td>
     `;
