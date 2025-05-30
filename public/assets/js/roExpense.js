@@ -104,6 +104,14 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     // Populate chapter filter dropdown
     await populateChapterFilter();
 
+    // Fetch vendors for vendor name mapping
+    const vendorsResponse = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+    if (!vendorsResponse.ok) throw new Error('Failed to fetch vendors');
+    const vendors = await vendorsResponse.json();
+    
+    // Create a map of vendor_id to vendor_name for quick lookup
+    const vendorMap = new Map(vendors.map(vendor => [vendor.vendor_id, vendor.vendor_name]));
+
     // Find user's chapter based on email
     const userChapter = chapters.find(chapter =>
       chapter.email_id === userEmail ||
@@ -149,12 +157,14 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       console.log('Filtered expenses for chapter:', allExpenses);
     }
 
-    // Replace chapter_id with chapter_name
+    // Replace chapter_id with chapter_name and add vendor_name
     allExpenses.forEach(expense => {
       const matchedChapter = chapters.find(chapter => chapter.chapter_id === expense.chapter_id);
       if (matchedChapter) {
         expense.chapter_id = matchedChapter.chapter_name;
       }
+      // Add vendor name to expense
+      expense.vendor_name = expense.vendor_id ? vendorMap.get(expense.vendor_id) || 'N/A' : 'N/A';
     });
 
     filteredExpenses = [...allExpenses];
@@ -165,11 +175,11 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     
     // Display all expenses
     displayExpenses(filteredExpenses);
-
+    
     // Update the expense totals
     updateExpenseTotals(allExpenses);
     console.log('Updated expense totals');
-
+    
   } catch (error) {
     console.error("Error in fetchExpenses:", error);
   } finally {
@@ -280,7 +290,7 @@ function displayExpenses(expenses) {
     console.log('No expenses to display');
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td colspan="11" class="text-center">No expenses found</td>
+      <td colspan="17" class="text-center">No expenses found</td>
     `;
     tableBody.appendChild(row);
     return;
@@ -323,7 +333,7 @@ function displayExpenses(expenses) {
       <td>${index + 1}</td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.chapter_id}</b></td>
-      
+      <td style="border: 1px solid grey;"><b>${expense.vendor_name}</b></td>
       <td style="border: 1px solid grey;">
         <div style="position: relative;">
           <span class="description-text" style="display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -540,7 +550,7 @@ function displayExpenses(expenses) {
 document
   .getElementById("expensesTableBody")
   .addEventListener("click", (event) => {
-    if (event.target.classList.contains("delete-btn")) {
+    if (event.target.classList.contains("delete-expense")) {
       const expenseId = event.target.getAttribute("data-expense-id");
       deleteExpense(expenseId);
     }
