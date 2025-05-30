@@ -290,6 +290,10 @@
                               <label for="bill_date" class="form-label">Bill Date:</label>
                               <input type="date" id="bill_date" name="bill_date" class="form-control" required />
                             </div>
+                            <div class="col-xl-4">
+                              <label for="expense_entry_date" class="form-label">Expense Entry Date:</label>
+                              <input type="text" id="expense_entry_date" name="expense_entry_date" class="form-control" readonly style="background-color: #f8f9fa;" />
+                            </div>
                           </div>
 
                           <div class="row">
@@ -337,14 +341,53 @@
 document.addEventListener("DOMContentLoaded", async function () {
 
   // Function to show the loader
-function showLoader() {
-  document.getElementById("loader").style.display = "flex"; // Show loader
-}
+  function showLoader() {
+    document.getElementById("loader").style.display = "flex"; // Show loader
+  }
 
-// Function to hide the loader
-function hideLoader() {
-  document.getElementById("loader").style.display = "none"; // Hide loader
-}
+  // Function to hide the loader
+  function hideLoader() {
+    document.getElementById("loader").style.display = "none"; // Hide loader
+  }
+
+  // Set current date and time in IST format
+  function setCurrentDateTime() {
+    const now = new Date();
+    const options = {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    };
+    const istDateTime = now.toLocaleString('en-IN', options);
+    document.getElementById('expense_entry_date').value = istDateTime;
+
+    // Format for database (YYYY-MM-DD HH:MM:SS)
+    const dbFormat = now.toLocaleString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/(\d+)\/(\d+)\/(\d+),\s(\d+):(\d+):(\d+)/, '$3-$1-$2 $4:$5:$6');
+    
+    // Store the database format in a data attribute
+    document.getElementById('expense_entry_date').setAttribute('data-db-format', dbFormat);
+  }
+
+  // Set initial date and time
+  setCurrentDateTime();
+
+  // Update time every second
+  setInterval(setCurrentDateTime, 1000);
+
   // First get the login type and email from token
   const loginType = getUserLoginType();
   const userEmail = getUserEmail();
@@ -804,6 +847,7 @@ function hideLoader() {
     formData.append('bill_date', document.getElementById('bill_date').value);
     formData.append('bill_no', document.getElementById('bill_no').value);
     formData.append('transaction_no', document.getElementById('transaction_no').value);
+    formData.append('expense_entry_date', document.getElementById('expense_entry_date').getAttribute('data-db-format'));
 
     // Add files to formData
     formData.append('upload_bill', billFile);

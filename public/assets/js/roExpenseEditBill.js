@@ -28,6 +28,22 @@ function showLoader() {
       const expenseData = await response.json();
       console.log('📦 Fetched expense data:', expenseData);
   
+      // Format and set expense entry date
+      if (expenseData.entry_date) {
+        const entryDate = new Date(expenseData.entry_date);
+        const formattedDate = entryDate.toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        });
+        document.getElementById('expense_entry_date').value = formattedDate;
+      }
+  
       // Fetch chapters
       const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
       if (!chaptersResponse.ok) throw new Error("Failed to fetch chapters");
