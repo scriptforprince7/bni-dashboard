@@ -1007,11 +1007,6 @@ document.addEventListener("DOMContentLoaded", async function() {
     const sgstInput = document.getElementById('sgst_amount');
     const grandTotalInput = document.getElementById('grand_total');
 
-    // Set checkbox to checked by default
-    if (includeGstCheckbox) {
-        includeGstCheckbox.checked = true;
-    }
-
     function updateGrandTotalWithGST() {
         const taxable = parseFloat(taxableAmountInput.value.replace(/[₹,\s]/g, '')) || 0;
         let cgst = 0, sgst = 0;

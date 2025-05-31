@@ -687,7 +687,7 @@ async function displayTransactions() {
             <td>${formatDate(transaction.payment_time)}</td>
             <td>${memberNameHTML}</td>
             <td><b><i>${chapter ? chapter.chapter_name : formatNA('Not Applicable')}</i></b></td>
-            <td><div><b>${formatINR(order.order_amount)}</b></div><div><span class="text-success" style="cursor:pointer;font-weight:500;" onclick="showInvoiceModal('${order.order_id}')">View</span></div></td>
+            <td><div><b>${formatINR(transaction.payment_amount)}</b></div><div><span class="text-success" style="cursor:pointer;font-weight:500;" onclick="showInvoiceModal('${order.order_id}')">View</span></div></td>
             <td>${getPaymentMethodHTML(transaction.payment_group)}</td>
             <td><i>${universalLink ? universalLink.universal_link_name : formatNA('Not Applicable')}</i></td>
             <td>${getPGStatusBadge(transaction.payment_status)}</td>
