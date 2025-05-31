@@ -109,8 +109,14 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     if (!vendorsResponse.ok) throw new Error('Failed to fetch vendors');
     const vendors = await vendorsResponse.json();
     
-    // Create a map of vendor_id to vendor_name for quick lookup
-    const vendorMap = new Map(vendors.map(vendor => [vendor.vendor_id, vendor.vendor_name]));
+    // Create a map of vendor_id to vendor details for quick lookup
+    const vendorMap = new Map(vendors.map(vendor => [
+      vendor.vendor_id, 
+      { 
+        name: vendor.vendor_name,
+        company: vendor.vendor_company_name || 'N/A'
+      }
+    ]));
 
     // Find user's chapter based on email
     const userChapter = chapters.find(chapter =>
@@ -145,6 +151,9 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     const allExpensesData = await response.json();
     console.log('All expenses:', allExpensesData);
 
+    // Sort all expenses by expense_id in descending order first
+    allExpensesData.sort((a, b) => parseInt(b.expense_id) - parseInt(a.expense_id));
+
     // Filter expenses based on user type and chapter
     if (getUserLoginType() === 'ro_admin') {
       console.log('User is RO Admin - showing all expenses');
@@ -157,14 +166,16 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       console.log('Filtered expenses for chapter:', allExpenses);
     }
 
-    // Replace chapter_id with chapter_name and add vendor_name
+    // Replace chapter_id with chapter_name and add vendor details
     allExpenses.forEach(expense => {
       const matchedChapter = chapters.find(chapter => chapter.chapter_id === expense.chapter_id);
       if (matchedChapter) {
         expense.chapter_id = matchedChapter.chapter_name;
       }
-      // Add vendor name to expense
-      expense.vendor_name = expense.vendor_id ? vendorMap.get(expense.vendor_id) || 'N/A' : 'N/A';
+      // Add vendor details to expense
+      const vendorDetails = expense.vendor_id ? vendorMap.get(expense.vendor_id) : null;
+      expense.vendor_name = vendorDetails ? vendorDetails.name : 'N/A';
+      expense.vendor_company = vendorDetails ? vendorDetails.company : 'N/A';
     });
 
     filteredExpenses = [...allExpenses];
@@ -313,6 +324,7 @@ function displayExpenses(expenses) {
     // Format entry date
     const entryDate = new Date(expense.entry_date);
     const formattedEntryDate = entryDate.toLocaleDateString();
+    const formattedEntryTime = entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     // Get just the filename from upload_bill (remove any path if present)
     const filename = expense.upload_bill ? expense.upload_bill.split('/').pop() : null;
@@ -334,11 +346,21 @@ function displayExpenses(expenses) {
     });
 
     row.innerHTML = `
-      <td>${index + 1}</td>
-      <td style="border: 1px solid grey;"><b>${formattedEntryDate}</b></td>
+      <td>${expenses.length - index}</td>
+      <td style="border: 1px solid grey;">
+        <div style="display: flex; flex-direction: column;">
+          <b>${formattedEntryDate}</b>
+          <small style="color: #666; font-size: 0.85em;">${formattedEntryTime}</small>
+        </div>
+      </td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.chapter_id}</b></td>
-      <td style="border: 1px solid grey;"><b>${expense.vendor_name}</b></td>
+      <td style="border: 1px solid grey;">
+        <div style="display: flex; flex-direction: column;">
+          <b>${expense.vendor_name}</b>
+          <small style="color: #666; font-size: 0.85em;">${expense.vendor_company}</small>
+        </div>
+      </td>
       <td style="border: 1px solid grey;">
         <div style="position: relative;">
           <span class="description-text" style="display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
