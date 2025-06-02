@@ -5,6 +5,7 @@ let chapters = [];
 let universalLinks = [];
 let regions = []; // Add regions array
 let allExpenses = [];
+let allDocNumbers = [];
 let currentFilters = {
     region: '',
     chapter: '',
@@ -163,17 +164,18 @@ async function fetchAllData() {
         // Show loader
         toggleLoader(true);
 
-        // Fetch all data in parallel (add allExpenses)
-        const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse, expensesResponse] = await Promise.all([
-            fetch('https://backend.bninewdelhi.com/api/allOrders'),
-            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-            fetch('https://backend.bninewdelhi.com/api/chapters'),
-            fetch('https://backend.bninewdelhi.com/api/universalLinks'),
-            fetch('https://backend.bninewdelhi.com/api/regions'),
-            fetch('https://backend.bninewdelhi.com/api/allExpenses')
+        // Fetch all data in parallel (add allExpenses and allDocNumbers)
+        const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse, expensesResponse, docNumbersResponse] = await Promise.all([
+            fetch('http://localhost:5000/api/allOrders'),
+            fetch('http://localhost:5000/api/allTransactions'),
+            fetch('http://localhost:5000/api/chapters'),
+            fetch('http://localhost:5000/api/universalLinks'),
+            fetch('http://localhost:5000/api/regions'),
+            fetch('http://localhost:5000/api/allExpenses'),
+            fetch('http://localhost:5000/api/getAllDocNumbers')
         ]);
 
-        if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok || !expensesResponse.ok) {
+        if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok || !expensesResponse.ok || !docNumbersResponse.ok) {
             throw new Error('Failed to fetch data from one or more endpoints');
         }
 
@@ -183,6 +185,7 @@ async function fetchAllData() {
         universalLinks = await universalLinksResponse.json();
         regions = await regionsResponse.json();
         allExpenses = await expensesResponse.json();
+        allDocNumbers = await docNumbersResponse.json();
 
         // Update dashboard stats
         updateDashboardStats();
@@ -368,7 +371,7 @@ function populateFilters() {
 // Function to fetch e-invoice data
 async function fetchEInvoiceData(orderId) {
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/einvoice/${orderId}`);
+        const response = await fetch(`http://localhost:5000/api/einvoice/${orderId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch e-invoice data');
         }
@@ -523,7 +526,7 @@ async function generateEInvoice(orderId) {
                 };
 
                 // Make API call
-                const response = await fetch('https://backend.bninewdelhi.com/einvoice/generate-irn', {
+                const response = await fetch('http://localhost:5000/einvoice/generate-irn', {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
@@ -699,6 +702,7 @@ async function displayTransactions() {
             <td><b>${formatNA(settlementDetails.time)}</b></td>
             <td>${formatNA(eInvoiceDetails.irn)}</td>
             <td>${formatNA(eInvoiceDetails.qrCode)}</td>
+            <td><b>${formatNA(transaction.einvoice_generated ? getDocumentNumber(order.order_id) : 'Not Applicable')}</b></td>
             <td>${formatNA(eInvoiceDetails.eInvoiceStatus)}</td>
             <td>${formatNA(eInvoiceDetails.cancelIRN)}</td>
         `;
@@ -945,7 +949,7 @@ async function cancelIRN(orderId) {
                 });
 
                 // Make API call
-                const response = await fetch('https://backend.bninewdelhi.com/einvoice/cancel-irn', {
+                const response = await fetch('http://localhost:5000/einvoice/cancel-irn', {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json"
@@ -1065,4 +1069,10 @@ async function generateQRCode(orderId) {
         console.error('Error generating QR code:', error);
         toastr.error('Failed to generate QR code');
     }
+}
+
+// Add this helper function to get document number
+function getDocumentNumber(orderId) {
+    const docNumber = allDocNumbers.find(doc => doc.order_id === orderId);
+    return docNumber ? docNumber.doc_no : 'Not Applicable';
 }

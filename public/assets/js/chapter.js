@@ -1,9 +1,9 @@
 // Use window object to store global variables
 window.BNI = window.BNI || {};
 window.BNI.endpoints = {
-    chapters: "https://backend.bninewdelhi.com/api/chapters",
-    regions: "https://backend.bninewdelhi.com/api/regions",
-    members: "https://backend.bninewdelhi.com/api/members"
+    chapters: "http://localhost:5000/api/chapters",
+    regions: "http://localhost:5000/api/regions",
+    members: "http://localhost:5000/api/members"
 };
 let active_total =0;
 let member_total = 0;
@@ -274,7 +274,7 @@ async function displayChapters(chapters) {
     document.getElementById("total-chapters-count").textContent = totalEntries;
 
     // Update total members count
-    fetch('https://backend.bninewdelhi.com/api/members')
+    fetch('http://localhost:5000/api/members')
         .then(response => response.json())
         .then(members => {
             const activeMembersCount = members.filter(member => member).length;
@@ -287,10 +287,10 @@ async function displayChapters(chapters) {
 
     // Fetch all required data ONCE
     const [expenses, allOrders, allTransactions, allOtherPayments] = await Promise.all([
-        fetch("https://backend.bninewdelhi.com/api/allExpenses").then(r => r.json()),
-        fetch("https://backend.bninewdelhi.com/api/allOrders").then(r => r.json()),
-        fetch("https://backend.bninewdelhi.com/api/allTransactions").then(r => r.json()),
-        fetch("https://backend.bninewdelhi.com/api/allOtherPayment").then(r => r.json())
+        fetch("http://localhost:5000/api/allExpenses").then(r => r.json()),
+        fetch("http://localhost:5000/api/allOrders").then(r => r.json()),
+        fetch("http://localhost:5000/api/allTransactions").then(r => r.json()),
+        fetch("http://localhost:5000/api/allOtherPayment").then(r => r.json())
     ]);
 
     // Calculate pagination
@@ -655,7 +655,7 @@ document.getElementById("chaptersTableBody")?.addEventListener("click", async (e
         if (result.isConfirmed) {
             try {
                 showLoader();
-                const response = await fetch(`https://backend.bninewdelhi.com/api/deleteChapter/${chapterId}`, {
+                const response = await fetch(`http://localhost:5000/api/deleteChapter/${chapterId}`, {
                     method: "PUT"
                 });
 

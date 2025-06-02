@@ -1,4 +1,4 @@
-// let apiUrl = "https://backend.bninewdelhi.com/api/allExpenses"; // API for expenses
+// let apiUrl = "http://localhost:5000/api/allExpenses"; // API for expenses
 let allExpenses = []; // To store fetched expenses globally
 let filteredExpenses = []; // To store filtered expenses based on search
 let expenseTypes = []; // Store expense types mapping
@@ -113,7 +113,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     });
 
     // Fetch all expenses first
-    const response = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
+    const response = await fetch("http://localhost:5000/api/allExpenses");
     if (!response.ok) throw new Error("Network response was not ok");
     const allExpensesData = await response.json();
     console.log('📊 All expenses before filtering:', allExpensesData);
@@ -139,7 +139,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
       console.log('✅ Filtered expenses for RO Admin:', allExpenses);
     } else if (userType !== 'ro_admin') {
       // For chapter users, fetch their chapter details
-      const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
+      const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
       const chapters = await chaptersResponse.json();
       const userChapter = chapters.find(chapter =>
         chapter.email_id === userEmail ||
@@ -165,7 +165,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
 
     // Fetch expense types for mapping
     const expenseTypesResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/expenseType"
+      "http://localhost:5000/api/expenseType"
     );
     if (!expenseTypesResponse.ok) {
       throw new Error("Failed to fetch expense types");
@@ -257,7 +257,7 @@ const AddExpenseType = async () => {
         showLoader(); // Show loading indicator
 
         // Call the API to add the expense (replace with the actual API endpoint)
-        const response = await fetch(`https://backend.bninewdelhi.com/api/expenseType`, {
+        const response = await fetch(`http://localhost:5000/api/expenseType`, {
           method: 'POST', // Use POST to add an expense
           headers: {
             'Content-Type': 'application/json',
@@ -421,7 +421,7 @@ const deleteExpense = async (expense_id) => {
       showLoader();
 
       const response = await fetch(
-        `https://backend.bninewdelhi.com/api/expense/${expense_id}`,
+        `http://localhost:5000/api/expense/${expense_id}`,
         {
           method: "DELETE",
         }
@@ -533,7 +533,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Function to fetch hotels
   const fetchHotels = async () => {
     try {
-      const response = await fetch('https://backend.bninewdelhi.com/api/getHotels');
+      const response = await fetch('http://localhost:5000/api/getHotels');
       if (!response.ok) throw new Error('Failed to fetch hotels');
       return await response.json();
     } catch (error) {
