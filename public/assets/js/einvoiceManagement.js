@@ -24,8 +24,8 @@ function formatDate(dateString) {
 }
 
 // Function to check if an e-invoice is GST or non-GST
-function isGSTEinvoice(order) {
-    return order && order.gstin && order.gstin.trim() !== '';
+function isGSTEinvoice(einvoice) {
+    return einvoice && einvoice.is_gst_number === true;
 }
 
 // Function to handle filter selection
@@ -120,6 +120,147 @@ async function populateFilters(chaptersData, regionsData) {
     });
 }
 
+// Global variables for maps and pagination
+let ordersMap, chaptersMap, regionsMap, docNumbersMap, transactionsMap;
+let currentPage = 1;
+const itemsPerPage = 20;
+let totalRecords = 0;
+let allEinvoiceData = [];
+let filteredData = [];
+
+// Function to handle page navigation
+function goToPage(page) {
+    if (page < 1 || page > Math.ceil(totalRecords / itemsPerPage)) {
+        return;
+    }
+    currentPage = page;
+    displayCurrentPage();
+}
+
+// Function to update pagination controls
+function updatePaginationControls() {
+    const totalPages = Math.ceil(totalRecords / itemsPerPage);
+    const paginationContainer = document.querySelector('.pagination');
+    
+    let paginationHTML = `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage - 1})">Previous</a>
+        </li>
+    `;
+
+    // Show page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (
+            i === 1 || // First page
+            i === totalPages || // Last page
+            (i >= currentPage - 2 && i <= currentPage + 2) // Pages around current page
+        ) {
+            paginationHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="goToPage(${i})">${i}</a>
+                </li>
+            `;
+        } else if (
+            (i === currentPage - 3 && currentPage > 3) || // Before current page range
+            (i === currentPage + 3 && currentPage < totalPages - 2) // After current page range
+        ) {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <a class="page-link">...</a>
+                </li>
+            `;
+        }
+    }
+
+    paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage + 1})">Next</a>
+        </li>
+    `;
+
+    paginationContainer.innerHTML = paginationHTML;
+
+    // Update showing entries text
+    const startEntry = (currentPage - 1) * itemsPerPage + 1;
+    const endEntry = Math.min(currentPage * itemsPerPage, totalRecords);
+    const showingText = document.querySelector('.card-footer .mb-2');
+    if (showingText) {
+        showingText.innerHTML = `Showing <b>${startEntry}</b> to <b>${endEntry}</b> of <b>${totalRecords}</b> entries`;
+    }
+}
+
+// Function to display current page data
+function displayCurrentPage() {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = filteredData.slice(startIndex, endIndex);
+    
+    const tableBody = document.getElementById('einvoiceTableBody');
+    tableBody.innerHTML = '';
+
+    // Process each e-invoice for the current page
+    pageData.forEach((einvoice, index) => {
+        const order = ordersMap.get(einvoice.order_id);
+        const docNumber = docNumbersMap.get(einvoice.order_id);
+        const chapter = order ? chaptersMap.get(order.chapter_id) : null;
+        const transaction = transactionsMap.get(einvoice.order_id);
+        const isGST = isGSTEinvoice(einvoice);
+
+        // Generate QR code
+        const qrCodeUrl = generateQRCode(einvoice.qrcode);
+
+        const row = document.createElement('tr');
+        // Calculate bill amount (before tax)
+        const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
+        const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
+        const billAmount = totalAmount - taxAmount;
+
+        // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
+        const invoiceDate = isGST 
+            ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
+            : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
+
+        // Get payment date
+        const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
+
+        // Get IRN status
+        const irnStatus = isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices';
+
+        // Check if it's a visitor payment
+        const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
+        
+        // Get member name, company name and GSTIN based on payment type
+        const displayMemberName = isVisitorPayment ? (order?.visitor_name || 'N/A') : (order?.member_name || 'N/A');
+        const displayCompanyName = isVisitorPayment ? (order?.visitor_company || 'N/A') : (order?.company || 'N/A');
+        const displayGstin = isVisitorPayment ? (order?.visitor_gstin || 'N/A') : (order?.gstin || 'N/A');
+
+        row.innerHTML = `
+            <td><input type="checkbox" class="einvoice-checkbox" value="${einvoice.order_id}"></td>
+            <td><span class="fw-bold">${totalRecords - (startIndex + index)}</span></td>
+            <td><span class="fw-bold">${invoiceDate}</span></td>
+            <td>
+                <span class="clickable-doc" style="cursor:pointer;">
+                    ${docNumber?.doc_no || 'N/A'}
+                </span>
+            </td>
+            <td><span class="fw-bold">${paymentDate}</span></td>
+            <td><span class="fw-bold">${displayMemberName}</span></td>
+            <td><span class="fw-bold">${chapter?.chapter_name || 'N/A'}</span></td>
+            <td><span class="fw-bold">${order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A'}</span></td>
+            <td><span class="fw-bold">${displayCompanyName}</span></td>
+            <td><span class="fw-bold">${billAmount.toFixed(2)}</span></td>
+            <td><span class="fw-bold">${taxAmount.toFixed(2)}</span></td>
+            <td><span class="fw-bold">${totalAmount.toFixed(2)}</span></td>
+            <td><span class="fst-italic">${irnStatus}</span></td>
+            <td><span class="fw-bold">${transaction?.cf_payment_id || 'N/A'}</span></td>
+            <td><span class="fw-bold">${displayGstin}</span></td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    updatePaginationControls();
+}
+
 // Function to filter table based on selected filters
 function filterTable() {
     const selectedRegion = document.querySelector('#region-filter .dropdown-item.active')?.dataset.region || 'all';
@@ -127,20 +268,16 @@ function filterTable() {
     const selectedMonth = document.querySelector('#month-filter .dropdown-item.active')?.dataset.month || 'all';
     const selectedInvoiceType = document.querySelector('input[name="eoi-status"]:checked')?.id || 'all';
 
-    const rows = document.querySelectorAll('#einvoiceTableBody tr');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-        // Get orderId from the checkbox value (first cell)
-        const orderId = row.querySelector('input.einvoice-checkbox').value;
-        const order = ordersMap.get(orderId);
+    // Filter the data
+    filteredData = allEinvoiceData.filter(einvoice => {
+        const order = ordersMap.get(einvoice.order_id);
         const chapter = order ? chaptersMap.get(order.chapter_id) : null;
         const region = chapter ? regionsMap.get(chapter.region_id) : null;
         
-        // Get invoice date (3rd column)
-        const invoiceDate = row.querySelector('td:nth-child(3)').textContent;
-        const gstin = row.querySelector('td:nth-child(15)').textContent; // Updated GSTIN column index
-        const paymentType = row.querySelector('td:nth-child(8)').textContent;
+        // Get invoice date
+        const invoiceDate = einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A';
+        const gstin = order?.gstin || 'N/A';
+        const paymentType = order?.payment_note || '';
 
         // Filter by region, chapter, and month
         const regionMatch = selectedRegion === 'all' || (region && region.region_id.toString() === selectedRegion);
@@ -171,20 +308,105 @@ function filterTable() {
                 break;
         }
 
-        const shouldShow = regionMatch && chapterMatch && monthMatch && invoiceTypeMatch;
-        row.style.display = shouldShow ? '' : 'none';
-        if (shouldShow) visibleCount++;
+        return regionMatch && chapterMatch && monthMatch && invoiceTypeMatch;
     });
 
-    // Update the "Showing X to Y entries" text
-    const showingText = document.querySelector('.card-footer .mb-2');
-    if (showingText) {
-        showingText.innerHTML = `Showing <b>1</b> to <b>${visibleCount}</b> entries`;
-    }
+    // Update total records and reset to first page
+    totalRecords = filteredData.length;
+    currentPage = 1;
+    displayCurrentPage();
 }
 
-// Global variables for maps
-let ordersMap, chaptersMap, regionsMap;
+// Function to fetch and display e-invoice data
+async function fetchAndDisplayEinvoices() {
+    try {
+        // Fetch e-invoice data
+        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
+        const einvoiceData = await einvoiceResponse.json();
+
+        // Fetch all orders data
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        const ordersData = await ordersResponse.json();
+
+        // Fetch document numbers
+        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
+        const docNumbersData = await docNumbersResponse.json();
+
+        // Fetch chapters data
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chaptersData = await chaptersResponse.json();
+
+        // Fetch regions data
+        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+        const regionsData = await regionsResponse.json();
+
+        // Fetch transactions data
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsData = await transactionsResponse.json();
+
+        // Fetch members data
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        const membersData = await membersResponse.json();
+
+        // Create maps for quick lookup
+        ordersMap = new Map(ordersData.map(order => [order.order_id, order]));
+        docNumbersMap = new Map(docNumbersData.map(doc => [doc.order_id, doc]));
+        chaptersMap = new Map(chaptersData.map(chapter => [chapter.chapter_id, chapter]));
+        regionsMap = new Map(regionsData.map(region => [region.region_id, region]));
+        transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
+        const membersMap = new Map(membersData.map(member => [member.member_id, member]));
+
+        // Sort einvoice data based on doc_numbers id in descending order
+        allEinvoiceData = einvoiceData.sort((a, b) => {
+            const docA = docNumbersMap.get(a.order_id);
+            const docB = docNumbersMap.get(b.order_id);
+            const idA = docA ? docA.id : Number.MIN_SAFE_INTEGER;
+            const idB = docB ? docB.id : Number.MIN_SAFE_INTEGER;
+            return idB - idA; // Changed to descending order
+        });
+
+        // Initialize filtered data with all data
+        filteredData = [...allEinvoiceData];
+
+        // Set total records
+        totalRecords = filteredData.length;
+
+        // Populate filters
+        await populateFilters(chaptersData, regionsData);
+
+        // Display first page
+        currentPage = 1;
+        displayCurrentPage();
+
+        // Setup select all checkbox
+        setupSelectAllCheckbox();
+
+        // Event delegation for Doc No click
+        const tableBody = document.getElementById('einvoiceTableBody');
+        tableBody.addEventListener('click', function(e) {
+            const target = e.target.closest('.clickable-doc');
+            if (target) {
+                const row = target.closest('tr');
+                const orderId = row.querySelector('input.einvoice-checkbox').value;
+                const order = ordersMap.get(orderId);
+                const transaction = transactionsMap.get(orderId);
+                const einvoice = allEinvoiceData.find(e => e.order_id === orderId);
+                showEinvoicePdfModal(order, transaction, einvoice);
+            }
+        });
+
+        // Update total count
+        document.getElementById('total-visitors-count').textContent = totalRecords;
+
+    } catch (error) {
+        console.error('Error fetching e-invoice data:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to fetch e-invoice data. Please try again later.'
+        });
+    }
+}
 
 // Function to show document details modal
 function showDocumentDetailsModal(docNo, row) {
@@ -252,164 +474,6 @@ function showEinvoicePdfModal(order, transaction, einvoice) {
     document.getElementById('einvoicePdfIframe').src = url;
     const modal = new bootstrap.Modal(document.getElementById('einvoicePdfModal'));
     modal.show();
-}
-
-// Function to fetch and display e-invoice data
-async function fetchAndDisplayEinvoices() {
-    try {
-        // Fetch e-invoice data
-        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
-        const einvoiceData = await einvoiceResponse.json();
-
-        // Fetch all orders data
-        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
-        const ordersData = await ordersResponse.json();
-
-        // Fetch document numbers
-        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
-        const docNumbersData = await docNumbersResponse.json();
-
-        // Fetch chapters data
-        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
-        const chaptersData = await chaptersResponse.json();
-
-        // Fetch regions data
-        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
-        const regionsData = await regionsResponse.json();
-
-        // Fetch transactions data
-        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
-        const transactionsData = await transactionsResponse.json();
-
-        // Fetch members data
-        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
-        const membersData = await membersResponse.json();
-
-        // Create maps for quick lookup
-        ordersMap = new Map(ordersData.map(order => [order.order_id, order]));
-        const docNumbersMap = new Map(docNumbersData.map(doc => [doc.order_id, doc]));
-        chaptersMap = new Map(chaptersData.map(chapter => [chapter.chapter_id, chapter]));
-        regionsMap = new Map(regionsData.map(region => [region.region_id, region]));
-        const transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
-        const membersMap = new Map(membersData.map(member => [member.member_id, member]));
-
-        // Sort einvoice data based on doc_numbers id in descending order
-        einvoiceData.sort((a, b) => {
-            const docA = docNumbersMap.get(a.order_id);
-            const docB = docNumbersMap.get(b.order_id);
-            const idA = docA ? docA.id : Number.MIN_SAFE_INTEGER;
-            const idB = docB ? docB.id : Number.MIN_SAFE_INTEGER;
-            return idB - idA; // Changed to descending order
-        });
-
-        // Populate filters
-        await populateFilters(chaptersData, regionsData);
-
-        const tableBody = document.getElementById('einvoiceTableBody');
-        tableBody.innerHTML = '';
-
-        // Update total count
-        document.getElementById('total-visitors-count').textContent = einvoiceData.length;
-
-        // Process each e-invoice
-        for (let i = 0; i < einvoiceData.length; i++) {
-            const einvoice = einvoiceData[i];
-            const order = ordersMap.get(einvoice.order_id);
-            const docNumber = docNumbersMap.get(einvoice.order_id);
-            const chapter = order ? chaptersMap.get(order.chapter_id) : null;
-            const transaction = transactionsMap.get(einvoice.order_id);
-            const isGST = isGSTEinvoice(order);
-
-            // Generate QR code
-            const qrCodeUrl = await generateQRCode(einvoice.qrcode);
-
-            const row = document.createElement('tr');
-            // Calculate bill amount (before tax)
-            const totalAmount = order?.order_amount !== undefined && order?.order_amount !== null ? Number(order.order_amount) : 0;
-            const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
-            const billAmount = totalAmount - taxAmount;
-
-            // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
-            const invoiceDate = isGST 
-                ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
-                : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
-
-            // Get payment date
-            const paymentDate = transaction?.payment_time ? formatDate(transaction.payment_time) : 'N/A';
-
-            // Get IRN status
-            const irnStatus = isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices';
-
-            // Check if it's a visitor payment
-            const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
-            
-            // Get member name, company name and GSTIN based on payment type
-            const displayMemberName = isVisitorPayment ? (order?.visitor_name || 'N/A') : (order?.member_name || 'N/A');
-            const displayCompanyName = isVisitorPayment ? (order?.visitor_company || 'N/A') : (order?.company || 'N/A');
-            const displayGstin = isVisitorPayment ? (order?.visitor_gstin || 'N/A') : (order?.gstin || 'N/A');
-
-            row.innerHTML = `
-                <td><input type="checkbox" class="einvoice-checkbox" value="${einvoice.order_id}"></td>
-                <td><span class="fw-bold">${einvoiceData.length - i}</span></td>
-                <td><span class="fw-bold">${invoiceDate}</span></td>
-                <td>
-                    <span class="clickable-doc" style="cursor:pointer;">
-                        ${docNumber?.doc_no || 'N/A'}
-                    </span>
-                </td>
-                <td><span class="fw-bold">${paymentDate}</span></td>
-                <td><span class="fw-bold">${displayMemberName}</span></td>
-                <td><span class="fw-bold">${chapter?.chapter_name || 'N/A'}</span></td>
-                <td><span class="fw-bold">${order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A'}</span></td>
-                <td><span class="fw-bold">${displayCompanyName}</span></td>
-                <td><span class="fw-bold">${billAmount.toFixed(2)}</span></td>
-                <td><span class="fw-bold">${taxAmount.toFixed(2)}</span></td>
-                <td><span class="fw-bold">${totalAmount.toFixed(2)}</span></td>
-                <td><span class="fst-italic">${irnStatus}</span></td>
-                <td><span class="fw-bold">${transaction?.cf_payment_id || 'N/A'}</span></td>
-                <td><span class="fw-bold">${displayGstin}</span></td>
-            `;
-            tableBody.appendChild(row);
-        }
-
-        // Initialize with all filters set to "All"
-        document.querySelectorAll('.dropdown-item[data-region="all"], .dropdown-item[data-chapter="all"], .dropdown-item[data-month="all"]')
-            .forEach(item => item.classList.add('active'));
-        // Setup select all checkbox
-        setupSelectAllCheckbox();
-
-        // Event delegation for Doc No click
-        tableBody.addEventListener('click', function(e) {
-            const target = e.target.closest('.clickable-doc');
-            if (target) {
-                const row = target.closest('tr');
-                const orderId = row.querySelector('input.einvoice-checkbox').value;
-                const order = ordersMap.get(orderId);
-                const transaction = transactionsMap.get(orderId);
-                const einvoice = einvoiceData.find(e => e.order_id === orderId);
-                showEinvoicePdfModal(order, transaction, einvoice);
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching e-invoice data:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to fetch e-invoice data. Please try again later.'
-        });
-    }
-}
-
-// Function to show QR code in modal
-function showQRCodeModal(qrCodeUrl) {
-    Swal.fire({
-        imageUrl: qrCodeUrl,
-        imageWidth: 300,
-        imageHeight: 300,
-        imageAlt: 'QR Code',
-        showConfirmButton: true,
-        confirmButtonText: 'Close'
-    });
 }
 
 // Search functionality
@@ -517,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ordersMap = new Map(ordersData.map(order => [order.order_id, order]));
                 const docNumbersMap = new Map(docNumbersData.map(doc => [doc.order_id, doc]));
                 const chaptersMap = new Map(chaptersData.map(chapter => [chapter.chapter_id, chapter]));
-                const transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
+                transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
 
                 // Filter data if any checkboxes are selected
                 const selectedIds = getSelectedOrderIds();
@@ -657,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ordersMap = new Map(ordersData.map(order => [order.order_id, order]));
                 const docNumbersMap = new Map(docNumbersData.map(doc => [doc.order_id, doc]));
                 const chaptersMap = new Map(chaptersData.map(chapter => [chapter.chapter_id, chapter]));
-                const transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
+                transactionsMap = new Map(transactionsData.map(transaction => [transaction.order_id, transaction]));
 
                 // Filter data if any checkboxes are selected
                 const selectedIds = getSelectedOrderIds();
