@@ -67,7 +67,7 @@
               </h1>
             </div>
             <div class="btn-list">
-                <a href="/t/all-transactions"><button
+                <a href="/trans/manage-transactions"><button
                     class="btn btn-primary btn-wave me-0"
                   >
                     <i class="ri-share-forward-line me-1"></i> View All Transactions
@@ -107,7 +107,7 @@ async function fetchUniversalLinkss() {
 
   try {
     showLoader();
-    const response = await fetch('http://localhost:5000/api/universalLinks');
+    const response = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
     const data = await response.json();
 
     if (data && Array.isArray(data)) {

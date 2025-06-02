@@ -65,7 +65,7 @@ let ledgerData = [];
 
     // Step 2: Fetch member data using the email
     const memberResponse = await fetch(
-      "http://localhost:5000/api/members"
+      "https://backend.bninewdelhi.com/api/members"
     );
     const members = await memberResponse.json();
 
@@ -90,12 +90,12 @@ let ledgerData = [];
     } = userData;
 
     // Fetch chapter info for the current member's chapter
-    const chaptersResponse = await fetch("http://localhost:5000/api/chapters");
+    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await chaptersResponse.json();
     const chapterInfo = chapters.find(ch => ch.chapter_id === chapter_id);
 
     const AllTimeRaisedKittyResponse = await fetch(
-      "http://localhost:5000/api/getAllKittyPayments"
+      "https://backend.bninewdelhi.com/api/getAllKittyPayments"
     );
     const AllTimeRaisedKitty = await AllTimeRaisedKittyResponse.json();
     const allTimeRaisedKitty = AllTimeRaisedKitty.filter(
@@ -106,17 +106,17 @@ let ledgerData = [];
     let activeKittyEntries = [];
     let remainingKittyEntries = [];
     const allAvailableOrdersResponse = await fetch(
-      "http://localhost:5000/api/allOrders"
+      "https://backend.bninewdelhi.com/api/allOrders"
     );
     const allAvailableOrders = await allAvailableOrdersResponse.json();
     const allAvailableTransactionsResponse = await fetch(
-      "http://localhost:5000/api/allTransactions"
+      "https://backend.bninewdelhi.com/api/allTransactions"
     );
     const allAvailableTransactions = await allAvailableTransactionsResponse.json();
 
     // Fetch all member credits
     const memberCreditResponse = await fetch(
-      "http://localhost:5000/api/getAllMemberCredit"
+      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
     );
     const memberCredits = await memberCreditResponse.json();
     let filteredCredits = memberCredits.filter(
@@ -1046,7 +1046,7 @@ let ledgerData = [];
     }
 
     // Fetch write-off data and check for write-off status
-    const writeOffResponse = await fetch("http://localhost:5000/api/getAllMemberWriteOff");
+    const writeOffResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberWriteOff");
     const writeOffData = await writeOffResponse.json();
     memberWriteOff = writeOffData.find(wo => wo.member_id === userData.member_id);
     console.log("memberWriteOff", memberWriteOff);
@@ -1098,7 +1098,7 @@ let ledgerData = [];
       const memberInductionDate = new Date(userData.date_of_publishing);
       if (memberInductionDate > kittyRaisedOnDate) {
         // DOP > bill raised date: sum all total_bill_amount for this chapter
-        const allKittyPaymentsResponse = await fetch("http://localhost:5000/api/getAllKittyPayments");
+        const allKittyPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/getAllKittyPayments");
         const allKittyPayments = await allKittyPaymentsResponse.json();
         const chapterKittyPayments = allKittyPayments.filter(bill => bill.chapter_id === chapter_id && bill.delete_status === 0);
         totalKittyAmountRaised = chapterKittyPayments.reduce((sum, bill) => sum + parseFloat(bill.total_bill_amount), 0);

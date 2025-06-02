@@ -166,13 +166,13 @@ async function fetchAllData() {
 
         // Fetch all data in parallel (add allExpenses and allDocNumbers)
         const [ordersResponse, transactionsResponse, chaptersResponse, universalLinksResponse, regionsResponse, expensesResponse, docNumbersResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/allOrders'),
-            fetch('http://localhost:5000/api/allTransactions'),
-            fetch('http://localhost:5000/api/chapters'),
-            fetch('http://localhost:5000/api/universalLinks'),
-            fetch('http://localhost:5000/api/regions'),
-            fetch('http://localhost:5000/api/allExpenses'),
-            fetch('http://localhost:5000/api/getAllDocNumbers')
+            fetch('https://backend.bninewdelhi.com/api/allOrders'),
+            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+            fetch('https://backend.bninewdelhi.com/api/chapters'),
+            fetch('https://backend.bninewdelhi.com/api/universalLinks'),
+            fetch('https://backend.bninewdelhi.com/api/regions'),
+            fetch('https://backend.bninewdelhi.com/api/allExpenses'),
+            fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers')
         ]);
 
         if (!ordersResponse.ok || !transactionsResponse.ok || !chaptersResponse.ok || !universalLinksResponse.ok || !regionsResponse.ok || !expensesResponse.ok || !docNumbersResponse.ok) {
@@ -208,15 +208,29 @@ async function fetchAllData() {
 // Function to update dashboard statistics
 function updateDashboardStats() {
     // Total transactions
-    document.getElementById('no_of_transaction').textContent = allOrders.length;
+    document.getElementById('no_of_transaction').textContent = allTransactions.length;
     
     // Total generated invoice (transactions with einvoice_generated = true)
     const einvoiceGeneratedCount = allTransactions.filter(t => t.einvoice_generated === true).length;
     document.getElementById('settled_transaction').textContent = einvoiceGeneratedCount;
     
     // Total pending invoice (transactions with payment_status = 'SUCCESS' and einvoice_generated = false)
-    const pendingEinvoiceCount = allTransactions.filter(t => t.payment_status === 'SUCCESS' && t.einvoice_generated === false).length;
+    const pendingEinvoiceCount = allTransactions.filter(t => 
+        t.payment_status === 'SUCCESS' && 
+        t.einvoice_generated === false && 
+        allOrders.some(o => o.order_id === t.order_id) // Only count if order exists
+    ).length;
     document.getElementById('not_settle_transaction').textContent = pendingEinvoiceCount;
+
+    // Add click event for pending invoices
+    const pendingInvoicesElem = document.getElementById('not_settle_transaction');
+    if (pendingInvoicesElem && !pendingInvoicesElem.hasAttribute('data-listener')) {
+        pendingInvoicesElem.setAttribute('data-listener', 'true');
+        pendingInvoicesElem.style.cursor = 'pointer';
+        pendingInvoicesElem.addEventListener('click', function() {
+            showPendingInvoicesDetails();
+        });
+    }
 
     // Calculate total GST from expenses where payment_status is 'paid'
     let totalInputGst = 0;
@@ -228,19 +242,50 @@ function updateDashboardStats() {
             }
         });
     }
-    document.getElementById('total_base_amount').textContent = `₹${totalInputGst.toFixed(2)}`;
+    document.getElementById('total_base_amount').textContent = formatINR(totalInputGst.toFixed(2));
 
-    // Calculate total GST from orders where payment_status is 'SUCCESS'
-    let totalGstAmount = 0;
+    // Calculate total output GST for generated and pending invoices
+    let totalGstAmountGenerated = 0;
+    let totalGstAmountPending = 0;
     allOrders.forEach(order => {
-        // Find the transaction for this order
         const transaction = allTransactions.find(t => t.order_id === order.order_id);
         if (transaction && transaction.payment_status === 'SUCCESS') {
             const tax = parseFloat(order.tax);
-            if (!isNaN(tax)) totalGstAmount += tax;
+            if (!isNaN(tax)) {
+                if (transaction.einvoice_generated === true) {
+                    totalGstAmountGenerated += tax;
+                } else if (transaction.einvoice_generated === false) {
+                    totalGstAmountPending += tax;
+                }
+            }
         }
     });
-    document.getElementById('total_gst_amount').textContent = `₹${totalGstAmount.toFixed(2)}`;
+    const totalGstAmount = totalGstAmountGenerated + totalGstAmountPending;
+    const gstElem = document.getElementById('total_gst_amount');
+    if (gstElem) {
+        gstElem.textContent = formatINR(totalGstAmount.toFixed(2));
+        gstElem.style.cursor = 'pointer';
+        if (!gstElem.hasAttribute('data-listener')) {
+            gstElem.setAttribute('data-listener', 'true');
+            gstElem.addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Output GST Bifurcation',
+                    html: `
+                        <div style="text-align:left;font-size:1.1em;">
+                            <b>Total Output GST:</b> ${formatINR(totalGstAmount.toFixed(2))}<br><br>
+                            <b style="color:#222;">Generated Invoice Output GST:</b> ${formatINR(totalGstAmountGenerated.toFixed(2))}<br>
+                            <b style="color:#888;">Pending Invoice Output GST:</b> ${formatINR(totalGstAmountPending.toFixed(2))}
+                        </div>
+                    `,
+                    icon: 'info',
+                    confirmButtonText: 'Close',
+                    customClass: {
+                        popup: 'swal2-border-radius'
+                    }
+                });
+            });
+        }
+    }
 
     // Add click event for showing transaction status breakdown
     const noOfTransactionElem = document.getElementById('no_of_transaction');
@@ -279,6 +324,193 @@ function updateDashboardStats() {
             });
         });
     }
+
+    // In updateDashboardStats, add click event for generated invoices
+    const generatedInvoicesElem = document.getElementById('settled_transaction');
+    if (generatedInvoicesElem && !generatedInvoicesElem.hasAttribute('data-listener')) {
+        generatedInvoicesElem.setAttribute('data-listener', 'true');
+        generatedInvoicesElem.style.cursor = 'pointer';
+        generatedInvoicesElem.addEventListener('click', function() {
+            showGeneratedInvoicesDetails();
+        });
+    }
+}
+
+// Function to show pending invoices details
+function showPendingInvoicesDetails() {
+    // Get all pending invoices (successful transactions without e-invoice)
+    const pendingInvoices = allTransactions.filter(t =>
+        t.payment_status === 'SUCCESS' &&
+        t.einvoice_generated === false
+    );
+
+    let renderedCount = 0; // Counter for actually rendered rows
+
+    // Start HTML content for the popup
+    let htmlContent = `
+        <div style="text-align:left;font-size:1.1em;">
+            <b>Total Pending Invoices:</b> <span id="pending-invoice-count"></span><br><br>
+            <div style="max-height:400px;overflow-y:auto;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Member/Visitor</th>
+                            <th>Chapter</th>
+                            <th>Amount</th>
+                            <th>Payment Method</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    // Add each pending invoice to the table
+    pendingInvoices.forEach(transaction => {
+        const order = allOrders.find(o => o.order_id === transaction.order_id);
+        if (!order) return; // Skip if order not found
+
+        renderedCount++; // Only increment if row is rendered
+
+        const chapter = chapters.find(c => c.chapter_id === order.chapter_id);
+
+        // Format member/visitor name
+        let memberName = '';
+        if (order.payment_note && (order.payment_note.toLowerCase() === 'visitor payment' ||
+            order.payment_note.toLowerCase() === 'visitor-payment' ||
+            order.payment_note.toLowerCase() === 'new member payment')) {
+            memberName = `${order.visitor_name || 'N/A'} (Invited by: ${order.member_name || 'N/A'})`;
+        } else {
+            memberName = order.member_name || 'N/A';
+        }
+
+        htmlContent += `
+            <tr>
+                <td>${formatDate(transaction.payment_time)}</td>
+                <td>${memberName}</td>
+                <td>${chapter?.chapter_name || 'N/A'}</td>
+                <td>${formatINR(transaction.payment_amount)}</td>
+                <td>${getPaymentMethodHTML(transaction.payment_group)}</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="generateEInvoice('${order.order_id}')">
+                        Generate E-Invoice
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    htmlContent += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script>document.getElementById('pending-invoice-count').textContent = '${renderedCount}';</script>
+    `;
+
+    // Show the popup
+    Swal.fire({
+        title: 'Pending Invoices Details',
+        html: htmlContent,
+        width: '80%',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal2-border-radius'
+        },
+        didOpen: () => {
+            document.getElementById('pending-invoice-count').textContent = renderedCount;
+        }
+    });
+}
+
+// Function to show generated invoices details
+function showGeneratedInvoicesDetails() {
+    // Get all generated invoices (transactions with einvoice_generated = true and valid order)
+    const generatedInvoices = allTransactions.filter(t =>
+        t.einvoice_generated === true &&
+        allOrders.some(o => o.order_id === t.order_id)
+    );
+
+    let renderedCount = 0;
+    let htmlContent = `
+        <div style="text-align:left;font-size:1.1em;">
+            <b>Total Generated Invoices:</b> <span id="generated-invoice-count"></span><br><br>
+            <div style="max-height:400px;overflow-y:auto;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Sr No.</th>
+                            <th>Date</th>
+                            <th>Member/Visitor</th>
+                            <th>Chapter</th>
+                            <th>Amount</th>
+                            <th>Payment Method</th>
+                            <th>Payment Type</th>
+                            <th>Document No.</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    generatedInvoices.forEach(transaction => {
+        const order = allOrders.find(o => o.order_id === transaction.order_id);
+        if (!order) return;
+        renderedCount++;
+        const chapter = chapters.find(c => c.chapter_id === order.chapter_id);
+        const universalLink = universalLinks.find(ul => ul.id === order.universal_link_id);
+        // Format member/visitor name
+        let memberName = '';
+        if (order.payment_note && (order.payment_note.toLowerCase() === 'visitor payment' ||
+            order.payment_note.toLowerCase() === 'visitor-payment' ||
+            order.payment_note.toLowerCase() === 'new member payment')) {
+            memberName = `${order.visitor_name || 'N/A'} (Invited by: ${order.member_name || 'N/A'})`;
+        } else {
+            memberName = order.member_name || 'N/A';
+        }
+        // Document No.
+        const docNo = getDocumentNumber(order.order_id);
+        htmlContent += `
+            <tr>
+                <td>${renderedCount}</td>
+                <td>${formatDate(transaction.payment_time)}</td>
+                <td>${memberName}</td>
+                <td>${chapter?.chapter_name || 'N/A'}</td>
+                <td>${formatINR(transaction.payment_amount)}</td>
+                <td>${getPaymentMethodHTML(transaction.payment_group)}</td>
+                <td>${universalLink ? universalLink.universal_link_name : 'N/A'}</td>
+                <td><b>${formatNA(docNo)}</b></td>
+                <td>
+                    <button class="btn btn-success btn-sm" onclick="viewEInvoice('${order.order_id}')">
+                        View E-Invoice
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    htmlContent += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script>document.getElementById('generated-invoice-count').textContent = '${renderedCount}';</script>
+    `;
+
+    Swal.fire({
+        title: 'Generated Invoices Details',
+        html: htmlContent,
+        width: '80%',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal2-border-radius'
+        },
+        didOpen: () => {
+            document.getElementById('generated-invoice-count').textContent = renderedCount;
+        }
+    });
 }
 
 // Function to attach filter dropdown listeners
@@ -371,7 +603,7 @@ function populateFilters() {
 // Function to fetch e-invoice data
 async function fetchEInvoiceData(orderId) {
     try {
-        const response = await fetch(`http://localhost:5000/api/einvoice/${orderId}`);
+        const response = await fetch(`https://backend.bninewdelhi.com/api/einvoice/${orderId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch e-invoice data');
         }
@@ -526,7 +758,7 @@ async function generateEInvoice(orderId) {
                 };
 
                 // Make API call
-                const response = await fetch('http://localhost:5000/einvoice/generate-irn', {
+                const response = await fetch('https://backend.bninewdelhi.com/einvoice/generate-irn', {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",
@@ -949,7 +1181,7 @@ async function cancelIRN(orderId) {
                 });
 
                 // Make API call
-                const response = await fetch('http://localhost:5000/einvoice/cancel-irn', {
+                const response = await fetch('https://backend.bninewdelhi.com/einvoice/cancel-irn', {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json"
