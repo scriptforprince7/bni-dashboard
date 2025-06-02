@@ -670,6 +670,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   
   showLoader();
   await fetchExpenses("asc");
+  sortByColumn('expense_id');
   
   // Set initial button text
   const button = document.getElementById("sortButton");
@@ -695,6 +696,13 @@ const sortByColumn = (columnName) => {
   // Sort the expenses
   filteredExpenses.sort((a, b) => {
     let valueA, valueB;
+
+    if (columnName === 'expense_id') {
+      valueA = parseInt(a.expense_id, 10);
+      valueB = parseInt(b.expense_id, 10);
+      // Always sort highest to lowest for expense_id
+      return valueB - valueA;
+    }
 
     switch (columnName) {
       case 'entry_date':
@@ -1908,69 +1916,79 @@ function showCalculationDetails(expense) {
 // Add this function to handle the export functionality
 function exportExpensesToExcel() {
   try {
-    // Get the table data
-    const table = document.querySelector('.table');
-    const rows = table.querySelectorAll('tbody tr');
-    
-    // Create CSV content
-    let csvContent = "data:text/csv;charset=utf-8,";
-    
-    // Add headers
+    // Define the fields you want to export
     const headers = [
-      "S.No.",
+      "Expense ID",
+      "Entry Date",
       "Expense Type",
       "Chapter Name",
+      "Vendor Name",
+      "Vendor Company",
       "Description",
       "Amount",
       "GST Amount",
       "Total Amount",
-      "TDS Details",
+      "TDS Section",
+      "TDS Type",
+      "TDS Percentage",
+      "TDS Amount",
+      "CA Comment",
+      "Final Amount",
       "RO Verification",
-      "Final Payable Amount",
+      "RO Comment",
       "Payment Status",
       "Bill Date",
       "Mode of Payment",
       "Bill Link",
-      "Receipt Link"
+      "Receipt Link",
+      "Created By"
     ];
-    csvContent += headers.join(",") + "\n";
-    
-    // Add rows
-    rows.forEach((row, index) => {
-      const cells = row.querySelectorAll('td');
-      const rowData = [];
-      
-      cells.forEach((cell, cellIndex) => {
-        // Skip the last cell (Actions column)
-        if (cellIndex < cells.length - 1) {
-          let cellText = cell.textContent.trim();
-          
-          // Handle special cases
-          if (cellIndex === 13) { // Bill Link column
-            const billLink = cell.querySelector('a')?.href || 'No bill uploaded';
-            cellText = billLink;
-          } else if (cellIndex === 14) { // Receipt Link column
-            const receiptLink = cell.querySelector('a')?.href || 'No receipt uploaded';
-            cellText = receiptLink;
-          }
-          
-          // Clean the text and handle commas
-          cellText = cellText.replace(/,/g, ';').replace(/\n/g, ' ');
-          rowData.push(`"${cellText}"`);
-        }
-      });
-      
-      csvContent += rowData.join(",") + "\n";
+
+    let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+
+    filteredExpenses.forEach(expense => {
+      // Get expense type name
+      const expenseTypeObj = expenseTypes.find(
+        (type) => type.expense_id === expense.expense_type
+      );
+      const expenseTypeName = expenseTypeObj ? expenseTypeObj.expense_name : "Unknown";
+
+      const row = [
+        expense.expense_id,
+        expense.entry_date,
+        expenseTypeName, // Use name, not ID
+        expense.chapter_id,
+        expense.vendor_name,
+        expense.vendor_company,
+        (expense.description || '').replace(/,/g, ';'),
+        expense.amount,
+        expense.gst_amount,
+        expense.total_amount,
+        expense.tds_section_list,
+        expense.tds_type,
+        expense.tds_percentage,
+        expense.tds_amount,
+        (expense.ca_comment || '').replace(/,/g, ';'),
+        expense.final_amount || expense.total_amount,
+        expense.verification ? "Approved" : (expense.ro_comment ? "Rejected" : "Pending"),
+        (expense.ro_comment || '').replace(/,/g, ';'),
+        expense.payment_status,
+        expense.bill_date,
+        expense.mode_of_payment,
+        expense.upload_bill ? `${BILL_BASE_URL}/api/uploads/expenses/${expense.upload_bill.split('/').pop()}` : '',
+        expense.upload_receipt ? `${BILL_BASE_URL}/api/uploads/expenses/${expense.upload_receipt.split('/').pop()}` : '',
+        expense.created_by || ''
+      ];
+      csvContent += row.map(val => `"${val !== undefined ? val : ''}"`).join(",") + "\n";
     });
-    
-    // Create download link
+
+    // Download logic remains the same
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `expenses_export_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
-    
-    // Show loading state
+
     Swal.fire({
       title: 'Exporting Data',
       html: 'Please wait while we prepare your export...',
@@ -1979,13 +1997,10 @@ function exportExpensesToExcel() {
         Swal.showLoading();
       }
     });
-    
-    // Trigger download after a short delay
+
     setTimeout(() => {
       link.click();
       document.body.removeChild(link);
-      
-      // Show success message
       Swal.fire({
         title: 'Export Successful!',
         text: 'Your expenses data has been exported successfully.',
@@ -1994,7 +2009,7 @@ function exportExpensesToExcel() {
         confirmButtonColor: '#1976D2'
       });
     }, 1000);
-    
+
   } catch (error) {
     console.error('Error exporting data:', error);
     Swal.fire({
