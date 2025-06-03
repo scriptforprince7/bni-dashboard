@@ -1,1182 +1,843 @@
-// Function to show the loader
+// Global variables
+let memberData = null;
+let kittyBills = [];
+let allOrders = [];
+let allTransactions = [];
+let currentBalance = 0;
+let allTransactionItems = [];
+let memberCredits = [];
+
+// Utility functions
 function showLoader() {
-  document.getElementById("loader").style.display = "flex"; // Show loader
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.display = 'flex';
+    }
 }
 
 function hideLoader() {
-  document.getElementById("loader").style.display = "none"; // Hide loader
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
 }
 
 function formatDate(dateStr) {
-  // Create a new Date object from the string
-  const date = new Date(dateStr);
-
-  // Check if the date is valid
-  if (isNaN(date.getTime())) {
-    console.error("Error: incoming date is not valid");
-    return "Invalid Date";
-  }
-
-  // Format the date to 'DD/MM/YYYY'
-  const day = String(date.getUTCDate()).padStart(2, "0"); // Use getUTCDate() for UTC date
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Use getUTCMonth() for UTC month
-  const year = date.getUTCFullYear(); // Use getUTCFullYear() for UTC year
-
-  return `${day}/${month}/${year}`;
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    });
 }
 
-// Global variable for ledger data
-let ledgerData = [];
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2
+    }).format(amount);
+}
 
-(async function generateLedger() {
-  // Add these variables at the top with other declarations
-  let currentBalance = 0;
-  let paid_amount_show = 0;
-  let total_credit_note_amount = 0;
-  let no_of_late_payment = 0;
-  let memberWriteOff = null;
+// Authentication functions
+function getUserLoginType() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.login_type;
+    } catch (e) {
+        return null;
+    }
+}
 
-  try {
-    showLoader();
+function getUserEmail() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.email;
+    } catch (e) {
+        return null;
+    }
+}
 
-    // Step 1: Try getting member details from multiple sources
-    let member_id = localStorage.getItem("current_member_id");
-    let member_email = localStorage.getItem("current_member_email");
+// Initialize filters
+function initializeFilters() {
+    // Year filter
+    const yearFilter = document.getElementById('yearFilter');
+    if (!yearFilter) return;
 
-    console.log("=== Starting Member Transactions ===");
-    console.log("Initial check from localStorage:", {
-      member_id: member_id,
-      member_email: member_email
+    const currentYear = new Date().getFullYear();
+    
+    // Add years from 2020 to current year
+    for (let year = 2020; year <= currentYear; year++) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'dropdown-item';
+        a.href = '#';
+        a.dataset.value = year;
+        a.textContent = year;
+        li.appendChild(a);
+        yearFilter.appendChild(li);
+    }
+
+    // Month filter
+    const monthFilter = document.getElementById('monthFilter');
+    if (!monthFilter) return;
+
+    const months = [
+        { value: 1, label: 'January' },
+        { value: 2, label: 'February' },
+        { value: 3, label: 'March' },
+        { value: 4, label: 'April' },
+        { value: 5, label: 'May' },
+        { value: 6, label: 'June' },
+        { value: 7, label: 'July' },
+        { value: 8, label: 'August' },
+        { value: 9, label: 'September' },
+        { value: 10, label: 'October' },
+        { value: 11, label: 'November' },
+        { value: 12, label: 'December' }
+    ];
+
+    months.forEach(month => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'dropdown-item';
+        a.href = '#';
+        a.dataset.value = month.value;
+        a.textContent = month.label;
+        li.appendChild(a);
+        monthFilter.appendChild(li);
     });
 
-    // If not in localStorage, try getting from token
-    if (!member_email) {
-      member_email = getUserEmail();
-      console.log("Retrieved from token:", {
-        member_email: member_email
-      });
+    // Setup filter event listeners
+    setupFilterEventListeners();
+}
+
+function setupFilterEventListeners() {
+    // Year filter
+    const yearFilterBtn = document.getElementById('yearFilterBtn');
+    if (yearFilterBtn) {
+        document.querySelectorAll('#yearFilter .dropdown-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                yearFilterBtn.textContent = `Year: ${item.textContent}`;
+                applyFilters();
+            });
+        });
     }
 
-    if (!member_email) {
-      console.error("No member email found from any source");
-      hideLoader();
-      return;
+    // Month filter
+    const monthFilterBtn = document.getElementById('monthFilterBtn');
+    if (monthFilterBtn) {
+        document.querySelectorAll('#monthFilter .dropdown-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                monthFilterBtn.textContent = `Month: ${item.textContent}`;
+                applyFilters();
+            });
+        });
     }
 
-    // Step 2: Fetch member data using the email
-    const memberResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/members"
-    );
-    const members = await memberResponse.json();
-
-    console.log("Looking for member with email:", member_email);
-    const userData = members.find(
-      member => member.member_email_address === member_email
-    );
-
-    if (!userData) {
-      console.error("No member found with email:", member_email);
-      hideLoader();
-      return;
+    // Reset filters
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', () => {
+            if (yearFilterBtn) yearFilterBtn.textContent = 'Year';
+            if (monthFilterBtn) monthFilterBtn.textContent = 'Month';
+            applyFilters();
+        });
     }
+}
 
-    console.log("Found member data:", userData);
+function applyFilters() {
+    const yearFilterBtn = document.getElementById('yearFilterBtn');
+    const monthFilterBtn = document.getElementById('monthFilterBtn');
+    if (!yearFilterBtn || !monthFilterBtn) return;
 
-    // Continue with your existing logic using userData
-    const {
-      meeting_opening_balance,
-      meeting_payable_amount,
-      chapter_id
-    } = userData;
+    const selectedYear = yearFilterBtn.textContent.split(': ')[1];
+    const selectedMonth = monthFilterBtn.textContent.split(': ')[1];
 
-    // Fetch chapter info for the current member's chapter
-    const chaptersResponse = await fetch("https://backend.bninewdelhi.com/api/chapters");
-    const chapters = await chaptersResponse.json();
-    const chapterInfo = chapters.find(ch => ch.chapter_id === chapter_id);
+    const filteredItems = allTransactionItems.filter(item => {
+        const date = new Date(item.date);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
 
-    const AllTimeRaisedKittyResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllKittyPayments"
-    );
-    const AllTimeRaisedKitty = await AllTimeRaisedKittyResponse.json();
-    const allTimeRaisedKitty = AllTimeRaisedKitty.filter(
-      kitty => kitty.chapter_id === chapter_id
-    );
-    console.log("heree", allTimeRaisedKitty);
-    // Declare variables for activeKittyEntries and remainingKittyEntries
-    let activeKittyEntries = [];
-    let remainingKittyEntries = [];
-    const allAvailableOrdersResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allOrders"
-    );
-    const allAvailableOrders = await allAvailableOrdersResponse.json();
-    const allAvailableTransactionsResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/allTransactions"
-    );
-    const allAvailableTransactions = await allAvailableTransactionsResponse.json();
+        if (selectedYear && selectedYear !== 'Year') {
+            if (year !== parseInt(selectedYear)) return false;
+        }
+        if (selectedMonth && selectedMonth !== 'Month') {
+            const monthIndex = months.findIndex(m => m.label === selectedMonth) + 1;
+            if (month !== monthIndex) return false;
+        }
+        return true;
+    });
 
-    // Fetch all member credits
-    const memberCreditResponse = await fetch(
-      "https://backend.bninewdelhi.com/api/getAllMemberCredit"
-    );
-    const memberCredits = await memberCreditResponse.json();
-    let filteredCredits = memberCredits.filter(
-      credit =>
-        credit.member_id === userData.member_id &&
-        credit.chapter_id === chapter_id
-    );
-    console.log("filteredCredits", filteredCredits);
+    updateLedgerTable(filteredItems);
+}
 
-    // here need op balance entry done
-    currentBalance =
-      parseFloat(currentBalance) - parseFloat(meeting_opening_balance);
-    // Initialize ledgerData within the function
-    console.log('🟢 Using meeting_opening_balance from userData:', userData.meeting_opening_balance);
-    ledgerData = [
-      {
-        sNo: 1,
-        date: formatDate(userData.member_induction_date), //date wtf
-        description: "Opening Balance",
-        billAmount: 0,
-        debit: userData.meeting_opening_balance || 0,
-        credit: 0,
-        gst: 0,
-        balance: currentBalance, // Display opening balance here
-        balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-      }
-    ];
-    // let opcreditsBeforeTransaction= [];
+function updateLedgerTable(items) {
+    const tbody = document.getElementById('ledger-body');
+    if (!tbody) return;
 
-    let opening_bill_entry_shown = 0;
+    tbody.innerHTML = '';
 
-    // // Filter orders for meeting payments opening only
-    const meetingOpeningOrders = allAvailableOrders.filter(
-      filtereddata =>
-        filtereddata.customer_id === userData.member_id &&
-        filtereddata.payment_note === "meeting-payments-opening-only"
-    );
+    items.forEach((item, index) => {
+        const row = document.createElement('tr');
+        // Determine color for debit, credit, and balance
+        const debitColor = item.debit > 0 ? 'red' : '';
+        const creditColor = item.credit > 0 ? 'green' : '';
+        const balanceColor = item.runningBalance > 0 ? 'green' : (item.runningBalance < 0 ? 'red' : '');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td><b>${formatDate(item.date)}</b></td>
+            <td>${item.description}</td>
+            <td><b>${formatCurrency(item.totalAmount)}</b></td>
+            <td style="color:${debitColor}"><b>${item.debit ? formatCurrency(item.debit) : '-'}</b></td>
+            <td style="color:${creditColor}"><b>${item.credit ? formatCurrency(item.credit) : '-'}</b></td>
+            <td><b>${item.gst ? formatCurrency(item.gst) : '-'}</b></td>
+            <td style="color:${balanceColor}"><b>${formatCurrency(item.runningBalance)}</b></td>
+        `;
+        tbody.appendChild(row);
+    });
 
-    console.log("Meeting Opening Orders:", meetingOpeningOrders);
+    // Update summary cards if they exist
+    updateSummaryCards();
+}
 
-    if (allTimeRaisedKitty.length > 0) {
-      // sort all available kity
-      allTimeRaisedKitty.sort(
-        (a, b) => new Date(a.raised_on) - new Date(b.raised_on)
-      );
-      // opcreditsBeforeTransaction = filteredCredits.filter(credit => new Date(credit.credit_date) <= new Date(allTimeRaisedKitty[0].raised_on));
-      activeKittyEntries = allTimeRaisedKitty.filter(
-        kitty => kitty.delete_status === 0
-      );
-      console.log("Active Kitty Entries:", activeKittyEntries);
+function updateSummaryCards() {
+    // Calculate totals
+    const totalKittyAmount = allTransactionItems
+        .filter(item => item.type === 'kitty_bill')
+        .reduce((sum, item) => sum + item.totalAmount, 0);
 
-      // Remove activeKittyEntries from allTimeRaisedKitty
-      remainingKittyEntries = allTimeRaisedKitty.filter(
-        kitty => kitty.delete_status !== 0
-      );
-      console.log("Remaining Kitty Entries:", remainingKittyEntries);
-    } else {
-      console.log("no bill");
-      // when there is no kitty found
-      // now hwew i need to do credir and transaction
-      meetingOpeningOrders.forEach(order => {
-        const successfulTransactions = allAvailableTransactions.filter(
-          transaction =>
-            transaction.order_id === order.order_id &&
-            transaction.payment_status === "SUCCESS"
-        );
-        console.log(
-          "orders details:-=================================================== ",
-          order
-        );
-        if (successfulTransactions.length > 0) {
-          successfulTransactions.forEach(transaction => {
-            const creditsBeforeTransaction = filteredCredits.filter(
-              credit =>
-                new Date(credit.credit_date) <=
-                new Date(transaction.payment_time)
-            );
+    const totalPaidAmount = allTransactionItems
+        .filter(item => item.type === 'payment')
+        .reduce((sum, item) => sum + Math.abs(item.totalAmount), 0);
 
-            if (creditsBeforeTransaction.length > 0) {
-              creditsBeforeTransaction.forEach(credit => {
-                console.log(
-                  `Credit Date before Transaction: ${formatDate(
-                    credit.credit_date
-                  )}`,
-                  credit
-                );
-                total_credit_note_amount += parseFloat(credit.credit_amount);
-                currentBalance += parseFloat(credit.credit_amount);
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(credit.credit_date),
-                  description: "Credit Note",
-                  billAmount: 0,
-                  debit: 0,
-                  credit: parseFloat(credit.credit_amount),
-                  gst: 0,
-                  balance: parseFloat(currentBalance),
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red"
-                });
-              });
+    const totalGST = allTransactionItems
+        .reduce((sum, item) => sum + Math.abs(item.gst), 0);
 
-              // Remove the found entries from the original filteredCredits array
-              filteredCredits = filteredCredits.filter(
-                credit =>
-                  new Date(credit.credit_date) >
-                  new Date(transaction.payment_time)
-              );
-            } else {
-              console.log("No credits before this transaction.");
+    const totalPenalties = allTransactionItems
+        .filter(item => item.type === 'penalty')
+        .reduce((sum, item) => sum + item.totalAmount, 0);
+
+    const pendingAmount = totalKittyAmount - totalPaidAmount + totalPenalties;
+
+    // Update the cards
+    document.getElementById('total-kitty-amount').textContent = formatCurrency(totalKittyAmount);
+    document.getElementById('success_kitty_amount').textContent = formatCurrency(totalPaidAmount);
+    document.getElementById('pending_payment_amount').textContent = formatCurrency(pendingAmount);
+    document.getElementById('total_credit_note_amount').textContent = formatCurrency(totalGST);
+}
+
+// Main initialization function
+async function initializeMemberLedger() {
+    try {
+        showLoader();
+        
+        const loginType = getUserLoginType();
+        console.log("Detected login type:", loginType);
+
+        let memberId;
+        let memberEmail;
+
+        if (loginType === "ro_admin") {
+            console.log("RO Admin detected, fetching from localStorage...");
+            memberEmail = localStorage.getItem("current_member_email");
+            memberId = parseInt(localStorage.getItem("current_member_id"));
+
+            console.log("localStorage data found:", {
+                email: memberEmail,
+                id: memberId
+            });
+
+            if (!memberEmail || !memberId) {
+                console.error("CRITICAL: Missing localStorage data for RO Admin");
+                hideLoader();
+                return;
             }
 
-            opening_bill_entry_shown = 1;
+            // For RO admin, fetch member details from members API
+            console.log('Fetching member details for RO admin...');
+            const response = await fetch('https://backend.bninewdelhi.com/api/members');
+            if (!response.ok) {
+                throw new Error('Failed to fetch members list');
+            }
+            const members = await response.json();
+            const member = members.find(m => m.member_id === memberId);
+            
+            if (!member) {
+                console.error('Member not found in members list');
+                toastr.error('Member not found');
+                hideLoader();
+                return;
+            }
+            
+            memberData = member;
+            console.log('Found member data:', memberData);
 
-            // console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
-            paid_amount_show += parseFloat(
-              parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-            );
-            currentBalance += parseFloat(
-              parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-            );
-
-            ledgerData.push({
-              sNo: ledgerData.length + 1,
-              date: formatDate(transaction.payment_time),
-              description: "Opening Balance Paid",
-              billAmount: Math.round(transaction.payment_amount),
-              debit: 0,
-              credit:
-                parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-              gst: Math.round(parseFloat(order.tax)),
-              balance: parseFloat(currentBalance),
-              balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-            });
-          });
         } else {
-          console.log(
-            "No successful transactions for this meeting opening order."
-          );
-        }
-      });
+            console.log("Regular member login detected, getting email from token...");
+            memberEmail = getUserEmail();
+            
+            // Fetch member details to get member_id
+            console.log('Fetching members data from API..');
+            const response = await fetch('https://backend.bninewdelhi.com/api/members');
+            if (!response.ok) {
+                throw new Error('Failed to fetch member details');
+            }
+            const members = await response.json();
+            console.log('Received members data:', members);
+            console.log('Searching for member with email:', memberEmail);
 
-      // then  all remain show credit here and need return here also
-      if (filteredCredits.length > 0) {
-        filteredCredits.forEach(credit => {
-          console.log(`Credit Date: ${formatDate(credit.credit_date)}`);
-          total_credit_note_amount += parseFloat(credit.credit_amount);
-          currentBalance += parseFloat(credit.credit_amount);
-          ledgerData.push({
-            sNo: ledgerData.length + 1,
-            date: formatDate(credit.credit_date),
-            description: "Credit Note",
-            billAmount: 0,
+            const member = members.find(m => m.member_email_address === memberEmail);
+            if (member) {
+                memberId = member.member_id;
+                memberData = member;
+                console.log('✅ Found matching member:', member);
+                console.log('Retrieved member_id from API:', memberId);
+            } else {
+                console.error('❌ No member found matching email:', memberEmail);
+                hideLoader();
+                return;
+            }
+        }
+
+        if (!memberId) {
+            console.error("No member ID found from any source");
+            hideLoader();
+            return;
+        }
+
+        // Fetch kitty bills
+        const kittyResponse = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
+        if (!kittyResponse.ok) {
+            throw new Error('Failed to fetch kitty bills');
+        }
+        kittyBills = await kittyResponse.json();
+
+        // Fetch all orders
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        if (!ordersResponse.ok) {
+            throw new Error('Failed to fetch orders');
+        }
+        allOrders = await ordersResponse.json();
+
+        // Fetch all transactions
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        if (!transactionsResponse.ok) {
+            throw new Error('Failed to fetch transactions');
+        }
+        allTransactions = await transactionsResponse.json();
+
+        // Fetch all member credits
+        const creditsResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit');
+        if (!creditsResponse.ok) {
+            throw new Error('Failed to fetch member credits');
+        }
+        const allCredits = await creditsResponse.json();
+        // Only credits for this member, this chapter, and is_adjusted true
+        memberCredits = allCredits.filter(c => 
+            c.member_id == memberId && 
+            c.chapter_id == memberData.chapter_id && 
+            c.is_adjusted === true
+        );
+
+        // Fetch chapters for prorated logic
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        if (!chaptersResponse.ok) {
+            throw new Error('Failed to fetch chapters');
+        }
+        const allChapters = await chaptersResponse.json();
+        const memberChapter = allChapters.find(ch => ch.chapter_id == memberData.chapter_id);
+
+        // Process and display transactions
+        processTransactions();
+        updateLedgerTable(allTransactionItems);
+        initializeFilters();
+
+        // After all data is fetched and processTransactions() is called
+        // 1. Active Kitty Bill (sum of total_bill_amount for is_completed == false and chapter_id matches)
+        const activeKittyBills = kittyBills.filter(bill => bill.is_completed === false && bill.chapter_id == memberData.chapter_id);
+        const activeKittyAmount = activeKittyBills.reduce((sum, bill) => sum + parseFloat(bill.total_bill_amount), 0);
+        document.getElementById('total-kitty-amount').textContent = formatCurrency(activeKittyAmount);
+
+        // 2. Latest Bill Details (latest is_completed == false and chapter_id matches)
+        if (activeKittyBills.length > 0) {
+            // Get the latest by raised_on
+            const latestBill = activeKittyBills.reduce((a, b) => new Date(a.raised_on) > new Date(b.raised_on) ? a : b);
+            document.getElementById('billType').textContent = latestBill.bill_type;
+            document.getElementById('tot_weeks').textContent = latestBill.total_weeks;
+            document.querySelector('.description').textContent = latestBill.description;
+            document.getElementById('due_date').textContent = formatDate(latestBill.kitty_due_date);
+        }
+
+        // 3. Total Paid Kitty Amount (sum of base amounts for all successful payments for this member)
+        let paidBaseAmount = 0;
+        allOrders.filter(order => order.universal_link_id === 4 && order.customer_id === memberData.member_id && order.payment_note === 'meeting-payments')
+            .forEach(order => {
+                const txn = allTransactions.find(t => t.order_id === order.order_id && t.payment_status === 'SUCCESS');
+                if (txn) {
+                    paidBaseAmount += parseFloat(order.order_amount) - parseFloat(order.tax);
+                }
+            });
+        document.getElementById('success_kitty_amount').textContent = formatCurrency(paidBaseAmount);
+
+        // 4. Pending Kitty Amount (last entry's running balance from the ledger)
+        if (allTransactionItems.length > 0) {
+            const lastBalance = allTransactionItems[allTransactionItems.length - 1].runningBalance;
+            const pendingElem = document.getElementById('pending_payment_amount');
+            let color = lastBalance < 0 ? 'red' : 'green';
+            let html = `<span style='color:${color};'>${formatCurrency(lastBalance)}</span>`;
+            if (lastBalance < 0) {
+                html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+            }
+            pendingElem.innerHTML = html;
+        }
+
+        // 5. Total Credit Note Amount (sum of credit_amount for this member from getAllMemberCredit)
+        const totalCreditAmount = (Array.isArray(memberCredits) ? memberCredits : []).reduce((sum, c) => sum + parseFloat(c.credit_amount), 0);
+        document.getElementById('total_credit_note_amount').textContent = formatCurrency(totalCreditAmount);
+
+        // Add popup for Total Paid Kitty Amount card
+        document.getElementById('success_kitty_amount').style.cursor = 'pointer';
+        document.getElementById('success_kitty_amount').onclick = function() {
+            // Gather all paid bills for this member
+            const paidBills = [];
+            allOrders.filter(order => order.universal_link_id === 4 && order.customer_id === memberData.member_id && order.payment_note === 'meeting-payments')
+                .forEach(order => {
+                    const txn = allTransactions.find(t => t.order_id === order.order_id && t.payment_status === 'SUCCESS');
+                    if (txn) {
+                        const bill = kittyBills.find(b => b.kitty_bill_id === order.kitty_bill_id);
+                        let modeOfPayment = '';
+                        if (txn.payment_method) {
+                            if (typeof txn.payment_method === 'string') {
+                                try {
+                                    const pm = JSON.parse(txn.payment_method);
+                                    if (pm.upi) modeOfPayment = 'upi';
+                                    else if (pm.netbanking) modeOfPayment = 'netbanking';
+                                    else if (pm.card) modeOfPayment = 'card';
+                                    else if (pm.cash) modeOfPayment = 'cash';
+                                } catch (e) { modeOfPayment = txn.payment_group || ''; }
+                            } else {
+                                if (txn.payment_method.upi) modeOfPayment = 'upi';
+                                else if (txn.payment_method.netbanking) modeOfPayment = 'netbanking';
+                                else if (txn.payment_method.card) modeOfPayment = 'card';
+                                else if (txn.payment_method.cash) modeOfPayment = 'cash';
+                            }
+                        } else if (txn.payment_group) {
+                            modeOfPayment = txn.payment_group;
+                        }
+                        paidBills.push({
+                            month: bill ? bill.description : '-',
+                            billType: bill ? bill.bill_type : '-',
+                            description: bill ? bill.description : '-',
+                            totalWeeks: bill ? bill.total_weeks : '-',
+                            billAmount: bill ? bill.total_bill_amount : '-',
+                            paymentDate: txn.payment_completion_time ? formatDate(txn.payment_completion_time) : '-',
+                            paidAmount: (parseFloat(order.order_amount) - parseFloat(order.tax)),
+                            gst: parseFloat(order.tax),
+                            paymentMode: modeOfPayment
+                        });
+                    }
+                });
+            if (paidBills.length === 0) {
+                Swal.fire({
+                    title: 'Paid Kitty Bills',
+                    html: '<p>No paid bills found.</p>',
+                    width: 600,
+                    showCloseButton: true,
+                    showConfirmButton: false
+                });
+                return;
+            }
+            let html = `<div style='overflow-x:auto;'><table style='width:100%;border-collapse:collapse;'>
+                <thead><tr style='background:#f8f9fa;'>
+                    <th style='padding:6px 8px;'>Month</th>
+                    <th style='padding:6px 8px;'>Bill Type</th>
+                    <th style='padding:6px 8px;'>Description</th>
+                    <th style='padding:6px 8px;'>Weeks</th>
+                    <th style='padding:6px 8px;'>Bill Amount</th>
+                    <th style='padding:6px 8px;'>Payment Date</th>
+                    <th style='padding:6px 8px;'>Paid Amount</th>
+                    <th style='padding:6px 8px;'>GST</th>
+                    <th style='padding:6px 8px;'>Payment Mode</th>
+                </tr></thead><tbody>`;
+            paidBills.forEach(bill => {
+                html += `<tr style='background:#fff;'>
+                    <td style='padding:6px 8px;'>${bill.month}</td>
+                    <td style='padding:6px 8px;'>${bill.billType}</td>
+                    <td style='padding:6px 8px;'>${bill.description}</td>
+                    <td style='padding:6px 8px;'>${bill.totalWeeks}</td>
+                    <td style='padding:6px 8px;'>${formatCurrency(bill.billAmount)}</td>
+                    <td style='padding:6px 8px;'>${bill.paymentDate}</td>
+                    <td style='padding:6px 8px;'>${formatCurrency(bill.paidAmount)}</td>
+                    <td style='padding:6px 8px;'>${formatCurrency(bill.gst)}</td>
+                    <td style='padding:6px 8px;'>${bill.paymentMode}</td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+            Swal.fire({
+                title: 'Paid Kitty Bills',
+                html,
+                width: 1000,
+                showCloseButton: true,
+                showConfirmButton: false
+            });
+        };
+
+        // Prorated logic: if member joined after bill raised_on, calculate prorated for current bill
+        const activeKittyBillsProrate = kittyBills.filter(bill => bill.is_completed === false && bill.chapter_id == memberData.chapter_id);
+        if (activeKittyBillsProrate.length > 0 && memberChapter) {
+            const activeBill = activeKittyBillsProrate.reduce((a, b) => new Date(a.raised_on) > new Date(b.raised_on) ? a : b);
+            const billStart = new Date(activeBill.raised_on);
+            
+            // Calculate bill end date based on bill type and description
+            let billEnd;
+            if (activeBill.bill_type === 'monthly') {
+                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                let year = billStart.getFullYear();
+                let monthIdx = monthNames.findIndex(m => activeBill.description.toLowerCase().includes(m.toLowerCase()));
+                if (monthIdx === -1) monthIdx = billStart.getMonth();
+                billEnd = new Date(year, monthIdx + 1, 0);
+            } else if (activeBill.bill_type === 'quartely') {
+                const parts = activeBill.description.split('to');
+                let year = billStart.getFullYear();
+                if (parts.length === 2) {
+                    let endMonth = parts[1].trim();
+                    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
+                    if (monthIdx === -1) monthIdx = billStart.getMonth() + 2;
+                    billEnd = new Date(year, monthIdx + 1, 0);
+                } else {
+                    billEnd = new Date(billStart.getFullYear(), billStart.getMonth() + 3, 0);
+                }
+            } else if (activeBill.bill_type === 'annual') {
+                const parts = activeBill.description.split('to');
+                let year = billStart.getFullYear();
+                if (parts.length === 2) {
+                    let endMonth = parts[1].trim();
+                    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
+                    if (monthIdx === -1) monthIdx = billStart.getMonth() + 11;
+                    if (monthIdx < billStart.getMonth()) year++;
+                    billEnd = new Date(year, monthIdx + 1, 0);
+                } else {
+                    billEnd = new Date(billStart.getFullYear() + 1, billStart.getMonth(), 0);
+                }
+            } else {
+                billEnd = new Date(activeBill.kitty_due_date);
+            }
+
+            const memberJoin = new Date(memberData.date_of_publishing);
+            console.log('[PRORATE] Member Join:', memberJoin, 'Bill Start:', billStart, 'Bill End:', billEnd);
+            
+            if (memberJoin > billStart && memberJoin <= billEnd) {
+                const meetingDay = memberChapter.chapter_meeting_day;
+                const kittyFee = parseFloat(memberChapter.chapter_kitty_fees);
+                console.log('[PRORATE] Meeting Day:', meetingDay, 'Kitty Fee:', kittyFee);
+
+                // Get day of week (0-6, where 0 is Sunday)
+                const dayMap = {
+                    'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
+                    'Thursday': 4, 'Friday': 5, 'Saturday': 6
+                };
+                const meetingDayNum = dayMap[meetingDay];
+
+                // Count meetings from join date to bill end
+                let meetingCount = 0;
+                let currentDate = new Date(memberJoin);
+                
+                // Skip the first meeting day (date_of_publishing)
+                // Move to next meeting day
+                const daysUntilNext = (meetingDayNum - currentDate.getDay() + 7) % 7;
+                if (daysUntilNext === 0) {
+                    // If today is meeting day, move to next week
+                    currentDate.setDate(currentDate.getDate() + 7);
+                } else {
+                    currentDate.setDate(currentDate.getDate() + daysUntilNext);
+                }
+
+                // Count remaining meetings
+                while (currentDate <= billEnd) {
+                    meetingCount++;
+                    currentDate.setDate(currentDate.getDate() + 7);
+                }
+
+                console.log('[PRORATE] Meetings counted:', meetingCount);
+                const proratedAmount = meetingCount * kittyFee;
+                console.log('[PRORATE] Prorated Amount:', proratedAmount);
+
+                // Add prorated entry
+                const gstAmount = Math.round(proratedAmount * 0.18);
+                const totalAmount = proratedAmount + gstAmount;
+                allTransactionItems.push({
+                    date: memberJoin,
+                    type: 'prorated',
+                    description: `
+                        <div>
+                            <b>Prorated Kitty Bill - ${activeBill.bill_type} (${activeBill.description})</b>
+                            <div style="font-style: italic; font-size: 0.95em; color: #222;">
+                                (${meetingCount} meetings) - (${activeBill.description})
+                            </div>
+                        </div>
+                    `,
+                    debit: proratedAmount,
+                    credit: 0,
+                    gst: gstAmount,
+                    totalAmount: totalAmount,
+                    // runningBalance will be set later
+                });
+            }
+        }
+
+    } catch (error) {
+        console.error('Error initializing member ledger:', error);
+        toastr.error(error.message || 'Failed to initialize member ledger');
+    } finally {
+        hideLoader();
+    }
+}
+
+function processTransactions() {
+    if (!memberData) {
+        console.error('Member data not available');
+        return;
+    }
+
+    // Get member's chapter ID
+    const chapterId = memberData.chapter_id;
+    let runningBalance = memberData.meeting_opening_balance || 0;
+    allTransactionItems = [];
+
+    // Add opening balance entry
+    const openingBalanceDate = new Date(memberData.date_of_publishing);
+    allTransactionItems.push({
+        date: openingBalanceDate,
+        type: 'opening',
+        description: '<b>Opening Balance</b>',
+        amount: 0,
+        debit: 0,
+        credit: 0,
+        gst: 0,
+        totalAmount: 0,
+        runningBalance: runningBalance
+    });
+
+    // Add credit entries (before bills/payments, so they sort by date)
+    memberCredits.forEach(credit => {
+        allTransactionItems.push({
+            date: new Date(credit.credit_date),
+            type: 'credit',
+            description: '<i>Credit Adjustment</i>',
             debit: 0,
             credit: parseFloat(credit.credit_amount),
             gst: 0,
-            balance: parseFloat(currentBalance),
-            balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-          });
+            totalAmount: parseFloat(credit.credit_amount),
+            // runningBalance will be set later
         });
-        filteredCredits = [];
-      }
-      // return;
-    }
+    });
 
+    // Get all kitty bills for the member's chapter
+    const chapterKittyBills = kittyBills.filter(bill => 
+        bill.chapter_id === chapterId
+    ).sort((a, b) => new Date(a.raised_on) - new Date(b.raised_on));
 
-    if (opening_bill_entry_shown !== 1) {
-      // here i need to add credit before it and removed used entry of credit and credit filterd on base of all time kitty [0]
-      meetingOpeningOrders.forEach(order => {
-        const successfulTransactions = allAvailableTransactions.filter(
-          transaction =>
-            transaction.order_id === order.order_id &&
-            transaction.payment_status === "SUCCESS"
-        );
-        if (successfulTransactions.length > 0) {
-          successfulTransactions.forEach(transaction => {
-            const creditsBeforeTransaction = filteredCredits.filter(
-              credit =>
-                new Date(credit.credit_date) <=
-                new Date(transaction.payment_time)
-            );
-
-            if (creditsBeforeTransaction.length > 0) {
-              creditsBeforeTransaction.forEach(credit => {
-                console.log(
-                  `Credit Date before Transaction: ${formatDate(
-                    credit.credit_date
-                  )}`,
-                  credit
-                );
-                total_credit_note_amount += parseFloat(credit.credit_amount);
-                currentBalance += parseFloat(credit.credit_amount);
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(credit.credit_date),
-                  description: "Credit Note",
-                  billAmount: 0,
-                  debit: 0,
-                  credit: parseFloat(credit.credit_amount),
-                  gst: 0,
-                  balance: parseFloat(currentBalance),
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red"
-                });
-              });
-
-              // Remove the found entries from the original filteredCredits array
-              filteredCredits = filteredCredits.filter(
-                credit =>
-                  new Date(credit.credit_date) >
-                  new Date(transaction.payment_time)
-              );
+    chapterKittyBills.forEach(bill => {
+        const billDate = new Date(bill.raised_on);
+        const baseAmount = parseFloat(bill.total_bill_amount);
+        const gstAmount = Math.round(baseAmount * 0.18);
+        const totalAmount = baseAmount + gstAmount;
+        // --- Calculate correct bill end date ---
+        let billEnd;
+        if (bill.bill_type === 'monthly') {
+            // bill.description is like 'Apr' or 'May'
+            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            let year = billDate.getFullYear();
+            let monthIdx = monthNames.findIndex(m => bill.description.toLowerCase().includes(m.toLowerCase()));
+            if (monthIdx === -1) monthIdx = billDate.getMonth();
+            billEnd = new Date(year, monthIdx + 1, 0); // last day of month
+        } else if (bill.bill_type === 'quartely') {
+            // bill.description is like 'Apr to Jun'
+            const parts = bill.description.split('to');
+            let year = billDate.getFullYear();
+            if (parts.length === 2) {
+                let endMonth = parts[1].trim();
+                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
+                if (monthIdx === -1) monthIdx = billDate.getMonth() + 2; // fallback
+                billEnd = new Date(year, monthIdx + 1, 0);
             } else {
-              console.log("No credits before this transaction.");
+                billEnd = new Date(billDate.getFullYear(), billDate.getMonth() + 3, 0);
             }
-
-            // console.log(`Transaction Date: ${formatDate(transaction.transaction_date)}`);
-            paid_amount_show += parseFloat(
-              parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-            );
-            currentBalance += parseFloat(
-              parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-            );
-
-            ledgerData.push({
-              sNo: ledgerData.length + 1,
-              date: formatDate(transaction.payment_time),
-              description: "Opening Balance Paid",
-              billAmount: Math.round(transaction.payment_amount),
-              debit: 0,
-              credit:
-                parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-              gst: Math.round(parseFloat(order.tax)),
-              balance: parseFloat(currentBalance),
-              balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-            });
-          });
+        } else if (bill.bill_type === 'annual') {
+            // bill.description is like 'Apr to Mar'
+            const parts = bill.description.split('to');
+            let year = billDate.getFullYear();
+            if (parts.length === 2) {
+                let endMonth = parts[1].trim();
+                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
+                if (monthIdx === -1) monthIdx = billDate.getMonth() + 11; // fallback
+                // If end month is before start month, it's next year
+                if (monthIdx < billDate.getMonth()) year++;
+                billEnd = new Date(year, monthIdx + 1, 0);
+            } else {
+                billEnd = new Date(billDate.getFullYear() + 1, billDate.getMonth(), 0);
+            }
         } else {
-          console.log(
-            "No successful transactions for this meeting opening order."
-          );
+            billEnd = new Date(bill.kitty_due_date); // fallback
         }
-      });
-    }
-
-    // const memberInductionDate = new Date(userData.member_induction_date);
-    const memberInductionDate = new Date(userData.date_of_publishing);
-
-    // Sort remainingKittyEntries based on raised_on date in ascending order
-    remainingKittyEntries.sort(
-      (a, b) => new Date(a.raised_on) - new Date(b.raised_on)
-    );
-    console.log("Sorted Remaining Kitty Entries:", remainingKittyEntries);
-
-    remainingKittyEntries.forEach(kitty => {
-      console.log(`Kitty Raised on: ${formatDate(kitty.raised_on)}`);
-
-      const kittyRaisedOnDate = new Date(kitty.raised_on);
-
-      // Compare the dates
-      if (memberInductionDate <= kittyRaisedOnDate) {
-        // Filter credits based on kitty.raised_on date
-        const creditsBeforeKitty = filteredCredits.filter(
-          credit => new Date(credit.credit_date) <= new Date(kitty.raised_on)
-        );
-
-        // Log each credit_date that is smaller or equal to kitty.raised_on date
-        if (creditsBeforeKitty.length > 0) {
-          creditsBeforeKitty.forEach(credit => {
-            console.log(`Credit Date: ${formatDate(credit.credit_date)}`);
-            total_credit_note_amount += parseFloat(credit.credit_amount);
-            currentBalance += parseFloat(credit.credit_amount);
-            ledgerData.push({
-              sNo: ledgerData.length + 1,
-              date: formatDate(credit.credit_date),
-              description: "Credit Note",
-              billAmount: 0,
-              debit: 0,
-              credit: parseFloat(credit.credit_amount),
-              gst: 0,
-              balance: parseFloat(currentBalance),
-              balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-            });
-          });
-        } else {
-          console.log("No credits before this kitty entry.");
-        }
-        // kitty bill entry here start
-        // if (remainingKittyEntries.length > 0) {
-        currentBalance -= parseFloat(kitty.total_bill_amount);
-        const gstAmount = parseFloat(kitty.total_bill_amount) * 0.18;
-        const billAmountWithoutGst = parseFloat(kitty.total_bill_amount);
-
-        ledgerData.push({
-          sNo: ledgerData.length + 1,
-          date: formatDate(kitty.raised_on),
-          description: `
-                <b>Meeting Payable Amount</b><br>
-                <em>(bill for: ${kitty.bill_type})</em> - 
-                <em>(${kitty.description})</em>
+        console.log('[PRORATE] Bill Start:', billDate, 'Bill End (calculated):', billEnd, 'Type:', bill.bill_type, 'Desc:', bill.description);
+        const dueDate = billEnd;
+        const monthName = billDate.toLocaleString('default', { month: 'long' });
+        const memberJoin = new Date(memberData.date_of_publishing);
+        // --- Only add full bill if member joined before or on bill start ---
+        if (memberJoin <= billDate) {
+            allTransactionItems.push({
+                date: billDate,
+                type: 'kitty_bill',
+                description: `
+                    <div>
+                        <b>Meeting Payable Amount</b>
+                        <div style="font-style: italic; font-size: 0.95em; color: #222;">
+                            (bill for: ${bill.bill_type}) - (${bill.description})
+                        </div>
+                    </div>
                 `,
-          billAmount: Math.round(
-            parseFloat(kitty.total_bill_amount) +
-              parseFloat(kitty.total_bill_amount) * 0.18
-          ),
-          debit: billAmountWithoutGst,
-          credit: 0,
-          gst: Math.round(gstAmount),
-          balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-          balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-        });
-        // }
-        // Remove the found entries from the original filteredCredits array
-        filteredCredits = filteredCredits.filter(
-          credit => new Date(credit.credit_date) > new Date(kitty.raised_on)
-        );
-
-        // here find its all ordr hten its corresponding success transaction then if founded then show
-
-        const filteredOrders = allAvailableOrders.filter(
-          order =>
-            order.kitty_bill_id === kitty.kitty_bill_id &&
-            order.customer_id === userData.member_id
-        );
-        console.log("Filtered Orders:", filteredOrders);
-        let bool_payment_received = false;
-        let one_time = false;
-
-        filteredOrders.forEach(order => {
-          const successfulTransactions = allAvailableTransactions.filter(
-            transaction =>
-              transaction.order_id === order.order_id &&
-              transaction.payment_status === "SUCCESS"
-          );
-          console.log("successfulTransactions", successfulTransactions);
-          if (successfulTransactions.length > 0) {
-            console.log(
-              "Successful Transactions for Order ID",
-              order.order_id,
-              ":",
-              successfulTransactions
-            );
-            successfulTransactions.forEach(transaction => {
-              const creditsBeforeTransaction = filteredCredits.filter(
-                credit =>
-                  new Date(credit.credit_date) <=
-                  new Date(transaction.payment_time)
-              );
-              bool_payment_received = true;
-
-              // here penalty fee check
-              if (
-                transaction.payment_time > kitty.kitty_due_date &&
-                one_time === false
-              ) {
-                one_time = true;
-                no_of_late_payment++;
-                console.log(
-                  "late payment",
-                  transaction.payment_time,
-                  kitty.kitty_due_date
-                );
-
-                currentBalance -= parseFloat(kitty.penalty_fee);
-                console.log("penalty adding ========-=-=---------");
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(kitty.kitty_due_date),
-                  description: `
-                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                  billAmount: 0,
-                  debit: parseFloat(kitty.penalty_fee),
-                  credit: 0,
-                  gst: 0,
-                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-                });
-              }
-
-              if (creditsBeforeTransaction.length > 0) {
-                creditsBeforeTransaction.forEach(credit => {
-                  console.log(
-                    `Credit Date before Transaction: ${formatDate(
-                      credit.credit_date
-                    )}`,
-                    credit
-                  );
-                  total_credit_note_amount += parseFloat(credit.credit_amount);
-                  currentBalance += parseFloat(credit.credit_amount);
-                  ledgerData.push({
-                    sNo: ledgerData.length + 1,
-                    date: formatDate(credit.credit_date),
-                    description: "Credit Note",
-                    billAmount: 0,
-                    debit: 0,
-                    credit: parseFloat(credit.credit_amount),
-                    gst: 0,
-                    balance: parseFloat(currentBalance),
-                    balanceColor:
-                      parseFloat(currentBalance) >= 0 ? "green" : "red"
-                  });
-                });
-
-                // Remove the found entries from the original filteredCredits array
-                filteredCredits = filteredCredits.filter(
-                  credit =>
-                    new Date(credit.credit_date) >
-                    new Date(transaction.payment_time)
-                );
-              } else {
-                console.log("No credits before this transaction.");
-              }
-              console.log("transaction.payment_time", transaction.payment_time);
-              console.log("kitty.kitty_due_date", kitty.kitty_due_date);
-
-
-              if (
-                transaction.payment_time > kitty.kitty_due_date &&
-                one_time === false
-              ) {
-                one_time = true;
-                no_of_late_payment++;
-                console.log(
-                  "late payment",
-                  transaction.payment_time,
-                  kitty.kitty_due_date
-                );
-
-                currentBalance -= parseFloat(kitty.penalty_fee);
-                console.log("penalty adding ========-=-=---------");
-
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(kitty.kitty_due_date),
-                  description: `
-                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                  billAmount: 0,
-                  debit: parseFloat(kitty.penalty_fee),
-                  credit: 0,
-                  gst: 0,
-                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-                });
-
-              }
-              // else {
-              paid_amount_show += parseFloat(
-                parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-              );
-              currentBalance += parseFloat(
-                parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-              );
-
-              ledgerData.push({
-                sNo: ledgerData.length + 1,
-                date: formatDate(transaction.payment_time),
-                description: "Meeting Fee Paid",
-                billAmount: Math.round(transaction.payment_amount),
-                debit: 0,
-                credit:
-                  parseFloat(transaction.payment_amount) -
-                  parseFloat(order.tax),
-                gst: Math.round(parseFloat(order.tax)),
-                balance: parseFloat(currentBalance),
-                balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-              });
-              // }
-
-              // here penalty fee check
-              if (
-                transaction.payment_time > kitty.kitty_due_date &&
-                one_time === false
-              ) {
-                one_time = true;
-                no_of_late_payment++;
-                console.log(
-                  "late payment",
-                  transaction.payment_time,
-                  kitty.kitty_due_date
-                );
-
-                currentBalance -= parseFloat(kitty.penalty_fee);
-                console.log("penalty adding ========-=-=---------");
-
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(kitty.kitty_due_date),
-                  description: `
-                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                  billAmount: 0,
-                  debit: parseFloat(kitty.penalty_fee),
-                  credit: 0,
-                  gst: 0,
-                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-                });
-              }
-            });
-          } else {
-            console.log("no transaction found");
-          }
-        });
-        if (bool_payment_received === false && one_time === false) {
-          one_time = true;
-          no_of_late_payment++;
-          currentBalance -= parseFloat(kitty.penalty_fee);
-          console.log("penalty adding ========-=-=---------");
-
-          ledgerData.push({
-            sNo: ledgerData.length + 1,
-            date: formatDate(kitty.kitty_due_date),
-            description: `
-                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-            billAmount: 0,
-            debit: parseFloat(kitty.penalty_fee),
-            credit: 0,
-            gst: 0,
-            balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-            balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-          });
-        }
-      }
-    });
-
-    // Helper function to calculate meeting dates between two dates for a specific meeting day
-    function getMeetingDatesInRange(startDate, endDate, meetingDay) {
-      const daysOfWeek = {
-        Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3,
-        Thursday: 4, Friday: 5, Saturday: 6
-      };
-      const meetingDates = [];
-      const meetingDayNum = daysOfWeek[meetingDay];
-
-      let current = new Date(startDate);
-      current.setHours(0, 0, 0, 0);
-
-      // Move to the first meeting day on/after startDate
-      while (current.getDay() !== meetingDayNum) {
-        current.setDate(current.getDate() + 1);
-      }
-
-      while (current <= endDate) {
-        meetingDates.push(new Date(current));
-        current.setDate(current.getDate() + 7);
-      }
-      return meetingDates;
-    }
-
-    // Process activeKittyEntries similar to remainingKittyEntries
-    activeKittyEntries.forEach(kitty => {
-      console.log(`Active Kitty Raised on: ${formatDate(kitty.raised_on)}`);
-      const kittyRaisedOnDate = new Date(kitty.raised_on);
-      const memberInductionDate = new Date(userData.date_of_publishing);
-
-      // Separate conditions for different DOP scenarios
-      if (memberInductionDate > kittyRaisedOnDate) {
-        // Case 1: DOP is after bill raised date
-        console.log('📅 DOP is after bill raised date, using member meeting_payable_amount');
-        let proratedAmount = 0;
-        if (userData.meeting_payable_amount) {
-          proratedAmount = parseFloat(userData.meeting_payable_amount);
-          console.log('🟢 Using meeting_payable_amount from userData:', userData.meeting_payable_amount);
-        } else {
-          // fallback to previous calculation if not found
-          const meetingDay = chapterInfo && chapterInfo.chapter_meeting_day ? chapterInfo.chapter_meeting_day : 'Monday';
-          const billEndDate = new Date(kitty.kitty_due_date);
-          const meetingDates = getMeetingDatesInRange(
-            memberInductionDate,
-            billEndDate,
-            meetingDay
-          );
-          let numMeetings = meetingDates.length;
-          if (numMeetings > 0) numMeetings = numMeetings - 1;
-          const weeklyAmount = parseFloat(chapterInfo.chapter_kitty_fees);
-          proratedAmount = numMeetings * weeklyAmount;
-          console.log('🟡 Fallback calculation:', { numMeetings, weeklyAmount, proratedAmount });
-        }
-        // Split GST and base (assume 18% GST)
-        const baseAmount = proratedAmount / 1.18;
-        const gstAmount = proratedAmount - baseAmount;
-        currentBalance -= proratedAmount;
-        ledgerData.push({
-          sNo: ledgerData.length + 1,
-          date: formatDate(kitty.raised_on),
-          description: `\n            <b>Meeting Payable Amount (Prorated)</b><br>\n            <em>(bill for: ${kitty.bill_type})</em> - \n            <em>(${kitty.description})</em><br>\n            <em>Amount from member: ${proratedAmount.toFixed(2)}</em>\n        `,
-          billAmount: Math.round(proratedAmount),
-          debit: Math.round(baseAmount), // Show base amount (total - GST) in Debit
-          credit: 0,
-          gst: Math.round(gstAmount),
-          balance: parseFloat(currentBalance),
-          balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-        });
-        // Process any payments made for this prorated amount
-        const filteredOrders = allAvailableOrders.filter(
-          order =>
-            order.kitty_bill_id === kitty.kitty_bill_id &&
-            order.customer_id === userData.member_id
-        );
-        filteredOrders.forEach(order => {
-          const successfulTransactions = allAvailableTransactions.filter(
-            transaction =>
-              transaction.order_id === order.order_id &&
-              transaction.payment_status === "SUCCESS"
-          );
-          successfulTransactions.forEach(transaction => {
-            // Add payment entry
-            currentBalance += parseFloat(transaction.payment_amount) - parseFloat(order.tax);
-            paid_amount_show += parseFloat(transaction.payment_amount) - parseFloat(order.tax);
-            ledgerData.push({
-              sNo: ledgerData.length + 1,
-              date: formatDate(transaction.payment_time),
-              description: "Meeting Fee Paid (Prorated)",
-              billAmount: Math.round(transaction.payment_amount),
-              debit: 0,
-              credit: parseFloat(transaction.payment_amount) - parseFloat(order.tax),
-              gst: Math.round(parseFloat(order.tax)),
-              balance: parseFloat(currentBalance),
-              balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-            });
-            // Check for late payment penalty
-            if (transaction.payment_time > kitty.kitty_due_date) {
-              no_of_late_payment++;
-              currentBalance -= parseFloat(kitty.penalty_fee);
-              ledgerData.push({
-                sNo: ledgerData.length + 1,
-                date: formatDate(kitty.kitty_due_date),
-                description: `Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                billAmount: 0,
-                debit: parseFloat(kitty.penalty_fee),
+                debit: baseAmount,
                 credit: 0,
-                gst: 0,
-                balance: parseFloat(currentBalance),
-                balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-              });
-            }
-          });
-        });
-      } else {
-        // Case 2: DOP is before or equal to bill raised date (existing logic)
-        // Filter credits based on kitty.raised_on date
-        const creditsBeforeKitty = filteredCredits.filter(
-          credit => new Date(credit.credit_date) <= new Date(kitty.raised_on)
-        );
-
-        // Log each credit_date that is smaller or equal to kitty.raised_on date
-        if (creditsBeforeKitty.length > 0) {
-          creditsBeforeKitty.forEach(credit => {
-            console.log(`Credit Date: ${formatDate(credit.credit_date)}`);
-            total_credit_note_amount += parseFloat(credit.credit_amount);
-            currentBalance += parseFloat(credit.credit_amount);
-            ledgerData.push({
-              sNo: ledgerData.length + 1,
-              date: formatDate(credit.credit_date),
-              description: "Credit Note",
-              billAmount: 0,
-              debit: 0,
-              credit: parseFloat(credit.credit_amount),
-              gst: 0,
-              balance: parseFloat(currentBalance),
-              balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
+                gst: gstAmount,
+                totalAmount: totalAmount,
+                // runningBalance will be set later
             });
-          });
         } else {
-          console.log("No credits before this active kitty entry.");
+            console.log('[PRORATE] Skipping full bill for member joined after bill start:', memberJoin, billDate);
         }
 
-        // Remove the found entries from the original filteredCredits array
-        filteredCredits = filteredCredits.filter(
-          credit => new Date(credit.credit_date) > new Date(kitty.raised_on)
+        // 2. Find all orders for this bill and member
+        const billOrders = allOrders.filter(order =>
+            order.universal_link_id === 4 &&
+            order.kitty_bill_id === bill.kitty_bill_id &&
+            order.customer_id === memberData.member_id &&
+            order.chapter_id === chapterId &&
+            order.payment_note === 'meeting-payments'
         );
 
-        // Active kitty bill entry
-        // currentBalance -= parseFloat(kitty.total_bill_amount);
-        currentBalance -= parseFloat(kitty.total_bill_amount);
-        const gstAmount = parseFloat(kitty.total_bill_amount) * 0.18;
-        const billAmountWithoutGst = parseFloat(kitty.total_bill_amount);
-        let active_bool_late_payment = false;
-        let one_time = false;
+        // 3. Find all successful transactions for this bill
+        const billTransactions = billOrders
+            .map(order => allTransactions.find(t => t.order_id === order.order_id && t.payment_status === 'SUCCESS'))
+            .filter(Boolean)
+            .sort((a, b) => new Date(a.payment_completion_time) - new Date(b.payment_completion_time));
 
-        ledgerData.push({
-          sNo: ledgerData.length + 1,
-          date: formatDate(kitty.raised_on),
-          description: `
-            <b>Meeting Payable Amount</b><br>
-            <em>(bill for: ${kitty.bill_type})</em> - 
-            <em>(${kitty.description})</em>
-            `,
-          billAmount: Math.round(
-            parseFloat(kitty.total_bill_amount) +
-              parseFloat(kitty.total_bill_amount) * 0.18
-          ),
-          debit: billAmountWithoutGst,
-          credit: 0,
-          gst: Math.round(gstAmount),
-          balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-          balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-        });
+        // 4. Process all payments for this bill
+        if (billTransactions.length > 0) {
+            // Find the earliest payment for penalty check
+            const earliestPayment = billTransactions[0];
+            const paymentDate = new Date(earliestPayment.payment_completion_time);
+            
+            // Only add penalty if earliest payment is after due date
+            if (paymentDate.getTime() > dueDate.getTime()) {
+                const penaltyAmount = bill.penalty_fee || 0;
+                if (penaltyAmount > 0) {
+                    const penaltyGst = Math.round(penaltyAmount * 0.18);
+                    const penaltyTotal = penaltyAmount + penaltyGst;
+                    allTransactionItems.push({
+                        date: paymentDate,
+                        type: 'penalty',
+                        description: `Late Payment Penalty for ${monthName}`,
+                        debit: penaltyAmount,
+                        credit: 0,
+                        gst: penaltyGst,
+                        totalAmount: penaltyTotal,
+                        // runningBalance will be set later
+                    });
+                }
+            }
 
-        // Process orders and transactions for active kitty entries
-        const filteredOrders = allAvailableOrders.filter(
-          order =>
-            order.kitty_bill_id === kitty.kitty_bill_id &&
-            order.customer_id === userData.member_id
-        );
-        console.log("Filtered Orders for Active Kitty:", filteredOrders);
-
-        filteredOrders.forEach(order => {
-          const successfulTransactions = allAvailableTransactions.filter(
-            transaction =>
-              transaction.order_id === order.order_id &&
-              transaction.payment_status === "SUCCESS"
-          );
-          if (successfulTransactions.length > 0) {
-            console.log(
-              "Successful Transactions for Order ID",
-              order.order_id,
-              ":",
-              successfulTransactions
-            );
-            successfulTransactions.forEach(transaction => {
-              const creditsBeforeTransaction = filteredCredits.filter(
-                credit =>
-                  new Date(credit.credit_date) <=
-                  new Date(transaction.payment_time)
-              );
-
-              // here penalty fee check
-
-              if (
-                transaction.payment_time > kitty.kitty_due_date &&
-                one_time === false
-              ) {
-                one_time = true;
-                no_of_late_payment++;
-                console.log(
-                  "late payment",
-                  transaction.payment_time,
-                  kitty.kitty_due_date
-                );
-
-                currentBalance -= parseFloat(kitty.penalty_fee);
-                console.log("penalty adding ========-=-=---------");
-
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(kitty.kitty_due_date),
-                  description: `
-                  Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-                  billAmount: 0,
-                  debit: parseFloat(kitty.penalty_fee),
-                  credit: 0,
-                  gst: 0,
-                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-                });
-              }
-
-              if (creditsBeforeTransaction.length > 0) {
-                creditsBeforeTransaction.forEach(credit => {
-                  console.log(
-                    `Credit Date before Transaction: ${formatDate(
-                      credit.credit_date
-                    )}`,
-                    credit
-                  );
-                  total_credit_note_amount += parseFloat(credit.credit_amount);
-                  currentBalance += parseFloat(credit.credit_amount);
-                  ledgerData.push({
-                    sNo: ledgerData.length + 1,
-                    date: formatDate(credit.credit_date),
-                    description: "Credit Note",
-                    billAmount: 0,
+            // Add all payment entries (credits, add to balance)
+            billTransactions.forEach(payment => {
+                const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
+                const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
+                // Extract cf_payment_id and mode_of_payment
+                let cfPaymentId = payment.cf_payment_id || payment.gateway_payment_id || '';
+                let modeOfPayment = '';
+                if (payment.payment_method) {
+                    if (typeof payment.payment_method === 'string') {
+                        try {
+                            const pm = JSON.parse(payment.payment_method);
+                            if (pm.upi) modeOfPayment = 'upi';
+                            else if (pm.netbanking) modeOfPayment = 'netbanking';
+                            else if (pm.card) modeOfPayment = 'card';
+                            else if (pm.cash) modeOfPayment = 'cash';
+                        } catch (e) { modeOfPayment = payment.payment_group || ''; }
+                    } else {
+                        if (payment.payment_method.upi) modeOfPayment = 'upi';
+                        else if (payment.payment_method.netbanking) modeOfPayment = 'netbanking';
+                        else if (payment.payment_method.card) modeOfPayment = 'card';
+                        else if (payment.payment_method.cash) modeOfPayment = 'cash';
+                    }
+                } else if (payment.payment_group) {
+                    modeOfPayment = payment.payment_group;
+                }
+                let paymentDetails = '';
+                if (cfPaymentId || modeOfPayment) {
+                    paymentDetails = `<div style='font-size:0.9em;color:#555;'>${cfPaymentId}${cfPaymentId && modeOfPayment ? ' | ' : ''}${modeOfPayment}</div>`;
+                }
+                allTransactionItems.push({
+                    date: new Date(payment.payment_completion_time),
+                    type: 'payment',
+                    description: `<img src='../../assets/images/payment-success.jpg' style='height:16px;vertical-align:middle;margin-right:4px;'/> <b>Meeting Fee Paid </b> - ${monthName}${billTransactions.length > 1 ? ' (Partial)' : ''}${paymentDetails}`,
                     debit: 0,
-                    credit: parseFloat(credit.credit_amount),
-                    gst: 0,
-                    balance: parseFloat(currentBalance),
-                    balanceColor:
-                      parseFloat(currentBalance) >= 0 ? "green" : "red"
-                  });
+                    credit: paymentBaseAmount,
+                    gst: parseFloat(paymentOrder.tax),
+                    totalAmount: parseFloat(paymentOrder.order_amount),
+                    runningBalance: runningBalance + paymentBaseAmount
                 });
-
-                // Remove the found entries from the original filteredCredits array
-                filteredCredits = filteredCredits.filter(
-                  credit =>
-                    new Date(credit.credit_date) >
-                    new Date(transaction.payment_time)
-                );
-              } else {
-                console.log("No credits before this transaction.");
-              }
-              active_bool_late_payment = true;
-              if (
-                transaction.payment_time > kitty.kitty_due_date &&
-                one_time === false
-              ) {
-                // active_bool_late_payment = true;
-                console.log(
-                  "late payment",
-                  transaction.payment_time,
-                  kitty.kitty_due_date
-                );
-                no_of_late_payment++;
-                one_time = true;
-                currentBalance -= parseFloat(kitty.penalty_fee);
-                console.log("penalty adding ========-=-=---------");
-
-                ledgerData.push({
-                  sNo: ledgerData.length + 1,
-                  date: formatDate(kitty.kitty_due_date),
-                  description: `
-                    Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>
-                    `,
-                  billAmount: 0,
-                  debit: parseFloat(kitty.penalty_fee),
-                  credit: 0,
-                  gst: 0,
-                  balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-                  balanceColor:
-                    parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-                });
-
-              }
-              // else{
-              currentBalance += parseFloat(
-                parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-              );
-              paid_amount_show += parseFloat(
-                parseFloat(transaction.payment_amount) - parseFloat(order.tax)
-              );
-              ledgerData.push({
-                sNo: ledgerData.length + 1,
-                date: formatDate(transaction.payment_time),
-                description: "Meeting Fee Paid",
-                billAmount: Math.round(transaction.payment_amount),
-                debit: 0,
-                credit:
-                  parseFloat(transaction.payment_amount) -
-                  parseFloat(order.tax),
-                gst: Math.round(parseFloat(order.tax)),
-                balance: parseFloat(currentBalance),
-                balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-              });
-              // }
+                runningBalance += paymentBaseAmount;
             });
-          } else {
-            console.log("no transaction found");
-            // no_of_late_payment++;
-          }
-        });
-        if (
-          active_bool_late_payment === false &&
-          Date.now() > new Date(kitty.kitty_due_date).getTime() &&
-          one_time === false
-        ) {
-          no_of_late_payment++;
-          one_time = true;
-          currentBalance -= parseFloat(kitty.penalty_fee);
-          console.log("penalty adding ========-=-=---------");
-
-          ledgerData.push({
-            sNo: ledgerData.length + 1,
-            date: formatDate(kitty.kitty_due_date),
-            description: `Late Fee Penalty <span><img src="../assets/images/late.jpg" alt="late payment image" style="width: 15px; height: 15px; border-radius: 50%;"></span>`,
-            billAmount: 0,
-            debit: parseFloat(kitty.penalty_fee),
-            credit: 0,
-            gst: 0,
-            balance: parseFloat(currentBalance), // Show sum in Meeting Payable Amount row
-            balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red" // Set balance color to red
-          });
+        } else {
+            // No payment, if today > due date, add penalty
+            const now = new Date();
+            if (now.getTime() > dueDate.getTime() && bill.penalty_fee > 0) {
+                const penaltyAmount = bill.penalty_fee;
+                const penaltyGst = Math.round(penaltyAmount * 0.18);
+                const penaltyTotal = penaltyAmount + penaltyGst;
+                allTransactionItems.push({
+                    date: dueDate,
+                    type: 'penalty',
+                    description: `Late Payment Penalty for ${monthName}`,
+                    debit: penaltyAmount,
+                    credit: 0,
+                    gst: penaltyGst,
+                    totalAmount: penaltyTotal,
+                    // runningBalance will be set later
+                });
+            }
         }
-      }
+        // (Optional) Add credit/write-off entry if any (not implemented here)
     });
-    let kittyRaisedOnDate = null;
-    if (activeKittyEntries.length !== 0) {
-      kittyRaisedOnDate = new Date(activeKittyEntries[0].raised_on);
-    }
-    if (
-      activeKittyEntries.length !== 0 &&
-      memberInductionDate <= kittyRaisedOnDate
-    ) {
-      const fullYear = kittyRaisedOnDate.getFullYear();
-      console.log("Full Year from raised_on:", fullYear);
-      document.getElementById("total-kitty-amount").textContent =
-        activeKittyEntries[0].total_bill_amount;
-      document.getElementById("billType").textContent =
-        activeKittyEntries[0].bill_type;
-      document.getElementById("tot_weeks").textContent =
-        activeKittyEntries[0].total_weeks;
-      document.querySelector(".description").innerHTML =
-        activeKittyEntries[0].description + " " + fullYear;
-      document.getElementById("due_date").textContent = formatDate(
-        activeKittyEntries[0].kitty_due_date
-      );
-    } else {
-      console.log("-----------------------------", activeKittyEntries);
-      document.getElementById("total-kitty-amount").textContent =
-        "No Bill Raised.";
-      document.getElementById("billType").textContent = "-";
-      document.getElementById("tot_weeks").textContent = "-";
-      document.querySelector(".description").innerHTML = "-";
-      document.getElementById("due_date").textContent = "-";
-    }
 
-    // If there are any remaining entries in filteredCredits, log them
-    if (filteredCredits.length > 0) {
-      console.log("Remaining Credits:", filteredCredits);
-      filteredCredits.forEach(credit => {
-        currentBalance += parseFloat(credit.credit_amount);
-        total_credit_note_amount += parseFloat(credit.credit_amount);
-        ledgerData.push({
-          sNo: ledgerData.length + 1,
-          date: formatDate(credit.credit_date),
-          description: "Credit Note",
-          billAmount: 0,
-          debit: 0,
-          credit: parseFloat(credit.credit_amount),
-          gst: 0,
-          balance: parseFloat(currentBalance),
-          balanceColor: parseFloat(currentBalance) >= 0 ? "green" : "red"
-        });
-      });
-    }
+    // Sort all transactions by date
+    allTransactionItems.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Fetch write-off data and check for write-off status
-    const writeOffResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberWriteOff");
-    const writeOffData = await writeOffResponse.json();
-    memberWriteOff = writeOffData.find(wo => wo.member_id === userData.member_id);
-    console.log("memberWriteOff", memberWriteOff);
-    console.log("writeOffData", writeOffData);
-    console.log("userData.member_id", userData.member_id);
-
-    // Check if member has been written off and add entry
-    if (memberWriteOff) {
-      ledgerData.push({
-        sNo: ledgerData.length + 1,
-        date: formatDate(memberWriteOff.rightoff_date),
-        description: `Member Write Off${memberWriteOff.writeoff_comment ? ` - <br> ${memberWriteOff.writeoff_comment}` : ''}`,
-        billAmount: 0,
-        debit: 0,
-        credit: parseFloat(memberWriteOff.total_pending_amount),
-        gst: 0,
-        balance: 0,
-        balanceColor: "green"
-      });
-      
-      // Reset all amounts to 0 for written off member
-      currentBalance = 0;
-      paid_amount_show = 0;
-      total_credit_note_amount = 0;
-      no_of_late_payment = 0;
-
-      // Reset the display fields for active kitty
-      document.getElementById("total-kitty-amount").textContent = "0";
-      document.getElementById("billType").textContent = "-";
-      document.getElementById("tot_weeks").textContent = "-";
-      document.querySelector(".description").innerHTML = "Member Written Off";
-      document.getElementById("due_date").textContent = "-";
-    }
-
-    // Update the final balance display
-    if (parseFloat(currentBalance) >= 0) {
-      document.getElementById("pending_payment_amount").innerHTML = 
-        `<span style="color: green;">${currentBalance.toFixed(2)}</span>`;
-    } else {
-      document.getElementById("pending_payment_amount").innerHTML = 
-        `<span style="color: red;">${currentBalance.toFixed(2)}</span>`;
-    }
-
-    // Set Total Kitty Amount Raised (in ₹)
-    let totalKittyAmountRaised = 0;
-    if (activeKittyEntries.length > 0) {
-      const kitty = activeKittyEntries[0];
-      const kittyRaisedOnDate = new Date(kitty.raised_on);
-      const memberInductionDate = new Date(userData.date_of_publishing);
-      if (memberInductionDate > kittyRaisedOnDate) {
-        // DOP > bill raised date: sum all total_bill_amount for this chapter
-        const allKittyPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/getAllKittyPayments");
-        const allKittyPayments = await allKittyPaymentsResponse.json();
-        const chapterKittyPayments = allKittyPayments.filter(bill => bill.chapter_id === chapter_id && bill.delete_status === 0);
-        totalKittyAmountRaised = chapterKittyPayments.reduce((sum, bill) => sum + parseFloat(bill.total_bill_amount), 0);
-        document.getElementById("total-kitty-amount").textContent = parseFloat(totalKittyAmountRaised).toFixed(2);
-      } else {
-        // Existing logic for other cases
-        document.getElementById("total-kitty-amount").textContent = kitty.total_bill_amount;
-      }
-    } else {
-      document.getElementById("total-kitty-amount").textContent = "No Bill Raised.";
-    }
-
-    // Set Latest Bill Details
-    if (activeKittyEntries.length > 0) {
-      const kitty = activeKittyEntries[0];
-      const kittyRaisedOnDate = new Date(kitty.raised_on);
-      const memberInductionDate = new Date(userData.date_of_publishing);
-      if (memberInductionDate > kittyRaisedOnDate) {
-        // DOP > bill raised date: show details from active kitty and userData
-        document.getElementById("billType").textContent = kitty.bill_type;
-        document.getElementById("tot_weeks").textContent = kitty.total_weeks;
-        document.querySelector(".description").innerHTML = kitty.description;
-        document.getElementById("due_date").textContent = formatDate(kitty.kitty_due_date);
-      } else {
-        // Existing logic for other cases
-        document.getElementById("billType").textContent = kitty.bill_type;
-        document.getElementById("tot_weeks").textContent = kitty.total_weeks;
-        document.querySelector(".description").innerHTML = kitty.description;
-        document.getElementById("due_date").textContent = formatDate(kitty.kitty_due_date);
-      }
-    } else {
-      document.getElementById("billType").textContent = "-";
-      document.getElementById("tot_weeks").textContent = "-";
-      document.querySelector(".description").innerHTML = "-";
-      document.getElementById("due_date").textContent = "-";
-    }
-  } catch (error) {
-    console.error("Error generating ledger:", error);
-    alert("An error occurred while generating the ledger.");
-  } finally {
-    const ledgerBody = document.getElementById("ledger-body");
-    ledgerBody.innerHTML = ""; // Clear existing rows
-    ledgerData.forEach(entry => {
-      const row = document.createElement("tr");
-
-      // Define balanceColor and balanceValue correctly
-      const balanceColor = entry.balanceColor;
-      const balanceValue = entry.balance;
-
-      row.innerHTML = `
-      <td>${entry.sNo}</td>
-      <td><b>${entry.date}</b></td>
-      <td><b>${entry.description}</b></td>
-      <td><b>${entry.billAmount
-        ? parseFloat(entry.billAmount).toFixed(2)
-        : "-"}</b></td>
-      <td><b style="color: ${entry.debit ? "red" : "inherit"}">${entry.debit
-        ? parseFloat(entry.debit).toFixed(2)
-        : "-"}</b></td>
-      <td><b style="color: ${entry.credit ? "green" : "inherit"}">${entry.credit
-        ? parseFloat(entry.credit).toFixed(2)
-        : "-"}</b></td>
-      <td>${entry.gst ? parseFloat(entry.gst).toFixed(2) : "-"}</td>
-      <td>
-        <b style="color: ${balanceColor}">
-          ${parseFloat(balanceValue).toFixed(2)}
-        </b>
-      </td>
-    `;
-
-      ledgerBody.appendChild(row);
+    // Update running balances after sorting using only debit and credit
+    let currentBalance = memberData.meeting_opening_balance || 0;
+    allTransactionItems.forEach(item => {
+        if (item.type === 'opening') {
+            item.runningBalance = currentBalance;
+        } else {
+            currentBalance = currentBalance - (item.debit || 0) + (item.credit || 0);
+            item.runningBalance = currentBalance;
+        }
     });
-    document.getElementById("success_kitty_amount").textContent = 
-      memberWriteOff ? "0.00" : paid_amount_show.toFixed(2);
-    document.getElementById("total_credit_note_amount").textContent = 
-      memberWriteOff ? "0.00" : total_credit_note_amount.toFixed(2);
-    document.getElementById("no_of_late_payment").textContent = 
-      memberWriteOff ? "0" : no_of_late_payment;
-    hideLoader();
-  }
-})();
+
+    // Update summary cards
+    updateSummaryCards();
+}
+
+// Initialize when document is ready
+document.addEventListener('DOMContentLoaded', initializeMemberLedger);
