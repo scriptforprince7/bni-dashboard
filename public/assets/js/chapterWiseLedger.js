@@ -1331,15 +1331,15 @@ function showPendingExpensesPopup(mode) {
       const totalAmount = parseFloat(payment.total_amount);
       
       // Add to total kitty amount instead of expenses
-      totalKittyAmount += totalAmount;
-      currentBalance += totalAmount;
+      totalKittyAmount += baseAmount; // Changed from totalAmount to baseAmount
+      currentBalance += baseAmount; // Changed from totalAmount to baseAmount
 
       // Track other payments by mode
       if (payment.mode_of_payment.toLowerCase() === 'cash') {
-        cashOtherPayments += totalAmount;
+        cashOtherPayments += baseAmount; // Changed from totalAmount to baseAmount
         cashGSTAmount += gstAmount;
       } else {
-        onlineOtherPayments += totalAmount;
+        onlineOtherPayments += baseAmount; // Changed from totalAmount to baseAmount
       }
       
       allTransactionItems.push({

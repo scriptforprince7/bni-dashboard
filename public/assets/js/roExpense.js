@@ -386,6 +386,8 @@ function displayExpenses(expenses) {
         ${expense.tds_process ? `
           <button class="btn ${expense.tds_section_list === "NA" ? 'btn-danger' : 'btn-success'} btn-sm view-tds-btn" 
                   data-expense-id="${expense.expense_id}"
+                  data-amount="${expense.amount}"
+                  data-gst-amount="${expense.gst_amount || 0}"
                   data-tds-section="${expense.tds_section_list}"
                   data-tds-type="${expense.tds_type}"
                   data-tds-percentage="${expense.tds_percentage}"
@@ -1436,18 +1438,27 @@ document.addEventListener('click', function(event) {
         </div>
       `,
       showConfirmButton: true,
+      showDenyButton: true,
       confirmButtonText: `
         <div style="display: flex; align-items: center; gap: 6px;">
-          <i class="ri-check-line"></i>
+          <i class="ri-edit-line"></i>
+          Edit
+        </div>
+      `,
+      denyButtonText: `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <i class="ri-close-line"></i>
           Close
         </div>
       `,
-      confirmButtonColor: '#4CAF50',
+      confirmButtonColor: '#1976D2',
+      denyButtonColor: '#6c757d',
       customClass: {
         popup: 'animated fadeInDown',
         title: 'swal2-title-custom',
         htmlContainer: 'swal2-html-container-custom',
-        confirmButton: 'btn btn-success'
+        confirmButton: 'btn btn-primary',
+        denyButton: 'btn btn-secondary'
       },
       didOpen: () => {
         // Add hover effect to each detail box
@@ -1461,6 +1472,186 @@ document.addEventListener('click', function(event) {
             box.style.transform = 'translateY(0)';
             box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
           });
+        });
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Show edit form
+        Swal.fire({
+          title: `
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+              <i class="ri-edit-line" style="font-size: 24px; color: #1976D2;"></i>
+              <h2 style="color: #1976D2; font-weight: 600; margin: 0;">Edit TDS Details</h2>
+            </div>
+          `,
+          html: `
+            <div style="text-align: left; margin-top: 0; background: #f8f9fa; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <label for="tdsSection" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                  <i class="ri-file-list-3-line" style="color: #1976D2; margin-right: 8px;"></i>
+                  TDS Section List
+                </label>
+                <select id="tdsSection" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+                  <option value="">Select TDS Section</option>
+                  <option value="194C" ${button.getAttribute('data-tds-section') === '194C' ? 'selected' : ''}>194C</option>
+                  <option value="194H" ${button.getAttribute('data-tds-section') === '194H' ? 'selected' : ''}>194H</option>
+                  <option value="194I" ${button.getAttribute('data-tds-section') === '194I' ? 'selected' : ''}>194I</option>
+                  <option value="194J" ${button.getAttribute('data-tds-section') === '194J' ? 'selected' : ''}>194J</option>
+                </select>
+              </div>
+
+              <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <label for="tdsType" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                  <i class="ri-user-settings-line" style="color: #1976D2; margin-right: 8px;"></i>
+                  Individual/Others
+                </label>
+                <select id="tdsType" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+                  <option value="">Select Type</option>
+                  <option value="individual" ${button.getAttribute('data-tds-type') === 'individual' ? 'selected' : ''}>Individual</option>
+                  <option value="others" ${button.getAttribute('data-tds-type') === 'others' ? 'selected' : ''}>Others</option>
+                </select>
+              </div>
+
+              <div id="tdsPercentageSection" style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <label for="tdsPercentage" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                  <i class="ri-percent-line" style="color: #1976D2; margin-right: 8px;"></i>
+                  TDS Percentage
+                </label>
+                <select id="tdsPercentage" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+                  <option value="">Select Percentage</option>
+                </select>
+              </div>
+
+              <div id="commentSection" style="margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <label for="tdsComment" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                  <i class="ri-message-2-line" style="color: #1976D2; margin-right: 8px;"></i>
+                  Add Comment
+                </label>
+                <textarea id="tdsComment" class="form-control" 
+                          style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; font-size: 15px; background-color: #f8f9fa;"
+                          placeholder="Enter your comment here...">${button.getAttribute('data-ca-comment') || ''}</textarea>
+              </div>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: `
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="ri-check-line"></i>
+              Save Changes
+            </div>
+          `,
+          cancelButtonText: `
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="ri-close-line"></i>
+              Cancel
+            </div>
+          `,
+          confirmButtonColor: '#1976D2',
+          cancelButtonColor: '#6c757d',
+          customClass: {
+            popup: 'animated fadeInDown',
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-secondary',
+            title: 'swal2-title-custom',
+            htmlContainer: 'swal2-html-container-custom'
+          },
+          didOpen: () => {
+            const tdsSection = document.getElementById('tdsSection');
+            const tdsType = document.getElementById('tdsType');
+            const tdsPercentageSection = document.getElementById('tdsPercentageSection');
+            const tdsPercentage = document.getElementById('tdsPercentage');
+
+            // Set initial percentage based on current values
+            const currentSection = button.getAttribute('data-tds-section');
+            const currentType = button.getAttribute('data-tds-type');
+            const currentPercentage = button.getAttribute('data-tds-percentage');
+
+            const updateTdsPercentage = () => {
+              const section = tdsSection.value;
+              const type = tdsType.value;
+              
+              if (!section || !type) {
+                tdsPercentageSection.style.display = 'none';
+                return;
+              }
+
+              tdsPercentageSection.style.display = 'block';
+              tdsPercentage.innerHTML = '<option value="">Select Percentage</option>';
+
+              if (section === '194C') {
+                if (type === 'individual') {
+                  tdsPercentage.innerHTML += '<option value="1">1%</option>';
+                } else {
+                  tdsPercentage.innerHTML += '<option value="2">2%</option>';
+                }
+              } else if (section === '194H') {
+                tdsPercentage.innerHTML += '<option value="2">2%</option>';
+              } else if (section === '194I') {
+                tdsPercentage.innerHTML += `
+                  <option value="2">2%</option>
+                  <option value="10">10%</option>
+                `;
+              } else if (section === '194J') {
+                tdsPercentage.innerHTML += '<option value="10">10%</option>';
+              }
+
+              // Set the current percentage if it matches the available options
+              if (currentPercentage) {
+                const option = Array.from(tdsPercentage.options).find(opt => opt.value === currentPercentage);
+                if (option) {
+                  option.selected = true;
+                }
+              }
+            };
+
+            tdsSection.addEventListener('change', updateTdsPercentage);
+            tdsType.addEventListener('change', updateTdsPercentage);
+
+            // Initial update
+            updateTdsPercentage();
+          },
+          preConfirm: () => {
+            const tdsSection = document.getElementById('tdsSection').value;
+            const tdsType = document.getElementById('tdsType').value;
+            const tdsPercentage = document.getElementById('tdsPercentage').value;
+            const comment = document.getElementById('tdsComment').value;
+
+            if (!tdsSection) {
+              Swal.showValidationMessage('Please select a TDS Section');
+              return false;
+            }
+
+            if (!tdsType) {
+              Swal.showValidationMessage('Please select Individual/Others');
+              return false;
+            }
+
+            if (!tdsPercentage) {
+              Swal.showValidationMessage('Please select TDS Percentage');
+              return false;
+            }
+
+            // Calculate TDS amount
+    const baseAmount = parseFloat(button.getAttribute('data-amount'));
+            const tdsAmount = (baseAmount * parseFloat(tdsPercentage)) / 100;
+            
+            // Calculate final amount
+    const gstAmount = parseFloat(button.getAttribute('data-gst-amount')) || 0;
+            const finalAmount = Math.round(baseAmount - tdsAmount + gstAmount);
+
+            return {
+              tdsSection,
+              tdsType,
+              tdsPercentage,
+              comment,
+              tdsAmount,
+              finalAmount
+            };
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            handleEditTdsSubmit(button.getAttribute('data-expense-id'), result.value);
+          }
         });
       }
     });
@@ -2401,6 +2592,153 @@ displayExpenses = function(expenses) {
       if (row.cells[3]) { // Changed from 2 to 3
         row.cells[3].classList.add('chapter-name-cell');
       }
+    });
+  }
+};
+
+const handleEditTdsSubmit = async (expenseId, formData) => {
+  try {
+    // Debug logging for input parameters
+    console.log('Edit TDS Submit - Input Parameters:', {
+      expenseId,
+      formData
+    });
+
+    // Get the button element for this expense
+    const button = document.querySelector(`.view-tds-btn[data-expense-id="${expenseId}"]`);
+    if (!button) {
+      console.error('Button not found for expense ID:', expenseId);
+      throw new Error('Could not find the expense button');
+    }
+
+    // Debug logging for button attributes
+    console.log('Button Data Attributes:', {
+      'data-amount': button.getAttribute('data-amount'),
+      'data-gst-amount': button.getAttribute('data-gst-amount'),
+      'data-tds-section': button.getAttribute('data-tds-section'),
+      'data-tds-type': button.getAttribute('data-tds-type'),
+      'data-tds-percentage': button.getAttribute('data-tds-percentage'),
+      'data-ca-comment': button.getAttribute('data-ca-comment'),
+      'data-final-amount': button.getAttribute('data-final-amount')
+    });
+
+    // Get and validate base amount
+    const baseAmount = parseFloat(button.getAttribute('data-amount'));
+    if (isNaN(baseAmount) || baseAmount <= 0) {
+      // Try to get amount from the expense object in filteredExpenses
+      const expense = filteredExpenses.find(e => e.expense_id === expenseId);
+      if (expense && expense.amount) {
+        baseAmount = parseFloat(expense.amount);
+      } else {
+        console.error('Invalid base amount:', baseAmount);
+        throw new Error('Invalid base amount');
+      }
+    }
+
+    // Get and validate GST amount
+    let gstAmount = parseFloat(button.getAttribute('data-gst-amount')) || 0;
+    if (isNaN(gstAmount) || gstAmount < 0) {
+      // Try to get GST amount from the expense object
+      const expense = filteredExpenses.find(e => e.expense_id === expenseId);
+      if (expense && expense.gst_amount) {
+        gstAmount = parseFloat(expense.gst_amount);
+      } else {
+        gstAmount = 0;
+      }
+    }
+
+    // Validate form data
+    if (!formData.tdsPercentage || !formData.tdsSection || !formData.tdsType) {
+      console.error('Missing required form data:', formData);
+      throw new Error('Missing required TDS information');
+    }
+
+    // Calculate TDS amount and final amount
+    const tdsAmount = (baseAmount * parseFloat(formData.tdsPercentage)) / 100;
+    const finalAmount = Math.round(baseAmount - tdsAmount + gstAmount);
+
+    // Debug logging for calculations
+    console.log('TDS Calculations:', {
+      baseAmount,
+      gstAmount,
+      tdsPercentage: formData.tdsPercentage,
+      tdsAmount,
+      finalAmount
+    });
+
+    const requestData = {
+      expense_id: expenseId,
+      tds_percentage: formData.tdsPercentage,
+      tds_amount: tdsAmount,
+      tds_process: true,
+      ca_comment: formData.comment || '',
+      final_amount: finalAmount,
+      tds_section_list: formData.tdsSection,
+      tds_type: formData.tdsType
+    };
+
+    // Debug logging for request data
+    console.log('Request Data to be sent:', requestData);
+
+    // Show confirmation dialog with calculated values
+    const confirmResult = await Swal.fire({
+      title: 'Confirm TDS Update',
+      html: `
+        <div style="text-align: left; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+          <div style="margin-bottom: 10px;">
+            <strong>Base Amount:</strong> ₹${baseAmount.toLocaleString('en-IN')}
+          </div>
+          <div style="margin-bottom: 10px;">
+            <strong>TDS Amount:</strong> ₹${tdsAmount.toLocaleString('en-IN')}
+          </div>
+          <div style="margin-bottom: 10px;">
+            <strong>GST Amount:</strong> ₹${gstAmount.toLocaleString('en-IN')}
+          </div>
+          <div style="margin-bottom: 10px;">
+            <strong>Final Amount:</strong> ₹${finalAmount.toLocaleString('en-IN')}
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm Update',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#1976D2',
+      cancelButtonColor: '#dc3545'
+    });
+
+    if (confirmResult.isConfirmed) {
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      const data = await response.json();
+      console.log('API Response:', data);
+
+      if (data.success) {
+        await Swal.fire({
+          title: "Success!",
+          text: "TDS details updated successfully",
+          icon: "success",
+          confirmButtonText: "OK"
+        });
+        // Refresh the expenses list
+        await fetchExpenses();
+      } else {
+        throw new Error(data.message || "Failed to update TDS details");
+      }
+    }
+
+  } catch (error) {
+    console.error('Error in TDS calculations:', error);
+    await Swal.fire({
+      title: "Error!",
+      text: error.message || "Failed to update TDS details",
+      icon: "error",
+      confirmButtonText: "OK"
     });
   }
 };

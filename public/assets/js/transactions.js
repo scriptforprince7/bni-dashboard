@@ -384,6 +384,14 @@ function showPendingInvoicesDetails() {
             memberName = order.member_name || 'N/A';
         }
 
+        // Button logic based on is_settled
+        let actionButton = '';
+        if (transaction.is_settled) {
+            actionButton = `<button class="btn btn-primary btn-sm" onclick="generateEInvoice('${order.order_id}')">Generate E-Invoice</button>`;
+        } else {
+            actionButton = `<button class="btn btn-secondary btn-sm" disabled title="Settlement Pending">Generate E-Invoice</button>`;
+        }
+
         htmlContent += `
             <tr>
                 <td>${formatDate(transaction.payment_time)}</td>
@@ -392,9 +400,7 @@ function showPendingInvoicesDetails() {
                 <td>${formatINR(transaction.payment_amount)}</td>
                 <td>${getPaymentMethodHTML(transaction.payment_group)}</td>
                 <td>
-                    <button class="btn btn-primary btn-sm" onclick="generateEInvoice('${order.order_id}')">
-                        Generate E-Invoice
-                    </button>
+                    ${actionButton}
                 </td>
             </tr>
         `;
