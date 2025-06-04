@@ -521,24 +521,10 @@
                 >
                   <div class="card-title">All Kitty Transactions</div>
                   <div class="d-flex">
-
-
-                    <!-- <div class="custom-form-group">
-                      <input
-                        type="text"
-                        id="searchChapterInput"
-                        class="form-control"
-                        placeholder="Search Payment.."
-                        aria-label="Event : custom'id"
-                        aria-describedby="button-addon2"
-                      />
-                      <a href="javascript:void(0);" class="text-muted custom-form-btn">
-                        <i class="ti ti-search"></i>
-                      </a>
-                    </div> -->
-
+                    <button id="export-ledger-btn" class="btn btn-outline-success btn-sm" type="button" style="margin-left:10px;">
+                      <i class="ri-file-download-line"></i> Export Ledger
+                    </button>
                   </div>
-                  
                 </div>
                 <div class="card-body p-0">
                   <div class="table-responsive">
@@ -589,8 +575,9 @@
       <!-- End::content  -->
 
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
       <script src="../../assets/js/memberTransactions.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 

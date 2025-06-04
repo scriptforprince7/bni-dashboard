@@ -906,3 +906,159 @@ function processTransactions() {
 
 // Initialize when document is ready
 document.addEventListener('DOMContentLoaded', initializeMemberLedger);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const exportBtn = document.getElementById('export-ledger-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Export Ledger',
+                text: 'Choose export format:',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Excel',
+                denyButtonText: 'PDF',
+                cancelButtonText: 'Cancel',
+                icon: 'info',
+                customClass: { popup: 'kitty-breakdown-popup' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    exportLedgerToExcel();
+                } else if (result.isDenied) {
+                    exportLedgerToPDF();
+                }
+            });
+        });
+    }
+});
+
+function exportLedgerToExcel() {
+    const tbody = document.getElementById('ledger-body');
+    const visibleRows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    // Prepare headers and data
+    let excelData = [
+        ['Member Ledger'],
+        [`Generated on: ${new Date().toLocaleDateString('en-IN')}`],
+        [''], // Empty row for spacing
+        ['S.No.', 'Date', 'Description', 'Total Amount', 'Debit (Dr.)', 'Credit (Cr.)', 'GST', 'Balance']
+    ];
+
+    // Add data rows
+    visibleRows.forEach(row => {
+        const rowData = Array.from(row.cells).map(cell => {
+            // Remove HTML tags and get clean text
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cell.innerHTML;
+            return tempDiv.textContent.trim();
+        });
+        excelData.push(rowData);
+    });
+
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+    // Set column widths
+    const colWidths = [10, 20, 60, 25, 25, 25, 20, 25];
+    ws['!cols'] = colWidths.map(width => ({ width }));
+
+    // Style the header row
+    const headerRange = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+        const cell = XLSX.utils.encode_cell({ r: 3, c: C }); // Row 4 (0-based index)
+        if (!ws[cell]) ws[cell] = { v: '' };
+        ws[cell].s = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "2980b9" } },
+            alignment: { horizontal: "center" }
+        };
+    }
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Ledger');
+
+    // Save file
+    const date = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Member_Ledger_${date}.xlsx`);
+}
+
+function exportLedgerToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
+    
+    // Add title
+    doc.setFontSize(16);
+    doc.text('Member Ledger', 14, 20);
+    
+    // Add date
+    doc.setFontSize(10);
+    const today = new Date().toLocaleDateString('en-IN');
+    doc.text(`Generated on: ${today}`, 14, 27);
+
+    // Get table data
+    const tbody = document.getElementById('ledger-body');
+    const visibleRows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    // Prepare headers and data
+    const headers = [['S.No.', 'Date', 'Description', 'Total Amount', 'Debit (Dr.)', 'Credit (Cr.)', 'GST', 'Balance']];
+    const tableData = visibleRows.map(row => 
+        Array.from(row.cells).map(cell => {
+            // Remove HTML tags and get clean text
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cell.innerHTML;
+            return tempDiv.textContent.trim();
+        })
+    );
+
+    // Calculate column widths based on content
+    const colWidths = [10, 20, 60, 25, 25, 25, 20, 25];
+
+    // Add the table using autoTable
+    doc.autoTable({
+        head: headers,
+        body: tableData,
+        startY: 30,
+        theme: 'grid',
+        styles: {
+            fontSize: 8,
+            cellPadding: 2,
+            overflow: 'linebreak',
+            font: 'helvetica'
+        },
+        headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontSize: 9,
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        columnStyles: {
+            0: { cellWidth: colWidths[0], halign: 'center' }, // S.No.
+            1: { cellWidth: colWidths[1], halign: 'center' }, // Date
+            2: { cellWidth: colWidths[2] }, // Description
+            3: { cellWidth: colWidths[3], halign: 'right' }, // Total Amount
+            4: { cellWidth: colWidths[4], halign: 'right' }, // Debit
+            5: { cellWidth: colWidths[5], halign: 'right' }, // Credit
+            6: { cellWidth: colWidths[6], halign: 'right' }, // GST
+            7: { cellWidth: colWidths[7], halign: 'right' }  // Balance
+        },
+        alternateRowStyles: {
+            fillColor: [245, 245, 245]
+        },
+        margin: { top: 30 },
+        didDrawPage: function(data) {
+            // Add footer
+            doc.setFontSize(8);
+            doc.text(
+                'Page ' + doc.internal.getNumberOfPages(),
+                data.settings.margin.left,
+                doc.internal.pageSize.height - 10
+            );
+        }
+    });
+
+    // Save the PDF
+    const date = new Date().toISOString().split('T')[0];
+    doc.save(`Member_Ledger_${date}.pdf`);
+}
