@@ -7,6 +7,7 @@ router.get('/manage-transactions', chapterTransactionController.chapterTransacti
 router.get('/generate-invoice', chapterTransactionController.generateInvoice);
 router.get('/chapter-generate-invoice', chapterTransactionController.chapterGenerateInvoice);
 router.get('/chapter-new-member-payment', chapterTransactionController.newMemberPayment);
+router.get('/chapter-multiple-visitor-payment' , chapterTransactionController.chapterMultipleVisitorPayment)
 
 
 

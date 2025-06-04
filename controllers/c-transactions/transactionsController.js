@@ -72,6 +72,10 @@ exports.einvoiceManagement = (req, res) => {
     res.render('m-transactions/einvoice-management', { title: 'E-Invoice Management' });
 };
 
+exports.multipleVisitorsPayment = (req, res) => {
+    res.render('m-transactions/multiple-Visitors-Payment', { title: 'E-Invoice Management' });
+};
+
 
 
 

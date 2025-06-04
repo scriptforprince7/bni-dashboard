@@ -1007,6 +1007,11 @@ document.addEventListener("DOMContentLoaded", async function() {
     const sgstInput = document.getElementById('sgst_amount');
     const grandTotalInput = document.getElementById('grand_total');
 
+    // Set checkbox to checked by default
+    if (includeGstCheckbox) {
+        includeGstCheckbox.checked = true;
+    }
+
     function updateGrandTotalWithGST() {
         const taxable = parseFloat(taxableAmountInput.value.replace(/[₹,\s]/g, '')) || 0;
         let cgst = 0, sgst = 0;
@@ -1084,35 +1089,75 @@ document.addEventListener("DOMContentLoaded", async function() {
 
           console.log('📤 Submitting invoice with data:', invoiceData);
 
-          // // Send to your API
-          // const response = await fetch('your-api-endpoint', {
-          //   method: 'POST',
-          //   headers: {
-          //     'Content-Type': 'application/json',
-          //   },
-          //   body: JSON.stringify(invoiceData)
-          // });
+          // Store data in localStorage (excluding visitor details)
+          localStorage.setItem('visitorPaymentTemplate', JSON.stringify({
+            universal_link_id: universalLinkId,
+            date_issued: document.getElementById("invoice-date-issued").value,
+            particulars: "Visitors Payment",
+            taxable_amount: document.getElementById('include-gst').checked ? 
+                (parseFloat(document.getElementById('taxable-total-amount').value.replace('₹', '').trim()) + 
+                 parseFloat(document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0')).toString() :
+                document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+            gst_amount: document.getElementById('include-gst').checked ? 
+                document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0' : '0',
+            total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
+            mode_of_payment: getPaymentDetails().mode_of_payment,
+            region_id: selectedRegionId,
+            chapter_id: selectedChapterId,
+            company_info: {
+                address: document.getElementById("company-address").value,
+                email: document.getElementById("company-mail").value,
+                phone: document.getElementById("company-phone").value,
+                gst: document.getElementById("company-gst").value
+            }
+          }));
 
-          // if (!response.ok) {
-          //   throw new Error('Failed to create invoice');
-          // }
+          console.log("💾 Stored template data in localStorage");
 
-          // const result = await response.json();
-          // console.log('✅ Invoice created successfully:', result);
+          try {
+            const response = await fetch('https://backend.bninewdelhi.com/api/addvisitorpayment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(invoiceData)
+            });
 
-          // Show success message
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: 'Invoice created successfully',
-            showConfirmButton: false,
-            timer: 1500
-          });
+            const result = await response.json();
+            console.log("📥 Received response:", result);
 
-          // Redirect or refresh as needed
-          setTimeout(() => {
-            window.location.href = '/your-redirect-path';
-          }, 1500);
+            if (result.success) {
+              Swal.fire({
+                title: 'Payment Successful!',
+                text: 'What would you like to do next?',
+                icon: 'success',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Add More Visitors',
+                denyButtonText: 'Add Single Payment',
+                cancelButtonText: 'Go to Transactions'
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // Will implement this later - redirect to new page
+                  console.log("🔄 Redirecting to add more visitors page");
+                  window.location.href = '/t/multiple-visitor-payment';
+                  // window.location.href = '/add-multiple-visitors';
+                } else if (result.isDenied) {
+                  console.log("🔄 Redirecting to new invoice page");
+                  window.location.href = '/t/new-invoice?id=5';
+                } else {
+                  console.log("🔄 Redirecting to transactions page");
+                  window.location.href = '/t/all-transactions';
+                }
+              });
+            } else {
+              console.error("❌ Payment failed:", result.message);
+              showToast('error', result.message || 'Error processing payment');
+            }
+          } catch (error) {
+            console.error("❌ Error:", error);
+            showToast('error', 'Error processing payment');
+          }
 
         } catch (error) {
           console.error('❌ Error creating invoice:', error);
@@ -1350,6 +1395,13 @@ document.getElementById("submit_invoice").addEventListener("click", async functi
             });
         }
 
+        // If GST is included, add it to the order amount
+        if (document.getElementById('include-gst').checked) {
+            const baseAmount = parseFloat(invoiceData.taxable_amount);
+            const gstAmount = parseFloat(invoiceData.tax);
+            invoiceData.total_amount = (baseAmount + gstAmount).toString();
+        }
+
         // Send to backend
         const response = await fetch("backend.bninewdelhi.com/api/add-invoice", {
             method: "POST",
@@ -1421,7 +1473,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     visitor_gstin: document.getElementById('company-gstin').value,
                     visitor_company_address: document.getElementById('visitor-company-address').value,
                     particulars: "Visitors Payment",
-                    taxable_amount: document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+                    taxable_amount: document.getElementById('include-gst').checked ? 
+                        (parseFloat(document.getElementById('taxable-total-amount').value.replace('₹', '').trim()) + 
+                         parseFloat(document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0')).toString() :
+                        document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
                     gst_amount: document.getElementById('include-gst').checked ? 
                         document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0' : '0',
                     total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
@@ -1459,52 +1514,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log("📤 Sending visitor payment data:", invoiceData);
 
-                // Rest of your existing code (API call, success handling, etc.)
-                const result = await Swal.fire({
-                    title: 'Confirm Invoice Generation',
-                    text: 'Are you sure you want to generate this invoice?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, generate it!',
-                    cancelButtonText: 'No, cancel',
-                    confirmButtonColor: '#6259ca',
-                    cancelButtonColor: '#7987a1'
-                });
+                // Store data in localStorage (excluding visitor details)
+                localStorage.setItem('visitorPaymentTemplate', JSON.stringify({
+                    universal_link_id: universalLinkId,
+                    date_issued: document.getElementById("invoice-date-issued").value,
+                    particulars: "Visitors Payment",
+                    taxable_amount: document.getElementById('include-gst').checked ? 
+                        (parseFloat(document.getElementById('taxable-total-amount').value.replace('₹', '').trim()) + 
+                         parseFloat(document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0')).toString() :
+                        document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+                    gst_amount: document.getElementById('include-gst').checked ? 
+                        document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0' : '0',
+                    total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
+                    mode_of_payment: getPaymentDetails().mode_of_payment,
+                    region_id: selectedRegionId,
+                    chapter_id: selectedChapterId,
+                    company_info: {
+                        address: document.getElementById("company-address").value,
+                        email: document.getElementById("company-mail").value,
+                        phone: document.getElementById("company-phone").value,
+                        gst: document.getElementById("company-gst").value
+                    }
+                }));
 
-                if (!result.isConfirmed) {
-                    return;
-                }
+                console.log("💾 Stored template data in localStorage");
 
-                const response = await fetch('https://backend.bninewdelhi.com/api/addVisitorPayment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(invoiceData)
-                });
-
-                const responseData = await response.json();
-                console.log("📥 Backend Response:", responseData);
-
-                if (response.ok) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Visitor Invoice Created Successfully!',
-                        html: `
-                            <div style="text-align: left;">
-                                <p><strong>Visitor:</strong> ${invoiceData.visitor_name}</p>
-                                <p><strong>Amount:</strong> ₹${invoiceData.total_amount}</p>
-                                <p><strong>Order ID:</strong> ${responseData.data.order_id}</p>
-                            </div>
-                        `,
-                        timer: 3000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'View Transactions'
+                try {
+                    const response = await fetch('https://backend.bninewdelhi.com/api/addvisitorpayment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(invoiceData)
                     });
 
-                    window.location.href = '/t/all-transactions';
-                } else {
-                    throw new Error(responseData.message || 'Failed to process visitor payment');
+                    const result = await response.json();
+                    console.log("📥 Received response:", result);
+
+                    if (result.success) {
+                        Swal.fire({
+                            title: 'Payment Successful!',
+                            text: 'What would you like to do next?',
+                            icon: 'success',
+                            showDenyButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: 'Add More Visitors',
+                            denyButtonText: 'Add Single Payment',
+                            cancelButtonText: 'Go to Transactions'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Will implement this later - redirect to new page
+                                console.log("🔄 Redirecting to add more visitors page");
+                                window.location.href = '/t/multiple-visitor-payment';
+                            } else if (result.isDenied) {
+                                console.log("🔄 Redirecting to new invoice page");
+                                window.location.href = '/t/new-invoice?id=5';
+                            } else {
+                                console.log("🔄 Redirecting to transactions page");
+                                window.location.href = '/t/all-transactions';
+                            }
+                        });
+                    } else {
+                        console.error("❌ Payment failed:", result.message);
+                        showToast('error', result.message || 'Error processing payment');
+                    }
+                } catch (error) {
+                    console.error("❌ Error:", error);
+                    showToast('error', 'Error processing payment');
                 }
 
             } catch (error) {

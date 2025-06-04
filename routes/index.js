@@ -75,9 +75,4 @@ router.use('/vi', visitorRoutes);
 router.use('/cv', chapterVisitorRoutes);
 router.use('/ro', roVisitorRoutes);
 
-
-
-
-
-
 module.exports = router;

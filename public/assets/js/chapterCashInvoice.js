@@ -1033,6 +1033,145 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
       }
     });
+
+    // Add visitor dropdown functionality
+    const visitorNameContainer = document.getElementById('visitor-name')?.closest('.col-xl-12');
+    if (visitorNameContainer) {
+      // Create dropdown container with radio buttons
+      const dropdownContainer = document.createElement('div');
+      dropdownContainer.className = 'mb-3';
+      dropdownContainer.innerHTML = `
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="visitorInputType" id="selectVisitor" checked>
+          <label class="form-check-label" for="selectVisitor">Select Existing Visitor</label>
+        </div>
+        <div class="form-check form-check-inline mb-2">
+          <input class="form-check-input" type="radio" name="visitorInputType" id="newVisitor">
+          <label class="form-check-label" for="newVisitor">Add New Visitor</label>
+        </div>
+        <div id="visitor-dropdown-container">
+          <label class="form-label">Select Visitor</label>
+          <select class="form-control form-control-light" id="visitor-dropdown">
+            <option value="">Select Visitor</option>
+          </select>
+        </div>
+      `;
+      
+      // Insert dropdown before the visitor name input
+      visitorNameContainer.insertBefore(dropdownContainer, visitorNameContainer.firstChild);
+
+      // Get the visitor name input and its container
+      const visitorNameInput = document.getElementById('visitor-name');
+      const visitorNameInputContainer = visitorNameInput?.closest('.mb-3');
+
+      // Handle radio button changes
+      const selectVisitorRadio = document.getElementById('selectVisitor');
+      const newVisitorRadio = document.getElementById('newVisitor');
+      const visitorDropdownContainer = document.getElementById('visitor-dropdown-container');
+
+      if (selectVisitorRadio && newVisitorRadio && visitorDropdownContainer && visitorNameInputContainer) {
+        selectVisitorRadio.addEventListener('change', function() {
+          if (this.checked) {
+            visitorDropdownContainer.style.display = 'block';
+            visitorNameInputContainer.style.display = 'none';
+            // Clear manual input
+            if (visitorNameInput) visitorNameInput.value = '';
+          }
+        });
+
+        newVisitorRadio.addEventListener('change', function() {
+          if (this.checked) {
+            visitorDropdownContainer.style.display = 'none';
+            visitorNameInputContainer.style.display = 'block';
+            // Clear dropdown selection
+            const visitorDropdown = document.getElementById('visitor-dropdown');
+            if (visitorDropdown) visitorDropdown.value = '';
+            // Clear all other fields
+            clearVisitorFields();
+          }
+        });
+      }
+
+      // Function to clear all visitor fields
+      function clearVisitorFields() {
+        const fields = [
+          'visitor-email',
+          'visitor-mobile',
+          'visitor-address',
+          'visitor-company-name',
+          'company-gstin',
+          'visitor-category',
+          'visitor-company-address'
+        ];
+
+        fields.forEach(fieldId => {
+          const field = document.getElementById(fieldId);
+          if (field) field.value = '';
+        });
+      }
+
+      try {
+        // Fetch visitors data
+        const response = await fetch('https://backend.bninewdelhi.com/api/getallvisitors');
+        const visitors = await response.json();
+        
+        // Populate dropdown
+        const visitorDropdown = document.getElementById('visitor-dropdown');
+        if (visitorDropdown) {
+          visitors.forEach(visitor => {
+            const option = document.createElement('option');
+            option.value = visitor.visitor_id;
+            option.textContent = visitor.visitor_name;
+            // Store visitor data in dataset
+            option.dataset.visitorData = JSON.stringify({
+              email: visitor.visitor_email,
+              phone: visitor.visitor_phone,
+              address: visitor.visitor_address,
+              companyName: visitor.visitor_company_name,
+              gst: visitor.visitor_gst,
+              business: visitor.visitor_business,
+              category: visitor.visitor_category,
+              companyAddress: visitor.visitor_company_address
+            });
+            visitorDropdown.appendChild(option);
+          });
+
+          // Handle visitor selection
+          visitorDropdown.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+              const visitorData = JSON.parse(selectedOption.dataset.visitorData);
+              
+              // Populate all fields
+              const fields = {
+                'visitor-name': selectedOption.textContent,
+                'visitor-email': visitorData.email || '',
+                'visitor-mobile': visitorData.phone || '',
+                'visitor-address': visitorData.address || '',
+                'visitor-company-name': visitorData.companyName || '',
+                'company-gstin': visitorData.gst || '',
+                'visitor-category': visitorData.category || '',
+                'visitor-company-address': visitorData.companyAddress || ''
+              };
+
+              Object.entries(fields).forEach(([id, value]) => {
+                const field = document.getElementById(id);
+                if (field) field.value = value;
+              });
+            }
+          });
+        }
+
+        // Initially hide the manual input field
+        if (visitorNameInputContainer) {
+          visitorNameInputContainer.style.display = 'none';
+        }
+
+      } catch (error) {
+        console.error('Error fetching visitors:', error);
+        showToast('error', 'Failed to fetch visitors data');
+      }
+    }
   } catch (error) {
     console.error("Error:", error);
     showToast('error', "An error occurred while loading data");
@@ -1202,7 +1341,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     visitor_gstin: document.getElementById('company-gstin').value,
                     visitor_company_address: document.getElementById('visitor-company-address').value,
                     particulars: "Visitors Payment",
-                    taxable_amount: document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+                    taxable_amount: document.getElementById('include-gst').checked ? 
+                        (parseFloat(document.getElementById('taxable-total-amount').value.replace('₹', '').trim()) + 
+                         parseFloat(document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0')).toString() :
+                        document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+                    gst_amount: document.getElementById('include-gst').checked ? 
+                        document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0' : '0',
                     total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
                     mode_of_payment: getPaymentDetails().mode_of_payment,
                     region_id: selectedRegionId,
@@ -1264,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                const response = await fetch('https://backend.bninewdelhi.com/api/addVisitorPayment', {
+                const response = await fetch('https://backend.bninewdelhi.com/api/addvisitorpayment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1272,35 +1416,63 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: JSON.stringify(invoiceData)
                 });
 
-                const responseData = await response.json();
-                console.log("📥 Backend Response:", responseData);
+                const apiResponse = await response.json();
+                console.log("📥 Received response:", apiResponse);
 
-                if (response.ok) {
-                    await Swal.fire({
+                if (apiResponse.success) {
+                    // Store data in localStorage
+                    localStorage.setItem('visitorPaymentTemplate', JSON.stringify({
+                        universal_link_id: universalLinkId,
+                        date_issued: document.getElementById("invoice-date-issued").value,
+                        particulars: "Visitors Payment",
+                        taxable_amount: document.getElementById('include-gst').checked ? 
+                            (parseFloat(document.getElementById('taxable-total-amount').value.replace('₹', '').trim()) + 
+                             parseFloat(document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0')).toString() :
+                            document.getElementById('taxable-total-amount').value.replace('₹', '').trim(),
+                        gst_amount: document.getElementById('include-gst').checked ? 
+                            document.getElementById('gst-18-amount')?.value.replace('₹', '').trim() || '0' : '0',
+                        total_amount: document.getElementById('grand_total').value.replace('₹', '').trim(),
+                        mode_of_payment: getPaymentDetails().mode_of_payment,
+                        region_id: selectedRegionId,
+                        chapter_id: selectedChapterId,
+                        company_info: {
+                            address: document.getElementById("company-address").value,
+                            email: document.getElementById("company-mail").value,
+                            phone: document.getElementById("company-phone").value,
+                            gst: document.getElementById("company-gst").value
+                        }
+                    }));
+
+                    console.log("💾 Stored template data in localStorage");
+
+                    Swal.fire({
+                        title: 'Payment Successful!',
+                        text: 'What would you like to do next?',
                         icon: 'success',
-                        title: 'Visitor Invoice Created Successfully!',
-                        html: `
-                            <div style="text-align: left;">
-                                <p><strong>Visitor:</strong> ${invoiceData.visitor_name}</p>
-                                <p><strong>Amount:</strong> ₹${invoiceData.total_amount}</p>
-                                <p><strong>Order ID:</strong> ${responseData.data.order_id}</p>
-                            </div>
-                        `,
-                        timer: 3000,
-                        showConfirmButton: true,
-                        confirmButtonText: 'View Transactions'
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Add More Visitors',
+                        denyButtonText: 'Add Single Payment',
+                        cancelButtonText: 'Go to Transactions'
+                    }).then((swalResult) => {
+                        if (swalResult.isConfirmed) {
+                            console.log("🔄 Redirecting to add more visitors page");
+                            window.location.href = '/trans/chapter-multiple-visitor-payment';
+                        } else if (swalResult.isDenied) {
+                            console.log("🔄 Redirecting to new invoice page");
+                            window.location.href = '/trans/chapter-generate-invoice?id=5';
+                        } else {
+                            console.log("🔄 Redirecting to transactions page");
+                            window.location.href = '/trans/manage-transactions';
+                        }
                     });
-
-                    window.location.href = '/trans/manage-transactions';
                 } else {
-                    throw new Error(responseData.message || 'Failed to process visitor payment');
+                    console.error("❌ Payment failed:", apiResponse.message);
+                    showToast('error', apiResponse.message || 'Error processing payment');
                 }
-
             } catch (error) {
-                console.error('❌ Error processing visitor payment:', error);
-                showToast('error', error.message || 'Error processing visitor payment');
-            } finally {
-                hideLoader();
+                console.error("❌ Error:", error);
+                showToast('error', 'Error processing payment');
             }
         });
     }

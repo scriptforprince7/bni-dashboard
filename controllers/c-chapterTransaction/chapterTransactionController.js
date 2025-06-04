@@ -14,3 +14,7 @@ exports.newMemberPayment = (req, res) => {
     res.render('m-transactions/chapter-new-member-payment', { title: 'New Member Payment' });
 };
 
+exports.chapterMultipleVisitorPayment = (req, res) => {
+    res.render('m-transactions/chapter-multiple-visitor-payment', { title: 'Chapter multiple visitor Payment' });
+};
+

@@ -16,18 +16,45 @@ overflow-y: auto;  /* Enables vertical scrolling */
 overflow-x: hidden; /* Prevents horizontal scrolling */
 }
 
-
-.dropdown-menu::-webkit-scrollbar {
-width: 8px; /* Width of the scrollbar */
+/* Visitors Table Styles */
+#visitorsTable {
+  margin-bottom: 0;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb {
-background-color: #888; /* Color of the scrollbar thumb */
-border-radius: 4px; /* Rounded edges for the thumb */
+#visitorsTable th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb:hover {
-background-color: #555; /* Darker shade on hover */
+#visitorsTable td {
+  vertical-align: middle;
+}
+
+#visitorsTable input {
+  width: 100%;
+  border: 1px solid #e9ecef;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+#visitorsTable input:focus {
+  border-color: #6259ca;
+  box-shadow: 0 0 0 0.2rem rgba(98, 89, 202, 0.25);
+}
+
+.visitor-row-actions {
+  white-space: nowrap;
+}
+
+.visitor-row-actions .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Template for visitor row (hidden) */
+#visitorRowTemplate {
+  display: none;
 }
 
 .btn-group .btn-outline-primary {
@@ -140,7 +167,7 @@ window.toast = {
 };
 </script>
 
-<%- include('../partials/chapter-sidebar') %>
+<%- include('../partials/sidebar') %>
 
 <!-- end sidebar -->
 <div class="main-content app-content">
@@ -164,7 +191,7 @@ window.toast = {
           </ol>
         </nav>
         <h1 class="page-title fw-medium fs-18 mb-0" id="universal-link-name">
-          Loading...
+          
         </h1>
       </div>
       <div class="btn-list">
@@ -203,6 +230,66 @@ window.toast = {
       <ul class="dropdown-menu" id="chapterDropdown" role="menu"></ul>
     </div>
     
+    <!-- Multiple Visitors Entry Section -->
+    <div class="card custom-card mt-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Visitor Entries</h5>
+        <button class="btn btn-primary" id="addVisitorBtn">
+          <i class="ti ti-plus me-1"></i>Add Visitor
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered" id="visitorsTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Address</th>
+                <th>Business Category</th>
+                <th>Visitor State</th>
+                <th>Visitor Pincode</th>
+                <th>Invited by</th>
+                <th>GSTIN</th>
+                <th>Company Name</th>
+                
+                <th>Company Address</th>
+                <th>Mode of Payment</th>
+                <th>Date Issued</th>
+                <th>Include GST</th>
+                <th>GST Amount</th>
+                <th>Final Amount</th>
+
+              </tr>
+            </thead>
+            <tbody id="visitorsTableBody">
+              <!-- Visitor rows will be added here dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template for visitor row -->
+    <template id="visitorRowTemplate">
+      <tr class="visitor-row">
+        <td><input type="text" class="form-control visitor-name" placeholder="Enter name"></td>
+        <td><input type="email" class="form-control visitor-email" placeholder="Enter email"></td>
+        <td><input type="tel" class="form-control visitor-mobile" placeholder="Enter mobile"></td>
+        <td><input type="text" class="form-control visitor-address" placeholder="Enter address"></td>
+        <td><input type="text" class="form-control visitor-category" placeholder="Enter category"></td>
+        <td><input type="text" class="form-control visitor-company" placeholder="Enter company"></td>
+        <td><input type="text" class="form-control visitor-gstin" placeholder="Enter GSTIN"></td>
+        <td><input type="text" class="form-control visitor-company-address" placeholder="Enter company address"></td>
+        <td class="visitor-row-actions">
+          <button type="button" class="btn btn-danger btn-sm delete-visitor">
+            <i class="ti ti-trash"></i>
+          </button>
+        </td>
+      </tr>
+    </template>
+
     <div id="membership-dropdown-container"></div>
     <!-- Add this after the chapterDropdown UL -->
     <div id="payment-type-radio-container"></div>
@@ -415,66 +502,11 @@ window.toast = {
             <div class="row gy-3">
               <div class="col-xl-12">
                 <div class="row">
-                  <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
-                    <p class="dw-semibold mb-2">Billing From :</p>
-                    <div class="row gy-2">
-                      <div class="col-xl-12">
-                        <!-- dropdown -->
-                        <select
-                          class="form-select form-select-light company_info"
-                        >
-                          <option selected>Select Company</option>
-                        </select>
-                      </div>
-                      <div class="col-xl-12">
-                        <textarea
-                          class="form-control form-control-light"
-                          id="company-address"
-                          placeholder="Enter Address"
-                          rows="3"
-                          readonly
-                        ></textarea>
-                      </div>
-                      <div class="col-xl-12">
-                        <input
-                          type="text"
-                          class="form-control form-control-light"
-                          id="company-mail"
-                          placeholder="Company Email"
-                          value=""
-                          readonly
-                        />
-                      </div>
-                      <div class="col-xl-12">
-                        <input
-                          type="text"
-                          class="form-control form-control-light"
-                          id="company-phone"
-                          placeholder="Phone Number"
-                          value=""
-                          readonly
-                        />
-                      </div>
-                      <div class="col-xl-12">
-                        <input
-                          type="text"
-                          class="form-control form-control-light"
-                          id="company-gst"
-                          placeholder="GST Number"
-                          value=""
-                          readonly
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    class="col-xl-4 col-lg-4 col-md-6 col-sm-6 ms-auto mt-sm-0 mt-3" id="billing-to-col"
-                  >
+                  <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6" id="billing-to-col" style="display: none;">
                     <p class="dw-semibold mb-2">Billing To :</p>
                     <div class="row gy-2">
                       <div class="col-xl-12">
                         <select class="form-select form-select-light" id="company-name">
-
                           <option selected>Select Member</option>
                         </select>
                       </div>
@@ -538,11 +570,11 @@ window.toast = {
                       <tr>
                         <td>
                           <input
-                          type="datetime-local"
-                  class="form-control form-control-light"
-                  id="invoice-date-issued"
-                  placeholder="Choose date"
-                />
+                            type="datetime-local"
+                            class="form-control form-control-light"
+                            id="invoice-date-issued"
+                            required
+                          />
                         </td>
                         <td>
                           <div id="particulars-container">
@@ -739,6 +771,8 @@ window.toast = {
           </div>
         </div>
       </div>
+      <!-- Comment out the entire mode of payment section -->
+      <!--
       <div class="col-xl-3">
         <div class="card custom-card">
           <div class="card-header">
@@ -748,108 +782,24 @@ window.toast = {
             <div class="row gy-3">
               <div class="col-xl-12">
                 <div class="btn-group w-100" role="group" aria-label="Payment Methods">
-                  <!-- Cash Option -->
                   <input type="radio" class="btn-check" name="paymentMethod" id="cashOption" checked/>
                   <label class="btn btn-outline-primary" for="cashOption">Cash</label>
 
-                  <!-- UPI Option -->
                   <input type="radio" class="btn-check" name="paymentMethod" id="upiOption"/>
                   <label class="btn btn-outline-primary" for="upiOption">UPI</label>
 
-                  <!-- Bank Transfer Option -->
                   <input type="radio" class="btn-check" name="paymentMethod" id="bankOption"/>
                   <label class="btn btn-outline-primary" for="bankOption">Bank</label>
 
-                  <!-- Cheque Option -->
                   <input type="radio" class="btn-check" name="paymentMethod" id="chequeOption"/>
                   <label class="btn btn-outline-primary" for="chequeOption">Cheque</label>
-
-                  <!-- IMPS Option -->
-                  <!-- <input type="radio" class="btn-check" name="paymentMethod" id="impsOption"/>
-                  <label class="btn btn-outline-primary" for="impsOption">IMPS</label> -->
-                </div>
-              </div>
-
-              <!-- UPI Fields (Hidden by default) -->
-              <div class="col-xl-12 payment-fields" id="upiFields" style="display: none;">
-                <div class="mb-3">
-                  <label class="form-label">UPI ID</label>
-                  <input type="text" class="form-control" id="upiId" placeholder="Enter UPI ID"/>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">UPI Reference Number</label>
-                  <input type="text" class="form-control" id="upiNumber" placeholder="Enter UPI Reference Number"/>
-                </div>
-              </div>
-
-              <!-- Bank Transfer Fields (Hidden by default) -->
-              <div class="col-xl-12 payment-fields" id="bankFields" style="display: none;">
-                <div class="mb-3">
-                  <div class="btn-group w-100" role="group" aria-label="Bank Transfer Type">
-                    <input type="radio" class="btn-check" name="bankTransferType" id="rtgsOption"/>
-                    <label class="btn btn-outline-secondary" for="rtgsOption">RTGS</label>
-
-                    <input type="radio" class="btn-check" name="bankTransferType" id="neftOption"/>
-                    <label class="btn btn-outline-secondary" for="neftOption">NEFT</label>
-
-                    <input type="radio" class="btn-check" name="bankTransferType" id="impsOption"/>
-                    <label class="btn btn-outline-secondary" for="impsOption">IMPS</label>
-                  </div>
-                </div>
-
-                <!-- Common fields for all bank transfer types -->
-                <div class="bank-transfer-fields">
-                  <div class="mb-3">
-                    <label class="form-label">Transfer UTR</label>
-                    <input type="text" class="form-control" id="transferUTR" placeholder="Enter Transfer UTR"/>
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">Transfer ID</label>
-                    <input type="text" class="form-control" id="transferId" placeholder="Enter Transfer ID"/>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Cheque Fields (Hidden by default) -->
-              <div class="col-xl-12 payment-fields" id="chequeFields" style="display: none;">
-                <div class="mb-3">
-                  <label class="form-label">Cheque No.</label>
-                  <input type="text" class="form-control" id="chequeNo" placeholder="Enter Cheque Number"/>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">IFSC Code</label>
-                  <input type="text" class="form-control" id="ifscCode" placeholder="Enter IFSC Code"/>
-                </div>
-              </div>
-
-              <!-- IMPS Fields (Hidden by default) -->
-              <div class="col-xl-12 payment-fields" id="impsFields" style="display: none;">
-                <div class="mb-3">
-                  <label class="form-label">Transfer UTR</label>
-                  <input type="text" class="form-control" id="impsUTR" placeholder="Enter Transfer UTR"/>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Transfer ID</label>
-                  <input type="text" class="form-control" id="impsId" placeholder="Enter Transfer ID"/>
-                </div>
-              </div>
-
-              <!-- Payment Note -->
-              <div class="col-xl-12">
-                <div class="form-group">
-                  <label for="payment-note">Payment Note</label>
-                  <textarea
-                    class="form-control"
-                    id="payment-note"
-                    rows="4"
-                    placeholder="Enter payment details or notes here"
-                  ></textarea>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      -->
     </div>
     <!--End::row-1 -->
   </div>
@@ -857,30 +807,33 @@ window.toast = {
 
 <!-- Move all script tags to the end, just before closing body tag -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../../assets/js/multipleVisitorsPayment.js"></script>
 
 <!-- Add a check to prevent both scripts from loading simultaneously -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    if (window.isNewMemberPayment) {
-      const billingToCol = document.getElementById('billing-to-col');
-      if (billingToCol) billingToCol.style.display = 'none';
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('id') === '1') {
+      // Show the new member details form
+      document.getElementById('new-member-details-form').style.display = 'block';
     }
   });
 </script>
-<script>
+
+<!-- <script>
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('id') === '4') {
         // Load only kittyPaymentsInvoice.js for meeting payments
-        document.write('<script src="../../assets/js/chapterkittyPaymentsInvoice.js"><\/script>');
+        document.write('<script src="../../assets/js/kittyPaymentsInvoice.js"><\/script>');
     } 
      else if (urlParams.get('id') === '5') {
         // Load cashInvoice.js for other cases
-        document.write('<script src="../../assets/js/chapterCashInvoice.js"><\/script>');
+        document.write('<script src="../../assets/js/cashInvoice.js"><\/script>');
     }else{
       // Load newMemberPayment.js for other cases
       document.write('<script src="../../assets/js/newMemberPayment.js"><\/script>');
     }
-</script>
+</script> -->
 
 <script>
 // Wait for DOM to be fully loaded

@@ -1234,7 +1234,9 @@ const renderTable = () => {
                                 padding: 2px 6px;
                                 border-radius: 4px;
                                 box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-                            ">${Object.keys(safeJSONParse(req.comment || '{}')).length}</span>
+                            ">
+                                ${Array.isArray(req.member_ids) && req.member_ids.length === 1 && req.member_ids[0] === 0 && req.visitor_id ? 1 : Object.keys(safeJSONParse(req.comment || '{}')).length}
+                            </span>
                         </div>
 
                         <style>
@@ -1960,17 +1962,19 @@ function applyFilters() {
 async function handleViewAccoladeDetails(requisition) {
     try {
         // Fetch necessary data
-        const [requisitionsResponse, accoladesResponse, membersResponse] = await Promise.all([
+        const [requisitionsResponse, accoladesResponse, membersResponse, visitorsResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
             fetch('https://backend.bninewdelhi.com/api/accolades'),
-            fetch('https://backend.bninewdelhi.com/api/members')
+            fetch('https://backend.bninewdelhi.com/api/members'),
+            fetch('https://backend.bninewdelhi.com/api/getallvisitors')
         ]);
         console.log('🔍 Fetching data...');
 
-        const [allRequisitions, allAccolades, allMembers] = await Promise.all([
+        const [allRequisitions, allAccolades, allMembers, allVisitors] = await Promise.all([
             requisitionsResponse.json(),
             accoladesResponse.json(),
-            membersResponse.json()
+            membersResponse.json(),
+            visitorsResponse.json()
         ]);
 
         // Find the specific requisition
@@ -1982,56 +1986,40 @@ async function handleViewAccoladeDetails(requisition) {
             throw new Error('Requisition not found');
         }
 
+        console.log('Current requisition:', currentRequisition);
         // Parse the comment object which contains member_id and accolade_id pairs
         const commentPairs = safeJSONParse(currentRequisition.comment || '{}');
-        
-        // Create accolade groups from the comment pairs
-        const accoladeGroups = {};
-        
-        // Process each pair (e.g., "143_40", "143_13", etc.)
-        Object.keys(commentPairs).forEach(pair => {
-            const [memberId, accoladeId] = pair.split('_').map(Number);
-            
-            // If this accolade hasn't been processed yet, initialize its group
-            if (!accoladeGroups[accoladeId]) {
-                const accolade = allAccolades.find(a => a.accolade_id === accoladeId);
-                if (accolade) {
-                    accoladeGroups[accoladeId] = {
-                        accolade: accolade,
-                        members: []
-                    };
-                }
-            }
-            
-            // Find and add the member to this accolade's group
-            if (accoladeGroups[accoladeId]) {
-                const member = allMembers.find(m => m.member_id === memberId);
-                if (member) {
-                    accoladeGroups[accoladeId].members.push({
-                        name: `${member.member_first_name} ${member.member_last_name}`,
-                        isVisitor: false
-                    });
-                }
-            }
-        });
+        console.log('Comment pairs:', commentPairs);
 
-        // Create HTML for accolade groups in table format
-        const accoladesHtml = `
-            <div class="accolade-details-container" style="width: 100%;">
-                <!-- Summary Cards -->
-                <div style="
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 16px;
-                    margin-bottom: 24px;
-                    justify-content: center;
-                    max-width: 1200px;
-                    margin-left: auto;
-                    margin-right: auto;
-                ">
-                    ${Object.values(accoladeGroups).map(group => `
+        let accoladesHtml = '';
+        // Visitor case: no comment pairs, only one visitor and one accolade
+        if (
+            Array.isArray(currentRequisition.member_ids) &&
+            currentRequisition.member_ids.length === 1 &&
+            currentRequisition.member_ids[0] === 0 &&
+            currentRequisition.visitor_id &&
+            Object.keys(commentPairs).length === 0
+        ) {
+            console.log('Detected visitor case with empty commentPairs');
+            const visitor = allVisitors.find(v => v.visitor_id === currentRequisition.visitor_id);
+            const visitorName = visitor ? visitor.visitor_name : 'Unknown Visitor';
+            const accolade = allAccolades.find(a => a.accolade_id === currentRequisition.accolade_ids[0]);
+            const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+            const accoladeType = accolade ? accolade.accolade_type : '';
+            accoladesHtml = `
+                <div class="accolade-details-container" style="width: 100%;">
+                    <div style="
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                        gap: 16px;
+                        margin-bottom: 24px;
+                        justify-content: center;
+                        max-width: 1200px;
+                        margin-left: auto;
+                        margin-right: auto;
+                    ">
                         <div style="
-                            background: ${group.accolade.accolade_type === 'Global' 
+                            background: ${accoladeType === 'Global' 
                                 ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
                                 : 'linear-gradient(135deg, #ef4444, #b91c1c)'};
                             padding: 20px;
@@ -2048,10 +2036,10 @@ async function handleViewAccoladeDetails(requisition) {
                                 <i class="ri-award-fill"></i>
                             </div>
                             <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
-                                ${group.accolade.accolade_name}
+                                ${accoladeName}
                             </div>
                             <div style="font-size: 0.9rem; opacity: 0.9;">
-                                ${group.members.length} Members
+                                1 Visitor
                             </div>
                             <div style="
                                 background: rgba(255, 255, 255, 0.1);
@@ -2061,112 +2049,273 @@ async function handleViewAccoladeDetails(requisition) {
                                 font-size: 0.8rem;
                                 backdrop-filter: blur(4px);
                             ">
-                                ${group.accolade.accolade_type}
+                                ${accoladeType}
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-
-                <!-- Detailed Table -->
-                <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
-                                    <i class="ri-award-fill me-2"></i>Accolade
-                                </th>
-                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
-                                    <i class="ri-user-line me-2"></i>Member
-                                </th>
-                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
-                                    <i class="ri-profile-line me-2"></i>Type
-                                </th>
-                                <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
-                                    <i class="ri-flag-line me-2"></i>Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${Object.values(accoladeGroups).map(group => 
-                                group.members.map(member => `
-                                    <tr style="
-                                        border-bottom: 1px solid #e2e8f0;
-                                        transition: background-color 0.2s ease;
-                                    "
-                                    onmouseover="this.style.backgroundColor='#f8fafc'"
-                                    onmouseout="this.style.backgroundColor='white'">
-                                        <td style="padding: 16px;">
-                                            <div style="display: flex; align-items: center; gap: 12px;">
-                                                <div style="
-                                                    width: 40px;
-                                                    height: 40px;
-                                                    border-radius: 50%;
-                                                    background: ${group.accolade.accolade_type === 'Global' ? '#3b82f6' : '#ef4444'};
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    color: white;
-                                                ">
-                                                    <i class="ri-award-fill" style="font-size: 1.25rem;"></i>
-                                                </div>
-                                                <span style="font-weight: 500; color: #1e293b;">
-                                                    ${group.accolade.accolade_name}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td style="padding: 16px;">
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <div style="
-                                                    width: 32px;
-                                                    height: 32px;
-                                                    border-radius: 50%;
-                                                    background: #64748b;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    color: white;
-                                                ">
-                                                    <i class="ri-user-line"></i>
-                                                </div>
-                                                <span style="color: #1e293b;">${member.name}</span>
-                                            </div>
-                                        </td>
-                                        <td style="padding: 16px;">
-                                            <span style="
-                                                padding: 6px 12px;
-                                                border-radius: 999px;
-                                                font-size: 0.875rem;
-                                                background: ${group.accolade.accolade_type === 'Global' ? '#eff6ff' : '#fef2f2'};
-                                                color: ${group.accolade.accolade_type === 'Global' ? '#1d4ed8' : '#b91c1c'};
-                                                border: 1px solid ${group.accolade.accolade_type === 'Global' ? '#bfdbfe' : '#fecaca'};
-                                            ">
-                                                ${group.accolade.accolade_type}
-                                            </span>
-                                        </td>
-                                        <td style="padding: 16px;">
-                                            <span style="
-                                                padding: 6px 12px;
-                                                border-radius: 999px;
-                                                font-size: 0.875rem;
-                                                background: #f0fdf4;
-                                                color: #15803d;
-                                                border: 1px solid #bbf7d0;
-                                                display: inline-flex;
+                    </div>
+                    <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-award-fill me-2"></i>Accolade
+                                    </th>
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-user-line me-2"></i>Member
+                                    </th>
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-profile-line me-2"></i>Type
+                                    </th>
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-flag-line me-2"></i>Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #e2e8f0; transition: background-color 0.2s ease;">
+                                    <td style="padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="
+                                                width: 40px;
+                                                height: 40px;
+                                                border-radius: 50%;
+                                                background: ${accoladeType === 'Global' ? '#3b82f6' : '#ef4444'};
+                                                display: flex;
                                                 align-items: center;
-                                                gap: 4px;
+                                                justify-content: center;
+                                                color: white;
                                             ">
-                                                <i class="ri-user-follow-line"></i>
-                                                Member
+                                                <i class="ri-award-fill" style="font-size: 1.25rem;"></i>
+                                            </div>
+                                            <span style="font-weight: 500; color: #1e293b;">
+                                                ${accoladeName}
                                             </span>
-                                        </td>
-                                    </tr>
-                                `).join('')
-                            ).join('')}
-                        </tbody>
-                    </table>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="
+                                                width: 32px;
+                                                height: 32px;
+                                                border-radius: 50%;
+                                                background: #64748b;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: white;
+                                            ">
+                                                <i class="ri-user-line"></i>
+                                            </div>
+                                            <span style="color: #1e293b;">${visitorName} (Visitor)</span>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <span style="
+                                            padding: 6px 12px;
+                                            border-radius: 999px;
+                                            font-size: 0.875rem;
+                                            background: ${accoladeType === 'Global' ? '#eff6ff' : '#fef2f2'};
+                                            color: ${accoladeType === 'Global' ? '#1d4ed8' : '#b91c1c'};
+                                            border: 1px solid ${accoladeType === 'Global' ? '#bfdbfe' : '#fecaca'};
+                                        ">
+                                            Visitor
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <span style="
+                                            padding: 6px 12px;
+                                            border-radius: 999px;
+                                            font-size: 0.875rem;
+                                            background: #f0fdf4;
+                                            color: #15803d;
+                                            border: 1px solid #bbf7d0;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 4px;
+                                        ">
+                                            <i class="ri-user-follow-line"></i>
+                                            Approved
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // Member case (existing logic)
+            const accoladeGroups = {};
+            Object.keys(commentPairs).forEach(pair => {
+                const [memberId, accoladeId] = pair.split('_').map(Number);
+                if (!accoladeGroups[accoladeId]) {
+                    const accolade = allAccolades.find(a => a.accolade_id === accoladeId);
+                    if (accolade) {
+                        accoladeGroups[accoladeId] = {
+                            accolade: accolade,
+                            members: []
+                        };
+                    }
+                }
+                if (accoladeGroups[accoladeId]) {
+                    const member = allMembers.find(m => m.member_id === memberId);
+                    if (member) {
+                        accoladeGroups[accoladeId].members.push({
+                            name: `${member.member_first_name} ${member.member_last_name}`,
+                            isVisitor: false
+                        });
+                    }
+                }
+            });
+            accoladesHtml = `
+                <div class="accolade-details-container" style="width: 100%;">
+                    <div style="
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                        gap: 16px;
+                        margin-bottom: 24px;
+                        justify-content: center;
+                        max-width: 1200px;
+                        margin-left: auto;
+                        margin-right: auto;
+                    ">
+                        ${Object.values(accoladeGroups).map(group => `
+                            <div style="
+                                background: ${group.accolade.accolade_type === 'Global' 
+                                    ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+                                    : 'linear-gradient(135deg, #ef4444, #b91c1c)'};
+                                padding: 20px;
+                                border-radius: 12px;
+                                color: white;
+                                text-align: center;
+                                transform: translateY(0);
+                                transition: transform 0.2s ease;
+                                cursor: default;
+                            "
+                            onmouseover="this.style.transform='translateY(-5px)'"
+                            onmouseout="this.style.transform='translateY(0)'">
+                                <div style="font-size: 2rem; margin-bottom: 8px;">
+                                    <i class="ri-award-fill"></i>
+                                </div>
+                                <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
+                                    ${group.accolade.accolade_name}
+                                </div>
+                                <div style="font-size: 0.9rem; opacity: 0.9;">
+                                    ${group.members.length} Members
+                                </div>
+                                <div style="
+                                    background: rgba(255, 255, 255, 0.1);
+                                    margin-top: 8px;
+                                    padding: 4px 12px;
+                                    border-radius: 999px;
+                                    font-size: 0.8rem;
+                                    backdrop-filter: blur(4px);
+                                ">
+                                    ${group.accolade.accolade_type}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-award-fill me-2"></i>Accolade
+                                    </th>
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-user-line me-2"></i>Member
+                                    </th>
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-profile-line me-2"></i>Type
+                                    </th>
+                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
+                                        <i class="ri-flag-line me-2"></i>Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.values(accoladeGroups).map(group => 
+                                    group.members.map(member => `
+                                        <tr style="
+                                            border-bottom: 1px solid #e2e8f0;
+                                            transition: background-color 0.2s ease;
+                                        "
+                                        onmouseover="this.style.backgroundColor='#f8fafc'"
+                                        onmouseout="this.style.backgroundColor='white'">
+                                            <td style="padding: 16px;">
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div style="
+                                                        width: 40px;
+                                                        height: 40px;
+                                                        border-radius: 50%;
+                                                        background: ${group.accolade.accolade_type === 'Global' ? '#3b82f6' : '#ef4444'};
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: center;
+                                                        color: white;
+                                                    ">
+                                                        <i class="ri-award-fill" style="font-size: 1.25rem;"></i>
+                                                    </div>
+                                                    <span style="font-weight: 500; color: #1e293b;">
+                                                        ${group.accolade.accolade_name}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 16px;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <div style="
+                                                        width: 32px;
+                                                        height: 32px;
+                                                        border-radius: 50%;
+                                                        background: #64748b;
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: center;
+                                                        color: white;
+                                                    ">
+                                                        <i class="ri-user-line"></i>
+                                                    </div>
+                                                    <span style="color: #1e293b;">${member.name}</span>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 16px;">
+                                                <span style="
+                                                    padding: 6px 12px;
+                                                    border-radius: 999px;
+                                                    font-size: 0.875rem;
+                                                    background: ${group.accolade.accolade_type === 'Global' ? '#eff6ff' : '#fef2f2'};
+                                                    color: ${group.accolade.accolade_type === 'Global' ? '#1d4ed8' : '#b91c1c'};
+                                                    border: 1px solid ${group.accolade.accolade_type === 'Global' ? '#bfdbfe' : '#fecaca'};
+                                                ">
+                                                    Member
+                                                </span>
+                                            </td>
+                                            <td style="padding: 16px;">
+                                                <span style="
+                                                    padding: 6px 12px;
+                                                    border-radius: 999px;
+                                                    font-size: 0.875rem;
+                                                    background: #f0fdf4;
+                                                    color: #15803d;
+                                                    border: 1px solid #bbf7d0;
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    gap: 4px;
+                                                ">
+                                                    <i class="ri-user-follow-line"></i>
+                                                    Approved
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    `).join('')
+                                ).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
 
         // Update the Swal.fire call
         Swal.fire({
@@ -2199,7 +2348,162 @@ async function handleApprovedView(chapterRequisitionId) {
         const requisitions = await requisitionResponse.json();
         const requisition = requisitions.find(r => r.chapter_requisition_id === chapterRequisitionId);
 
-        // Get members and accolades data
+        // Check if this is a visitor requisition AND it's approved
+        if (requisition.visitor_id && requisition.approve_status === "approved") {
+            // Get visitor details
+            const visitorResponse = await fetch('https://backend.bninewdelhi.com/api/getAllVisitors');
+            const visitors = await visitorResponse.json();
+            const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+            const visitorName = visitor ? visitor.visitor_name : 'Unknown Visitor';
+
+            // Get accolade details
+            const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+            const accolades = await accoladesResponse.json();
+            const accoladeDetails = requisition.accolade_ids.map(id => {
+                const accolade = accolades.find(a => a.accolade_id === id);
+                return accolade ? accolade.accolade_name : 'Unknown Accolade';
+            });
+
+            // Build the HTML content for visitor case
+            let htmlContent = `
+                <div style="margin: -32px -32px 0; padding: 24px 32px; background: linear-gradient(135deg, #dcfce7, #f0fdf4); border-bottom: 1px solid #86efac; border-radius: 8px 8px 0 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #15803d; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                            <i class="ri-checkbox-circle-fill" style="font-size: 1.5rem;"></i>
+                            Approved Visitor Accolades Details
+                        </h3>
+                        <button 
+                            id="exportApprovedAccolades"
+                            class="btn"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                background: #fbbf24;
+                                color: #92400e;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                transition: all 0.2s ease;
+                                margin-right: 40px;
+                            "
+                            onmouseover="this.style.backgroundColor='#f59e0b'"
+                            onmouseout="this.style.backgroundColor='#fbbf24'"
+                        >
+                            <i class="ri-download-2-line"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+                <div style="width: 100%; overflow-x: auto; padding: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #f0fdf4; border-bottom: 2px solid #86efac;">
+                                <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">Visitor</th>
+                                <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">Accolade</th>
+                                <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">Status</th>
+                                <th style="padding: 16px; text-align: left; color: #15803d; font-weight: 600;">RO Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #d1fae5;">
+                                <td style="padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #86efac; display: flex; align-items: center; justify-content: center;">
+                                            <i class="ri-user-line" style="color: #15803d; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <span style="font-weight: 500; color: #15803d;">${visitorName}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; color: #059669;">
+                                        <i class="ri-award-fill"></i>
+                                        <span style="font-weight: 500;">${accoladeDetails.join(', ')}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <span style="background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
+                                        <i class="ri-checkbox-circle-line me-1"></i>Approved
+                                    </span>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; color: #374151;">
+                                        <i class="ri-message-2-line me-2" style="color: #16a34a;"></i>${requisition.ro_comment || 'No comment provided'}
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+
+            // Show the modal for visitor case
+            Swal.fire({
+                html: htmlContent,
+                width: '90%',
+                showCloseButton: true,
+                showConfirmButton: false,
+                padding: '32px',
+                customClass: {
+                    container: 'approved-popup',
+                    popup: 'border-radius: 16px;'
+                }
+            });
+
+            // Add export functionality for visitor case
+            setTimeout(() => {
+                const exportBtn = document.getElementById('exportApprovedAccolades');
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', () => {
+                        try {
+                            const csvRows = [
+                                ['S.No', 'Visitor Name', 'Accolade Name', 'Status', 'RO Comment']
+                            ];
+                            
+                            csvRows.push([
+                                1,
+                                visitorName,
+                                accoladeDetails.join(', '),
+                                'Approved',
+                                requisition.ro_comment || 'No comment provided'
+                            ]);
+
+                            const csvContent = csvRows.map(row => 
+                                row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
+                            ).join('\n');
+
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.setAttribute('href', url);
+                            link.setAttribute('download', `approved_visitor_accolades_${new Date().toISOString().split('T')[0]}.csv`);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Export Successful!',
+                                text: 'Your approved visitor accolades data has been exported successfully.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } catch (error) {
+                            console.error('Export error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Export Failed',
+                                text: 'There was an error exporting the data. Please try again.'
+                            });
+                        }
+                    });
+                }
+            }, 100);
+
+            return; // Exit the function after handling visitor case
+        }
+
+        // Get members and accolades data for member case
         const [membersResponse, accoladesResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/members'),
             fetch('https://backend.bninewdelhi.com/api/accolades')
@@ -2264,7 +2568,7 @@ async function handleApprovedView(chapterRequisitionId) {
                 const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
                 const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
                 const roComment = roComments[key] || '-';
-
+                
                 htmlContent += `
                     <tr style="border-bottom: 1px solid #d1fae5;">
                         <td style="padding: 16px;">
@@ -2296,11 +2600,11 @@ async function handleApprovedView(chapterRequisitionId) {
         }
 
         htmlContent += `
-                </tbody>
-            </table>
-        </div>`;
+                    </tbody>
+                </table>
+            </div>`;
 
-        // Update both Swal.fire calls to use 90% width
+        // Show the modal
         Swal.fire({
             html: htmlContent,
             width: '90%',
@@ -2313,7 +2617,7 @@ async function handleApprovedView(chapterRequisitionId) {
             }
         });
 
-        // Add this after the Swal.fire({ ... }) call in handleApprovedView function
+        // Add export functionality
         setTimeout(() => {
             const exportBtn = document.getElementById('exportApprovedAccolades');
             if (exportBtn) {
@@ -2399,7 +2703,162 @@ async function handleRejectedView(chapterRequisitionId) {
         const requisitions = await requisitionResponse.json();
         const requisition = requisitions.find(r => r.chapter_requisition_id === chapterRequisitionId);
 
-        // Get members and accolades data
+        // Check if this is a visitor requisition AND it's declined
+        if (requisition.visitor_id && requisition.approve_status === "declined") {
+            // Get visitor details
+            const visitorResponse = await fetch('https://backend.bninewdelhi.com/api/getAllVisitors');
+            const visitors = await visitorResponse.json();
+            const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
+            const visitorName = visitor ? visitor.visitor_name : 'Unknown Visitor';
+
+            // Get accolade details
+            const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+            const accolades = await accoladesResponse.json();
+            const accoladeDetails = requisition.accolade_ids.map(id => {
+                const accolade = accolades.find(a => a.accolade_id === id);
+                return accolade ? accolade.accolade_name : 'Unknown Accolade';
+            });
+
+            // Build the HTML content for visitor case
+            let htmlContent = `
+                <div style="margin: -32px -32px 0; padding: 24px 32px; background: linear-gradient(135deg, #fee2e2, #fef2f2); border-bottom: 1px solid #fca5a5; border-radius: 8px 8px 0 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #991b1b; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 12px;">
+                            <i class="ri-close-circle-fill" style="font-size: 1.5rem;"></i>
+                            Rejected Visitor Accolades Details
+                        </h3>
+                        <button 
+                            id="exportRejectedAccolades"
+                            class="btn"
+                            style="
+                                padding: 8px 16px;
+                                border-radius: 6px;
+                                background: #fbbf24;
+                                color: #92400e;
+                                border: none;
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                transition: all 0.2s ease;
+                                margin-right: 40px;
+                            "
+                            onmouseover="this.style.backgroundColor='#f59e0b'"
+                            onmouseout="this.style.backgroundColor='#fbbf24'"
+                        >
+                            <i class="ri-download-2-line"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+                <div style="width: 100%; overflow-x: auto; padding: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: #fef2f2; border-bottom: 2px solid #fca5a5;">
+                                <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">Visitor</th>
+                                <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">Accolade</th>
+                                <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">Status</th>
+                                <th style="padding: 16px; text-align: left; color: #991b1b; font-weight: 600;">RO Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #fecaca;">
+                                <td style="padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #fecaca; display: flex; align-items: center; justify-content: center;">
+                                            <i class="ri-user-line" style="color: #991b1b; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <span style="font-weight: 500; color: #991b1b;">${visitorName}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; color: #dc2626;">
+                                        <i class="ri-award-fill"></i>
+                                        <span style="font-weight: 500;">${accoladeDetails.join(', ')}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
+                                        <i class="ri-close-circle-line me-1"></i>Rejected
+                                    </span>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <div style="background: #fef2f2; padding: 12px; border-radius: 8px; color: #374151;">
+                                        <i class="ri-message-2-line me-2" style="color: #dc2626;"></i>${requisition.ro_comment || 'No comment provided'}
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+
+            // Show the modal for visitor case
+            Swal.fire({
+                html: htmlContent,
+                width: '90%',
+                showCloseButton: true,
+                showConfirmButton: false,
+                padding: '32px',
+                customClass: {
+                    container: 'rejected-popup',
+                    popup: 'border-radius: 16px;'
+                }
+            });
+
+            // Add export functionality for visitor case
+            setTimeout(() => {
+                const exportBtn = document.getElementById('exportRejectedAccolades');
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', () => {
+                        try {
+                            const csvRows = [
+                                ['S.No', 'Visitor Name', 'Accolade Name', 'Status', 'RO Comment']
+                            ];
+                            
+                            csvRows.push([
+                                1,
+                                visitorName,
+                                accoladeDetails.join(', '),
+                                'Rejected',
+                                requisition.ro_comment || 'No comment provided'
+                            ]);
+
+                            const csvContent = csvRows.map(row => 
+                                row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')
+                            ).join('\n');
+
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.setAttribute('href', url);
+                            link.setAttribute('download', `rejected_visitor_accolades_${new Date().toISOString().split('T')[0]}.csv`);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Export Successful!',
+                                text: 'Your rejected visitor accolades data has been exported successfully.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } catch (error) {
+                            console.error('Export error:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Export Failed',
+                                text: 'There was an error exporting the data. Please try again.'
+                            });
+                        }
+                    });
+                }
+            }, 100);
+
+            return; // Exit the function after handling visitor case
+        }
+
+        // Get members and accolades data for member case
         const [membersResponse, accoladesResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/members'),
             fetch('https://backend.bninewdelhi.com/api/accolades')
@@ -2596,6 +3055,8 @@ async function handleRejectedView(chapterRequisitionId) {
 function countApprovedStatus(approveStatus) {
     try {
         if (!approveStatus) return 0;
+        // Add condition for visitor case
+        if (approveStatus === "approved") return 1;
         const statusObj = typeof approveStatus === 'string' ? JSON.parse(approveStatus) : approveStatus;
         return Object.values(statusObj).filter(status => status === 'approved').length;
     } catch (error) {
@@ -2607,6 +3068,8 @@ function countApprovedStatus(approveStatus) {
 function countRejectedStatus(approveStatus) {
     try {
         if (!approveStatus) return 0;
+        // Add condition for visitor case
+        if (approveStatus === "declined") return 1;
         const statusObj = typeof approveStatus === 'string' ? JSON.parse(approveStatus) : approveStatus;
         return Object.values(statusObj).filter(status => status === 'declined').length;
     } catch (error) {
@@ -2797,6 +3260,10 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
             throw new Error(`Accolade not found with ID: ${requisition.accolade_ids[0]}. Available accolade IDs: ${accolades.map(a => a.accolade_id).join(', ')}`);
         }
 
+        // Check if requisition is already approved or declined
+        const isApproved = requisition.approve_status === 'approved';
+        const isDeclined = requisition.approve_status === 'declined';
+
         // Create HTML for visitor case
         const accoladesHtml = `
             <div class="accolade-details-container" style="width: 100%;">
@@ -2964,14 +3431,16 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                         background: white;
                         color: #22c55e;
                         font-weight: 500;
-                        cursor: pointer;
+                        cursor: ${isApproved ? 'not-allowed' : 'pointer'};
                         display: flex;
                         align-items: center;
                         gap: 8px;
                         transition: all 0.2s ease;
-                    " onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='white'">
+                        opacity: ${isApproved ? '0.5' : '1'};
+                        filter: ${isApproved ? 'blur(1px)' : 'none'};
+                    " onmouseover="this.style.backgroundColor='${isApproved ? 'white' : '#f0fdf4'}'" onmouseout="this.style.backgroundColor='white'" ${isApproved ? 'disabled' : ''}>
                         <i class="ri-checkbox-circle-line"></i>
-                        Approve
+                        ${isApproved ? 'Approved' : 'Approve'}
                     </button>
                     <button onclick="handleRequisitionAction({
                         chapter_requisition_id: ${requisition.chapter_requisition_id},
@@ -2984,14 +3453,16 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                         background: white;
                         color: #ef4444;
                         font-weight: 500;
-                        cursor: pointer;
+                        cursor: ${isDeclined ? 'not-allowed' : 'pointer'};
                         display: flex;
                         align-items: center;
                         gap: 8px;
                         transition: all 0.2s ease;
-                    " onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='white'">
+                        opacity: ${isDeclined ? '0.5' : '1'};
+                        filter: ${isDeclined ? 'blur(1px)' : 'none'};
+                    " onmouseover="this.style.backgroundColor='${isDeclined ? 'white' : '#fef2f2'}'" onmouseout="this.style.backgroundColor='white'" ${isDeclined ? 'disabled' : ''}>
                         <i class="ri-close-circle-line"></i>
-                        Decline
+                        ${isDeclined ? 'Declined' : 'Decline'}
                     </button>
                 </div>
 

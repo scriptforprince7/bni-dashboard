@@ -21,6 +21,7 @@ router.get('/memberApplication', transactionsController.MemberApplication);
 router.get('/chapter-visitors', transactionsController.chapterVisitors);
 router.get('/manage-upcoming-members', transactionsController.manageUpcomingMembers);
 router.get('/einvoice-management', transactionsController.einvoiceManagement);
+router.get('/multiple-visitor-payment', transactionsController.multipleVisitorsPayment);
 
 
 
