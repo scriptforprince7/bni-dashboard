@@ -190,6 +190,7 @@ function updateLedgerTable(items) {
         const debitColor = item.debit > 0 ? 'red' : '';
         const creditColor = item.credit > 0 ? 'green' : '';
         const balanceColor = item.runningBalance > 0 ? 'green' : (item.runningBalance < 0 ? 'red' : '');
+        console.log('[LEDGER] Row', index + 1, 'type:', item.type, 'runningBalance:', item.runningBalance);
         row.innerHTML = `
             <td>${index + 1}</td>
             <td><b>${formatDate(item.date)}</b></td>
@@ -614,7 +615,14 @@ function processTransactions() {
 
     // Get member's chapter ID
     const chapterId = memberData.chapter_id;
-    let runningBalance = memberData.meeting_opening_balance || 0;
+    let openingBalance = memberData.meeting_opening_balance || 0;
+    if (openingBalance > 0) openingBalance = -Math.abs(openingBalance);
+    console.log('[LEDGER] Opening balance used:', openingBalance);
+    let runningBalance = openingBalance;
+    let totalPaidKittyAmount = 0;
+    let totalCreditNoteAmount = 0;
+    let totalPendingAmount = 0;
+    let latePaymentCount = 0;
     allTransactionItems = [];
 
     // Add opening balance entry
@@ -628,7 +636,7 @@ function processTransactions() {
         credit: 0,
         gst: 0,
         totalAmount: 0,
-        runningBalance: runningBalance
+        runningBalance: openingBalance
     });
 
     // Add credit entries (before bills/payments, so they sort by date)
@@ -799,18 +807,17 @@ function processTransactions() {
             if (paymentDate.getTime() > dueDate.getTime()) {
                 const penaltyAmount = bill.penalty_fee || 0;
                 if (penaltyAmount > 0) {
-                    const penaltyGst = Math.round(penaltyAmount * 0.18);
-                    const penaltyTotal = penaltyAmount + penaltyGst;
                     allTransactionItems.push({
                         date: paymentDate,
                         type: 'penalty',
-                        description: `Late Payment Penalty for ${monthName}`,
+                        description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
                         debit: penaltyAmount,
                         credit: 0,
-                        gst: penaltyGst,
-                        totalAmount: penaltyTotal,
+                        gst: 0,
+                        totalAmount: penaltyAmount,
                         // runningBalance will be set later
                     });
+                    latePaymentCount++;
                 }
             }
 
@@ -860,18 +867,17 @@ function processTransactions() {
             const now = new Date();
             if (now.getTime() > dueDate.getTime() && bill.penalty_fee > 0) {
                 const penaltyAmount = bill.penalty_fee;
-                const penaltyGst = Math.round(penaltyAmount * 0.18);
-                const penaltyTotal = penaltyAmount + penaltyGst;
                 allTransactionItems.push({
                     date: dueDate,
                     type: 'penalty',
-                    description: `Late Payment Penalty for ${monthName}`,
+                    description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /> <i>Late Payment Penalty for ${monthName}</i></div>`,
                     debit: penaltyAmount,
                     credit: 0,
-                    gst: penaltyGst,
-                    totalAmount: penaltyTotal,
+                    gst: 0,
+                    totalAmount: penaltyAmount,
                     // runningBalance will be set later
                 });
+                latePaymentCount++;
             }
         }
         // (Optional) Add credit/write-off entry if any (not implemented here)
@@ -882,10 +888,10 @@ function processTransactions() {
     console.log('[PRORATE] allTransactionItems after sort:', allTransactionItems);
 
     // Update running balances after sorting using only debit and credit
-    let currentBalance = memberData.meeting_opening_balance || 0;
+    let currentBalance = openingBalance;
     allTransactionItems.forEach(item => {
         if (item.type === 'opening') {
-            item.runningBalance = currentBalance;
+            item.runningBalance = openingBalance;
         } else {
             currentBalance = currentBalance - (item.debit || 0) + (item.credit || 0);
             item.runningBalance = currentBalance;
@@ -894,6 +900,8 @@ function processTransactions() {
 
     // Update summary cards
     updateSummaryCards();
+
+    document.getElementById('no_of_late_payment').textContent = latePaymentCount;
 }
 
 // Initialize when document is ready
