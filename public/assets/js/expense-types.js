@@ -50,7 +50,7 @@ const AddExpenseType = async () => {
         showLoader(); // Show loading indicator
 
         // Call the API to add the expense (replace with the actual API endpoint)
-        const response = await fetch(`http://localhost:5000/api/expenseType`, {
+        const response = await fetch(`https://backend.bninewdelhi.com/api/expenseType`, {
           method: 'POST', // Use POST to add an expense
           headers: {
             'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ const sortExpenseTypes = (direction) => {
 const fetchExpenseTypes = async () => {
   try {
     showLoader();
-    const response = await fetch('http://localhost:5000/api/expenseType');
+    const response = await fetch('https://backend.bninewdelhi.com/api/expenseType');
     if (!response.ok) {
       throw new Error('Failed to fetch expense types');
     }

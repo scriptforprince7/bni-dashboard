@@ -13,7 +13,7 @@ let otherPaymentsTotal = 0;
 async function populateGatewayFilter() {
   try {
     const response = await fetch(
-      "http://localhost:5000/api/paymentGateway"
+      "https://backend.bninewdelhi.com/api/paymentGateway"
     );
     const gateways = await response.json();
 
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Get chapter_id from chapters API
       const chaptersResponse = await fetch(
-        "http://localhost:5000/api/chapters"
+        "https://backend.bninewdelhi.com/api/chapters"
       );
       const chapters = await chaptersResponse.json();
       const chapter = chapters.find(ch =>
@@ -282,7 +282,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Calculate total credit amount
     console.log("Fetching credit notes for chapter:", chapter_id);
-    const creditResponse = await fetch("http://localhost:5000/api/getAllMemberCredit");
+    const creditResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
     const memberCredits = await creditResponse.json();
     console.log("All member credits:", memberCredits);
     
@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       creditAmountElement.addEventListener('click', async function() {
         try {
           // Fetch members to get member names
-          const membersResponse = await fetch("http://localhost:5000/api/members");
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
           const allMembers = await membersResponse.json();
           
           // Prepare credit details
@@ -367,7 +367,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Fetch write-off data and calculate total
     console.log("Fetching write-off data for chapter:", chapter_id);
     const writeoffResponse = await fetch(
-      "http://localhost:5000/api/getAllMemberWriteOff"
+      "https://backend.bninewdelhi.com/api/getAllMemberWriteOff"
     );
     const writeoffData = await writeoffResponse.json();
 
@@ -388,7 +388,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Step 2: Fetch chapter details
     console.log("Step 2: Fetching chapter details...");
     const chapterResponse = await fetch(
-      "http://localhost:5000/api/chapters"
+      "https://backend.bninewdelhi.com/api/chapters"
     );
     const chaptersData = await chapterResponse.json();
     console.log("Chapters data received:", chaptersData.length, "chapters");
@@ -427,7 +427,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add calculation here
     console.log("📊 Starting member opening balance calculation");
     const membersResponse = await fetch(
-      "http://localhost:5000/api/members"
+      "https://backend.bninewdelhi.com/api/members"
     );
     const allMembers = await membersResponse.json();
     const chapterMembersWithBalance = allMembers.filter(
@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // console.log("chapter member",chapterMembersWithBalance);
 
     const bankOrderResponse = await fetch(
-      "http://localhost:5000/api/getbankOrder"
+      "https://backend.bninewdelhi.com/api/getbankOrder"
     );
     const bankOrders = await bankOrderResponse.json();
     console.log("Bank Orders Data:", bankOrders);
@@ -484,7 +484,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Continue with existing code
     const expenseResponse = await fetch(
-      "http://localhost:5000/api/allExpenses"
+      "https://backend.bninewdelhi.com/api/allExpenses"
     );
     const expenses = await expenseResponse.json();
     console.log("expense", expenses);
@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 3: Fetch kitty payments using chapter_id
     const kittyResponse = await fetch(
-      "http://localhost:5000/api/getKittyPayments"
+      "https://backend.bninewdelhi.com/api/getKittyPayments"
     );
     const kittyPayments = await kittyResponse.json();
     const chapterKittyPayment = kittyPayments.find(
@@ -547,7 +547,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
       } else {
         const ordersResponse = await fetch(
-          "http://localhost:5000/api/allOrders"
+          "https://backend.bninewdelhi.com/api/allOrders"
         );
         const allOrders = await ordersResponse.json();
 
@@ -595,7 +595,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // else 0
         else {
           const transactionsResponse = await fetch(
-            "http://localhost:5000/api/allTransactions"
+            "https://backend.bninewdelhi.com/api/allTransactions"
           );
           const allTransactions = await transactionsResponse.json();
           console.log("Fetched Transactions:", allTransactions);
@@ -1110,7 +1110,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Step 6: Fetch all orders for the chapter
     const ordersResponse = await fetch(
-      "http://localhost:5000/api/allOrders"
+      "https://backend.bninewdelhi.com/api/allOrders"
     );
     const allOrders = await ordersResponse.json();
 
@@ -1161,7 +1161,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Fetched Orders:", chapterOrders);
 
     const transactionsResponse = await fetch(
-      "http://localhost:5000/api/allTransactions"
+      "https://backend.bninewdelhi.com/api/allTransactions"
     );
     const allTransactions = await transactionsResponse.json();
     console.log("Fetched Transactions:", allTransactions);
@@ -1383,7 +1383,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.log('📊 Starting fetchAndDisplayCreditNoteDetails');
             
             // Fetch credit notes
-            const creditResponse = await fetch("http://localhost:5000/api/getAllMemberCredit");
+            const creditResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberCredit");
             const memberCredits = await creditResponse.json();
             console.log("Member Credits Data:", memberCredits);
             const filteredMemberCredits = memberCredits.filter(
@@ -1401,7 +1401,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.log("Total Credit Amount:", totalCreditAmount);
             
             // Fetch members to get member names
-            const membersResponse = await fetch("http://localhost:5000/api/members");
+            const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
             const allMembers = await membersResponse.json();
             
             // Prepare credit details
@@ -1454,7 +1454,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             totalCreditElement.addEventListener('click', async function() {
               try {
                 // Fetch members to get member names
-                const membersResponse = await fetch("http://localhost:5000/api/members");
+                const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
                 const allMembers = await membersResponse.json();
                 
                 // Prepare credit details
@@ -1507,10 +1507,10 @@ document.addEventListener("DOMContentLoaded", async function () {
       writeOffAmountElement.addEventListener('click', async function() {
         try {
           // Fetch write off data
-          const writeoffResponse = await fetch("http://localhost:5000/api/getAllMemberWriteOff");
+          const writeoffResponse = await fetch("https://backend.bninewdelhi.com/api/getAllMemberWriteOff");
           const writeoffData = await writeoffResponse.json();
           // Fetch members to get member names
-          const membersResponse = await fetch("http://localhost:5000/api/members");
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
           const allMembers = await membersResponse.json();
           // Get current chapter id
           const numericChapterId = parseInt(chapter_id);
@@ -1564,12 +1564,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       kittyReceivedAmountElement.addEventListener('click', async function() {
         try {
           // Fetch orders and transactions
-          const ordersResponse = await fetch("http://localhost:5000/api/allOrders");
+          const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
           const allOrders = await ordersResponse.json();
-          const transactionsResponse = await fetch("http://localhost:5000/api/allTransactions");
+          const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
           const allTransactions = await transactionsResponse.json();
           // Fetch members to get member names
-          const membersResponse = await fetch("http://localhost:5000/api/members");
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
           const allMembers = await membersResponse.json();
           // Get current chapter id
           const numericChapterId = parseInt(chapter_id);
@@ -1676,9 +1676,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       kittyPendingAmountElement.addEventListener('click', async function() {
         try {
           // Fetch members and pending data
-          const membersResponse = await fetch("http://localhost:5000/api/members");
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
           const allMembers = await membersResponse.json();
-          const bankOrderResponse = await fetch("http://localhost:5000/api/getbankOrder");
+          const bankOrderResponse = await fetch("https://backend.bninewdelhi.com/api/getbankOrder");
           const bankOrders = await bankOrderResponse.json();
 
           // Get current chapter id
@@ -1733,7 +1733,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       pendingExpenseAmountElement.addEventListener('click', async function() {
         try {
           // Fetch all expenses
-          const expenseResponse = await fetch("http://localhost:5000/api/allExpenses");
+          const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
           const expenses = await expenseResponse.json();
 
           // Get current chapter id
@@ -1789,9 +1789,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       latePaymentElement.addEventListener('click', async function() {
         try {
           // Fetch all members and bank orders
-          const membersResponse = await fetch("http://localhost:5000/api/members");
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
           const allMembers = await membersResponse.json();
-          const bankOrderResponse = await fetch("http://localhost:5000/api/getbankOrder");
+          const bankOrderResponse = await fetch("https://backend.bninewdelhi.com/api/getbankOrder");
           const bankOrders = await bankOrderResponse.json();
 
           // Get current chapter id
@@ -1848,7 +1848,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       paidExpensesAmountElement.addEventListener('click', async function() {
         try {
           // Fetch all expenses
-          const expenseResponse = await fetch("http://localhost:5000/api/allExpenses");
+          const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
           const expenses = await expenseResponse.json();
 
           // Get current chapter id
@@ -1908,11 +1908,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       visitorPaymentAmountElement.addEventListener('click', async function() {
         try {
           // Fetch all orders, transactions, and members
-          const ordersResponse = await fetch("http://localhost:5000/api/allOrders");
+          const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
           const allOrders = await ordersResponse.json();
-          const transactionsResponse = await fetch("http://localhost:5000/api/allTransactions");
+          const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
           const allTransactions = await transactionsResponse.json();
-          const membersResponse = await fetch("http://localhost:5000/api/members");
+          const membersResponse = await fetch("https://backend.bninewdelhi.com/api/members");
           const allMembers = await membersResponse.json();
 
           // Get current chapter id
@@ -2058,7 +2058,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // Fetch all other payments before calculation
-    const otherPaymentsResponse = await fetch("http://localhost:5000/api/allOtherPayment");
+    const otherPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const allOtherPayments = await otherPaymentsResponse.json();
 
     // Now call the calculation
@@ -2376,7 +2376,7 @@ async function fetchVisitorAmountTotal(chapterId) {
     try {
         // 1. Fetch Orders
         console.log('📥 Fetching orders...');
-        const ordersResponse = await fetch("http://localhost:5000/api/allOrders");
+        const ordersResponse = await fetch("https://backend.bninewdelhi.com/api/allOrders");
         const allOrders = await ordersResponse.json();
         console.log('📦 Total orders:', allOrders.length);
 
@@ -2395,7 +2395,7 @@ async function fetchVisitorAmountTotal(chapterId) {
 
         // 3. Fetch Transactions
         console.log('💳 Fetching transactions...');
-        const transactionsResponse = await fetch("http://localhost:5000/api/allTransactions");
+        const transactionsResponse = await fetch("https://backend.bninewdelhi.com/api/allTransactions");
         const allTransactions = await transactionsResponse.json();
         console.log('Total transactions:', allTransactions.length);
 
@@ -2615,7 +2615,7 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
   let cashOtherPayments = 0;
   let cashOtherGST = 0;
   try {
-    const response = await fetch("http://localhost:5000/api/allOtherPayment");
+    const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const otherPayments = await response.json();
     const chapterOtherPayments = otherPayments.filter(payment =>
       parseInt(payment.chapter_id) === parseInt(chapterId) &&
@@ -2634,7 +2634,7 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
   // 4. Paid Expenses (cash only, base amount)
   let cashExpenses = 0;
   try {
-    const expenseResponse = await fetch("http://localhost:5000/api/allExpenses");
+    const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
     const expenses = await expenseResponse.json();
     expenses.forEach(expense => {
       if (
@@ -2688,7 +2688,7 @@ async function calculateManualPayments(chapterId, allOrders, allTransactions, av
 async function fetchOtherPaymentsTotal(chapterId) {
   try {
     console.log('Fetching other payments for chapter:', chapterId);
-    const response = await fetch("http://localhost:5000/api/allOtherPayment");
+    const response = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     const otherPayments = await response.json();
     
     // Filter payments for current chapter
@@ -2806,7 +2806,7 @@ async function updateFundBreakdownModal(available_fund, totalReceivedAmount, vis
   // Fetch allOtherPayments
   let allOtherPayments = [];
   try {
-    const otherPaymentsResponse = await fetch("http://localhost:5000/api/allOtherPayment");
+    const otherPaymentsResponse = await fetch("https://backend.bninewdelhi.com/api/allOtherPayment");
     allOtherPayments = await otherPaymentsResponse.json();
   } catch (error) {
     console.error("Error fetching other payments:", error);
@@ -2845,7 +2845,7 @@ async function fetchAndDisplayPaidExpenses(chapterId) {
         console.log('📊 Starting fetchAndDisplayPaidExpenses');
         
         // Fetch expenses
-        const expenseResponse = await fetch("http://localhost:5000/api/allExpenses");
+        const expenseResponse = await fetch("https://backend.bninewdelhi.com/api/allExpenses");
         const expenses = await expenseResponse.json();
         
         // Filter expenses for current chapter and paid status
@@ -3059,7 +3059,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function displayChapterAvailableFund(chapterId) {
   try {
-    const response = await fetch("http://localhost:5000/api/chapters");
+    const response = await fetch("https://backend.bninewdelhi.com/api/chapters");
     const chapters = await response.json();
     
     const chapter = chapters.find(ch => ch.chapter_id === parseInt(chapterId));

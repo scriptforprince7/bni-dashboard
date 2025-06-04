@@ -263,7 +263,7 @@ async function initializeMemberLedger() {
 
             // For RO admin, fetch member details from members API
             console.log('Fetching member details for RO admin...');
-            const response = await fetch('http://localhost:5000/api/members');
+            const response = await fetch('https://backend.bninewdelhi.com/api/members');
             if (!response.ok) {
                 throw new Error('Failed to fetch members list');
             }
@@ -286,7 +286,7 @@ async function initializeMemberLedger() {
             
             // Fetch member details to get member_id
             console.log('Fetching members data from API..');
-            const response = await fetch('http://localhost:5000/api/members');
+            const response = await fetch('https://backend.bninewdelhi.com/api/members');
             if (!response.ok) {
                 throw new Error('Failed to fetch member details');
             }
@@ -314,28 +314,28 @@ async function initializeMemberLedger() {
         }
 
         // Fetch kitty bills
-        const kittyResponse = await fetch('http://localhost:5000/api/getAllKittyPayments');
+        const kittyResponse = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
         if (!kittyResponse.ok) {
             throw new Error('Failed to fetch kitty bills');
         }
         kittyBills = await kittyResponse.json();
 
         // Fetch all orders
-        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
+        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
         if (!ordersResponse.ok) {
             throw new Error('Failed to fetch orders');
         }
         allOrders = await ordersResponse.json();
 
         // Fetch all transactions
-        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
+        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
         if (!transactionsResponse.ok) {
             throw new Error('Failed to fetch transactions');
         }
         allTransactions = await transactionsResponse.json();
 
         // Fetch all member credits
-        const creditsResponse = await fetch('http://localhost:5000/api/getAllMemberCredit');
+        const creditsResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit');
         if (!creditsResponse.ok) {
             throw new Error('Failed to fetch member credits');
         }
@@ -348,7 +348,7 @@ async function initializeMemberLedger() {
         );
 
         // Fetch chapters for prorated logic
-        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         if (!chaptersResponse.ok) {
             throw new Error('Failed to fetch chapters');
         }
@@ -396,7 +396,11 @@ async function initializeMemberLedger() {
             let color = lastBalance < 0 ? 'red' : 'green';
             let html = `<span style='color:${color};'>${formatCurrency(lastBalance)}</span>`;
             if (lastBalance < 0) {
-                html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+                // Build the Pay Now link with region_id, chapter_id, and member_id
+                const regionId = memberData.region_id || '';
+                const chapterId = memberData.chapter_id || '';
+                const memberId = memberData.member_id || '';
+                html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1?region_id=${regionId}&chapter_id=${chapterId}&member_id=${memberId}' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
             }
             pendingElem.innerHTML = html;
         }
@@ -985,7 +989,7 @@ function exportLedgerToExcel() {
 
 function exportLedgerToPDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     
     // Add title
     doc.setFontSize(16);
@@ -996,47 +1000,117 @@ function exportLedgerToPDF() {
     const today = new Date().toLocaleDateString('en-IN');
     doc.text(`Generated on: ${today}`, 14, 27);
 
+    // Add summary section as a single row table
+    const summary = getLedgerSummaryForExport();
+    const summaryHeaders = [
+        'No. of Late Payments',
+        'Credit Given',
+        'Total Paid Kitty Amount',
+        'Pending Kitty Amount'
+    ];
+    const summaryValues = [
+        summary.noOfLatePayments,
+        formatCurrency(summary.creditGiven),
+        formatCurrency(summary.totalPaidKittyAmount),
+        formatCurrency(summary.pendingKittyAmount)
+    ];
+    doc.autoTable({
+        head: [summaryHeaders],
+        body: [summaryValues],
+        startY: 32,
+        theme: 'plain',
+        styles: {
+            fontSize: 11,
+            cellPadding: 2.5,
+            halign: 'center',
+            valign: 'middle',
+            fillColor: [240, 248, 255],
+            textColor: [44, 62, 80],
+            fontStyle: 'bold',
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [41, 128, 185],
+            fontSize: 12,
+            fontStyle: 'bold',
+        },
+        margin: { left: 12, right: 12 },
+        tableWidth: 'auto',
+    });
+
     // Get table data
     const tbody = document.getElementById('ledger-body');
     const visibleRows = Array.from(tbody.getElementsByTagName('tr'));
     
     // Prepare headers and data
     const headers = [['S.No.', 'Date', 'Description', 'Total Amount', 'Debit (Dr.)', 'Credit (Cr.)', 'GST', 'Balance']];
-    const tableData = visibleRows.map(row => 
-        Array.from(row.cells).map(cell => {
-            // Remove HTML tags and get clean text
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = cell.innerHTML;
-            return tempDiv.textContent.trim();
-        })
-    );
+    const tableData = visibleRows.map(row => {
+        const cells = Array.from(row.cells);
+        // Description: plain text, line breaks for bill details
+        let desc = cells[2].textContent || '';
+        // Try to split on (bill for: ...)
+        const match = desc.match(/(Meeting Payable Amount)([\s\S]*?)(\(bill for: [^)]+\) - \([^)]+\))/);
+        if (match) {
+            desc = `${match[1]}\n${match[3]}`;
+        }
+        desc = desc.replace(/\n{2,}/g, '\n').trim();
+        // All other columns: just use textContent, no extra formatting
+        function cleanCell(val, isCurrency) {
+            let text = val.textContent ? val.textContent.trim() : '';
+            // Remove any leading/trailing whitespace
+            text = text.replace(/^\s+|\s+$/g, '');
+            // If it's a dash, keep as is
+            if (text === '-') return text;
+            // If currency, format as currency
+            if (isCurrency && /^-?\d+[.,]?\d*$/.test(text.replace(/,/g, ''))) {
+                return formatCurrency(Number(text.replace(/,/g, '')));
+            }
+            return text;
+        }
+        return [
+            cleanCell(cells[0]),
+            cleanCell(cells[1]),
+            desc,
+            cleanCell(cells[3], true),
+            cleanCell(cells[4], true),
+            cleanCell(cells[5], true),
+            cleanCell(cells[6], true),
+            cleanCell(cells[7], true)
+        ];
+    });
 
-    // Calculate column widths based on content
-    const colWidths = [10, 20, 60, 25, 25, 25, 20, 25];
+    // Adjusted column widths for best fit
+    const colWidths = [16, 28, 90, 32, 32, 32, 28, 32];
 
-    // Add the table using autoTable
+    // Add the table using autoTable with improved styling
     doc.autoTable({
         head: headers,
         body: tableData,
-        startY: 30,
+        startY: doc.lastAutoTable.finalY + 8,
         theme: 'grid',
         styles: {
-            fontSize: 8,
-            cellPadding: 2,
+            fontSize: 10,
+            cellPadding: 2.5,
             overflow: 'linebreak',
-            font: 'helvetica'
+            wordWrap: 'normal',
+            font: 'helvetica',
+            valign: 'middle',
+            minCellHeight: 10,
+            lineColor: [220, 230, 241],
+            lineWidth: 0.2,
         },
         headStyles: {
             fillColor: [41, 128, 185],
             textColor: 255,
-            fontSize: 9,
+            fontSize: 11,
             fontStyle: 'bold',
-            halign: 'center'
+            halign: 'center',
+            valign: 'middle',
         },
         columnStyles: {
             0: { cellWidth: colWidths[0], halign: 'center' }, // S.No.
             1: { cellWidth: colWidths[1], halign: 'center' }, // Date
-            2: { cellWidth: colWidths[2] }, // Description
+            2: { cellWidth: colWidths[2], halign: 'left' }, // Description
             3: { cellWidth: colWidths[3], halign: 'right' }, // Total Amount
             4: { cellWidth: colWidths[4], halign: 'right' }, // Debit
             5: { cellWidth: colWidths[5], halign: 'right' }, // Credit
@@ -1046,7 +1120,8 @@ function exportLedgerToPDF() {
         alternateRowStyles: {
             fillColor: [245, 245, 245]
         },
-        margin: { top: 30 },
+        margin: { top: 8, left: 12, right: 12 },
+        tableWidth: 'auto',
         didDrawPage: function(data) {
             // Add footer
             doc.setFontSize(8);
@@ -1061,4 +1136,30 @@ function exportLedgerToPDF() {
     // Save the PDF
     const date = new Date().toISOString().split('T')[0];
     doc.save(`Member_Ledger_${date}.pdf`);
+}
+
+// Utility to get summary for export
+function getLedgerSummaryForExport() {
+    // Calculate summary values from allTransactionItems
+    let noOfLatePayments = 0;
+    let creditGiven = 0;
+    let totalPaidKittyAmount = 0;
+    let pendingKittyAmount = 0;
+
+    allTransactionItems.forEach(item => {
+        if (item.type === 'penalty') noOfLatePayments++;
+        if (item.type === 'credit') creditGiven += item.credit || 0;
+        if (item.type === 'payment') totalPaidKittyAmount += item.credit || 0;
+    });
+    // Pending = last running balance if negative, else 0
+    if (allTransactionItems.length > 0) {
+        const lastBalance = allTransactionItems[allTransactionItems.length - 1].runningBalance;
+        pendingKittyAmount = lastBalance < 0 ? Math.abs(lastBalance) : 0;
+    }
+    return {
+        noOfLatePayments,
+        creditGiven,
+        totalPaidKittyAmount,
+        pendingKittyAmount
+    };
 }

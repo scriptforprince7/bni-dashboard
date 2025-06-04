@@ -162,7 +162,7 @@ async function fetchTransactions() {
         }
 
         // Fetch chapters to get chapter_id
-        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
+        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
         const chapters = await chaptersResponse.json();
         
         const matchingChapter = chapters.find(chapter =>
@@ -180,8 +180,8 @@ async function fetchTransactions() {
 
         // Fetch orders and transactions
         const [ordersResponse, transactionsResponse] = await Promise.all([
-            fetch('http://localhost:5000/api/allOrders'),
-            fetch('http://localhost:5000/api/allTransactions')
+            fetch('https://backend.bninewdelhi.com/api/allOrders'),
+            fetch('https://backend.bninewdelhi.com/api/allTransactions')
         ]);
 
         const allOrders = await ordersResponse.json();
@@ -267,7 +267,7 @@ async function updateTransactionsDisplay(transactionsToShow) {
 
     try {
         // Fetch all einvoice data first
-        const allEinvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
+        const allEinvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
         const allEinvoiceData = await allEinvoiceResponse.json();
 
         // Sort transactions by date (most recent first)
@@ -329,13 +329,13 @@ async function updateTransactionsDisplay(transactionsToShow) {
                     const einvoiceData = allEinvoiceData.find(e => e.order_id === orderId);
 
                     // Get chapter name from chapters data
-                    const chapterResponse = await fetch('http://localhost:5000/api/chapters');
+                    const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
                     const chaptersData = await chapterResponse.json();
                     const chapter = chaptersData.find(c => c.chapter_id === order.chapter_id);
                     const chapterName = chapter ? chapter.chapter_name : 'N/A';
 
                     // Get universal link name
-                    const universalLinkResponse = await fetch('http://localhost:5000/api/universalLinks');
+                    const universalLinkResponse = await fetch('https://backend.bninewdelhi.com/api/universalLinks');
                     const universalLinksData = await universalLinkResponse.json();
                     const universalLink = universalLinksData.find(ul => ul.id === order.universal_link_id);
                     const universalLinkName = 'Not Applicable'; // Always set to Not Applicable as per desired format
