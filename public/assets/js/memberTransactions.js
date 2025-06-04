@@ -711,7 +711,7 @@ function processTransactions() {
             billEnd = new Date(bill.kitty_due_date); // fallback
         }
         console.log('[PRORATE] Bill Start:', billDate, 'Bill End (calculated):', billEnd, 'Type:', bill.bill_type, 'Desc:', bill.description);
-        const dueDate = billEnd;
+        const dueDate = bill.kitty_due_date ? new Date(bill.kitty_due_date) : billEnd;
         const monthName = billDate.toLocaleString('default', { month: 'long' });
         const memberJoin = new Date(memberData.date_of_publishing);
         // --- Only add full bill if member joined before or on bill start ---
@@ -806,11 +806,18 @@ function processTransactions() {
             // Find the earliest payment for penalty check
             const earliestPayment = billTransactions[0];
             const paymentDate = new Date(earliestPayment.payment_completion_time);
-            
             // Only add penalty if earliest payment is after due date
+            // PRORATED EXEMPTION: If dueDate is in same month/year as memberJoin, skip penalty
+            let skipPenaltyForProrate = false;
+            if (memberJoin > billDate && memberJoin <= billEnd) {
+                if (dueDate.getMonth() === memberJoin.getMonth() && dueDate.getFullYear() === memberJoin.getFullYear()) {
+                    skipPenaltyForProrate = true;
+                }
+            }
             if (paymentDate.getTime() > dueDate.getTime()) {
                 const penaltyAmount = bill.penalty_fee || 0;
-                if (penaltyAmount > 0) {
+                // Only add penalty if dueDate is after or on memberJoin and not exempted for prorate
+                if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrate) {
                     allTransactionItems.push({
                         date: paymentDate,
                         type: 'penalty',
@@ -868,8 +875,14 @@ function processTransactions() {
             });
         } else {
             // No payment, if today > due date, add penalty
+            let skipPenaltyForProrateNoPay = false;
+            if (memberJoin > billDate && memberJoin <= billEnd) {
+                if (dueDate.getMonth() === memberJoin.getMonth() && dueDate.getFullYear() === memberJoin.getFullYear()) {
+                    skipPenaltyForProrateNoPay = true;
+                }
+            }
             const now = new Date();
-            if (now.getTime() > dueDate.getTime() && bill.penalty_fee > 0) {
+            if (now.getTime() > dueDate.getTime() && bill.penalty_fee > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrateNoPay) {
                 const penaltyAmount = bill.penalty_fee;
                 allTransactionItems.push({
                     date: dueDate,
