@@ -262,7 +262,7 @@ async function initializeMemberLedger() {
 
             // For RO admin, fetch member details from members API
             console.log('Fetching member details for RO admin...');
-            const response = await fetch('https://backend.bninewdelhi.com/api/members');
+            const response = await fetch('http://localhost:5000/api/members');
             if (!response.ok) {
                 throw new Error('Failed to fetch members list');
             }
@@ -285,7 +285,7 @@ async function initializeMemberLedger() {
             
             // Fetch member details to get member_id
             console.log('Fetching members data from API..');
-            const response = await fetch('https://backend.bninewdelhi.com/api/members');
+            const response = await fetch('http://localhost:5000/api/members');
             if (!response.ok) {
                 throw new Error('Failed to fetch member details');
             }
@@ -313,28 +313,28 @@ async function initializeMemberLedger() {
         }
 
         // Fetch kitty bills
-        const kittyResponse = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
+        const kittyResponse = await fetch('http://localhost:5000/api/getAllKittyPayments');
         if (!kittyResponse.ok) {
             throw new Error('Failed to fetch kitty bills');
         }
         kittyBills = await kittyResponse.json();
 
         // Fetch all orders
-        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
         if (!ordersResponse.ok) {
             throw new Error('Failed to fetch orders');
         }
         allOrders = await ordersResponse.json();
 
         // Fetch all transactions
-        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
         if (!transactionsResponse.ok) {
             throw new Error('Failed to fetch transactions');
         }
         allTransactions = await transactionsResponse.json();
 
         // Fetch all member credits
-        const creditsResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit');
+        const creditsResponse = await fetch('http://localhost:5000/api/getAllMemberCredit');
         if (!creditsResponse.ok) {
             throw new Error('Failed to fetch member credits');
         }
@@ -347,12 +347,14 @@ async function initializeMemberLedger() {
         );
 
         // Fetch chapters for prorated logic
-        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
         if (!chaptersResponse.ok) {
             throw new Error('Failed to fetch chapters');
         }
         const allChapters = await chaptersResponse.json();
-        const memberChapter = allChapters.find(ch => ch.chapter_id == memberData.chapter_id);
+        window.allChaptersGlobal = allChapters;
+        window.memberChapterGlobal = allChapters.find(ch => ch.chapter_id == memberData.chapter_id);
+        const memberChapter = window.memberChapterGlobal;
 
         // Process and display transactions
         processTransactions();
@@ -576,12 +578,13 @@ async function initializeMemberLedger() {
                 const totalAmount = proratedAmount + gstAmount;
                 allTransactionItems.push({
                     date: memberJoin,
-                    type: 'prorated',
+                    type: 'kitty_bill',
                     description: `
                         <div>
                             <b>Prorated Kitty Bill - ${activeBill.bill_type} (${activeBill.description})</b>
-                            <div style="font-style: italic; font-size: 0.95em; color: #222;">
-                                (${meetingCount} meetings) - (${activeBill.description})
+                            <div style="font-style: italic; font-size: 0.95em; color: #666;">
+                                <div>Period: ${formatDate(billStart)} to ${formatDate(billEnd)}</div>
+                                <div>Meetings: ${meetingCount} × ₹${kittyFee} = ₹${proratedAmount}</div>
                             </div>
                         </div>
                     `,
@@ -591,6 +594,7 @@ async function initializeMemberLedger() {
                     totalAmount: totalAmount,
                     // runningBalance will be set later
                 });
+                console.log('[PRORATE] Prorated entry added:', allTransactionItems[allTransactionItems.length-1]);
             }
         }
 
@@ -640,6 +644,9 @@ function processTransactions() {
             // runningBalance will be set later
         });
     });
+
+    // === REMOVE PRORATED LOGIC BLOCK HERE ===
+    // (Delete the block that adds a prorated entry before the bill loop)
 
     // Get all kitty bills for the member's chapter
     const chapterKittyBills = kittyBills.filter(bill => 
@@ -714,8 +721,57 @@ function processTransactions() {
                 totalAmount: totalAmount,
                 // runningBalance will be set later
             });
-        } else {
-            console.log('[PRORATE] Skipping full bill for member joined after bill start:', memberJoin, billDate);
+        } else if (memberJoin > billDate && memberJoin <= billEnd) {
+            // Prorated logic
+            let memberChapter = window.memberChapterGlobal;
+            if (!memberChapter && window.allChaptersGlobal) {
+                memberChapter = window.allChaptersGlobal.find(ch => ch.chapter_id == memberData.chapter_id);
+                window.memberChapterGlobal = memberChapter;
+            }
+            if (!memberChapter) {
+                console.error('[PRORATE] No chapter data found for chapter_id:', memberData.chapter_id);
+                return;
+            }
+            const meetingDay = memberChapter.chapter_meeting_day;
+            const kittyFee = parseFloat(memberChapter.chapter_kitty_fees);
+            const dayMap = {
+                'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
+                'Thursday': 4, 'Friday': 5, 'Saturday': 6
+            };
+            const meetingDayNum = dayMap[meetingDay];
+            let meetingCount = 0;
+            let currentDate = new Date(memberJoin);
+            const daysUntilNext = (meetingDayNum - currentDate.getDay() + 7) % 7;
+            if (daysUntilNext === 0) {
+                currentDate.setDate(currentDate.getDate() + 7);
+            } else {
+                currentDate.setDate(currentDate.getDate() + daysUntilNext);
+            }
+            while (currentDate <= billEnd) {
+                meetingCount++;
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+            const proratedAmount = meetingCount * kittyFee;
+            const gstAmountProrated = Math.round(proratedAmount * 0.18);
+            const totalAmountProrated = proratedAmount + gstAmountProrated;
+            allTransactionItems.push({
+                date: memberJoin,
+                type: 'kitty_bill',
+                description: `
+                    <div>
+                        <b>Prorated Kitty Bill - ${bill.bill_type} (${bill.description})</b>
+                        <div style="font-style: italic; font-size: 0.95em; color: #666;">
+                            <div>Period: ${formatDate(billDate)} to ${formatDate(billEnd)}</div>
+                            <div>Meetings: ${meetingCount} × ₹${kittyFee} = ₹${proratedAmount}</div>
+                        </div>
+                    </div>
+                `,
+                debit: proratedAmount,
+                credit: 0,
+                gst: gstAmountProrated,
+                totalAmount: totalAmountProrated,
+                // runningBalance will be set later
+            });
         }
 
         // 2. Find all orders for this bill and member
@@ -823,6 +879,7 @@ function processTransactions() {
 
     // Sort all transactions by date
     allTransactionItems.sort((a, b) => new Date(a.date) - new Date(b.date));
+    console.log('[PRORATE] allTransactionItems after sort:', allTransactionItems);
 
     // Update running balances after sorting using only debit and credit
     let currentBalance = memberData.meeting_opening_balance || 0;

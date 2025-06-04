@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     try {
         showLoader();
         // Fetch all hotels
-        const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
+        const response = await fetch("http://localhost:5000/api/getHotels");
         const hotels = await response.json();
 
         // Find the selected hotel by ID
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 };
 
                 try {
-                    const updateResponse = await fetch(`https://backend.bninewdelhi.com/api/updateHotel/${hotelId}`, {
+                    const updateResponse = await fetch(`http://localhost:5000/api/updateHotel/${hotelId}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(updatedData)

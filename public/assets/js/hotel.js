@@ -35,7 +35,7 @@ let allHotels = []; // Store all hotel data
 async function fetchHotels() {
     try {
         showLoader();
-        const response = await fetch("https://backend.bninewdelhi.com/api/getHotels");
+        const response = await fetch("http://localhost:5000/api/getHotels");
         allHotels = await response.json(); // Store original data
 
         document.getElementById("totalHotel").textContent = allHotels.length;
@@ -140,7 +140,7 @@ function confirmDeleteHotel(hotelId) {
 // Function to send delete request to backend
 async function deleteHotel(hotelId) {
     try {
-        const response = await fetch(`https://backend.bninewdelhi.com/api/deleteHotel/${hotelId}`, {
+        const response = await fetch(`http://localhost:5000/api/deleteHotel/${hotelId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
@@ -188,7 +188,7 @@ async function viewLedger(hotelId) {
     if (!hotel) throw new Error('Hotel not found');
 
     // Fetch chapters data
-    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
     if (!chaptersResponse.ok) throw new Error('Failed to fetch chapters');
     const chapters = await chaptersResponse.json();
     
@@ -196,7 +196,7 @@ async function viewLedger(hotelId) {
     const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
 
     // Fetch all expenses
-    const response = await fetch(`https://backend.bninewdelhi.com/api/allExpenses`);
+    const response = await fetch(`http://localhost:5000/api/allExpenses`);
     if (!response.ok) throw new Error('Failed to fetch expenses');
     const allExpenses = await response.json();
 

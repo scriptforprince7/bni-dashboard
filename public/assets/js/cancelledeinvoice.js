@@ -28,7 +28,7 @@ function showLoader() {
   async function fetchTrainingDetails(trainingId) {
   console.log("Fetching training details for ID:", trainingId); // Debug log
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/allTrainings");
+    const response = await fetch("http://localhost:5000/api/allTrainings");
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -51,7 +51,7 @@ function showLoader() {
   }
   }
   
-  const apiUrl = "https://backend.bninewdelhi.com/api/universalLinks";
+  const apiUrl = "http://localhost:5000/api/universalLinks";
   // Use `invoiceData` and `einvoiceData` as needed
   const ackDate = einvoiceData.ack_dt ? new Date(einvoiceData.ack_dt) : null;
   const orderAmount = invoiceData.orderId.order_amount || 0;
@@ -62,7 +62,7 @@ function showLoader() {
   async function fetchMemberDetails(memberId) {
     showLoader();
   try {
-    const response = await fetch("https://backend.bninewdelhi.com/api/members");
+    const response = await fetch("http://localhost:5000/api/members");
     const members = await response.json();  // Assuming the response is a list of all members
   
     if (response.ok) {
@@ -238,7 +238,7 @@ function showLoader() {
       console.log("🔑 Kitty Bill ID:", kittyBillId);
   
       try {
-        const kittyResponse = await fetch("https://backend.bninewdelhi.com/api/getAllKittyPayments");
+        const kittyResponse = await fetch("http://localhost:5000/api/getAllKittyPayments");
         const kittyData = await kittyResponse.json();
         console.log("📊 All Kitty Payments:", kittyData);
   

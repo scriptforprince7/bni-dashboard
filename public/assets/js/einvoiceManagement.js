@@ -321,31 +321,31 @@ function filterTable() {
 async function fetchAndDisplayEinvoices() {
     try {
         // Fetch e-invoice data
-        const einvoiceResponse = await fetch('https://backend.bninewdelhi.com/api/einvoiceData');
+        const einvoiceResponse = await fetch('http://localhost:5000/api/einvoiceData');
         const einvoiceData = await einvoiceResponse.json();
 
         // Fetch all orders data
-        const ordersResponse = await fetch('https://backend.bninewdelhi.com/api/allOrders');
+        const ordersResponse = await fetch('http://localhost:5000/api/allOrders');
         const ordersData = await ordersResponse.json();
 
         // Fetch document numbers
-        const docNumbersResponse = await fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers');
+        const docNumbersResponse = await fetch('http://localhost:5000/api/getAllDocNumbers');
         const docNumbersData = await docNumbersResponse.json();
 
         // Fetch chapters data
-        const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+        const chaptersResponse = await fetch('http://localhost:5000/api/chapters');
         const chaptersData = await chaptersResponse.json();
 
         // Fetch regions data
-        const regionsResponse = await fetch('https://backend.bninewdelhi.com/api/regions');
+        const regionsResponse = await fetch('http://localhost:5000/api/regions');
         const regionsData = await regionsResponse.json();
 
         // Fetch transactions data
-        const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
+        const transactionsResponse = await fetch('http://localhost:5000/api/allTransactions');
         const transactionsData = await transactionsResponse.json();
 
         // Fetch members data
-        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        const membersResponse = await fetch('http://localhost:5000/api/members');
         const membersData = await membersResponse.json();
 
         // Create maps for quick lookup
@@ -559,13 +559,13 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources including members data
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes, membersRes] = await Promise.all([
-                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
-                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
-                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
-                    fetch('https://backend.bninewdelhi.com/api/chapters'),
-                    fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-                    fetch('https://backend.bninewdelhi.com/api/members')
+                    fetch('http://localhost:5000/api/einvoiceData'),
+                    fetch('http://localhost:5000/api/allOrders'),
+                    fetch('http://localhost:5000/api/getAllDocNumbers'),
+                    fetch('http://localhost:5000/api/chapters'),
+                    fetch('http://localhost:5000/api/regions'),
+                    fetch('http://localhost:5000/api/allTransactions'),
+                    fetch('http://localhost:5000/api/members')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData, membersData] = await Promise.all([
                     einvoiceRes.json(),
@@ -699,13 +699,13 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Fetch all data sources including members data
                 const [einvoiceRes, ordersRes, docNumbersRes, chaptersRes, regionsRes, transactionsRes, membersRes] = await Promise.all([
-                    fetch('https://backend.bninewdelhi.com/api/einvoiceData'),
-                    fetch('https://backend.bninewdelhi.com/api/allOrders'),
-                    fetch('https://backend.bninewdelhi.com/api/getAllDocNumbers'),
-                    fetch('https://backend.bninewdelhi.com/api/chapters'),
-                    fetch('https://backend.bninewdelhi.com/api/regions'),
-                    fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-                    fetch('https://backend.bninewdelhi.com/api/members')
+                    fetch('http://localhost:5000/api/einvoiceData'),
+                    fetch('http://localhost:5000/api/allOrders'),
+                    fetch('http://localhost:5000/api/getAllDocNumbers'),
+                    fetch('http://localhost:5000/api/chapters'),
+                    fetch('http://localhost:5000/api/regions'),
+                    fetch('http://localhost:5000/api/allTransactions'),
+                    fetch('http://localhost:5000/api/members')
                 ]);
                 const [einvoiceData, ordersData, docNumbersData, chaptersData, regionsData, transactionsData, membersData] = await Promise.all([
                     einvoiceRes.json(),
@@ -865,7 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iframeUrl = iframe.src;
             // Build the correct PDF endpoint URL
             const urlParams = iframeUrl.split('?')[1];
-            const pdfUrl = `https://backend.bninewdelhi.com/api/v/einvoice/pdf?${urlParams}`;
+            const pdfUrl = `http://localhost:5000/api/v/einvoice/pdf?${urlParams}`;
             // Open the PDF in a new tab (for direct download)
             window.open(pdfUrl, '_blank');
         });
@@ -916,7 +916,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 generateBulkPdfBtn.innerHTML = '<i class="ti ti-loader me-1"></i> Generating PDF...';
 
                 // Call the API
-                const response = await fetch('https://backend.bninewdelhi.com/api/generate-bulk-einvoice-pdf', {
+                const response = await fetch('http://localhost:5000/api/generate-bulk-einvoice-pdf', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

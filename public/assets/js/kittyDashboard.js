@@ -42,17 +42,17 @@ async function fetchPayments() {
   try {
     showLoader();
     const [regions, chapters, kittyPayments, expenses, orders, transactions, members, credits, bankOrders, activeBill, writeOffs] = await Promise.all([ 
-      fetch('https://backend.bninewdelhi.com/api/regions').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/chapters').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/allExpenses').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/members').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getbankOrder').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getKittyPayments').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff').then(res => res.json())
+      fetch('http://localhost:5000/api/regions').then(res => res.json()),
+      fetch('http://localhost:5000/api/chapters').then(res => res.json()),
+      fetch('http://localhost:5000/api/getAllKittyPayments').then(res => res.json()),
+      fetch('http://localhost:5000/api/allExpenses').then(res => res.json()),
+      fetch('http://localhost:5000/api/allOrders').then(res => res.json()),
+      fetch('http://localhost:5000/api/allTransactions').then(res => res.json()),
+      fetch('http://localhost:5000/api/members').then(res => res.json()),
+      fetch('http://localhost:5000/api/getAllMemberCredit').then(res => res.json()),
+      fetch('http://localhost:5000/api/getbankOrder').then(res => res.json()),
+      fetch('http://localhost:5000/api/getKittyPayments').then(res => res.json()),
+      fetch('http://localhost:5000/api/getAllMemberWriteOff').then(res => res.json())
     ]);
     
     // Store orders and transactions globally
@@ -233,7 +233,7 @@ async function handleRegionSelection(event) {
     
     try {
       // Fetch chapters from API
-      const response = await fetch('https://backend.bninewdelhi.com/api/chapters');
+      const response = await fetch('http://localhost:5000/api/chapters');
       const chapters = await response.json();
       
       console.log('All chapters:', chapters);
@@ -542,7 +542,7 @@ function populateRegionFilter() {
     }
 
     // Fetch regions from API
-    fetch('https://backend.bninewdelhi.com/api/regions')
+    fetch('http://localhost:5000/api/regions')
       .then(res => res.json())
       .then(regions => {
         console.log('Fetched regions:', regions);
@@ -577,13 +577,13 @@ function populateRegionFilter() {
 async function updateTotalKittyAmount() {
   try {
     // Get kitty payments
-    const kittyResponse = await fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments');
+    const kittyResponse = await fetch('http://localhost:5000/api/getAllKittyPayments');
     const kittyPayments = await kittyResponse.json();
     
     // Get orders and transactions
     const [orders, transactions] = await Promise.all([
-      fetch('https://backend.bninewdelhi.com/api/allOrders').then(res => res.json()),
-      fetch('https://backend.bninewdelhi.com/api/allTransactions').then(res => res.json())
+      fetch('http://localhost:5000/api/allOrders').then(res => res.json()),
+      fetch('http://localhost:5000/api/allTransactions').then(res => res.json())
     ]);
 
     let totalActiveBillAmount = 0;
@@ -637,7 +637,7 @@ async function updateTotalKittyAmount() {
       `₹ ${formatInIndianStyle(chapterReceivedAmount)}`;
 
     // Get write-offs data
-    const writeOffResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberWriteOff');
+    const writeOffResponse = await fetch('http://localhost:5000/api/getAllMemberWriteOff');
     const writeOffs = await writeOffResponse.json();
 
     let filteredWriteOffAmount = 0;
