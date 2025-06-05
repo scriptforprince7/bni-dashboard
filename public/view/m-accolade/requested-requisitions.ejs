@@ -28,43 +28,74 @@
 
     <style>
       .accolade-link {
-  color: #007bff;
-  cursor: pointer;
-  text-decoration: underline;
-}
-.accolade-link:hover {
-  color: #0056b3;
-}
+        color: #007bff;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .accolade-link:hover {
+        color: #0056b3;
+      }
 
-.accolade-link {
-  color: #e84e1a;
-  font-weight: 500;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
-}
+      .accolade-link {
+        color: #e84e1a;
+        font-weight: 500;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+      }
 
-.accolade-link:hover {
-  text-decoration: underline;
-}
+      .accolade-link:hover {
+        text-decoration: underline;
+      }
 
-.accolade-badge {
-  background: linear-gradient(145deg, #6a5acd, #483d8b);
-  color: #fff;
-  font-size: 0.75rem;
-  padding: 1px 8px;
-  border-radius: 5px;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease-in-out;
-}
+      .accolade-badge {
+        background: linear-gradient(145deg, #6a5acd, #483d8b);
+        color: #fff;
+        font-size: 0.75rem;
+        padding: 1px 8px;
+        border-radius: 5px;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease-in-out;
+      }
 
-.accolade-badge:hover {
-  transform: scale(1.1);
-}
+      .accolade-badge:hover {
+        transform: scale(1.1);
+      }
 
+      /* Sorting styles */
+      .sortable {
+        cursor: pointer;
+        position: relative;
+        user-select: none;
+      }
+
+      .sortable i {
+        margin-left: 5px;
+        font-size: 14px;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+
+      .sortable:hover i {
+        opacity: 1;
+      }
+
+      .sortable.asc i::before {
+        content: "\eb1c"; /* ti-arrow-up */
+      }
+
+      .sortable.desc i::before {
+        content: "\eb1d"; /* ti-arrow-down */
+      }
+
+      .sortable.asc i,
+      .sortable.desc i {
+        opacity: 1;
+        color: #0d6efd;
+      }
     </style>
 
     <%- include('../partials/sidebar') %>
@@ -218,19 +249,18 @@
                 >
                   <thead>
                     <tr>
-                      <th scope="col">S.No.</th>
-                      <th scope="col">Chapter Name</th>
-                      <th scope="col">Accolades Requested</th>
-                      <th scope="col">Accolades Description</th>
-                      <th scope="col">Comment</th>
-                      <th scope="col">Approved</th>
-                      <th scope="col">Rejected</th>
-                      <th scope="col">Requested date</th>
-                      <th scope="col">Requested By</th>
-                      <th scope="col">Pickup Status (By RO)</th>
-                      <th scope="col">Pickup Status (By Chapter)</th>
-                      <th scope="col">Status</th>
-                      
+                      <th scope="col" class="sortable" data-sort="sno">S.No. <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="chapterName">Chapter Name <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="accoladesRequested">Accolades Requested <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="accoladesDescription">Accolades Description <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="comment">Comment <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="approved">Approved <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="rejected">Rejected <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="requestedDate">Requested date <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="requestedBy">Requested By <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="pickupStatusRO">Pickup Status (By RO) <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="pickupStatusChapter">Pickup Status (By Chapter) <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="status">Status <i class="ti ti-arrows-sort"></i></th>
                     </tr>
                   </thead>
                   
@@ -242,22 +272,15 @@
             </div>
             <div class="card-footer border-top-0">
               <div class="d-flex align-items-center flex-wrap overflow-auto">
-                <div class="mb-2 mb-sm-0">
-                  Showing <b>1</b> to <b>10</b> entries
-                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                <div class="mb-2 mb-sm-0" id="entriesInfo">
+                  <!-- Entries info will be updated by JS -->
                 </div>
-                <div class="ms-auto">
-                  <ul class="pagination mb-0 overflow-auto">
-                    <li class="page-item disabled">
-                      <a class="page-link">Previous</a>
-                    </li>
-                    <li class="page-item Approved" aria-current="page">
-                      <a class="page-link" href="javascript:void(0)">1</a>
-                    </li>
-                    <li class="page-item">
-                      <a class="page-link" href="javascript:void(0)">Next</a>
-                    </li>
+                <div class="ms-auto d-flex align-items-center">
+                  <ul class="pagination mb-0 overflow-auto" id="paginationContainer">
+                    <!-- Pagination controls will be rendered by JS -->
                   </ul>
+                  <button id="showAllBtn" class="btn btn-sm btn-primary ms-2">Show All</button>
+                  <button id="showPaginatedBtn" class="btn btn-sm btn-secondary ms-2" style="display:none;">Show Paginated</button>
                 </div>
               </div>
             </div>

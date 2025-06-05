@@ -76,15 +76,26 @@ async function loadData() {
 
         // Fetch all required data including accolades
         const [requisitionsResponse, chaptersResponse, accoladesResponse] = await Promise.all([
-            fetch(requisitionsApiUrl),
+            fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition'),
             fetch(chaptersApiUrl),
-            fetch('https://backend.bninewdelhi.com/api/accolades')  // Add accolades API
+            fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
 
-        allRequisitions = await requisitionsResponse.json();
+        const requisitionsData = await requisitionsResponse.json();
         allChapters = await chaptersResponse.json();
         allAccolades = await accoladesResponse.json();
-        filteredRequisitions = [...allRequisitions];
+
+        if (requisitionsData && Array.isArray(requisitionsData)) {
+            // Sort requisitions by requested_date in descending order (newest first)
+            allRequisitions = requisitionsData.sort((a, b) => 
+                new Date(b.requested_date) - new Date(a.requested_date)
+            );
+            filteredRequisitions = [...allRequisitions];
+        } else {
+            console.error('Invalid requisitions data format');
+            allRequisitions = [];
+            filteredRequisitions = [];
+        }
 
         console.log('📝 All Requisitions:', allRequisitions);
         console.log('📚 All Chapters:', allChapters);
@@ -92,7 +103,6 @@ async function loadData() {
 
         initializeFilters();
         renderTable();
-
     } catch (error) {
         console.error('❌ Error in loadData:', error);
         Swal.fire({
@@ -315,24 +325,7 @@ async function handleAccoladesClick(requisition) {
                             Export
                         </button>
                     </div>
-                   <button 
-    onclick="submitBulkActions()"
-    class="btn"
-    style="
-        padding: 8px 24px;
-        border-radius: 6px;
-        background: #2563eb;
-        color: white;
-        border: none;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    "
->
-    <i class="ri-save-line"></i>
-    Submit Status
-</button>
+              
 
 <!-- Loader for Submit Status -->
 <div id="submitStatusLoader" style="display:none; text-align:center; margin:20px 0;">
@@ -1074,11 +1067,126 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Update the renderTable function
+// Add this function to check if requisition needs highlighting
+function shouldHighlightRequisition(req) {
+    try {
+        // Get total accolades count
+        const totalAccolades = Array.isArray(req.member_ids) && 
+            req.member_ids.length === 1 && 
+            req.member_ids[0] === 0 && 
+            req.visitor_id ? 1 : Object.keys(safeJSONParse(req.comment || '{}')).length;
+
+        // Get approved and declined counts
+        const approvedCount = countApprovedStatus(req.approve_status);
+        const declinedCount = countRejectedStatus(req.approve_status);
+        const totalProcessed = approvedCount + declinedCount;
+
+        // If read_status is false and not all accolades are processed
+        return !req.read_status && totalAccolades !== totalProcessed;
+    } catch (error) {
+        console.error('Error in shouldHighlightRequisition:', error);
+        return false;
+    }
+}
+
+// Inject beautiful highlight styles for requisition rows if not already present
+(function injectHighlightStyles() {
+    if (!document.getElementById('requisition-highlight-styles')) {
+        const style = document.createElement('style');
+        style.id = 'requisition-highlight-styles';
+        style.innerHTML = `
+        .requisition-highlight-row {
+            background: linear-gradient(90deg, #f8fafc 0%, #e0e7ff 50%, #f0fdfa 100%);
+            border-left: 7px solid #6366f1;
+            box-shadow: 0 6px 32px -8px #6366f133, 0 1.5px 0 #6366f1;
+            font-weight: 600;
+            color: #312e81 !important;
+            transition: background 0.4s, box-shadow 0.4s;
+            position: relative;
+            animation: highlightFadeIn 0.7s;
+        }
+        @keyframes highlightFadeIn {
+            from { opacity: 0; transform: translateY(-10px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .requisition-highlight-row td {
+            background: transparent !important;
+            color: #312e81 !important;
+        }
+        .requisition-highlight-row .action-badge {
+            background: #fbbf24;
+            color: #92400e;
+            font-size: 0.85em;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 2px 10px;
+            margin-left: 10px;
+            box-shadow: 0 2px 8px #fbbf2433;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+})();
+
+// Pagination state
+let currentPage = 1;
+const pageSize = 10;
+let showAll = false;
+
+function updatePaginationControls(totalEntries) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (!paginationContainer) return;
+    const totalPages = Math.ceil(totalEntries / pageSize);
+    let html = '';
+    if (!showAll && totalPages > 1) {
+        html += `<li class="page-item${currentPage === 1 ? ' disabled' : ''}">
+            <a class="page-link" href="#" id="prevPageBtn">Previous</a>
+        </li>`;
+        for (let i = 1; i <= totalPages; i++) {
+            html += `<li class="page-item${currentPage === i ? ' Approved' : ''}">
+                <a class="page-link page-num-btn" href="#" data-page="${i}">${i}</a>
+            </li>`;
+        }
+        html += `<li class="page-item${currentPage === totalPages ? ' disabled' : ''}">
+            <a class="page-link" href="#" id="nextPageBtn">Next</a>
+        </li>`;
+    }
+    paginationContainer.innerHTML = html;
+    // Show All and Show Paginated buttons
+    const showAllBtn = document.getElementById('showAllBtn');
+    const showPaginatedBtn = document.getElementById('showPaginatedBtn');
+    if (showAllBtn) {
+        showAllBtn.style.display = showAll ? 'none' : 'inline-block';
+    }
+    if (showPaginatedBtn) {
+        showPaginatedBtn.style.display = showAll ? 'inline-block' : 'none';
+    }
+}
+
+function updateEntriesInfo(start, end, total) {
+    const info = document.getElementById('entriesInfo');
+    if (info) {
+        info.innerHTML = showAll
+            ? `Showing <b>all</b> entries`
+            : `Showing <b>${start}</b> to <b>${end}</b> of <b>${total}</b> entries`;
+    }
+}
+
 const renderTable = () => {
     const tableBody = document.getElementById("chaptersTableBody");
-    
-    if (filteredRequisitions.length === 0) {
+    let paginatedRequisitions = filteredRequisitions;
+    const totalEntries = filteredRequisitions.length;
+    let start = 1, end = totalEntries;
+    if (!showAll) {
+        start = (currentPage - 1) * pageSize + 1;
+        end = Math.min(start + pageSize - 1, totalEntries);
+        paginatedRequisitions = filteredRequisitions.slice(start - 1, end);
+    }
+    updateEntriesInfo(start, end, totalEntries);
+    updatePaginationControls(totalEntries);
+    if (paginatedRequisitions.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-4">
@@ -1091,70 +1199,22 @@ const renderTable = () => {
         `;
         return;
     }
-
-    // First update the table headers with sort icons
-    const tableHeaders = document.querySelector('thead tr');
-    tableHeaders.innerHTML = `
-        <th scope="col" onclick="sortTable('chapter_requisition_id')" style="cursor: pointer">
-            S.No. <i class="ri-arrow-${currentSort.column === 'chapter_requisition_id' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('chapter_name')" style="cursor: pointer">
-            Chapter Name <i class="ri-arrow-${currentSort.column === 'chapter_name' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('accolades')" style="cursor: pointer">
-            Accolades Requested <i class="ri-arrow-${currentSort.column === 'accolades' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('description')" style="cursor: pointer">
-            Accolades Description <i class="ri-arrow-${currentSort.column === 'description' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('comment')" style="cursor: pointer">
-            Comment <i class="ri-arrow-${currentSort.column === 'comment' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('approved')" style="cursor: pointer">
-            Approved <i class="ri-arrow-${currentSort.column === 'approved' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('rejected')" style="cursor: pointer">
-            Rejected <i class="ri-arrow-${currentSort.column === 'rejected' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        
-        <th scope="col" onclick="sortTable('date')" style="cursor: pointer">
-            Requested date <i class="ri-arrow-${currentSort.column === 'date' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('requested_by')" style="cursor: pointer">
-            Requested By <i class="ri-arrow-${currentSort.column === 'requested_by' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('pickup_status')" style="cursor: pointer">
-            Pickup Status (By RO) <i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('pickup_status')" style="cursor: pointer">
-            Pickup Status (By Chapter)<i class="ri-arrow-${currentSort.column === 'pickup_status' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-        <th scope="col" onclick="sortTable('status')" style="cursor: pointer">
-            Status <i class="ri-arrow-${currentSort.column === 'status' ? 
-            (currentSort.direction === 'asc' ? 'up' : 'down') : 'up-down'}-line ms-1"></i>
-        </th>
-    `;
-
-    tableBody.innerHTML = filteredRequisitions
+    // ... rest of your table rendering logic, but use paginatedRequisitions instead of filteredRequisitions ...
+    tableBody.innerHTML = paginatedRequisitions
         .map((req, index) => {
+            const needsHighlight = shouldHighlightRequisition(req);
+            const rowClass = needsHighlight ? 'requisition-highlight-row' : '';
+            const actionBadge = needsHighlight ? '<span class="action-badge">⚡ Action Needed</span>' : '';
             const chapter = allChapters.find(ch => ch.chapter_id === req.chapter_id);
-            
-            // Format the requested date
-            const requestDate = new Date(req.requested_date).toLocaleDateString('en-US', {
+            // Format the requested date to IST with AM/PM
+            const requestDate = new Date(req.requested_date).toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true
             });
             const slabWiseComment = req.slab_wise_comment || 'No comment provided';
             
@@ -1166,12 +1226,13 @@ const renderTable = () => {
             const pickupButtonText = isReadyToPickup ? 'Ready to Pickup' : 'Not Ready to Pickup';
             const pickupButtonIcon = isReadyToPickup ? 'ri-checkbox-circle-line' : 'ri-time-line';
             return `
-                <tr style="border-bottom: 1px solid #e5e7eb;">
+                <tr class="${rowClass}" style="border-bottom: 1px solid #e5e7eb;">
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
-                        ${index + 1}
+                        ${showAll ? (index + 1) : (start + index)}
                     </td>
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
+                        ${actionBadge}
                     </td>
                     <td style="padding: 16px;">
                         <div class="accolades-container" style="max-width: 500px;">
@@ -3512,3 +3573,50 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
         });
     }
 }
+
+// Pagination event listeners
+function setupPaginationEvents() {
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (paginationContainer) {
+        paginationContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('page-link')) {
+                e.preventDefault();
+                if (e.target.id === 'prevPageBtn' && currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                } else if (e.target.id === 'nextPageBtn') {
+                    const totalPages = Math.ceil(filteredRequisitions.length / pageSize);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                    }
+                } else if (e.target.classList.contains('page-num-btn')) {
+                    const page = parseInt(e.target.getAttribute('data-page'));
+                    if (!isNaN(page)) {
+                        currentPage = page;
+                        renderTable();
+                    }
+                }
+            }
+        });
+    }
+    const showAllBtn = document.getElementById('showAllBtn');
+    if (showAllBtn) {
+        showAllBtn.addEventListener('click', function() {
+            showAll = true;
+            renderTable();
+        });
+    }
+    const showPaginatedBtn = document.getElementById('showPaginatedBtn');
+    if (showPaginatedBtn) {
+        showPaginatedBtn.addEventListener('click', function() {
+            showAll = false;
+            currentPage = 1;
+            renderTable();
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupPaginationEvents();
+});

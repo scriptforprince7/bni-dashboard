@@ -152,7 +152,11 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     console.log('All expenses:', allExpensesData);
 
     // Sort all expenses by expense_id in descending order first
-    allExpensesData.sort((a, b) => parseInt(b.expense_id) - parseInt(a.expense_id));
+    allExpensesData.sort((a, b) => {
+      const dateA = new Date(a.entry_date);
+      const dateB = new Date(b.entry_date);
+      return dateB - dateA; // Sort by entry_date in descending order (latest first)
+    });
 
     // Filter expenses based on user type and chapter
     if (getUserLoginType() === 'ro_admin') {
@@ -395,16 +399,16 @@ function displayExpenses(expenses) {
                   data-ca-comment="${expense.ca_comment}"
                   data-final-amount="${expense.final_amount}"
                   style="background: ${expense.tds_section_list === "NA" ? 'linear-gradient(45deg, #dc3545, #c82333)' : 'linear-gradient(45deg, #4CAF50, #45a049)'};
-                         border: none;
-                         border-radius: 20px;
-                         padding: 8px 16px;
-                         color: white;
-                         font-weight: 500;
-                         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                         transition: all 0.3s ease;
-                         display: flex;
-                         align-items: center;
-                         gap: 5px;">
+                          border: none;
+                          border-radius: 20px;
+                          padding: 8px 16px;
+                          color: white;
+                          font-weight: 500;
+                          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                          transition: all 0.3s ease;
+                          display: flex;
+                          align-items: center;
+                          gap: 5px;">
             <i class="ri-eye-line"></i>
             View TDS Details
           </button>
@@ -412,22 +416,75 @@ function displayExpenses(expenses) {
           <button class="btn btn-primary btn-sm add-tds-btn" 
                   data-expense-id="${expense.expense_id}"
                   data-amount="${expense.amount}"
-                  data-gst-amount="${expense.gst_amount}"
+                  data-gst-amount="${expense.gst_amount || 0}"
                   style="background: linear-gradient(45deg, #2196F3, #1976D2);
-                         border: none;
-                         border-radius: 20px;
-                         padding: 8px 16px;
-                         color: white;
-                         font-weight: 500;
-                         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                         transition: all 0.3s ease;
-                         display: flex;
-                         align-items: center;
-                         gap: 5px;">
+                          border: none;
+                          border-radius: 20px;
+                          padding: 8px 16px;
+                          color: white;
+                          font-weight: 500;
+                          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                          transition: all 0.3s ease;
+                          display: flex;
+                          align-items: center;
+                          gap: 5px;">
             <i class="ri-add-circle-line"></i>
             Add TDS Detail
           </button>
         `}
+      </td>
+      <td style="border: 1px solid grey;">
+        ${expense.tds_percentage && expense.tds_type ? 
+          `<b>${expense.tds_percentage}% (${expense.tds_type})</b>` : 
+          '<b>-</b>'}
+      </td>
+      <td style="border: 1px solid grey;">
+        ${expense.tds_amount ? `<b>₹ ${expense.tds_amount}</b>` : '<b>-</b>'}
+      </td>
+      <td style="border: 1px solid grey;">
+        ${expense.tds_certificate ? 
+          `<div style="display: flex; align-items: center; gap: 10px;">
+            <div class="tds-certificate-preview" style="cursor: pointer;" onclick="openTdsCertificate('${expense.tds_certificate}')">
+              <img src="https://backend.bninewdelhi.com/api/uploads/tds-certificates/${expense.tds_certificate}" 
+                   alt="TDS Certificate" 
+                   style="max-width: 50px; max-height: 50px; border-radius: 4px;"
+                   onerror="this.onerror=null; this.src='/assets/images/pdf-icon.png';">
+            </div>
+            <button class="btn btn-outline-primary btn-sm edit-tds-certificate" 
+                    data-expense-id="${expense.expense_id}"
+                    style="padding: 4px 8px; font-size: 12px;">
+              <i class="ri-edit-line"></i>
+              Edit
+            </button>
+          </div>` : 
+          `<button class="btn btn-outline-primary btn-sm upload-tds-certificate" 
+                   data-expense-id="${expense.expense_id}"
+                   style="border-radius: 20px; padding: 8px 16px;">
+            <i class="ri-upload-2-line"></i> Upload Certificate
+          </button>`
+        }
+      </td>
+      <td style="border: 1px solid grey;">
+        <div style="background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 100%);
+                    padding: 6px;
+                    border-radius: 6px;
+                    border: 2px solid #e0e0e0;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;"
+             data-expense='${JSON.stringify(expense)}'
+             onclick="showCalculationDetails(JSON.parse(this.getAttribute('data-expense')))"
+             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)';">
+          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">Final Amount</div>
+          <div style="font-size: 16px; font-weight: 700; color: #1976D2;">
+            ₹ ${expense.final_amount || expense.total_amount}
+          </div>
+          <div style="font-size: 10px; color: #666; margin-top: 2px;">
+            <i class="ri-information-line"></i> Click to view calculation
+          </div>
+        </div>
       </td>
       <td style="border: 1px solid grey;">
         ${expense.verification ? `
@@ -519,28 +576,6 @@ function displayExpenses(expenses) {
         `}
       </td>
       <td style="border: 1px solid grey;">
-        <div style="background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 100%);
-                    padding: 6px;
-                    border-radius: 6px;
-                    border: 2px solid #e0e0e0;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.3s ease;"
-             data-expense='${JSON.stringify(expense)}'
-             onclick="showCalculationDetails(JSON.parse(this.getAttribute('data-expense')))"
-             onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
-             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)';">
-          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">Final Amount</div>
-          <div style="font-size: 16px; font-weight: 700; color: #1976D2;">
-            ₹ ${expense.final_amount || expense.total_amount}
-          </div>
-          <div style="font-size: 10px; color: #666; margin-top: 2px;">
-            <i class="ri-information-line"></i> Click to view calculation
-          </div>
-        </div>
-      </td>
-      <td style="border: 1px solid grey;">
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
@@ -571,8 +606,129 @@ function displayExpenses(expenses) {
     tableBody.appendChild(row);
   });
 
-  // Update total expenses count
-  document.getElementById('totalExpensesCount').textContent = expenses.length;
+  // Add event listeners for certificate upload buttons
+  document.querySelectorAll('.upload-tds-certificate, .edit-tds-certificate').forEach(button => {
+    button.addEventListener('click', handleCertificateUpload);
+  });
+}
+
+// Function to handle certificate upload
+async function handleCertificateUpload(event) {
+  const button = event.target.closest('.upload-tds-certificate, .edit-tds-certificate');
+  if (!button) return;
+  
+  const expenseId = button.dataset.expenseId;
+  
+  const { value: file } = await Swal.fire({
+    title: 'Upload TDS Certificate',
+    html: `
+      <div style="text-align: left; padding: 20px; background: #f8f9fa; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="margin-bottom: 15px;">
+          <label for="tdsCertificate" style="font-weight: 500; color: #333; margin-bottom: 5px; display: block;">Select Certificate</label>
+          <input type="file" id="tdsCertificate" class="form-control" accept=".jpg,.jpeg,.png,.pdf" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+        </div>
+        <div id="certificatePreview" class="mt-2" style="display: none;">
+          <img id="certificateImage" src="" alt="Certificate Preview" style="max-width: 200px; max-height: 200px; display: none;">
+          <embed id="certificatePdf" src="" type="application/pdf" style="width: 200px; height: 200px; display: none;">
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Upload',
+    cancelButtonText: 'Cancel',
+    showLoaderOnConfirm: true,
+    preConfirm: () => {
+      const fileInput = document.getElementById('tdsCertificate');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        Swal.showValidationMessage('Please select a file');
+        return false;
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!allowedTypes.includes(file.type)) {
+        Swal.showValidationMessage('Only JPG, JPEG, PNG and PDF files are allowed');
+        return false;
+      }
+
+      if (file.size > maxSize) {
+        Swal.showValidationMessage('File size should not exceed 5MB');
+        return false;
+      }
+
+      return file;
+    },
+    didOpen: () => {
+      const fileInput = document.getElementById('tdsCertificate');
+      const preview = document.getElementById('certificatePreview');
+      const imagePreview = document.getElementById('certificateImage');
+      const pdfPreview = document.getElementById('certificatePdf');
+
+      fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (file.type === 'application/pdf') {
+            pdfPreview.src = e.target.result;
+            pdfPreview.style.display = 'block';
+            imagePreview.style.display = 'none';
+          } else {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+            pdfPreview.style.display = 'none';
+          }
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  });
+
+  if (file) {
+    try {
+      const formData = new FormData();
+      formData.append('expense_id', expenseId);
+      formData.append('tds_certificate', file);
+
+      const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+        method: 'PUT',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Swal.fire({
+          title: 'Success!',
+          text: 'TDS certificate uploaded successfully',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          fetchExpenses();
+        });
+      } else {
+        throw new Error(data.message || 'Failed to upload certificate');
+      }
+    } catch (error) {
+      console.error('Error uploading certificate:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to upload certificate',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  }
+}
+
+// Function to open TDS certificate in new tab
+function openTdsCertificate(filename) {
+  window.open(`https://backend.bninewdelhi.com/api/uploads/tds-certificates/${filename}`, '_blank');
 }
 
 // Event listener for Delete button
@@ -682,100 +838,118 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 // Function to handle column sorting
 const sortByColumn = (columnName) => {
-  console.log(`Sorting by column: ${columnName}`);
-  
-  // Toggle sort direction if clicking the same column
-  if (currentSortColumn === columnName) {
-    currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-  } else {
-    currentSortColumn = columnName;
-    currentSortDirection = 'asc';
-  }
+  const tbody = document.getElementById('expensesTableBody');
+  const rows = Array.from(tbody.getElementsByTagName('tr'));
+  const currentDirection = tbody.getAttribute('data-sort-direction') || 'asc';
+  const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
 
-  // Update sort icons
-  updateSortIcons(columnName);
-
-  // Sort the expenses
-  filteredExpenses.sort((a, b) => {
-    let valueA, valueB;
-
-    if (columnName === 'expense_id') {
-      valueA = parseInt(a.expense_id, 10);
-      valueB = parseInt(b.expense_id, 10);
-      // Always sort highest to lowest for expense_id
-      return valueB - valueA;
-    }
+  rows.sort((a, b) => {
+    let aValue, bValue;
 
     switch (columnName) {
+      case 'expense_id':
+        aValue = parseInt(a.querySelector('td').textContent);
+        bValue = parseInt(b.querySelector('td').textContent);
+        break;
       case 'entry_date':
-        valueA = new Date(a.entry_date);
-        valueB = new Date(b.entry_date);
+        aValue = new Date(a.querySelector('td:nth-child(2)').textContent);
+        bValue = new Date(b.querySelector('td:nth-child(2)').textContent);
         break;
       case 'expense_type':
-        const expenseNameA = expenseTypes.find(type => type.expense_id === a.expense_type)?.expense_name || '';
-        const expenseNameB = expenseTypes.find(type => type.expense_id === b.expense_type)?.expense_name || '';
-        valueA = expenseNameA.toLowerCase();
-        valueB = expenseNameB.toLowerCase();
+        const expenseNameA = expenseTypes.find(type => type.expense_id === a.querySelector('td:nth-child(3) b').textContent)?.expense_name || '';
+        const expenseNameB = expenseTypes.find(type => type.expense_id === b.querySelector('td:nth-child(3) b').textContent)?.expense_name || '';
+        aValue = expenseNameA.toLowerCase();
+        bValue = expenseNameB.toLowerCase();
         break;
       case 'chapter_id':
-        valueA = a.chapter_id.toLowerCase();
-        valueB = b.chapter_id.toLowerCase();
+        aValue = a.querySelector('td:nth-child(4)').textContent.toLowerCase();
+        bValue = b.querySelector('td:nth-child(4)').textContent.toLowerCase();
         break;
       case 'description':
-        valueA = a.description.toLowerCase();
-        valueB = b.description.toLowerCase();
+        aValue = a.querySelector('td:nth-child(5)').textContent.toLowerCase();
+        bValue = b.querySelector('td:nth-child(5)').textContent.toLowerCase();
         break;
       case 'amount':
-        valueA = parseFloat(a.amount);
-        valueB = parseFloat(b.amount);
+        aValue = parseFloat(a.querySelector('td:nth-child(6) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(6) b').textContent);
         break;
       case 'gst_amount':
-        valueA = parseFloat(a.gst_amount || 0);
-        valueB = parseFloat(b.gst_amount || 0);
+        aValue = parseFloat(a.querySelector('td:nth-child(7) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(7) b').textContent);
         break;
       case 'total_amount':
-        valueA = parseFloat(a.total_amount || 0);
-        valueB = parseFloat(b.total_amount || 0);
+        aValue = parseFloat(a.querySelector('td:nth-child(8) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(8) b').textContent);
         break;
       case 'tds_details':
         // Sort TDS details based on section and process status
-        valueA = a.tds_process ? (a.tds_section_list || 'NA') : 'No TDS';
-        valueB = b.tds_process ? (b.tds_section_list || 'NA') : 'No TDS';
+        aValue = a.querySelector('td:nth-child(9)').textContent.split(' ')[0] === 'No' ? 0 : 1;
+        bValue = b.querySelector('td:nth-child(9)').textContent.split(' ')[0] === 'No' ? 0 : 1;
         break;
       case 'ro_verification':
         // Sort RO verification based on status
-        valueA = a.verification ? 'Approved' : (a.ro_comment ? 'Rejected' : 'Pending');
-        valueB = b.verification ? 'Approved' : (b.ro_comment ? 'Rejected' : 'Pending');
+        aValue = a.querySelector('td:nth-child(10)').textContent === 'Approved' ? 1 : (a.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
+        bValue = b.querySelector('td:nth-child(10)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
         break;
       case 'final_payable':
-        valueA = parseFloat(a.final_amount || a.total_amount || 0);
-        valueB = parseFloat(b.final_amount || b.total_amount || 0);
+        aValue = parseFloat(a.querySelector('td:nth-child(11) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(11) b').textContent);
         break;
       case 'payment_status':
-        valueA = a.payment_status.toLowerCase();
-        valueB = b.payment_status.toLowerCase();
+        aValue = a.querySelector('td:nth-child(12)').textContent.toLowerCase();
+        bValue = b.querySelector('td:nth-child(12)').textContent.toLowerCase();
         break;
       case 'bill_date':
-        valueA = new Date(a.bill_date);
-        valueB = new Date(b.bill_date);
+        aValue = new Date(a.querySelector('td:nth-child(13)').textContent);
+        bValue = new Date(b.querySelector('td:nth-child(13)').textContent);
         break;
       case 'mode_of_payment':
-        valueA = (a.mode_of_payment || 'N/A').toLowerCase();
-        valueB = (b.mode_of_payment || 'N/A').toLowerCase();
+        aValue = (a.querySelector('td:nth-child(14)').textContent || 'N/A').toLowerCase();
+        bValue = (b.querySelector('td:nth-child(14)').textContent || 'N/A').toLowerCase();
+        break;
+      case 'tds_percentage_type':
+        aValue = a.querySelector('td:nth-child(15) b')?.textContent || '-';
+        bValue = b.querySelector('td:nth-child(15) b')?.textContent || '-';
+        // Extract percentage number for sorting
+        aValue = aValue === '-' ? 0 : parseFloat(aValue.split('%')[0]) || 0;
+        bValue = bValue === '-' ? 0 : parseFloat(bValue.split('%')[0]) || 0;
+        break;
+      case 'tds_amount':
+        aValue = a.querySelector('td:nth-child(16) b')?.textContent || '-';
+        bValue = b.querySelector('td:nth-child(16) b')?.textContent || '-';
+        // Extract amount number for sorting
+        aValue = aValue === '-' ? 0 : parseFloat(aValue.replace('₹', '').trim()) || 0;
+        bValue = bValue === '-' ? 0 : parseFloat(bValue.replace('₹', '').trim()) || 0;
+        break;
+      case 'ca_comment':
+        aValue = a.querySelector('td:nth-child(17)').textContent || 'No comment';
+        bValue = b.querySelector('td:nth-child(17)').textContent || 'No comment';
+        break;
+      case 'final_amount':
+        aValue = parseFloat(a.querySelector('td:nth-child(18) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(18) b').textContent);
+        break;
+      case 'ro_comment':
+        aValue = a.querySelector('td:nth-child(19)').textContent || 'No comment';
+        bValue = b.querySelector('td:nth-child(19)').textContent || 'No comment';
         break;
       default:
         return 0;
     }
 
-    if (currentSortDirection === 'asc') {
-      return valueA > valueB ? 1 : -1;
+    if (newDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
     } else {
-      return valueA < valueB ? 1 : -1;
+      return aValue < bValue ? 1 : -1;
     }
   });
 
-  // Update the display
-  displayExpenses(filteredExpenses);
+  // Update sort direction
+  tbody.setAttribute('data-sort-direction', newDirection);
+  updateSortIcons(columnName);
+
+  // Reorder rows
+  rows.forEach(row => tbody.appendChild(row));
 };
 
 // Function to update sort icons
