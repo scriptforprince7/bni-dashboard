@@ -340,11 +340,10 @@ async function initializeMemberLedger() {
             throw new Error('Failed to fetch member credits');
         }
         const allCredits = await creditsResponse.json();
-        // Only credits for this member, this chapter, and is_adjusted true
+        // Show ALL credits for this member and chapter
         memberCredits = allCredits.filter(c => 
             c.member_id == memberId && 
-            c.chapter_id == memberData.chapter_id && 
-            c.is_adjusted === true
+            c.chapter_id == memberData.chapter_id
         );
 
         // Fetch chapters for prorated logic
@@ -603,6 +602,46 @@ async function initializeMemberLedger() {
             }
         }
 
+        // 6. Add credit adjustments from API
+        (async () => {
+            try {
+                const creditResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit');
+                const creditData = await creditResponse.json();
+                console.log('[CREDITS] All credits from API:', creditData);
+                
+                const memberCredits = creditData.filter(credit => credit.member_id === memberData.member_id && credit.chapter_id === memberData.chapter_id);
+                console.log('[CREDITS] Filtered credits for member:', memberCredits);
+                
+                // Sort credits by date for better logging
+                memberCredits.sort((a, b) => new Date(a.credit_date) - new Date(b.credit_date));
+                
+                memberCredits.forEach((credit, index) => {
+                    const creditDate = new Date(credit.credit_date);
+                    console.log(`[CREDITS] Credit #${index + 1}:`, {
+                        date: creditDate.toISOString(),
+                        amount: credit.credit_amount,
+                        type: credit.credit_type,
+                        is_adjusted: credit.is_adjusted
+                    });
+                    
+                    allTransactionItems.push({
+                        date: creditDate,
+                        type: 'credit',
+                        description: `<div><b>Credit Adjustment</b> (${credit.credit_type})</div>`,
+                        debit: 0,
+                        credit: parseFloat(credit.credit_amount),
+                        gst: 0,
+                        totalAmount: parseFloat(credit.credit_amount),
+                        // runningBalance will be set later
+                    });
+                });
+                
+                console.log('[CREDITS] Total credits added:', memberCredits.length);
+            } catch (error) {
+                console.error('[CREDITS] Error fetching credit data:', error);
+            }
+        })();
+
     } catch (error) {
         console.error('Error initializing member ledger:', error);
         toastr.error(error.message || 'Failed to initialize member ledger');
@@ -814,7 +853,7 @@ function processTransactions() {
                     skipPenaltyForProrate = true;
                 }
             }
-            if (paymentDate.getTime() > dueDate.getTime()) {
+            if (paymentDate.getTime() > dueDate.getTime() && !skipPenaltyForProrate) {
                 const penaltyAmount = bill.penalty_fee || 0;
                 // Only add penalty if dueDate is after or on memberJoin and not exempted for prorate
                 if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrate) {
