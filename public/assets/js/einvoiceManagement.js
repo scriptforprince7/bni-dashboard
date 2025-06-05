@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const docNumber = docNumbersMap.get(einvoice.order_id);
                     const chapter = order ? chaptersMap.get(order.chapter_id) : null;
                     const transaction = transactionsMap.get(einvoice.order_id);
-                    const isGST = order && order.gstin && order.gstin.trim() !== '';
+                    const isGST = isGSTEinvoice(einvoice); // Using the same function as table display
 
                     // Check if it's a visitor payment
                     const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
                     const billAmount = totalAmount - taxAmount;
 
-                    // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
+                    // Get invoice date - using the same logic as table display
                     const invoiceDate = isGST 
                         ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
                         : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
@@ -648,25 +648,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const displayGstin = isVisitorPayment ? (order?.visitor_gstin || 'N/A') : (order?.gstin || 'N/A');
 
                     return {
-                        serial_no: filteredEinvoiceData.length - i,
-                        invoice_no: docNumber?.doc_no || 'N/A',
-                        invoice_date: invoiceDate,
-                        payment_date: paymentDate,
-                        company: displayCompanyName,
-                        member_company_address: memberAddress,
-                        irn: isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
-                        ack_no: isGST ? (einvoice.ack_no || 'N/A') : 'Not applicable for NON-GST einvoices',
-                        ack_date: isGST ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A') : 'Not applicable for NON-GST einvoices',
-                        qrcode_url: isGST && einvoice.qrcode ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(einvoice.qrcode)}` : 'Not applicable for NON-GST einvoices',
-                        transaction_id: transaction?.cf_payment_id || 'N/A',
-                        order_id: einvoice.order_id || 'N/A',
-                        gstin: displayGstin,
-                        member_name: displayMemberName,
-                        chapter_name: chapter?.chapter_name || 'N/A',
-                        payment_type: order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A',
-                        bill_amount: billAmount.toFixed(2),
-                        gst_18_percent: taxAmount.toFixed(2),
-                        total_bill_amount: totalAmount.toFixed(2)
+                        'S.No.': filteredEinvoiceData.length - i,
+                        'Invoice No.': docNumber?.doc_no || 'N/A',
+                        'Invoice Date': invoiceDate,
+                        'Payment Date': paymentDate,
+                        'Member Name': displayMemberName,
+                        'Chapter Name': chapter?.chapter_name || 'N/A',
+                        'Payment Type': order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A',
+                        'Company Name': displayCompanyName,
+                        'Member Company Address': memberAddress,
+                        'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
+                        'Bill Amount': billAmount.toFixed(2),
+                        'GST (18%)': taxAmount.toFixed(2),
+                        'Total Bill Amount': totalAmount.toFixed(2),
+                        'Transaction ID': transaction?.cf_payment_id || 'N/A',
+                        'GSTIN': displayGstin
                     };
                 });
 
@@ -745,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const docNumber = docNumbersMap.get(einvoice.order_id);
                     const chapter = order ? chaptersMap.get(order.chapter_id) : null;
                     const transaction = transactionsMap.get(einvoice.order_id);
-                    const isGST = order && order.gstin && order.gstin.trim() !== '';
+                    const isGST = isGSTEinvoice(einvoice); // Using the same function as table display
 
                     // Check if it's a visitor payment
                     const isVisitorPayment = order?.payment_note === 'visitor-payment' || order?.payment_note === 'Visitor Payment';
@@ -774,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const taxAmount = order?.tax !== undefined && order?.tax !== null ? Number(order.tax) : 0;
                     const billAmount = totalAmount - taxAmount;
 
-                    // Get invoice date - use ack_dt for GST invoices and invoice_dt for non-GST invoices
+                    // Get invoice date - using the same logic as table display
                     const invoiceDate = isGST 
                         ? (einvoice.ack_dt ? formatDate(einvoice.ack_dt) : 'N/A')
                         : (einvoice.invoice_dt ? formatDate(einvoice.invoice_dt) : 'N/A');
