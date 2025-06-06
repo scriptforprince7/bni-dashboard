@@ -85,7 +85,7 @@ const updateExpenseTotals = (expenses) => {
 };
 
 // Function to fetch and display expenses based on user's email and chapter
-const fetchExpenses = async (sortDirection = 'asc') => {
+const fetchExpenses = async (sortDirection = 'desc') => {
   try {
     showLoader();
     
@@ -151,7 +151,7 @@ const fetchExpenses = async (sortDirection = 'asc') => {
     const allExpensesData = await response.json();
     console.log('All expenses:', allExpensesData);
 
-    // Sort all expenses by expense_id in descending order first
+    // Sort all expenses by entry_date in descending order (latest first)
     allExpensesData.sort((a, b) => {
       const dateA = new Date(a.entry_date);
       const dateB = new Date(b.entry_date);
@@ -215,13 +215,14 @@ const sortExpenses = (filter) => {
   );
 
   filteredExpenses.sort((a, b) => {
-    const expenseNameA = expenseNameMap.get(a.expense_type) || '';
-    const expenseNameB = expenseNameMap.get(b.expense_type) || '';
+    // Sort by entry_date in descending order (latest first)
+    const dateA = new Date(a.entry_date);
+    const dateB = new Date(b.entry_date);
     
-    if (filter === "asc") {
-      return expenseNameA.toLowerCase().localeCompare(expenseNameB.toLowerCase());
+    if (filter === "desc") {
+      return dateA - dateB; // Latest first
     } else {
-      return expenseNameB.toLowerCase().localeCompare(expenseNameA.toLowerCase());
+       return dateB - dateA;// Oldest first
     }
   });
 
@@ -435,7 +436,7 @@ function displayExpenses(expenses) {
       </td>
       <td style="border: 1px solid grey;">
         ${expense.tds_percentage && expense.tds_type ? 
-          `<b>${expense.tds_percentage}% (${expense.tds_type})</b>` : 
+          `<b>${expense.tds_percentage}% (${expense.tds_type}) (${expense.tds_section_list})</b>` : 
           '<b>-</b>'}
       </td>
       <td style="border: 1px solid grey;">

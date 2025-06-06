@@ -28,74 +28,43 @@
 
     <style>
       .accolade-link {
-        color: #007bff;
-        cursor: pointer;
-        text-decoration: underline;
-      }
-      .accolade-link:hover {
-        color: #0056b3;
-      }
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.accolade-link:hover {
+  color: #0056b3;
+}
 
-      .accolade-link {
-        color: #e84e1a;
-        font-weight: 500;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 5px;
-      }
+.accolade-link {
+  color: #e84e1a;
+  font-weight: 500;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
 
-      .accolade-link:hover {
-        text-decoration: underline;
-      }
+.accolade-link:hover {
+  text-decoration: underline;
+}
 
-      .accolade-badge {
-        background: linear-gradient(145deg, #6a5acd, #483d8b);
-        color: #fff;
-        font-size: 0.75rem;
-        padding: 1px 8px;
-        border-radius: 5px;
-        font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s ease-in-out;
-      }
+.accolade-badge {
+  background: linear-gradient(145deg, #6a5acd, #483d8b);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease-in-out;
+}
 
-      .accolade-badge:hover {
-        transform: scale(1.1);
-      }
+.accolade-badge:hover {
+  transform: scale(1.1);
+}
 
-      /* Sorting styles */
-      .sortable {
-        cursor: pointer;
-        position: relative;
-        user-select: none;
-      }
-
-      .sortable i {
-        margin-left: 5px;
-        font-size: 14px;
-        opacity: 0.5;
-        transition: opacity 0.2s;
-      }
-
-      .sortable:hover i {
-        opacity: 1;
-      }
-
-      .sortable.asc i::before {
-        content: "\eb1c"; /* ti-arrow-up */
-      }
-
-      .sortable.desc i::before {
-        content: "\eb1d"; /* ti-arrow-down */
-      }
-
-      .sortable.asc i,
-      .sortable.desc i {
-        opacity: 1;
-        color: #0d6efd;
-      }
     </style>
 
     <%- include('../partials/sidebar') %>
@@ -249,17 +218,17 @@
                 >
                   <thead>
                     <tr>
-                      <th scope="col" class="sortable" data-sort="sno">S.No. <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="chapterName">Chapter Name <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="accoladesRequested">Accolades Requested <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="accoladesDescription">Accolades Description <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="comment">Comment <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col">S.No.</th>
+                      <th scope="col" class="sortable" data-sort="chapter_name">Chapter Name <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="accolade_ids">Accolades Requested <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="accolade_description">Accolades Description <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="slab_wise_comment">Comment <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col" class="sortable" data-sort="approved">Approved <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col" class="sortable" data-sort="rejected">Rejected <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="requestedDate">Requested date <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="requestedBy">Requested By <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="pickupStatusRO">Pickup Status (By RO) <i class="ti ti-arrows-sort"></i></th>
-                      <th scope="col" class="sortable" data-sort="pickupStatusChapter">Pickup Status (By Chapter) <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="date">Requested date <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="requested_by">Requested By <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="pickup_status">Pickup Status (By RO) <i class="ti ti-arrows-sort"></i></th>
+                      <th scope="col" class="sortable" data-sort="pickup_status">Pickup Status (By Chapter) <i class="ti ti-arrows-sort"></i></th>
                       <th scope="col" class="sortable" data-sort="status">Status <i class="ti ti-arrows-sort"></i></th>
                     </tr>
                   </thead>

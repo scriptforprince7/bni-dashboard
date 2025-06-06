@@ -3620,3 +3620,30 @@ function setupPaginationEvents() {
 document.addEventListener('DOMContentLoaded', function() {
     setupPaginationEvents();
 });
+
+// Initialize sorting functionality
+function initializeSorting() {
+    const sortableHeaders = document.querySelectorAll('th.sortable');
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.getAttribute('data-sort');
+            sortTable(column);
+            
+            // Update sort icons
+            sortableHeaders.forEach(h => {
+                const icon = h.querySelector('i');
+                if (h === header) {
+                    icon.className = currentSort.direction === 'asc' ? 'ti ti-sort-asc' : 'ti ti-sort-desc';
+                } else {
+                    icon.className = 'ti ti-arrows-sort';
+                }
+            });
+        });
+    });
+}
+
+// Add this to your initialization code
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSorting();
+    // ... existing initialization code ...
+});
