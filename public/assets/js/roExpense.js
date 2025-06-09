@@ -11,6 +11,144 @@ const BILL_BASE_URL = 'https://backend.bninewdelhi.com';
 let currentSortColumn = null;
 let currentSortDirection = 'asc';
 
+// Global variables
+let allVendors = [];
+
+// Pagination state
+let currentPage = 1;
+let entriesPerPage = 20; // Ensure default is 20
+let paginatedExpenses = [];
+
+// Helper to get paginated data
+function getPaginatedExpenses() {
+  if (entriesPerPage === 'all') return filteredExpenses;
+  const start = (currentPage - 1) * entriesPerPage;
+  const end = start + entriesPerPage;
+  return filteredExpenses.slice(start, end);
+}
+
+// Render pagination controls
+function renderPaginationControls() {
+  const containerId = 'expensesPaginationControls';
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement('div');
+    container.id = containerId;
+    container.style.display = 'flex';
+    container.style.justifyContent = 'space-between';
+    container.style.alignItems = 'center';
+    container.style.margin = '1rem 0';
+    const table = document.getElementById('expensesTableBody').parentElement.parentElement;
+    table.parentElement.appendChild(container);
+  }
+  container.innerHTML = '';
+
+  // Entries per page dropdown
+  const perPageSelect = document.createElement('select');
+  perPageSelect.className = 'form-select form-select-sm';
+  perPageSelect.style.width = 'auto';
+  perPageSelect.style.display = 'inline-block';
+  ['20', '50', '100', 'all'].forEach(opt => {
+    const option = document.createElement('option');
+    option.value = opt;
+    option.textContent = opt === 'all' ? 'Show All' : `Show ${opt}`;
+    if ((entriesPerPage === 'all' && opt === 'all') || entriesPerPage == opt) option.selected = true;
+    perPageSelect.appendChild(option);
+  });
+  perPageSelect.addEventListener('change', e => {
+    entriesPerPage = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+    currentPage = 1;
+    updatePaginatedDisplay();
+  });
+
+  // Info text
+  const total = filteredExpenses.length;
+  const showingStart = total === 0 ? 0 : ((currentPage - 1) * (entriesPerPage === 'all' ? total : entriesPerPage)) + 1;
+  const showingEnd = entriesPerPage === 'all' ? total : Math.min(currentPage * entriesPerPage, total);
+  const info = document.createElement('span');
+  info.textContent = `Showing ${showingStart} to ${showingEnd} of ${total} entries`;
+  info.style.margin = '0 1rem';
+
+  // Pagination buttons
+  const totalPages = entriesPerPage === 'all' ? 1 : Math.ceil(total / entriesPerPage);
+  const pagination = document.createElement('div');
+  pagination.className = 'pagination-controls';
+  pagination.style.display = 'inline-flex';
+  pagination.style.gap = '0.25rem';
+
+  // Prev button
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = 'Previous';
+  prevBtn.className = 'btn btn-sm btn-light';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) {
+      currentPage--;
+      updatePaginatedDisplay();
+    }
+  };
+  pagination.appendChild(prevBtn);
+
+  // Page numbers (show up to 5 pages around current)
+  if (totalPages > 1) {
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    if (currentPage <= 3) endPage = Math.min(5, totalPages);
+    if (currentPage >= totalPages - 2) startPage = Math.max(1, totalPages - 4);
+    for (let i = startPage; i <= endPage; i++) {
+      const pageBtn = document.createElement('button');
+      pageBtn.textContent = i;
+      pageBtn.className = 'btn btn-sm ' + (i === currentPage ? 'btn-primary' : 'btn-light');
+      pageBtn.disabled = i === currentPage;
+      pageBtn.onclick = () => {
+        currentPage = i;
+        updatePaginatedDisplay();
+      };
+      pagination.appendChild(pageBtn);
+    }
+  }
+
+  // Next button
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = 'Next';
+  nextBtn.className = 'btn btn-sm btn-light';
+  nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      updatePaginatedDisplay();
+    }
+  };
+  pagination.appendChild(nextBtn);
+
+  // Layout
+  container.appendChild(perPageSelect);
+  container.appendChild(info);
+  container.appendChild(pagination);
+}
+
+// Update paginated display
+async function updatePaginatedDisplay() {
+  paginatedExpenses = getPaginatedExpenses();
+  await displayExpenses(paginatedExpenses);
+  renderPaginationControls();
+  // Update total count
+  const totalCount = document.getElementById('totalExpensesCount');
+  if (totalCount) totalCount.textContent = filteredExpenses.length;
+}
+
+// Function to fetch vendors
+const fetchVendors = async () => {
+  try {
+    const response = await fetch('https://backend.bninewdelhi.com/api/getAllVendors');
+    if (!response.ok) throw new Error('Failed to fetch vendors');
+    allVendors = await response.json();
+  } catch (error) {
+    console.error('Error fetching vendors:', error);
+    Swal.fire('Error!', 'Failed to load vendors', 'error');
+  }
+};
+
 // Function to populate chapter filter dropdown
 const populateChapterFilter = async () => {
   const chapterFilter = document.getElementById('chapterFilter');
@@ -37,11 +175,7 @@ const filterExpensesByChapter = (chapterName) => {
   } else {
     filteredExpenses = allExpenses.filter(expense => expense.chapter_id === chapterName);
   }
-  
-  // Update display with filtered expenses
-  displayExpenses(filteredExpenses);
-  
-  // Update expense totals for filtered expenses
+  updatePaginatedDisplay();
   updateExpenseTotals(filteredExpenses);
 };
 
@@ -183,18 +317,61 @@ const fetchExpenses = async (sortDirection = 'desc') => {
     });
 
     filteredExpenses = [...allExpenses];
-    console.log('Initial filtered expenses:', filteredExpenses);
+    console.log('All dates before sorting:', filteredExpenses.map(exp => ({
+      date: exp.entry_date,
+      parsed: new Date(exp.entry_date),
+      timestamp: new Date(exp.entry_date).getTime()
+    })));
 
-    // Sort expenses
-    sortExpenses(sortDirection);
-    
-    // Display all expenses
-    displayExpenses(filteredExpenses);
+    // Sort expenses by entry_date in descending order (latest first) initially
+    filteredExpenses.sort((a, b) => { 
+      const dateA = new Date(a.entry_date);
+      const dateB = new Date(b.entry_date);
+      console.log('Comparing dates:', {
+        dateA: {
+          original: a.entry_date,
+          parsed: dateA,
+          timestamp: dateA.getTime()
+        },
+        dateB: {
+          original: b.entry_date,
+          parsed: dateB,
+          timestamp: dateB.getTime()
+        },
+        result: dateB - dateA
+      });
+      return dateB - dateA;
+    });
+
+    console.log('All dates after sorting:', filteredExpenses.map(exp => ({
+      date: exp.entry_date,
+      parsed: new Date(exp.entry_date),
+      timestamp: new Date(exp.entry_date).getTime()
+    })));
+
+    // Set initial sort state for entry_date column
+    currentSortColumn = 'entry_date';
+    currentSortDirection = 'desc';
+    const tbody = document.getElementById('expensesTableBody');
+    if (tbody) {
+      tbody.setAttribute('data-sort-direction', 'desc');
+    }
+
+    // Update sort icons to reflect initial state
+    const entryDateHeader = document.querySelector('th[data-column="entry_date"]');
+    if (entryDateHeader) {
+      const icon = entryDateHeader.querySelector('i');
+      if (icon) {
+        icon.className = 'ri-sort-desc';
+      }
+    }
+
+    // Remove redundant displayExpenses call and only use updatePaginatedDisplay
+    updatePaginatedDisplay();
     
     // Update the expense totals
     updateExpenseTotals(allExpenses);
     console.log('Updated expense totals');
-    
   } catch (error) {
     console.error("Error in fetchExpenses:", error);
   } finally {
@@ -220,9 +397,9 @@ const sortExpenses = (filter) => {
     const dateB = new Date(b.entry_date);
     
     if (filter === "desc") {
-      return dateA - dateB; // Latest first
+      return dateB - dateA; // Latest first
     } else {
-       return dateB - dateA;// Oldest first
+      return dateA - dateB; // Oldest first
     }
   });
 
@@ -297,7 +474,7 @@ const AddExpenseType = async () => {
 };
 
 // Function to display expenses in the table
-function displayExpenses(expenses) {
+async function displayExpenses(expenses) {
   console.log('Displaying expenses:', expenses);
   const tableBody = document.getElementById("expensesTableBody");
   tableBody.innerHTML = "";
@@ -312,6 +489,17 @@ function displayExpenses(expenses) {
     return;
   }
 
+  // Pre-fetch all hotel names in parallel for expenses with hotel_id
+  const hotelIdToName = {};
+  const hotelFetchPromises = expenses.map(async (expense) => {
+    if (expense.hotel_id && !expense.hotel_name) {
+      const hotelName = await fetchHotelDetails(expense.hotel_id);
+      hotelIdToName[expense.hotel_id] = hotelName;
+    }
+  });
+  await Promise.all(hotelFetchPromises);
+
+  // Now render rows in order
   expenses.forEach((expense, index) => {
     const row = document.createElement("tr");
     row.setAttribute("data-expense-id", expense.expense_id);
@@ -333,22 +521,16 @@ function displayExpenses(expenses) {
 
     // Get just the filename from upload_bill (remove any path if present)
     const filename = expense.upload_bill ? expense.upload_bill.split('/').pop() : null;
-    
     // Construct the bill URL
     const billUrl = filename ? `${BILL_BASE_URL}/api/uploads/expenses/${filename}` : '#';
-    
     // Get receipt filename and construct receipt URL
     const receiptFilename = expense.upload_receipt ? expense.upload_receipt.split('/').pop() : null;
     const receiptUrl = receiptFilename ? `${BILL_BASE_URL}/api/uploads/expenses/${receiptFilename}` : '#';
-    
-    console.log('Document Details:', {
-      originalUploadBill: expense.upload_bill,
-      extractedBillFilename: filename,
-      constructedBillUrl: billUrl,
-      originalUploadReceipt: expense.upload_receipt,
-      extractedReceiptFilename: receiptFilename,
-      constructedReceiptUrl: receiptUrl
-    });
+
+    // Use pre-fetched hotel name if available
+    if (expense.hotel_id) {
+      expense.hotel_name = hotelIdToName[expense.hotel_id] || 'Loading...';
+    }
 
     row.innerHTML = `
       <td>${expenses.length - index}</td>
@@ -360,12 +542,28 @@ function displayExpenses(expenses) {
       </td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.chapter_id}</b></td>
-      <td style="border: 1px solid grey;">
-        <div style="display: flex; flex-direction: column;">
-          <b>${expense.vendor_name}</b>
-          <small style="color: #666; font-size: 0.85em;">${expense.vendor_company}</small>
-        </div>
-      </td>
+     <td style="border: 1px solid grey;">
+  <div style="display: flex; flex-direction: column; cursor: pointer;" onclick="viewVendorLedger(${expense.vendor_id})">
+    <b style="color: #007bff;">${expense.vendor_name}</b>
+    <small style="color: #666; font-size: 0.85em;">${expense.vendor_company}</small>
+  </div>
+</td>
+
+        <td style="border: 1px solid grey;">
+  <div style="display: flex; flex-direction: column;">
+    ${expense.hotel_id ? `
+      <b 
+        class="hotel-name" 
+        data-hotel-id="${expense.hotel_id}" 
+        style="cursor: pointer; color: #007bff;"
+      >
+        ${expense.hotel_name || 'Loading...'}
+      </b>
+      <small style="color: #666; font-size: 0.85em;">Hotel</small>
+    ` : '-'}
+  </div>
+</td>
+
       <td style="border: 1px solid grey;">
         <div style="position: relative;">
           <span class="description-text" style="display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -436,7 +634,7 @@ function displayExpenses(expenses) {
       </td>
       <td style="border: 1px solid grey;">
         ${expense.tds_percentage && expense.tds_type ? 
-          `<b>${expense.tds_percentage}% (${expense.tds_type}) (${expense.tds_section_list})</b>` : 
+          `<b> (${expense.tds_section_list}) (${expense.tds_type}) ${expense.tds_percentage}%  </b>` : 
           '<b>-</b>'}
       </td>
       <td style="border: 1px solid grey;">
@@ -828,6 +1026,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   console.log('User email:', getUserEmail());
   
   showLoader();
+  entriesPerPage = 20; // Force default to 20 on reload
+  currentPage = 1;
   await fetchExpenses("asc");
   sortByColumn('expense_id');
   
@@ -835,6 +1035,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   const button = document.getElementById("sortButton");
   button.textContent = "↑ (A-Z)";
   button.setAttribute("data-sort", "asc");
+
+  // Add fetchVendors to the initial load
+  fetchVendors();
+  updatePaginatedDisplay();
 });
 
 // Function to handle column sorting
@@ -855,6 +1059,18 @@ const sortByColumn = (columnName) => {
       case 'entry_date':
         aValue = new Date(a.querySelector('td:nth-child(2)').textContent);
         bValue = new Date(b.querySelector('td:nth-child(2)').textContent);
+        console.log('SortByColumn comparing dates:', {
+          dateA: {
+            text: a.querySelector('td:nth-child(2)').textContent,
+            parsed: aValue,
+            timestamp: aValue.getTime()
+          },
+          dateB: {
+            text: b.querySelector('td:nth-child(2)').textContent,
+            parsed: bValue,
+            timestamp: bValue.getTime()
+          }
+        });
         break;
       case 'expense_type':
         const expenseNameA = expenseTypes.find(type => type.expense_id === a.querySelector('td:nth-child(3) b').textContent)?.expense_name || '';
@@ -1554,280 +1770,429 @@ document.addEventListener('click', function(event) {
     console.log('View TDS Details button clicked');
     const button = event.target.closest('.view-tds-btn');
     
+    // First show the confirmation dialog for TDS status
     Swal.fire({
       title: `
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-          <i class="ri-file-list-3-line" style="font-size: 28px; color: #4CAF50;"></i>
-          <h2 style="color: #4CAF50; font-weight: 600; margin: 0;">TDS Details</h2>
+          <i class="ri-question-line" style="font-size: 28px; color: #1976D2;"></i>
+          <h2 style="color: #1976D2; font-weight: 600; margin: 0;">TDS Status</h2>
         </div>
       `,
       html: `
-        <div style="text-align: left; padding: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
-            <i class="ri-file-list-3-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
-            <div>
-              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Section</div>
-              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-section')}</div>
-            </div>
+        <div style="text-align: left; padding: 20px; background: #f8f9fa; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="margin-bottom: 15px;">
+            <label class="form-check" style="display: flex; align-items: center; padding: 15px; background: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              <input type="radio" name="tdsStatus" value="apply" class="form-check-input" style="margin-right: 10px;" ${button.getAttribute('data-tds-section') !== 'NA' ? 'checked' : ''}>
+              <div>
+                <div style="font-weight: 500; color: #1976D2; display: flex; align-items: center; gap: 8px;">
+                  <i class="ri-check-line"></i>
+                  Apply TDS
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">Apply TDS to this expense</div>
+              </div>
+            </label>
           </div>
-
-          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
-            <i class="ri-user-settings-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
-            <div>
-              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Type</div>
-              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-type')}</div>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
-            <i class="ri-percent-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
-            <div>
-              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Percentage</div>
-              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-percentage')}%</div>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
-            <i class="ri-money-dollar-circle-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
-            <div>
-              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Amount</div>
-              <div style="font-weight: 600; color: #333; font-size: 14px;">₹${button.getAttribute('data-tds-amount')}</div>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
-            <i class="ri-message-2-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
-            <div>
-              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">CA Comment</div>
-              <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-ca-comment') || 'No comment'}</div>
-            </div>
-          </div>
-
-          <div style="display: flex; align-items: center; margin-bottom: 0; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
-            <i class="ri-calculator-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
-            <div>
-              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">Final Amount</div>
-              <div style="font-weight: 600; color: #333; font-size: 14px;">₹${button.getAttribute('data-final-amount')}</div>
-            </div>
+          
+          <div style="margin-bottom: 15px;">
+            <label class="form-check" style="display: flex; align-items: center; padding: 15px; background: white; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              <input type="radio" name="tdsStatus" value="noTds" class="form-check-input" style="margin-right: 10px;" ${button.getAttribute('data-tds-section') === 'NA' ? 'checked' : ''}>
+              <div>
+                <div style="font-weight: 500; color: #6c757d; display: flex; align-items: center; gap: 8px;">
+                  <i class="ri-close-circle-line"></i>
+                  Don't Apply TDS
+                </div>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">Mark this expense as no TDS applicable</div>
+              </div>
+            </label>
           </div>
         </div>
       `,
-      showConfirmButton: true,
-      showDenyButton: true,
+      showCancelButton: true,
       confirmButtonText: `
         <div style="display: flex; align-items: center; gap: 6px;">
           <i class="ri-edit-line"></i>
-          Edit
+          Continue
         </div>
       `,
-      denyButtonText: `
+      cancelButtonText: `
         <div style="display: flex; align-items: center; gap: 6px;">
           <i class="ri-close-line"></i>
-          Close
+          Cancel
         </div>
       `,
       confirmButtonColor: '#1976D2',
-      denyButtonColor: '#6c757d',
+      cancelButtonColor: '#6c757d',
       customClass: {
         popup: 'animated fadeInDown',
         title: 'swal2-title-custom',
         htmlContainer: 'swal2-html-container-custom',
         confirmButton: 'btn btn-primary',
-        denyButton: 'btn btn-secondary'
+        cancelButton: 'btn btn-secondary'
       },
       didOpen: () => {
-        // Add hover effect to each detail box
-        const detailBoxes = document.querySelectorAll('.swal2-html-container > div > div');
-        detailBoxes.forEach(box => {
-          box.addEventListener('mouseover', () => {
-            box.style.transform = 'translateY(-2px)';
-            box.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        // Add hover effect to each option
+        const options = document.querySelectorAll('.form-check');
+        options.forEach(option => {
+          option.addEventListener('mouseover', () => {
+            option.style.transform = 'translateY(-2px)';
+            option.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
           });
-          box.addEventListener('mouseout', () => {
-            box.style.transform = 'translateY(0)';
-            box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+          option.addEventListener('mouseout', () => {
+            option.style.transform = 'translateY(0)';
+            option.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
           });
         });
+      },
+      preConfirm: () => {
+        const selectedStatus = document.querySelector('input[name="tdsStatus"]:checked')?.value;
+        if (!selectedStatus) {
+          Swal.showValidationMessage('Please select a TDS status');
+          return false;
+        }
+        return selectedStatus;
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        // Show edit form
-        Swal.fire({
-          title: `
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-              <i class="ri-edit-line" style="font-size: 24px; color: #1976D2;"></i>
-              <h2 style="color: #1976D2; font-weight: 600; margin: 0;">Edit TDS Details</h2>
-            </div>
-          `,
-          html: `
-            <div style="text-align: left; margin-top: 0; background: #f8f9fa; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-              <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <label for="tdsSection" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
-                  <i class="ri-file-list-3-line" style="color: #1976D2; margin-right: 8px;"></i>
-                  TDS Section List
-                </label>
-                <select id="tdsSection" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
-                  <option value="">Select TDS Section</option>
-                  <option value="194C" ${button.getAttribute('data-tds-section') === '194C' ? 'selected' : ''}>194C</option>
-                  <option value="194H" ${button.getAttribute('data-tds-section') === '194H' ? 'selected' : ''}>194H</option>
-                  <option value="194I" ${button.getAttribute('data-tds-section') === '194I' ? 'selected' : ''}>194I</option>
-                  <option value="194J" ${button.getAttribute('data-tds-section') === '194J' ? 'selected' : ''}>194J</option>
-                </select>
-              </div>
+        const selectedStatus = result.value;
+        
+        if (selectedStatus === 'noTds') {
+          // Handle "No TDS" case
+          const requestData = {
+            expense_id: button.getAttribute('data-expense-id'),
+            tds_percentage: "0",
+            tds_amount: "0",
+            tds_process: true,
+            ca_comment: "No TDS Applicable",
+            final_amount: button.getAttribute('data-amount'),
+            tds_section_list: "NA",
+            tds_type: "NA"
+          };
 
-              <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <label for="tdsType" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
-                  <i class="ri-user-settings-line" style="color: #1976D2; margin-right: 8px;"></i>
-                  Individual/Others
-                </label>
-                <select id="tdsType" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
-                  <option value="">Select Type</option>
-                  <option value="individual" ${button.getAttribute('data-tds-type') === 'individual' ? 'selected' : ''}>Individual</option>
-                  <option value="others" ${button.getAttribute('data-tds-type') === 'others' ? 'selected' : ''}>Others</option>
-                </select>
-              </div>
+          // Show confirmation before updating
+          Swal.fire({
+            title: 'Confirm Update',
+            text: 'Are you sure you want to mark this expense as No TDS applicable?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, update it',
+            cancelButtonText: 'Cancel'
+          }).then(async (confirmResult) => {
+            if (confirmResult.isConfirmed) {
+              try {
+                const response = await fetch('https://backend.bninewdelhi.com/api/tdsUpdateexpense', {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(requestData)
+                });
 
-              <div id="tdsPercentageSection" style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <label for="tdsPercentage" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
-                  <i class="ri-percent-line" style="color: #1976D2; margin-right: 8px;"></i>
-                  TDS Percentage
-                </label>
-                <select id="tdsPercentage" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
-                  <option value="">Select Percentage</option>
-                </select>
-              </div>
+                const data = await response.json();
 
-              <div id="commentSection" style="margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <label for="tdsComment" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
-                  <i class="ri-message-2-line" style="color: #1976D2; margin-right: 8px;"></i>
-                  Add Comment
-                </label>
-                <textarea id="tdsComment" class="form-control" 
-                          style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; font-size: 15px; background-color: #f8f9fa;"
-                          placeholder="Enter your comment here...">${button.getAttribute('data-ca-comment') || ''}</textarea>
-              </div>
-            </div>
-          `,
-          showCancelButton: true,
-          confirmButtonText: `
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <i class="ri-check-line"></i>
-              Save Changes
-            </div>
-          `,
-          cancelButtonText: `
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <i class="ri-close-line"></i>
-              Cancel
-            </div>
-          `,
-          confirmButtonColor: '#1976D2',
-          cancelButtonColor: '#6c757d',
-          customClass: {
-            popup: 'animated fadeInDown',
-            confirmButton: 'btn btn-primary',
-            cancelButton: 'btn btn-secondary',
-            title: 'swal2-title-custom',
-            htmlContainer: 'swal2-html-container-custom'
-          },
-          didOpen: () => {
-            const tdsSection = document.getElementById('tdsSection');
-            const tdsType = document.getElementById('tdsType');
-            const tdsPercentageSection = document.getElementById('tdsPercentageSection');
-            const tdsPercentage = document.getElementById('tdsPercentage');
-
-            // Set initial percentage based on current values
-            const currentSection = button.getAttribute('data-tds-section');
-            const currentType = button.getAttribute('data-tds-type');
-            const currentPercentage = button.getAttribute('data-tds-percentage');
-
-            const updateTdsPercentage = () => {
-              const section = tdsSection.value;
-              const type = tdsType.value;
-              
-              if (!section || !type) {
-                tdsPercentageSection.style.display = 'none';
-                return;
-              }
-
-              tdsPercentageSection.style.display = 'block';
-              tdsPercentage.innerHTML = '<option value="">Select Percentage</option>';
-
-              if (section === '194C') {
-                if (type === 'individual') {
-                  tdsPercentage.innerHTML += '<option value="1">1%</option>';
+                if (data.success) {
+                  Swal.fire({
+                    title: "Success!",
+                    text: "Expense marked as No TDS",
+                    icon: "success",
+                    confirmButtonText: "OK"
+                  }).then(() => {
+                    fetchExpenses();
+                  });
                 } else {
-                  tdsPercentage.innerHTML += '<option value="2">2%</option>';
+                  throw new Error(data.message || "Failed to update expense");
                 }
-              } else if (section === '194H') {
-                tdsPercentage.innerHTML += '<option value="2">2%</option>';
-              } else if (section === '194I') {
-                tdsPercentage.innerHTML += `
-                  <option value="2">2%</option>
-                  <option value="10">10%</option>
-                `;
-              } else if (section === '194J') {
-                tdsPercentage.innerHTML += '<option value="10">10%</option>';
+              } catch (error) {
+                console.error('Error updating expense:', error);
+                Swal.fire({
+                  title: "Error!",
+                  text: error.message || "Failed to update expense",
+                  icon: "error",
+                  confirmButtonText: "OK"
+                });
               }
+            }
+          });
+        } else {
+          // Show the existing TDS details view/edit form
+          Swal.fire({
+            title: `
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <i class="ri-file-list-3-line" style="font-size: 28px; color: #4CAF50;"></i>
+                <h2 style="color: #4CAF50; font-weight: 600; margin: 0;">TDS Details</h2>
+              </div>
+            `,
+            html: `
+              <div style="text-align: left; padding: 10px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                  <i class="ri-file-list-3-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+                  <div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Section</div>
+                    <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-section')}</div>
+                  </div>
+                </div>
 
-              // Set the current percentage if it matches the available options
-              if (currentPercentage) {
-                const option = Array.from(tdsPercentage.options).find(opt => opt.value === currentPercentage);
-                if (option) {
-                  option.selected = true;
+                <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                  <i class="ri-user-settings-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+                  <div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Type</div>
+                    <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-type')}</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                  <i class="ri-percent-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+                  <div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Percentage</div>
+                    <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-tds-percentage')}%</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                  <i class="ri-money-dollar-circle-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+                  <div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">TDS Amount</div>
+                    <div style="font-weight: 600; color: #333; font-size: 14px;">₹${button.getAttribute('data-tds-amount')}</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                  <i class="ri-message-2-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+                  <div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">CA Comment</div>
+                    <div style="font-weight: 600; color: #333; font-size: 14px;">${button.getAttribute('data-ca-comment') || 'No comment'}</div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin-bottom: 0; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.3s ease;">
+                  <i class="ri-calculator-line" style="font-size: 20px; color: #4CAF50; margin-right: 10px;"></i>
+                  <div>
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">Final Amount</div>
+                    <div style="font-weight: 600; color: #333; font-size: 14px;">₹${button.getAttribute('data-final-amount')}</div>
+                  </div>
+                </div>
+              </div>
+            `,
+            showConfirmButton: true,
+            showDenyButton: true,
+            confirmButtonText: `
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i class="ri-edit-line"></i>
+                Edit
+              </div>
+            `,
+            denyButtonText: `
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i class="ri-close-line"></i>
+                Close
+              </div>
+            `,
+            confirmButtonColor: '#1976D2',
+            denyButtonColor: '#6c757d',
+            customClass: {
+              popup: 'animated fadeInDown',
+              title: 'swal2-title-custom',
+              htmlContainer: 'swal2-html-container-custom',
+              confirmButton: 'btn btn-primary',
+              denyButton: 'btn btn-secondary'
+            },
+            didOpen: () => {
+              // Add hover effect to each detail box
+              const detailBoxes = document.querySelectorAll('.swal2-html-container > div > div');
+              detailBoxes.forEach(box => {
+                box.addEventListener('mouseover', () => {
+                  box.style.transform = 'translateY(-2px)';
+                  box.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                });
+                box.addEventListener('mouseout', () => {
+                  box.style.transform = 'translateY(0)';
+                  box.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                });
+              });
+            }
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Show edit form
+              Swal.fire({
+                title: `
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <i class="ri-edit-line" style="font-size: 24px; color: #1976D2;"></i>
+                    <h2 style="color: #1976D2; font-weight: 600; margin: 0;">Edit TDS Details</h2>
+                  </div>
+                `,
+                html: `
+                  <div style="text-align: left; margin-top: 0; background: #f8f9fa; padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <label for="tdsSection" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                        <i class="ri-file-list-3-line" style="color: #1976D2; margin-right: 8px;"></i>
+                        TDS Section List
+                      </label>
+                      <select id="tdsSection" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+                        <option value="">Select TDS Section</option>
+                        <option value="194C" ${button.getAttribute('data-tds-section') === '194C' ? 'selected' : ''}>194C</option>
+                        <option value="194H" ${button.getAttribute('data-tds-section') === '194H' ? 'selected' : ''}>194H</option>
+                        <option value="194I" ${button.getAttribute('data-tds-section') === '194I' ? 'selected' : ''}>194I</option>
+                        <option value="194J" ${button.getAttribute('data-tds-section') === '194J' ? 'selected' : ''}>194J</option>
+                      </select>
+                    </div>
+
+                    <div style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <label for="tdsType" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                        <i class="ri-user-settings-line" style="color: #1976D2; margin-right: 8px;"></i>
+                        Individual/Others
+                      </label>
+                      <select id="tdsType" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+                        <option value="">Select Type</option>
+                        <option value="individual" ${button.getAttribute('data-tds-type') === 'individual' ? 'selected' : ''}>Individual</option>
+                        <option value="others" ${button.getAttribute('data-tds-type') === 'others' ? 'selected' : ''}>Others</option>
+                      </select>
+                    </div>
+
+                    <div id="tdsPercentageSection" style="margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <label for="tdsPercentage" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                        <i class="ri-percent-line" style="color: #1976D2; margin-right: 8px;"></i>
+                        TDS Percentage
+                      </label>
+                      <select id="tdsPercentage" class="form-select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; background-color: #f8f9fa;">
+                        <option value="">Select Percentage</option>
+                      </select>
+                    </div>
+
+                    <div id="commentSection" style="margin-top: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <label for="tdsComment" style="display: flex; align-items: center; margin-bottom: 12px; font-weight: 500; color: #333; font-size: 16px;">
+                        <i class="ri-message-2-line" style="color: #1976D2; margin-right: 8px;"></i>
+                        Add Comment
+                      </label>
+                      <textarea id="tdsComment" class="form-control" 
+                                style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; min-height: 100px; font-size: 15px; background-color: #f8f9fa;"
+                                placeholder="Enter your comment here...">${button.getAttribute('data-ca-comment') || ''}</textarea>
+                    </div>
+                  </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: `
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-check-line"></i>
+                    Save Changes
+                  </div>
+                `,
+                cancelButtonText: `
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="ri-close-line"></i>
+                    Cancel
+                  </div>
+                `,
+                confirmButtonColor: '#1976D2',
+                cancelButtonColor: '#6c757d',
+                customClass: {
+                  popup: 'animated fadeInDown',
+                  confirmButton: 'btn btn-primary',
+                  cancelButton: 'btn btn-secondary',
+                  title: 'swal2-title-custom',
+                  htmlContainer: 'swal2-html-container-custom'
+                },
+                didOpen: () => {
+                  const tdsSection = document.getElementById('tdsSection');
+                  const tdsType = document.getElementById('tdsType');
+                  const tdsPercentageSection = document.getElementById('tdsPercentageSection');
+                  const tdsPercentage = document.getElementById('tdsPercentage');
+
+                  // Set initial percentage based on current values
+                  const currentSection = button.getAttribute('data-tds-section');
+                  const currentType = button.getAttribute('data-tds-type');
+                  const currentPercentage = button.getAttribute('data-tds-percentage');
+
+                  const updateTdsPercentage = () => {
+                    const section = tdsSection.value;
+                    const type = tdsType.value;
+                    
+                    if (!section || !type) {
+                      tdsPercentageSection.style.display = 'none';
+                      return;
+                    }
+
+                    tdsPercentageSection.style.display = 'block';
+                    tdsPercentage.innerHTML = '<option value="">Select Percentage</option>';
+
+                    if (section === '194C') {
+                      if (type === 'individual') {
+                        tdsPercentage.innerHTML += '<option value="1">1%</option>';
+                      } else {
+                        tdsPercentage.innerHTML += '<option value="2">2%</option>';
+                      }
+                    } else if (section === '194H') {
+                      tdsPercentage.innerHTML += '<option value="2">2%</option>';
+                    } else if (section === '194I') {
+                      tdsPercentage.innerHTML += `
+                        <option value="2">2%</option>
+                        <option value="10">10%</option>
+                      `;
+                    } else if (section === '194J') {
+                      tdsPercentage.innerHTML += '<option value="10">10%</option>';
+                    }
+
+                    // Set the current percentage if it matches the available options
+                    if (currentPercentage) {
+                      const option = Array.from(tdsPercentage.options).find(opt => opt.value === currentPercentage);
+                      if (option) {
+                        option.selected = true;
+                      }
+                    }
+                  };
+
+                  tdsSection.addEventListener('change', updateTdsPercentage);
+                  tdsType.addEventListener('change', updateTdsPercentage);
+
+                  // Initial update
+                  updateTdsPercentage();
+                },
+                preConfirm: () => {
+                  const tdsSection = document.getElementById('tdsSection').value;
+                  const tdsType = document.getElementById('tdsType').value;
+                  const tdsPercentage = document.getElementById('tdsPercentage').value;
+                  const comment = document.getElementById('tdsComment').value;
+
+                  if (!tdsSection) {
+                    Swal.showValidationMessage('Please select a TDS Section');
+                    return false;
+                  }
+
+                  if (!tdsType) {
+                    Swal.showValidationMessage('Please select Individual/Others');
+                    return false;
+                  }
+
+                  if (!tdsPercentage) {
+                    Swal.showValidationMessage('Please select TDS Percentage');
+                    return false;
+                  }
+
+                  // Calculate TDS amount
+                  const baseAmount = parseFloat(button.getAttribute('data-amount'));
+                  const tdsAmount = (baseAmount * parseFloat(tdsPercentage)) / 100;
+                  
+                  // Calculate final amount
+                  const gstAmount = parseFloat(button.getAttribute('data-gst-amount')) || 0;
+                  const finalAmount = Math.round(baseAmount - tdsAmount + gstAmount);
+
+                  return {
+                    tdsSection,
+                    tdsType,
+                    tdsPercentage,
+                    comment,
+                    tdsAmount,
+                    finalAmount
+                  };
                 }
-              }
-            };
-
-            tdsSection.addEventListener('change', updateTdsPercentage);
-            tdsType.addEventListener('change', updateTdsPercentage);
-
-            // Initial update
-            updateTdsPercentage();
-          },
-          preConfirm: () => {
-            const tdsSection = document.getElementById('tdsSection').value;
-            const tdsType = document.getElementById('tdsType').value;
-            const tdsPercentage = document.getElementById('tdsPercentage').value;
-            const comment = document.getElementById('tdsComment').value;
-
-            if (!tdsSection) {
-              Swal.showValidationMessage('Please select a TDS Section');
-              return false;
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  handleEditTdsSubmit(button.getAttribute('data-expense-id'), result.value);
+                }
+              });
             }
-
-            if (!tdsType) {
-              Swal.showValidationMessage('Please select Individual/Others');
-              return false;
-            }
-
-            if (!tdsPercentage) {
-              Swal.showValidationMessage('Please select TDS Percentage');
-              return false;
-            }
-
-            // Calculate TDS amount
-    const baseAmount = parseFloat(button.getAttribute('data-amount'));
-            const tdsAmount = (baseAmount * parseFloat(tdsPercentage)) / 100;
-            
-            // Calculate final amount
-    const gstAmount = parseFloat(button.getAttribute('data-gst-amount')) || 0;
-            const finalAmount = Math.round(baseAmount - tdsAmount + gstAmount);
-
-            return {
-              tdsSection,
-              tdsType,
-              tdsPercentage,
-              comment,
-              tdsAmount,
-              finalAmount
-            };
-          }
-        }).then((result) => {
-          if (result.isConfirmed) {
-            handleEditTdsSubmit(button.getAttribute('data-expense-id'), result.value);
-          }
-        });
+          });
+        }
       }
     });
   }
@@ -2917,3 +3282,495 @@ const handleEditTdsSubmit = async (expenseId, formData) => {
     });
   }
 };
+
+// Function to view vendor ledger
+const viewVendorLedger = async (vendorId) => {
+  try {
+    showLoader();
+    
+    // If vendors are not loaded, fetch them first
+    if (allVendors.length === 0) {
+      await fetchVendors();
+    }
+    
+    // Find vendor details
+    const vendor = allVendors.find(v => v.vendor_id === parseInt(vendorId));
+    if (!vendor) throw new Error('Vendor not found');
+
+    // Fetch vendor's expenses
+    const response = await fetch(`https://backend.bninewdelhi.com/api/allExpenses`);
+    if (!response.ok) throw new Error('Failed to fetch expenses');
+    const allExpenses = await response.json();
+
+    // Filter expenses for this vendor
+    const vendorExpenses = allExpenses.filter(expense => expense.vendor_id === parseInt(vendorId));
+
+    // Sort expenses by date in descending order (latest first)
+    vendorExpenses.sort((a, b) => new Date(b.bill_date) - new Date(a.bill_date));
+
+    // Update modal with vendor information
+    document.querySelector('.vendor-name').textContent = vendor.vendor_name;
+    document.querySelector('.vendor-company').textContent = vendor.vendor_company_name;
+    document.querySelector('.vendor-contact').textContent = `${vendor.phone_number} | ${vendor.email_id}`;
+
+    // Calculate totals
+    const totalAmount = vendorExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    const paidAmount = vendorExpenses
+      .filter(expense => expense.payment_status === 'paid')
+      .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    const balanceAmount = totalAmount - paidAmount;
+
+    // Update summary amounts
+    document.querySelector('.total-amount').textContent = formatCurrency(totalAmount);
+    document.querySelector('.paid-amount').textContent = formatCurrency(paidAmount);
+    document.querySelector('.balance-amount').textContent = formatCurrency(balanceAmount);
+
+    // Get last expense date
+    const lastExpense = vendorExpenses.length > 0 
+      ? formatDate(vendorExpenses[vendorExpenses.length - 1].bill_date)
+      : 'No expenses';
+    document.querySelector('.last-expense-date').textContent = lastExpense;
+
+    // Populate expense history table
+    const tableBody = document.querySelector('#vendorLedgerTableBody');
+    tableBody.innerHTML = '';
+
+    if (vendorExpenses.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center py-4" style="color: #7f8c8d;">
+            No expenses found for this vendor
+          </td>
+        </tr>
+      `;
+    } else {
+      vendorExpenses.forEach(expense => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="padding: 1rem;">${formatDate(expense.bill_date)}</td>
+          <td style="padding: 1rem;">${expense.description || expense.expense_type}</td>
+          <td style="padding: 1rem;">${formatCurrency(expense.amount)}</td>
+          <td style="padding: 1rem;">${expense.withGST ? `${expense.gstPercentage}% (${formatCurrency(expense.gstAmount)})` : 'N/A'}</td>
+          <td style="padding: 1rem;">${formatCurrency(expense.totalAmount || expense.amount)}</td>
+          <td style="padding: 1rem;">
+            <span class="badge ${expense.payment_status === 'paid' ? 'bg-success' : 'bg-warning'}" 
+                  style="padding: 0.5rem 1rem; border-radius: 6px;">
+              ${expense.payment_status.toUpperCase()}
+            </span>
+          </td>
+          <td style="padding: 1rem;">
+            <button class="btn btn-sm" 
+                    onclick="window.open('/uploads/${expense.bill_file}', '_blank')"
+                    style="background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px;">
+              View Bill
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('vendorLedgerModal'));
+    modal.show();
+
+  } catch (error) {
+    console.error('Error viewing vendor ledger:', error);
+    Swal.fire('Error!', 'Failed to load vendor ledger', 'error');
+  } finally {
+    hideLoader();
+  }
+};
+
+// Function to export vendor ledger
+const exportVendorLedger = async () => {
+  try {
+    // Implementation for exporting ledger to Excel/PDF
+    // This can be added later based on requirements
+    Swal.fire('Coming Soon!', 'Export functionality will be available soon.', 'info');
+  } catch (error) {
+    console.error('Error exporting ledger:', error);
+    Swal.fire('Error!', 'Failed to export ledger', 'error');
+  }
+};
+
+// Add this HTML structure for the vendor ledger modal
+document.body.insertAdjacentHTML('beforeend', `
+  <div class="modal fade" id="vendorLedgerModal" tabindex="-1" aria-labelledby="vendorLedgerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content" style="border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <div class="modal-header" style="background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); color: white; border-radius: 15px 15px 0 0; padding: 1.5rem;">
+          <h5 class="modal-title" id="vendorLedgerModalLabel" style="font-weight: 600; font-size: 1.4rem;">Vendor Ledger</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <div class="card" style="border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);">
+                <div class="card-body" style="padding: 1.5rem;">
+                  <h6 class="card-title" style="color: #2c3e50; font-weight: 600; margin-bottom: 1.2rem; font-size: 1.1rem;">Vendor Details</h6>
+                  <p class="vendor-name mb-2" style="color: #34495e; font-weight: 500;"></p>
+                  <p class="vendor-company mb-2" style="color: #7f8c8d;"></p>
+                  <p class="vendor-contact mb-0" style="color: #7f8c8d;"></p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="card" style="border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);">
+                <div class="card-body" style="padding: 1.5rem;">
+                  <h6 class="card-title" style="color: #2c3e50; font-weight: 600; margin-bottom: 1.2rem; font-size: 1.1rem;">Summary</h6>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <div class="summary-item" style="text-align: center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h6 style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 0.5rem;">Total Amount</h6>
+                        <p class="total-amount mb-0" style="color: #2c3e50; font-weight: 600; font-size: 1.2rem;"></p>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="summary-item" style="text-align: center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h6 style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 0.5rem;">Paid Amount</h6>
+                        <p class="paid-amount mb-0" style="color: #27ae60; font-weight: 600; font-size: 1.2rem;"></p>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="summary-item" style="text-align: center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h6 style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 0.5rem;">Balance</h6>
+                        <p class="balance-amount mb-0" style="color: #e74c3c; font-weight: 600; font-size: 1.2rem;"></p>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="summary-item" style="text-align: center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <h6 style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 0.5rem;">Last Expense</h6>
+                        <p class="last-expense-date mb-0" style="color: #2c3e50; font-weight: 600; font-size: 1.2rem;"></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive" style="background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <table class="table table-hover mb-0" style="margin-bottom: 0 !important;">
+              <thead style="background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);">
+                <tr>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">Date</th>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">Description</th>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">Amount</th>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">GST</th>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">Total</th>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">Status</th>
+                  <th style="padding: 1rem; color: #2c3e50; font-weight: 600;">Bill</th>
+                </tr>
+              </thead>
+              <tbody id="vendorLedgerTableBody">
+                <!-- Ledger entries will be populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer" style="background: #f8f9fa; border-radius: 0 0 15px 15px; padding: 1.5rem;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #95a5a6; border: none; padding: 0.5rem 1.5rem; border-radius: 8px;">Close</button>
+          <button type="button" class="btn btn-primary" onclick="exportVendorLedger()" style="background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); border: none; padding: 0.5rem 1.5rem; border-radius: 8px;">Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+`);
+
+// Function to format currency
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount);
+};
+
+// Function to format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+const fetchHotelDetails = async (hotelId) => {
+  try {
+    const response = await fetch('https://backend.bninewdelhi.com/api/gethotels');
+    const hotels = await response.json();
+    const hotel = hotels.find(h => h.hotel_id === hotelId);
+    return hotel ? hotel.hotel_name : 'Hotel not found';
+  } catch (error) {
+    console.error('Error fetching hotel details:', error);
+    return 'Hotel not found';
+  }
+};
+
+// Function to view hotel ledger
+async function viewHotelLedger(hotelId) {
+  try {
+    showLoader();
+    
+    // Find hotel details
+    const response = await fetch('https://backend.bninewdelhi.com/api/gethotels');
+    const hotels = await response.json();
+    const hotel = hotels.find(h => h.hotel_id === parseInt(hotelId));
+    if (!hotel) throw new Error('Hotel not found');
+
+    // Fetch chapters data
+    const chaptersResponse = await fetch('https://backend.bninewdelhi.com/api/chapters');
+    if (!chaptersResponse.ok) throw new Error('Failed to fetch chapters');
+    const chapters = await chaptersResponse.json();
+    
+    // Create a map of chapter_id to chapter_name for quick lookup
+    const chapterMap = new Map(chapters.map(chapter => [chapter.chapter_id, chapter.chapter_name]));
+
+    // Fetch all expenses
+    const expensesResponse = await fetch(`https://backend.bninewdelhi.com/api/allExpenses`);
+    if (!expensesResponse.ok) throw new Error('Failed to fetch expenses');
+    const allExpenses = await expensesResponse.json();
+
+    // Filter expenses for this hotel
+    const hotelExpenses = allExpenses.filter(expense => expense.hotel_id === parseInt(hotelId));
+
+    // Sort expenses by date in descending order (latest first)
+    hotelExpenses.sort((a, b) => new Date(b.bill_date) - new Date(a.bill_date));
+
+    // Create and show modal
+    const modalHtml = `
+      <div class="modal fade" id="hotelLedgerModal" tabindex="-1" aria-labelledby="hotelLedgerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content" style="border: none; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #dc143c, #8b0000); border-radius: 15px 15px 0 0; padding: 1.5rem;">
+              <h5 class="modal-title" id="hotelLedgerModalLabel" style="color: white; font-weight: 600; font-size: 1.5rem;">Hotel Ledger</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 2rem;">
+              <div class="hotel-info mb-4" style="background: linear-gradient(135deg, #fff5f5, #ffe5e5); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(220,20,60,0.1);">
+                <h4 class="hotel-name" style="color: #dc143c; font-weight: 600; margin-bottom: 0.5rem;">${hotel.hotel_name}</h4>
+                <p class="hotel-address" style="color: #666; margin-bottom: 0.5rem;"><i class="fas fa-map-marker-alt me-2"></i>${hotel.hotel_address}</p>
+                <p class="hotel-contact" style="color: #666;"><i class="fas fa-phone me-2"></i>${hotel.hotel_phone || 'N/A'} | <i class="fas fa-envelope me-2"></i>${hotel.hotel_email || 'N/A'}</p>
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card" style="border: none; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.2s;">
+                    <div class="card-body" style="background: linear-gradient(135deg, #fff, #fff5f5);">
+                      <h6 class="card-title" style="color: #dc143c; font-weight: 600;">Total Expenses</h6>
+                      <p class="total-expenses" style="font-size: 1.5rem; font-weight: 600; color: #333; margin: 0;">
+                        <span class="amount">${formatCurrency(hotelExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0))}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card" style="border: none; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.2s;">
+                    <div class="card-body" style="background: linear-gradient(135deg, #fff, #fff5f5);">
+                      <h6 class="card-title" style="color: #dc143c; font-weight: 600;">Last Expense</h6>
+                      <p class="last-expense" style="font-size: 1.5rem; font-weight: 600; color: #333; margin: 0;">
+                        <span class="date">${hotelExpenses.length > 0 ? formatDate(hotelExpenses[hotelExpenses.length - 1].bill_date) : 'No expenses'}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="noExpensesMessage" style="display: none;" class="alert alert-info" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border: none; border-radius: 10px;">
+                <i class="fas fa-info-circle me-2"></i> No expenses found for this hotel.
+              </div>
+
+              <div class="table-responsive">
+                <table id="hotelLedgerTable" class="table table-hover" style="border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                     <thead style="background: linear-gradient(135deg, #dc143c, #8b0000); color: white !important;">
+
+      <tr>
+        <th style="padding: 12px 16px; min-width: 120px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('bill_date')">
+          Date <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('expense_type')">
+          Expense Type <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('description')">
+          Description <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('amount')">
+          Amount <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('gst')">
+          GST <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('totalAmount')">
+          Total Amount <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('chapter')">
+          Chapter <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px; cursor: pointer;" onclick="sortHotelLedgerTable('payment_status')">
+          Status <i class="fas fa-sort" style="color: #ffd700;"></i>
+        </th>
+        <th style="padding: 12px 16px; font-weight: 600; font-size: 14px;">
+          Bill
+        </th>
+      </tr>
+    </thead>
+
+                  <tbody>
+                    ${hotelExpenses.map(expense => `
+                      <tr style="transition: background-color 0.2s;">
+                        <td style="padding: 1rem;">${formatDate(expense.bill_date)}</td>
+                        <td style="padding: 1rem;">${expense.expense_type}</td>
+                        <td style="padding: 1rem;">${expense.description}</td>
+                        <td style="padding: 1rem; font-weight: 500;">${formatCurrency(expense.amount)}</td>
+                        <td style="padding: 1rem;">${expense.gst_percentage ? `${expense.gst_percentage}% (${formatCurrency(expense.gst_amount)})` : 'N/A'}</td>
+                        <td style="padding: 1rem; font-weight: 600; color: #dc143c;">${formatCurrency(expense.total_amount || expense.amount)}</td>
+                        <td style="padding: 1rem;">${chapterMap.get(expense.chapter_id) || 'N/A'}</td>
+                        <td style="padding: 1rem;">
+                          <span class="payment-status-badge payment-status-${expense.payment_status}" 
+                                style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                            ${expense.payment_status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style="padding: 1rem;">
+                          <button class="btn btn-sm view-bill-btn" 
+                                  onclick="window.open('/uploads/${expense.upload_bill}', '_blank')"
+                                  style="background: linear-gradient(135deg, #dc143c, #8b0000); color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; transition: transform 0.2s;">
+                            <i class="fas fa-file-invoice me-1"></i> View Bill
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa; border-radius: 0 0 15px 15px; padding: 1rem 2rem;">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" 
+                      style="background: #6c757d; border: none; padding: 0.5rem 1.5rem; border-radius: 5px; transition: background-color 0.2s;">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('hotelLedgerModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Add new modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Show/hide table based on expenses
+    if (hotelExpenses.length === 0) {
+      document.getElementById('hotelLedgerTable').style.display = 'none';
+      document.getElementById('noExpensesMessage').style.display = 'block';
+    } else {
+      document.getElementById('hotelLedgerTable').style.display = 'table';
+      document.getElementById('noExpensesMessage').style.display = 'none';
+    }
+
+    // Add hover effects
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+      card.addEventListener('mouseover', () => {
+        card.style.transform = 'translateY(-5px)';
+      });
+      card.addEventListener('mouseout', () => {
+        card.style.transform = 'translateY(0)';
+      });
+    });
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('hotelLedgerModal'));
+    modal.show();
+
+  } catch (error) {
+    console.error('Error viewing hotel ledger:', error);
+    Swal.fire('Error!', 'Failed to load hotel ledger', 'error');
+  } finally {
+    hideLoader();
+  }
+}
+
+// Add click event listener for hotel names
+document.addEventListener('click', function(event) {
+  const hotelNameElement = event.target.closest('.hotel-name');
+  if (hotelNameElement && hotelNameElement.dataset.hotelId) {
+    viewHotelLedger(hotelNameElement.dataset.hotelId);
+  }
+});
+
+// Add these functions at the end of the file
+let currentHotelSortColumn = 'bill_date';
+let currentHotelSortDirection = 'desc';
+
+function sortHotelLedgerTable(column) {
+  const table = document.getElementById('hotelLedgerTable');
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  
+  // Update sort direction
+  if (currentHotelSortColumn === column) {
+    currentHotelSortDirection = currentHotelSortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentHotelSortColumn = column;
+    currentHotelSortDirection = 'desc';
+  }
+
+  // Update sort icons
+  const headers = table.querySelectorAll('th');
+  headers.forEach(header => {
+    const icon = header.querySelector('i');
+    if (icon) {
+      icon.className = 'fas fa-sort';
+    }
+  });
+
+  const activeHeader = table.querySelector(`th[onclick="sortHotelLedgerTable('${column}')"]`);
+  const activeIcon = activeHeader.querySelector('i');
+  activeIcon.className = `fas fa-sort-${currentHotelSortDirection === 'asc' ? 'up' : 'down'}`;
+
+  // Sort the rows
+  rows.sort((a, b) => {
+    let aValue = a.querySelector(`td:nth-child(${getColumnIndex(column)})`).textContent;
+    let bValue = b.querySelector(`td:nth-child(${getColumnIndex(column)})`).textContent;
+
+    // Handle numeric values
+    if (column === 'amount' || column === 'totalAmount') {
+      aValue = parseFloat(aValue.replace(/[^0-9.-]+/g, ''));
+      bValue = parseFloat(bValue.replace(/[^0-9.-]+/g, ''));
+    }
+    // Handle date values
+    else if (column === 'bill_date') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    }
+
+    if (currentHotelSortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Reorder the rows
+  rows.forEach(row => tbody.appendChild(row));
+}
+
+function getColumnIndex(column) {
+  const columnMap = {
+    'bill_date': 1,
+    'expense_type': 2,
+    'description': 3,
+    'amount': 4,
+    'gst': 5,
+    'totalAmount': 6,
+    'chapter': 7,
+    'payment_status': 8
+  };
+  return columnMap[column];
+}

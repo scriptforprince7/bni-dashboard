@@ -1230,6 +1230,9 @@ const renderTable = () => {
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         ${showAll ? (index + 1) : (start + index)}
                     </td>
+                      <td style="font-weight: bold; color: #1e293b; padding: 16px;">
+                        ${requestDate}
+                    </td>
                     <td style="font-weight: bold; color: #1e293b; padding: 16px;">
                         ${chapter ? chapter.chapter_name : 'Unknown Chapter'}
                         ${actionBadge}
@@ -1411,9 +1414,7 @@ const renderTable = () => {
                         </button>
                     </td>
 
-                    <td style="font-weight: bold; color: #1e293b; padding: 16px;">
-                        ${requestDate}
-                    </td>
+                  
                     <td style="padding: 16px;">
     <div style="
         display: flex;
@@ -2290,9 +2291,7 @@ async function handleViewAccoladeDetails(requisition) {
                                     <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
                                         <i class="ri-profile-line me-2"></i>Type
                                     </th>
-                                    <th style="padding: 16px; text-align: left; color: #2563eb; font-weight: 600; font-size: 0.9rem;">
-                                        <i class="ri-flag-line me-2"></i>Status
-                                    </th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -2352,22 +2351,7 @@ async function handleViewAccoladeDetails(requisition) {
                                                     Member
                                                 </span>
                                             </td>
-                                            <td style="padding: 16px;">
-                                                <span style="
-                                                    padding: 6px 12px;
-                                                    border-radius: 999px;
-                                                    font-size: 0.875rem;
-                                                    background: #f0fdf4;
-                                                    color: #15803d;
-                                                    border: 1px solid #bbf7d0;
-                                                    display: inline-flex;
-                                                    align-items: center;
-                                                    gap: 4px;
-                                                ">
-                                                    <i class="ri-user-follow-line"></i>
-                                                    Approved
-                                                </span>
-                                            </td>
+                                            
                                         </tr>
                                     `).join('')
                                 ).join('')}

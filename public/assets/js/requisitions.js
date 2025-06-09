@@ -721,7 +721,7 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
                                 <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Type</th>
                                 <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Price</th>
                                 <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Member</th>
-                                <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Status</th>
+                               
                                 <th style="padding: 12px 16px; text-align: left; color: #475569; font-weight: 600;">Comment</th>
                             </tr>
                         </thead>
@@ -776,17 +776,7 @@ async function showAccoladeDetails(accoladeIds, requisitionId) {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td style="padding: 12px 16px;">
-                                            <span style="
-                                                padding: 4px 8px;
-                                                border-radius: 9999px;
-                                                font-size: 0.75rem;
-                                                background: #f0fdf4;
-                                                color: #166534;
-                                            ">
-                                                <i class="ri-checkbox-circle-line me-1"></i>Approved
-                                            </span>
-                                        </td>
+                                        
                                         <td style="padding: 12px 16px;">
                                             <div style="
                                                 max-width: 200px;

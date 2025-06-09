@@ -894,56 +894,45 @@ function showLoader() {
   
           // Modify the GST checkbox handler
           document.getElementById("include-gst").addEventListener("change", function() {
+            const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+            const cgstField = document.getElementById("cgst_amount");
+            const sgstField = document.getElementById("sgst_amount");
+            const grandTotalField = document.getElementById("grand_total");
+            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
+
+            if (this.checked) {
+                // Calculate GST (9% CGST + 9% SGST = 18% total)
+                const cgstAmount = (baseAmount * 0.09).toFixed(2);
+                const sgstAmount = (baseAmount * 0.09).toFixed(2);
+                const grandTotal = (baseAmount + (parseFloat(cgstAmount) * 2)).toFixed(2);
+
+                // Update fields with GST
+                cgstField.value = `₹ ${cgstAmount}`;
+                sgstField.value = `₹ ${sgstAmount}`;
+                grandTotalField.value = `₹ ${grandTotal}`;
+            } else {
+                // Reset GST fields and update grand total
+                cgstField.value = "-";
+                sgstField.value = "-";
+                grandTotalField.value = `₹ ${baseAmount.toFixed(2)}`;
+            }
+
+            // Handle partial payment calculations if applicable
             const partialAmountInput = document.getElementById("partial-amount");
             const remainingBalanceElement = document.getElementById("remaining-balance");
-            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
-            const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
             
-            if (selectedPaymentType === "full") {
-                // For full payment, automatically include GST
-                const gstAmount = baseAmount * 0.18;
-                const grandTotal = baseAmount + gstAmount;
-                
-                // Update the GST checkbox and amounts
-                document.getElementById("include-gst").checked = true;
-                document.getElementById("cgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
-                document.getElementById("sgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
-                document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
-                
-                Object.assign(invoiceData, {
-                    order_amount: grandTotal,
-                    payment_type: "full",
-                    payment_note: "meeting-payments",
-                    tax_amount: gstAmount,
-                    created_at: invoiceDateIssued
-                });
-            } else if (selectedPaymentType === "partial" && partialAmountInput.value) {
-                // Existing partial payment logic
+            if (partialAmountInput && partialAmountInput.value) {
                 const partialAmount = parseFloat(partialAmountInput.value) || 0;
                 
                 if (this.checked) {
                     // Calculate GST amount if included using (partial amount/118)*18 formula
                     const gstAmount = Math.round((partialAmount / 118) * 18);
-                    // Add GST to remaining balance instead of subtracting
                     const remainingBalance = baseAmount - partialAmount + gstAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-                    
-                    console.log('💰 Partial Payment GST Calculation:', {
-                        partialAmount,
-                        gstAmount,
-                        baseAmount,
-                        remainingBalance
-                    });
                 } else {
                     // If GST is unchecked, just subtract partial amount
                     const remainingBalance = baseAmount - partialAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-                    
-                    console.log('💰 Partial Payment Calculation:', {
-                        partialAmount,
-                        baseAmount,
-                        remainingBalance
-                    });
                 }
             }
           });
@@ -1206,37 +1195,45 @@ function showLoader() {
 
         // Modify the GST checkbox handler
         document.getElementById("include-gst").addEventListener("change", function() {
+            const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+            const cgstField = document.getElementById("cgst_amount");
+            const sgstField = document.getElementById("sgst_amount");
+            const grandTotalField = document.getElementById("grand_total");
+            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
+
+            if (this.checked) {
+                // Calculate GST (9% CGST + 9% SGST = 18% total)
+                const cgstAmount = (baseAmount * 0.09).toFixed(2);
+                const sgstAmount = (baseAmount * 0.09).toFixed(2);
+                const grandTotal = (baseAmount + (parseFloat(cgstAmount) * 2)).toFixed(2);
+
+                // Update fields with GST
+                cgstField.value = `₹ ${cgstAmount}`;
+                sgstField.value = `₹ ${sgstAmount}`;
+                grandTotalField.value = `₹ ${grandTotal}`;
+            } else {
+                // Reset GST fields and update grand total
+                cgstField.value = "-";
+                sgstField.value = "-";
+                grandTotalField.value = `₹ ${baseAmount.toFixed(2)}`;
+            }
+
+            // Handle partial payment calculations if applicable
             const partialAmountInput = document.getElementById("partial-amount");
             const remainingBalanceElement = document.getElementById("remaining-balance");
             
-            // Only recalculate if there's a partial amount entered
-            if (partialAmountInput.value) {
+            if (partialAmountInput && partialAmountInput.value) {
                 const partialAmount = parseFloat(partialAmountInput.value) || 0;
-                const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
                 
                 if (this.checked) {
                     // Calculate GST amount if included using (partial amount/118)*18 formula
                     const gstAmount = Math.round((partialAmount / 118) * 18);
-                    // Add GST to remaining balance instead of subtracting
                     const remainingBalance = baseAmount - partialAmount + gstAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-                    
-                    console.log('💰 Partial Payment GST Calculation:', {
-                        partialAmount,
-                        gstAmount,
-                        baseAmount,
-                        remainingBalance
-                    });
                 } else {
                     // If GST is unchecked, just subtract partial amount
                     const remainingBalance = baseAmount - partialAmount;
                     remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-                    
-                    console.log('💰 Partial Payment Calculation:', {
-                        partialAmount,
-                        baseAmount,
-                        remainingBalance
-                    });
                 }
             }
         });
