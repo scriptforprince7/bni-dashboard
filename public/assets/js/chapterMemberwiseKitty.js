@@ -145,6 +145,7 @@ async function fetchMemberWiseKitty() {
             memberId: member.member_id,
             memberName: `${member.member_first_name} ${member.member_last_name}`,
             chapterName: loggedInChapter.chapter_name,
+            chapterId: loggedInChapter.chapter_id,
             pendingAmount: order.amount_to_pay,
             creditAmount: memberCredit ? memberCredit.credit_amount : 0,
             totalPaid: totalPaid,
@@ -162,8 +163,37 @@ async function fetchMemberWiseKitty() {
     if (tableBody) {
       const tableContent = membersWithPending
         .map((member, index) => {
-          const bankOrder = bankOrders.find(order => order.member_id === member.memberId);
-          const latePaymentCount = bankOrder ? bankOrder.no_of_late_payment : 0;
+          const today = new Date();
+          // Find the kitty bill for this member's chapter
+          const kittyBill = activeBill.find(bill => bill.chapter_id === member.chapterId);
+
+          let latePaymentCount = 0;
+          if (kittyBill) {
+            const dueDate = new Date(kittyBill.kitty_due_date);
+            console.log(`Member: ${member.memberName}, Chapter: ${member.chapterName}, Today's date: ${today.toISOString()}, Kitty Due Date: ${kittyBill.kitty_due_date}`);
+            if (today > dueDate) {
+              console.log(`⚠️ Late payment detected for ${member.memberName} (chapter ${member.chapterName}) - Due date has passed`);
+              latePaymentCount = 1;
+            } else {
+              console.log(`✅ Payment on time for ${member.memberName} (chapter ${member.chapterName})`);
+            }
+          } else {
+            console.log(`❓ No kitty bill found for chapter: ${member.chapterName} (chapter_id: ${member.chapterId})`);
+          }
+
+          // Check for meeting opening balance directly from members data
+          const memberData = members.find(m => m.member_id === member.memberId);
+          console.log(`🔍 Checking meeting opening balance for ${member.memberName}:`, {
+            memberId: member.memberId,
+            openingBalance: memberData ? memberData.meeting_opening_balance : 'No member data found'
+          });
+          
+          if (memberData && parseFloat(memberData.meeting_opening_balance) > 0) {
+            console.log(`⚠️ Meeting opening balance > 0 for ${member.memberName} - Setting latePaymentCount to 1`);
+            latePaymentCount = 1;
+          } else {
+            console.log(`✅ Meeting opening balance check passed for ${member.memberName}`);
+          }
 
           return `
             <tr>
@@ -698,7 +728,6 @@ document.addEventListener('DOMContentLoaded', function() {
               acc[reason] = (acc[reason] || 0) + 1;
               return acc;
             }, {});
-
             // Create detailed failure message
             const failureDetails = Object.entries(failureReasons)
               .map(([reason, count]) => `<li>❌ ${count} failed: ${reason}</li>`)
