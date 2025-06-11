@@ -1,76 +1,24 @@
-<script src="../../assets/js/tokenUtils.js"></script>
+<script src="/assets/js/tokenUtils.js"></script>
 <script>
-  (function checkAccess() {
-      try {
-          const loginType = getUserLoginType();
-          if (loginType !== 'ro_admin' && loginType !== 'chapter') {
-              document.body.innerHTML = `
-                  <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
-                      <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                          <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
-                          <p style="color: #6c757d;">Only RO Admin and Chapter can access this page.</p>
-                          <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
-                      </div>
-                  </div>
-              `;
-          }
-      } catch (error) {
-          console.error('Access check failed:', error);
-          window.location.href = '/';
-      }
-  })();
-</script>
-<script>
-  console.log('=== Back to Admin Button Rendering Process Started ===');
-  
-  // Get login type from token
-  const userType = getUserLoginType();
-  console.log('Current User Type:', userType);
-  
-  // Prepare button HTML
-  // const backToAdminButton = `
-  //     <div class="btn-list" style="margin-left: 30em; margin-top: -3em; ">
-  //         <a href="/d/ro-dashboard" id="backToAdminBtn">
-  //             <button class="btn btn-danger btn-wave me-0">
-  //                 <i class="ri-admin-line me-1"></i> Back to Admin
-  //             </button>
-  //         </a>
-  //     </div>
-  // `;
-  
-  // Add button if user is ro_admin
-  // if (userType === 'ro_admin') {
-  //     console.log('User is ro_admin, injecting Back to Admin button...');
-      
-  //     // Add button to DOM when it's ready
-  //     document.addEventListener('DOMContentLoaded', () => {
-  //         const headerContainer = document.querySelector('.page-title');
-  //         if (headerContainer) {
-  //             console.log('Found header container, adding Back to Admin button');
-  //             headerContainer.insertAdjacentHTML('afterend', backToAdminButton);
-              
-  //             // Add click handler
-  //             const backToAdminBtn = document.getElementById('backToAdminBtn');
-  //             if (backToAdminBtn) {
-  //                 backToAdminBtn.addEventListener('click', () => {
-  //                     console.log('Back to Admin button clicked');
-  //                     // Clear chapter-specific data
-  //                     localStorage.removeItem('current_chapter_email');
-  //                     localStorage.removeItem('current_chapter_id');
-  //                     console.log('Cleared chapter-specific localStorage data');
-  //                     console.log('Redirecting to ro-dashboard...');
-  //                 });
-  //                 console.log('Back to Admin button setup completed');
-  //             }
-  //         } else {
-  //             console.error('Header container not found in DOM');
-  //         }
-  //     });
-  // } else {
-  //     console.log('User is not ro_admin, skipping Back to Admin button');
-  // }
-  
-  console.log('=== Back to Admin Button Rendering Process Completed ===');
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin' && loginType !== 'chapter'){
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
 </script>
  
  <!-- header -->
@@ -125,7 +73,7 @@
            Pending Expenses <br />
            <span> <b data-pending-expenses>₹ 0.00</b></span> 
          </button>
-        <a href="https://backend.bninewdelhi.com/api/exportRegions"><button class="btn btn-danger btn-wave me-0">
+        <a href="#"><button class="btn btn-danger btn-wave me-0">
          <i class="ri-share-forward-line me-1"></i> Export Expenses
        </button></a> 
        </div>
@@ -138,7 +86,6 @@
          <div class="card-title">All Expenses</div>
          <div class="d-flex gap-3 align-items-center flex-wrap">
            <div class="btn-group">
-
              <div class="dropdown me-2" >
                <a
                  href="javascript:void(0);"
@@ -153,19 +100,24 @@
                  <li>
                    <a class="dropdown-item filter-option" id="sortButton" href="javascript:void(0);" data-filter="ascending">Ascending</a>
                  </li>
-                 
                </ul>
              </div>
+
+             <!-- Add Chapter Filter Dropdown -->
+             <div class="dropdown me-2" style="display: none;">
+               <select id="chapterFilter" class="form-select form-select-sm" style="min-width: 200px;">
+                 <option value="all">All Chapters</option>
+                
+               </select>
+             </div>
              
-             
-             <button
-                  class="btn btn-outline-light border"
-                  type="button"
-                  id="addNewExpenseBtn"
-                  data-region-id="123" 
-                >
-                  + Add New Expense
-                </button> 
+            <a href="/exp/add-expenses"><button
+              class="btn btn-outline-light border"
+              type="button"
+              data-region-id="123" 
+            >
+              + Add New Expense
+            </button></a>  
            </div>
       
            
@@ -175,44 +127,32 @@
          <div class="table-responsive">
            <table class="table table-hover text-nowrap" style="border: 1px solid grey">
              <thead>
-              <tr>
-                <th scope="col" style="border: 1px solid grey;">S.No.</th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="entry_date">
-                  Entry Date
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="expense_type">
-                  Expense Type
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="submitted_by">
-                  Submitted By
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="description">
-                  Description
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="amount">
-                  Amount
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="payment_status">
-                  Payment Status
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="bill_date">
-                  Bill Date
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;" class="sortable" data-column="bill_date">
-                  mode of payment 
-                  <i class="ri-sort-asc"></i>
-                </th>
-                <th scope="col" style="border: 1px solid grey;">View Bill</th>
-                <th scope="col" style="border: 1px solid grey;">View Receipt</th>
-                <th scope="col" style="border: 1px solid grey;">Actions</th>
-              </tr>
+               <tr>
+                 <th scope="col" style="border: 1px solid grey;">S.No.</th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="entry_date">Entry Date <i class="ri-sort-desc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="expense_type">Expense Type <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="chapter_id">Chapter Name <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="vendor_id">Vendor Name <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="hotel_id">Hotel Name <i class="ri-sort-asc"></i></th>
+                 <!-- <th scope="col" style="border: 1px solid grey;" data-column="submitted_by">Submitted By <i class="ri-sort-asc"></i></th> -->
+                 <th scope="col" style="border: 1px solid grey;" data-column="description">Description <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="amount">Amount <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="gst_amount">GST Amount <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="total_amount">Total Amount <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="tds_details">TDS Details <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="tds_percentage_type">TDS Percentage/Type <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="tds_amount">TDS Amount <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="tds_certificate">TDS Certificate <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="final_payable">Final Payable Amount <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="ro_verification">RO Verification <i class="ri-sort-asc"></i></th>
+                 
+                 <th scope="col" style="border: 1px solid grey;" data-column="payment_status">Payment Status <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="bill_date">Bill Date <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;" data-column="mode_of_payment">Mode of Payment <i class="ri-sort-asc"></i></th>
+                 <th scope="col" style="border: 1px solid grey;">View Bill</th>
+                 <th scope="col" style="border: 1px solid grey;">View Receipt</th>
+                 <th scope="col" style="border: 1px solid grey;">Actions</th>
+               </tr>
              </thead>
              <tbody id="expensesTableBody">
              </tbody>

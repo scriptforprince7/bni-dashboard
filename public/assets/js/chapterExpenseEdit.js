@@ -70,6 +70,145 @@ const fetchExpenseDetails = async (expenseId) => {
       console.log('💰 Selected expense type:', expenseTypeSelect.options[expenseTypeSelect.selectedIndex].text);
     }
 
+    // Add event listener for expense type change
+    expenseTypeSelect.addEventListener('change', async function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const hotelSection = document.getElementById('hotelSection');
+      const hotelDetailsSection = document.getElementById('hotelDetailsSection');
+      const vendorSection = document.getElementById('vendorSection');
+      const vendorDetailsSection = document.getElementById('vendorDetailsSection');
+      
+      // Check if the selected expense type is "Meeting Hotel Expenses"
+      if (selectedOption.textContent === 'Meeting Hotel Expenses') {
+        console.log('Meeting Hotel Expenses selected - showing hotel section');
+        hotelSection.style.display = 'block';
+        hotelDetailsSection.style.display = 'none';
+        vendorSection.style.display = 'none';
+        vendorDetailsSection.style.display = 'none';
+        
+        // Clear vendor data
+        if (window.companyNameDropdown) {
+          window.companyNameDropdown.value = '';
+        }
+        document.getElementById('vendor_company_name').value = '';
+        document.getElementById('vendor_company_address').value = '';
+        document.getElementById('vendor_phone').value = '';
+        document.getElementById('vendor_email').value = '';
+        document.getElementById('vendor_company_gst').value = '';
+        document.getElementById('vendor_bank_name').value = '';
+        document.getElementById('vendor_account').value = '';
+        document.getElementById('vendor_ifsc_code').value = '';
+        document.getElementById('vendor_account_type').value = '';
+
+        // Fetch and populate hotels
+        try {
+          const hotelsResponse = await fetch('https://backend.bninewdelhi.com/api/gethotels');
+          const hotels = await hotelsResponse.json();
+          console.log('🏨 Fetched hotels:', hotels);
+
+          const hotelSelect = document.getElementById('hotel');
+          hotelSelect.innerHTML = '<option value="">Select Hotel</option>';
+          
+          // Sort hotels by name
+          hotels.sort((a, b) => a.hotel_name.localeCompare(b.hotel_name));
+          
+          hotels.forEach(hotel => {
+            const option = document.createElement('option');
+            option.value = hotel.hotel_id;
+            option.textContent = hotel.hotel_name;
+            hotelSelect.appendChild(option);
+          });
+
+          // Add event listener for hotel selection
+          hotelSelect.addEventListener('change', function() {
+            const selectedHotelId = this.value;
+            if (selectedHotelId) {
+              const selectedHotel = hotels.find(h => h.hotel_id == selectedHotelId);
+              if (selectedHotel) {
+                // Populate hotel details
+                document.getElementById('bank_name').value = selectedHotel.bank_name || '';
+                document.getElementById('ifsc_code').value = selectedHotel.ifsc_code || '';
+                document.getElementById('account_no').value = selectedHotel.account_no || '';
+                document.getElementById('account_type').value = selectedHotel.account_type || '';
+                document.getElementById('hotel_gst').value = selectedHotel.hotel_gst || '';
+                
+                // Show hotel details section
+                hotelDetailsSection.style.display = 'block';
+                console.log('✅ Hotel details populated and section shown');
+              }
+            } else {
+              hotelDetailsSection.style.display = 'none';
+            }
+          });
+        } catch (error) {
+          console.error('❌ Error fetching hotels:', error);
+          Swal.fire('Error', 'Failed to fetch hotels', 'error');
+        }
+      } else {
+        console.log('Different expense type selected - showing vendor section');
+        hotelSection.style.display = 'none';
+        hotelDetailsSection.style.display = 'none';
+        vendorSection.style.display = 'block';
+        
+        // Clear hotel data
+        document.getElementById('hotel').value = '';
+        document.getElementById('bank_name').value = '';
+        document.getElementById('ifsc_code').value = '';
+        document.getElementById('account_no').value = '';
+        document.getElementById('account_type').value = '';
+        document.getElementById('hotel_gst').value = '';
+
+        // Fetch and populate vendors
+        try {
+          const vendorsResponse = await fetch('https://backend.bninewdelhi.com/api/getallvendors');
+          const vendors = await vendorsResponse.json();
+          console.log('🏢 Fetched vendors:', vendors);
+
+          const vendorSelect = document.getElementById('vendor');
+          vendorSelect.innerHTML = '<option value="">Select Vendor</option>';
+          
+          // Sort vendors by name
+          vendors.sort((a, b) => a.vendor_name.localeCompare(b.vendor_name));
+          
+          vendors.forEach(vendor => {
+            const option = document.createElement('option');
+            option.value = vendor.vendor_id;
+            option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+            vendorSelect.appendChild(option);
+          });
+
+          // Add event listener for vendor selection
+          vendorSelect.addEventListener('change', function() {
+            const selectedVendorId = this.value;
+            if (selectedVendorId) {
+              const selectedVendor = vendors.find(v => v.vendor_id == selectedVendorId);
+              if (selectedVendor) {
+                // Populate vendor details
+                document.getElementById('vendor_company_name').value = selectedVendor.vendor_company_name || '';
+                document.getElementById('vendor_company_address').value = selectedVendor.vendor_company_address || '';
+                document.getElementById('vendor_phone').value = selectedVendor.phone_number || '';
+                document.getElementById('vendor_email').value = selectedVendor.email_id || '';
+                document.getElementById('vendor_company_gst').value = selectedVendor.vendor_company_gst || '';
+                document.getElementById('vendor_bank_name').value = selectedVendor.vendor_bank_name || '';
+                document.getElementById('vendor_account').value = selectedVendor.vendor_account || '';
+                document.getElementById('vendor_ifsc_code').value = selectedVendor.vendor_ifsc_code || '';
+                document.getElementById('vendor_account_type').value = selectedVendor.vendor_account_type || '';
+                
+                // Show vendor details section
+                vendorDetailsSection.style.display = 'block';
+                console.log('✅ Vendor details populated and section shown');
+              }
+            } else {
+              vendorDetailsSection.style.display = 'none';
+            }
+          });
+        } catch (error) {
+          console.error('❌ Error fetching vendors:', error);
+          Swal.fire('Error', 'Failed to fetch vendors', 'error');
+        }
+      }
+    });
+
     // Populate other form fields
     document.getElementById('submitted_by').value = expenseData.submitted_by;
     document.getElementById('description').value = expenseData.description;
@@ -104,17 +243,100 @@ const fetchExpenseDetails = async (expenseId) => {
     // Fetch all vendors
     const vendorsResponse = await fetch('https://backend.bninewdelhi.com/api/getallvendors');
     const vendors = await vendorsResponse.json();
-    const vendorSelect = document.getElementById('vendor');
-    vendorSelect.innerHTML = '<option value="">Select Vendor</option>';
+    console.log('📦 Fetched vendors:', vendors);
+
+    // Create dropdown for company name field
+    const companyNameField = document.getElementById('vendor_company_name');
+    const companyNameDropdown = document.createElement('select');
+    companyNameDropdown.className = 'form-control';
+    companyNameDropdown.id = 'vendor_company_dropdown';
+    companyNameDropdown.innerHTML = '<option value="">Select Vendor</option>';
+    
+    // Create input field for company name
+    const companyNameInput = document.createElement('input');
+    companyNameInput.type = 'text';
+    companyNameInput.className = 'form-control';
+    companyNameInput.id = 'vendor_company_name';
+    companyNameInput.readOnly = true;
+    
+    // Add both elements to the parent
+    const parentDiv = companyNameField.parentNode;
+    parentDiv.appendChild(companyNameDropdown);
+    parentDiv.appendChild(companyNameInput);
+    companyNameField.remove();
+    
+    // Make companyNameDropdown globally accessible
+    window.companyNameDropdown = companyNameDropdown;
+    
+    console.log('✅ Created company name dropdown and input');
+
+    // Populate dropdown with vendors
     vendors.forEach(vendor => {
       const option = document.createElement('option');
       option.value = vendor.vendor_id;
-      option.textContent = vendor.vendor_name + ' - ' + vendor.vendor_company_name;
-      vendorSelect.appendChild(option);
+      option.textContent = `${vendor.vendor_name} - ${vendor.vendor_company_name}`;
+      companyNameDropdown.appendChild(option);
     });
+
+    // Add event listener for vendor selection
+    companyNameDropdown.addEventListener('change', function() {
+      const selectedVendorId = this.value;
+      console.log('🔍 Selected vendor ID:', selectedVendorId);
+
+      if (selectedVendorId) {
+        const selectedVendor = vendors.find(v => v.vendor_id == selectedVendorId);
+        console.log('📦 Selected vendor data:', selectedVendor);
+
+        if (selectedVendor) {
+          // Set company name in input field
+          companyNameInput.value = selectedVendor.vendor_company_name || '';
+          
+          // Populate all vendor fields
+          document.getElementById('vendor_company_address').value = selectedVendor.vendor_company_address || '';
+          document.getElementById('vendor_phone').value = selectedVendor.phone_number || '';
+          document.getElementById('vendor_email').value = selectedVendor.email_id || '';
+          document.getElementById('vendor_company_gst').value = selectedVendor.vendor_company_gst || '';
+          document.getElementById('vendor_bank_name').value = selectedVendor.vendor_bank_name || '';
+          document.getElementById('vendor_account').value = selectedVendor.vendor_account || '';
+          document.getElementById('vendor_ifsc_code').value = selectedVendor.vendor_ifsc_code || '';
+          document.getElementById('vendor_account_type').value = selectedVendor.vendor_account_type || '';
+
+          // Show vendor details section
+          document.getElementById('vendorDetailsSection').style.display = 'block';
+          console.log('✅ Vendor details populated and section shown');
+        }
+      } else {
+        // Clear all fields if no vendor selected
+        companyNameInput.value = '';
+        document.getElementById('vendor_company_address').value = '';
+        document.getElementById('vendor_phone').value = '';
+        document.getElementById('vendor_email').value = '';
+        document.getElementById('vendor_company_gst').value = '';
+        document.getElementById('vendor_bank_name').value = '';
+        document.getElementById('vendor_account').value = '';
+        document.getElementById('vendor_ifsc_code').value = '';
+        document.getElementById('vendor_account_type').value = '';
+
+        // Hide vendor details section
+        document.getElementById('vendorDetailsSection').style.display = 'none';
+        console.log('❌ Vendor details cleared');
+      }
+    });
+
+    // If there's an existing vendor, select it
     if (expenseData.vendor_id) {
-      vendorSelect.value = expenseData.vendor_id;
-      console.log('🏢 Selected vendor:', vendorSelect.options[vendorSelect.selectedIndex]?.text);
+      companyNameDropdown.value = expenseData.vendor_id;
+      const selectedVendor = vendors.find(v => v.vendor_id == expenseData.vendor_id);
+      if (selectedVendor) {
+        companyNameInput.value = selectedVendor.vendor_company_name || '';
+      }
+      console.log('🏢 Selected existing vendor:', companyNameDropdown.options[companyNameDropdown.selectedIndex]?.text);
+    }
+
+    // Check for hotel_id and fetch hotel details if present
+    if (expenseData.hotel_id) {
+      console.log('🏨 Hotel ID found:', expenseData.hotel_id);
+      await handleHotelSelection(expenseData.hotel_id);
     }
 
     hideLoader();
@@ -142,7 +364,6 @@ async function handleVendorSelection(vendorId) {
     console.log('🏢 Fetched vendor data:', vendorData);
 
     // Populate vendor details
-    document.getElementById('vendor_name').value = vendorData.vendor_name || '';
     document.getElementById('vendor_company_name').value = vendorData.vendor_company_name || '';
     document.getElementById('vendor_company_address').value = vendorData.vendor_company_address || '';
     document.getElementById('vendor_phone').value = vendorData.phone_number || '';
@@ -208,60 +429,38 @@ async function handleUpdateExpense(event) {
     const formData = new FormData(form);
     const expenseId = new URLSearchParams(window.location.search).get('expense_id');
 
-    // Explicitly set chapter and vendor IDs (in case select fields are repopulated)
-    const chapterSelect = document.getElementById('chapter');
-    if (chapterSelect && chapterSelect.value) {
-      formData.set('chapter', chapterSelect.value);
-      console.log('🟢 Chapter ID:', chapterSelect.value);
-    }
+    // Get the selected expense type
+    const expenseTypeSelect = document.getElementById('expense_type');
+    const selectedExpenseType = expenseTypeSelect.options[expenseTypeSelect.selectedIndex].textContent;
 
-    const vendorSelect = document.getElementById('vendor');
-    if (vendorSelect && vendorSelect.value) {
-      formData.set('vendor', vendorSelect.value);
-      console.log('🟢 Vendor ID:', vendorSelect.value);
-    }
-
-    // Add GST fields if applicable
-    if (document.getElementById('withGST').checked) {
-      formData.set('withGST', true);
-      formData.set('gst_percentage', document.getElementById('gstPercentage').value);
-      formData.set('gst_amount', document.getElementById('gstAmount').value);
-      formData.set('total_amount', document.getElementById('totalAmount').value);
-      console.log('🟢 GST included:', {
-        gst_percentage: document.getElementById('gstPercentage').value,
-        gst_amount: document.getElementById('gstAmount').value,
-        total_amount: document.getElementById('totalAmount').value
-      });
+    // Handle vendor_id and hotel_id based on expense type
+    if (selectedExpenseType === 'Meeting Hotel Expenses') {
+      // For hotel expenses, send hotel_id and set vendor_id to null
+      const selectedHotelId = document.getElementById('hotel').value;
+      if (selectedHotelId) {
+        formData.set('hotel_id', selectedHotelId);
+        formData.set('vendor_id', 'null'); // Set vendor_id to null
+        formData.set('vendor', 'null'); // Also set vendor to null
+        console.log('📤 Sending hotel_id:', selectedHotelId);
+        console.log('📤 Setting vendor_id and vendor to null');
+      }
     } else {
-      formData.set('withGST', false);
-      console.log('🟡 GST not included');
-    }
-
-    // If vendor_id is present, append all vendor fields to formData
-    const vendorId = document.getElementById('vendor')?.value;
-    if (vendorId) {
-      formData.set('vendor_id', vendorId);
-      formData.set('vendor_name', document.getElementById('vendor_name')?.value || '');
-      formData.set('vendor_company_name', document.getElementById('vendor_company_name')?.value || '');
-      formData.set('vendor_company_address', document.getElementById('vendor_company_address')?.value || '');
-      formData.set('vendor_company_gst', document.getElementById('vendor_company_gst')?.value || '');
-      formData.set('vendor_account', document.getElementById('vendor_account')?.value || '');
-      formData.set('vendor_bank_name', document.getElementById('vendor_bank_name')?.value || '');
-      formData.set('vendor_ifsc_code', document.getElementById('vendor_ifsc_code')?.value || '');
-      formData.set('vendor_account_type', document.getElementById('vendor_account_type')?.value || '');
-      formData.set('phone_number', document.getElementById('vendor_phone')?.value || '');
-      formData.set('email_id', document.getElementById('vendor_email')?.value || '');
-      console.log('🟢 Sending vendor update fields with expense:', {
-        vendor_id: vendorId,
-        vendor_name: document.getElementById('vendor_name')?.value,
-        vendor_company_name: document.getElementById('vendor_company_name')?.value,
-        // ...etc
-      });
+      // For other expenses, send vendor_id and set hotel_id to null
+      // const selectedVendorId = document.getElementById('vendor').value;
+      const selectedVendorId = window.companyNameDropdown.value;
+      if (selectedVendorId) {
+        formData.set('vendor_id', selectedVendorId);
+        formData.set('vendor',selectedVendorId);
+        formData.set('hotel_id', 'null'); // Set hotel_id to null
+        console.log('📤 Sending vendor_id:', selectedVendorId);
+        console.log('📤 Setting hotel_id to null');
+      }
     }
 
     // Log all form data for debugging
+    console.log('📦 Form Data being sent:');
     for (let [key, value] of formData.entries()) {
-      console.log(`📦 FormData: ${key} = ${value}`);
+      console.log(`${key}: ${value}`);
     }
 
     // API call to update expense
@@ -280,21 +479,73 @@ async function handleUpdateExpense(event) {
     const result = await response.json();
     console.log('✅ Update response:', result);
 
-        Swal.fire({
+    Swal.fire({
       title: 'Success!',
       text: 'Expense updated successfully',
       icon: 'success'
-        }).then(() => {
+    }).then(() => {
       window.location.href = '/exp/manage-expenses';
-        });
+    });  
 
-    } catch (error) {
+  } catch (error) {
     console.error('❌ Error updating expense:', error);
     Swal.fire('Error', 'Failed to update expense', 'error');
-    } finally {
-      hideLoader();
-    }
+  } finally {
+    hideLoader();
   }
+}
+
+// Function to handle hotel selection
+async function handleHotelSelection(hotelId) {
+  try {
+    console.log('🔍 Fetching hotel details for ID:', hotelId);
+    const response = await fetch('https://backend.bninewdelhi.com/api/gethotels');
+    if (!response.ok) throw new Error('Failed to fetch hotels');
+    
+    const hotels = await response.json();
+    const hotelData = hotels.find(hotel => hotel.hotel_id == hotelId);
+    
+    if (!hotelData) {
+      throw new Error('Hotel not found');
+    }
+
+    console.log('🏨 Fetched hotel data:', hotelData);
+
+    // Show hotel section
+    document.getElementById('hotelSection').style.display = 'block';
+
+    // Populate hotel dropdown
+    const hotelSelect = document.getElementById('hotel');
+    hotelSelect.innerHTML = '<option value="">Select Hotel</option>';
+    hotels.forEach(hotel => {
+      const option = document.createElement('option');
+      option.value = hotel.hotel_id;
+      option.textContent = hotel.hotel_name;
+      hotelSelect.appendChild(option);
+    });
+
+    // Select the matching hotel
+    if (hotelId) {
+      hotelSelect.value = hotelId;
+      console.log('🏨 Selected hotel:', hotelSelect.options[hotelSelect.selectedIndex].text);
+    }
+
+    // Show hotel details section and populate fields
+    document.getElementById('hotelDetailsSection').style.display = 'block';
+    
+    // Populate hotel details fields
+    document.getElementById('bank_name').value = hotelData.bank_name || '';
+    document.getElementById('ifsc_code').value = hotelData.ifsc_code || '';
+    document.getElementById('account_no').value = hotelData.account_no || '';
+    document.getElementById('account_type').value = hotelData.account_type || '';
+    document.getElementById('hotel_gst').value = hotelData.hotel_gst || '';
+
+    console.log('✅ Hotel details populated and section shown');
+  } catch (error) {
+    console.error('❌ Error handling hotel selection:', error);
+    Swal.fire('Error', 'Failed to fetch hotel details', 'error');
+  }
+}
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', async () => {
@@ -318,4 +569,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('amount').addEventListener('input', calculateGST);
   document.getElementById('gstPercentage').addEventListener('change', calculateGST);
   document.getElementById('editExpenseForm').addEventListener('submit', handleUpdateExpense);
+
+  // Add event listener for hotel selection
+  document.getElementById('hotel').addEventListener('change', async function() {
+    const selectedHotelId = this.value;
+    if (selectedHotelId) {
+      await handleHotelSelection(selectedHotelId);
+    } else {
+      // Clear hotel details if no hotel is selected
+      document.getElementById('hotelDetailsSection').style.display = 'none';
+      document.getElementById('bank_name').value = '';
+      document.getElementById('ifsc_code').value = '';
+      document.getElementById('account_no').value = '';
+      document.getElementById('account_type').value = '';
+      document.getElementById('hotel_gst').value = '';
+    }
+  });
 });
