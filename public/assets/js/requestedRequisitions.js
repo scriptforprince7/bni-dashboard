@@ -469,7 +469,6 @@ async function handleAccoladesClick(requisition) {
                                                     min-height: 38px;
                                                     font-size: 0.875rem;
                                                 "
-                                                onchange="handleBulkAction('${key}')"
                                             >${combo.roComment}</textarea>
                                         </td>
                                         <td style="padding: 16px; text-align: center;">
@@ -838,19 +837,26 @@ async function submitBulkActions() {
 // Function to handle requisition action
 async function handleRequisitionAction(data) {
     try {
+        showLoader(); // Show loader at the start
+        console.log('🚀 handleRequisitionAction STARTED with data:', data);
+        
         const actionData = typeof data === 'string' ? JSON.parse(data) : data;
         const skipRefresh = actionData.skipRefresh || false;  // Get the flag
-        console.log('🎯 Action Data:', actionData);
+        console.log('📦 Parsed Action Data:', actionData);
 
         const key = `${actionData.memberId}_${actionData.accoladeId}`;
+        console.log('🔑 Generated Key:', key);
+        
         // Get the comment from the specific textarea using the unique ID
         const commentEl = document.querySelector(`#ro-comment-${key}`);
-        const roComment = commentEl ? commentEl.value : '';
+        console.log('🔍 Found Comment Element:', commentEl);
         
+        const roComment = commentEl ? commentEl.value : '';
         console.log('📝 Captured RO Comment:', roComment);
 
         // Check if this is a visitor case (memberId === 0)
         const isVisitor = actionData.memberId === 0;
+        console.log('👤 Is Visitor Case:', isVisitor);
         
         if (isVisitor) {
             // For visitor, prepare direct values
@@ -877,29 +883,43 @@ async function handleRequisitionAction(data) {
                 throw new Error('Chapter requisition update failed');
             }
 
-            // Only show message and refresh if not bulk action
+            // Only show toast if not bulk action
             if (!skipRefresh) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: `Visitor requisition ${actionData.status} successfully`,
-                    timer: 2000,
-                    showConfirmButton: false
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
                 });
-                loadData();
+
+                await Toast.fire({
+                    icon: 'success',
+                    title: `Visitor requisition ${actionData.status} successfully`
+                });
             }
 
         } else {
             // Original member flow
+            console.log('👥 Member Flow - Before Update:');
+            console.log('Current accumulatedApprovals:', accumulatedApprovals);
+            console.log('Current accumulatedComments:', accumulatedComments);
+            
             accumulatedApprovals[key] = actionData.status;
             accumulatedComments[key] = roComment;
+            
+            console.log('👥 Member Flow - After Update:');
+            console.log('Updated accumulatedApprovals:', accumulatedApprovals);
+            console.log('Updated accumulatedComments:', accumulatedComments);
 
             // Check if any accolade is approved to set pickup status
             const isAnyApproved = Object.values(accumulatedApprovals).includes('approved');
             
-            console.log('🔍 Checking approvals:', {
+            console.log('🔍 Approval Status Check:', {
                 accumulatedApprovals,
-                isAnyApproved
+                isAnyApproved,
+                currentKey: key,
+                currentStatus: actionData.status
             });
 
             // Check if this is a paid accolade
@@ -1031,16 +1051,20 @@ async function handleRequisitionAction(data) {
                     }
                 }
 
-                // Only show message and refresh if not bulk action
+                // Only show toast if not bulk action
                 if (!skipRefresh) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Success!',
-                        text: `Requisition ${actionData.status} successfully`,
-                        timer: 2000,
-                        showConfirmButton: false
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
                     });
-                    loadData();
+
+                    await Toast.fire({
+                        icon: 'success',
+                        title: `Requisition ${actionData.status} successfully`
+                    });
                 }
 
             } catch (error) {
@@ -1051,7 +1075,20 @@ async function handleRequisitionAction(data) {
 
     } catch (error) {
         console.error('❌ Error in handleRequisitionAction:', error);
-        throw error; // Propagate error to be handled by submitBulkActions
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        await Toast.fire({
+            icon: 'error',
+            title: 'Error processing requisition'
+        });
+    } finally {
+        hideLoader(); // Hide loader at the end
     }
 }
 
