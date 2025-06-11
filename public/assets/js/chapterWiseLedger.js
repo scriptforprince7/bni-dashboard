@@ -18,12 +18,24 @@ function formatDate(dateStr) {
 }
 
 function formatCurrency(amount) {
+  // First round the number according to the rules:
+  // If decimal part is <= 0.5, round down to same number
+  // If decimal part is > 0.5, round up to next number
+  const decimalPart = amount - Math.floor(amount);
+  let roundedAmount;
+  if (decimalPart <= 0.5) {
+    roundedAmount = Math.floor(amount);
+  } else {
+    roundedAmount = Math.ceil(amount);
+  }
+
+  // Format with 2 decimal places
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(amount);
+  }).format(roundedAmount);
 }
 
 // Global variable for ledger data

@@ -2746,12 +2746,24 @@ async function fetchOtherPaymentsTotal(chapterId) {
 // Add this function to show the breakdown popup
 function showCurrentBalanceBreakdownPopup(chapterName, breakdown) {
     const formatCurrency = (amt) => {
+        // First round the number according to the rules:
+        // If decimal part is <= 0.5, round down to same number
+        // If decimal part is > 0.5, round up to next number
+        const decimalPart = amt - Math.floor(amt);
+        let roundedAmount;
+        if (decimalPart <= 0.5) {
+            roundedAmount = Math.floor(amt);
+        } else {
+            roundedAmount = Math.ceil(amt);
+        }
+
+        // Format with 2 decimal places
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-        }).format(amt);
+        }).format(roundedAmount);
     };
     const content = `
         <div class="kitty-breakdown">
@@ -3068,12 +3080,21 @@ async function displayChapterAvailableFund(chapterId) {
       return;
     }
 
-    // Format the amount in Indian currency format
+    // Format the amount in Indian currency format with rounding
+    const decimalPart = (chapter.available_fund || 0) - Math.floor(chapter.available_fund || 0);
+    let roundedAmount;
+    if (decimalPart <= 0.5) {
+        roundedAmount = Math.floor(chapter.available_fund || 0);
+    } else {
+        roundedAmount = Math.ceil(chapter.available_fund || 0);
+    }
+
     const formattedAmount = new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 2
-    }).format(chapter.available_fund || 0);
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(roundedAmount);
 
     // Update the manual funds display
     const manualFundsElement = document.getElementById('manual-funds-amount');

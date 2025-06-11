@@ -86,7 +86,7 @@ async function fetchMemberWiseKitty() {
       return;
     }
 
-    // Filter members based on logged in chapter
+    // Filter members based on logged in chapter and status conditions
     const membersWithPending = bankOrders
       .filter(order => {
         // Only show entries for logged in chapter
@@ -96,11 +96,27 @@ async function fetchMemberWiseKitty() {
         const member = members.find(m => m.member_id === order.member_id);
         const memberCredit = credits.find(credit => credit.member_id === order.member_id);
         
-        console.log(`🔍 Processing member for chapter ${loggedInChapter.chapter_name}:`, {
-          memberId: order.member_id,
-          memberName: member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member',
-          chapterId: order.chapter_id
-        });
+        // Check member status conditions
+        if (member) {
+          const isWriteoff = member.writeoff_status === true;
+          const isInactive = member.member_status !== "active";
+          
+          if (isWriteoff || isInactive) {
+            console.log(`❌ Member filtered out: ${member.member_first_name} ${member.member_last_name}`, {
+              reason: isWriteoff ? "Write-off status is true" : "Member is not active",
+              memberId: member.member_id,
+              writeoffStatus: member.writeoff_status,
+              memberStatus: member.member_status
+            });
+            return null;
+          }
+          
+          console.log(`✅ Member included: ${member.member_first_name} ${member.member_last_name}`, {
+            memberId: member.member_id,
+            writeoffStatus: member.writeoff_status,
+            memberStatus: member.member_status
+          });
+        }
         
         if (member) {
           // Find all orders for this member
