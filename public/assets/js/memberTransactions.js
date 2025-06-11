@@ -32,11 +32,24 @@ function formatDate(dateStr) {
 }
 
 function formatCurrency(amount) {
+    // First round the number according to the rules:
+    // If decimal part is <= 0.5, round down to same number
+    // If decimal part is > 0.5, round up to next number
+    const decimalPart = amount - Math.floor(amount);
+    let roundedAmount;
+    if (decimalPart <= 0.5) {
+        roundedAmount = Math.floor(amount);
+    } else {
+        roundedAmount = Math.ceil(amount);
+    }
+
+    // Format with 2 decimal places
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
         currency: 'INR',
-        minimumFractionDigits: 2
-    }).format(amount);
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(roundedAmount);
 }
 
 // Authentication functions
@@ -842,40 +855,39 @@ function processTransactions() {
 
         // 4. Process all payments for this bill
         if (billTransactions.length > 0) {
-            // Find the earliest payment for penalty check
-            const earliestPayment = billTransactions[0];
-            const paymentDate = new Date(earliestPayment.payment_completion_time);
-            // Only add penalty if earliest payment is after due date
-            // PRORATED EXEMPTION: If dueDate is in same month/year as memberJoin, skip penalty
-            let skipPenaltyForProrate = false;
-            if (memberJoin > billDate && memberJoin <= billEnd) {
-                if (dueDate.getMonth() === memberJoin.getMonth() && dueDate.getFullYear() === memberJoin.getFullYear()) {
-                    skipPenaltyForProrate = true;
-                }
-            }
-            if (paymentDate.getTime() > dueDate.getTime() && !skipPenaltyForProrate) {
-                const penaltyAmount = bill.penalty_fee || 0;
-                // Only add penalty if dueDate is after or on memberJoin and not exempted for prorate
-                if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrate) {
-                    allTransactionItems.push({
-                        date: paymentDate,
-                        type: 'penalty',
-                        description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
-                        debit: penaltyAmount,
-                        credit: 0,
-                        gst: 0,
-                        totalAmount: penaltyAmount,
-                        // runningBalance will be set later
-                    });
-                    latePaymentCount++;
-                }
-            }
-
-            // Add all payment entries (credits, add to balance)
-            billTransactions.forEach(payment => {
+            // Process each payment and check for late payment penalties
+            billTransactions.forEach((payment, index) => {
+                const paymentDate = new Date(payment.payment_completion_time);
                 const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
                 const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
-                // Extract cf_payment_id and mode_of_payment
+
+                // Check if this payment is late
+                let skipPenaltyForProrate = false;
+                if (memberJoin > billDate && memberJoin <= billEnd) {
+                    if (dueDate.getMonth() === memberJoin.getMonth() && dueDate.getFullYear() === memberJoin.getFullYear()) {
+                        skipPenaltyForProrate = true;
+                    }
+                }
+
+                // Add penalty if payment is after due date and not exempted
+                if (paymentDate.getTime() > dueDate.getTime() && !skipPenaltyForProrate) {
+                    const penaltyAmount = bill.penalty_fee || 0;
+                    if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrate) {
+                        allTransactionItems.push({
+                            date: paymentDate,
+                            type: 'penalty',
+                            description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
+                            debit: penaltyAmount,
+                            credit: 0,
+                            gst: 0,
+                            totalAmount: penaltyAmount,
+                            // runningBalance will be set later
+                        });
+                        latePaymentCount++;
+                    }
+                }
+
+                // Add payment entry
                 let cfPaymentId = payment.cf_payment_id || payment.gateway_payment_id || '';
                 let modeOfPayment = '';
                 if (payment.payment_method) {
@@ -896,12 +908,14 @@ function processTransactions() {
                 } else if (payment.payment_group) {
                     modeOfPayment = payment.payment_group;
                 }
+
                 let paymentDetails = '';
                 if (cfPaymentId || modeOfPayment) {
                     paymentDetails = `<div style='font-size:0.9em;color:#555;'>${cfPaymentId}${cfPaymentId && modeOfPayment ? ' | ' : ''}${modeOfPayment}</div>`;
                 }
+
                 allTransactionItems.push({
-                    date: new Date(payment.payment_completion_time),
+                    date: paymentDate,
                     type: 'payment',
                     description: `<img src='../../assets/images/payment-success.jpg' style='height:16px;vertical-align:middle;margin-right:4px;'/> <b>Meeting Fee Paid </b> - ${monthName}${billTransactions.length > 1 ? ' (Partial)' : ''}${paymentDetails}`,
                     debit: 0,
@@ -926,7 +940,7 @@ function processTransactions() {
                 allTransactionItems.push({
                     date: dueDate,
                     type: 'penalty',
-                    description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /> <i>Late Payment Penalty for ${monthName}</i></div>`,
+                    description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
                     debit: penaltyAmount,
                     credit: 0,
                     gst: 0,
