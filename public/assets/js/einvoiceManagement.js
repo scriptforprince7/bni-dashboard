@@ -612,18 +612,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Get member data and address based on payment type
                     let memberAddress = 'N/A';
+                    let memberPincode = 'N/A';
+                    let memberState = 'N/A';
                     if (order) {
                         if (isVisitorPayment) {
                             memberAddress = order.visitor_company_address || 'N/A';
+                            memberPincode = order.visitor_company_pincode || 'N/A';
+                            memberState = order.visitor_company_state || 'N/A';
                         } else {
                             // First try to get address from visitor data if available
                             if (order.visitor_company_address) {
                                 memberAddress = order.visitor_company_address;
+                                memberPincode = order.visitor_company_pincode || 'N/A';
+                                memberState = order.visitor_company_state || 'N/A';
                             } else if (order.customer_id) {
                                 // If no visitor data, try to get from members data using customer_id
                                 const member = membersData.find(m => m.member_id === order.customer_id);
                                 if (member) {
                                     memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                                    memberPincode = member.member_company_pincode || 'N/A';
+                                    memberState = member.member_company_state || 'N/A';
                                 }
                             }
                         }
@@ -657,6 +665,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Payment Type': order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A',
                         'Company Name': displayCompanyName,
                         'Member Company Address': memberAddress,
+                        'Pincode': memberPincode,
+                        'State': memberState,
                         'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         'Bill Amount': billAmount.toFixed(2),
                         'GST (18%)': taxAmount.toFixed(2),
@@ -748,18 +758,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Get member data and address based on payment type
                     let memberAddress = 'N/A';
+                    let memberPincode = 'N/A';
+                    let memberState = 'N/A';
                     if (order) {
                         if (isVisitorPayment) {
                             memberAddress = order.visitor_company_address || 'N/A';
+                            memberPincode = order.visitor_company_pincode || 'N/A';
+                            memberState = order.visitor_company_state || 'N/A';
                         } else {
                             // First try to get address from visitor data if available
                             if (order.visitor_company_address) {
                                 memberAddress = order.visitor_company_address;
+                                memberPincode = order.visitor_company_pincode || 'N/A';
+                                memberState = order.visitor_company_state || 'N/A';
                             } else if (order.customer_id) {
                                 // If no visitor data, try to get from members data using customer_id
                                 const member = membersData.find(m => m.member_id === order.customer_id);
                                 if (member) {
                                     memberAddress = member.member_company_address || member.street_address_line_1 || 'N/A';
+                                    memberPincode = member.member_company_pincode || 'N/A';
+                                    memberState = member.member_company_state || 'N/A';
                                 }
                             }
                         }
@@ -793,6 +811,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Payment Type': order?.payment_note ? order.payment_note.replace(/-/g, ' ').toUpperCase() : 'N/A',
                         'Company Name': displayCompanyName,
                         'Member Company Address': memberAddress,
+                        'Pincode': memberPincode,
+                        'State': memberState,
                         'IRN Generated': isGST ? (einvoice.irn || 'N/A') : 'Not applicable for NON-GST einvoices',
                         'Bill Amount': billAmount.toFixed(2),
                         'GST (18%)': taxAmount.toFixed(2),
