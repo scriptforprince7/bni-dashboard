@@ -270,7 +270,7 @@
 
                             <div class="col-xl-4 col-md-4">
                               <label for="payment_status" class="form-label">Payment Status</label>
-                              <select class="form-control" name="payment_status" id="payment_status">
+                              <select class="form-control" name="payment_status" id="payment_status" required>
                                 <option value="">Payment Status</option>
                                 <option value="paid">Paid</option>
                                 <option value="pending">Pending</option>
@@ -288,7 +288,7 @@
 
                             <div class="col-xl-4">
                               <label for="bill_date" class="form-label">Bill Date:</label>
-                              <input type="date" id="bill_date" name="bill_date" class="form-control" required />
+                              <input type="date" id="bill_date" name="bill_date" class="form-control" />
                             </div>
                             <div class="col-xl-4">
                               <label for="expense_entry_date" class="form-label">Expense Entry Date:</label>
@@ -303,15 +303,15 @@
                             </div>
                             <div class="col-xl-3">
                               <label for="bill_no" class="form-label">Bill No.</label>
-                              <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20" required/>
+                              <input type="text" class="form-control" id="bill_no" name="bill_no" placeholder="Enter Bill No." maxlength="20"/>
                             </div>
                             <div class="col-xl-3">
                               <label for="transaction_no" class="form-label">Transaction No./Transfer ID/UTR No.</label>
-                              <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" required />
+                              <input type="text" class="form-control" id="transaction_no" name="transaction_no" placeholder="Enter Transaction No" maxlength="20" />
                             </div>
                             <div class="col-xl-3">
                               <label for="upload_receipt" class="form-label">Upload Receipt</label>
-                              <input type="file" class="form-control" id="upload_receipt" name="upload_receipt" required />
+                              <input type="file" class="form-control" id="upload_receipt" name="upload_receipt" />
                             </div>
                           </div>
                         </br>
