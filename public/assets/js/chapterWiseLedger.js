@@ -41,6 +41,13 @@ function formatCurrency(amount) {
 // Global variable for ledger data
 let ledgerData = [];
 
+// Pagination variables
+let currentPage = 1;
+const itemsPerPage = 25;
+let totalPages = 1;
+let filteredLedgerData = [];
+let showAllEntries = false;  // Variable to track if we're showing all entries
+
 // Global variables for filtering
 let selectedMonth = 'all';
 let selectedYear = 'all';
@@ -165,57 +172,56 @@ function initializeFilters() {
 }
 
 function applyFilters() {
+  // Reset current page and showAllEntries when filters change
+  currentPage = 1;
+  showAllEntries = false;
+  
   const tbody = document.getElementById('ledger-body');
   const rows = Array.from(tbody.getElementsByTagName('tr'));
   
-  rows.forEach(row => {
-    const date = row.cells[1].textContent;  // Date is in second column
-    const description = row.cells[2].innerHTML;  // Using innerHTML to check for the expense icon
-    const [day, month, year] = date.split('/');  // Split date into components
-    
-    let showRow = true;
+  // Filter the ledger data
+  filteredLedgerData = ledgerData.filter(entry => {
+    const [day, month, year] = entry.date.split('/');
+    let showEntry = true;
     
     // Apply year filter
     if (selectedYear !== 'all' && year !== selectedYear) {
-      showRow = false;
+      showEntry = false;
     }
     
     // Apply month filter
     if (selectedMonth !== 'all' && month !== selectedMonth) {
-      showRow = false;
+      showEntry = false;
     }
     
     // Apply type filter
     if (selectedType !== 'all') {
-      // Check for expense (red E icon)
-      const isExpense = description.includes('background-color: #ff4444') || description.includes('E</div>');
-      // Check for visitor payment (green V icon)
-      const isVisitor = description.includes('background-color: #4CAF50') || description.includes('V</div>');
-      // Check for meeting fee (no special icon)
-      const isKitty = description.includes('Meeting Fee') && !isExpense && !isVisitor;
+      const isExpense = entry.description.includes('background-color: #ff4444') || entry.description.includes('E</div>');
+      const isVisitor = entry.description.includes('background-color: #4CAF50') || entry.description.includes('V</div>');
+      const isKitty = entry.description.includes('Meeting Fee') && !isExpense && !isVisitor;
 
       if (selectedType === 'kitty' && !isKitty) {
-        showRow = false;
+        showEntry = false;
       } else if (selectedType === 'visitor' && !isVisitor) {
-        showRow = false;
+        showEntry = false;
       } else if (selectedType === 'expense' && !isExpense) {
-        showRow = false;
+        showEntry = false;
       }
     }
     
-    row.style.display = showRow ? '' : 'none';
+    return showEntry;
   });
 
-  // Update row numbers for visible rows
-  let visibleRowNum = 1;
-  rows.forEach(row => {
-    if (row.style.display !== 'none') {
-      row.cells[0].textContent = visibleRowNum++;
-    }
+  // Update row numbers for filtered data
+  filteredLedgerData.forEach((entry, index) => {
+    entry.sNo = index + 1;
   });
 
-  // Update totals based on filtered rows
-  updateFilteredTotals(rows.filter(row => row.style.display !== 'none'));
+  // Update totals based on filtered data
+  updateFilteredTotals(filteredLedgerData);
+
+  // Render the table with pagination
+  renderLedgerTable();
 }
 
 function updateFilteredTotals(visibleRows) {
@@ -991,6 +997,113 @@ function showPendingExpensesPopup(mode) {
       content: 'kitty-breakdown-content'
     }
   });
+}
+
+// Function to update pagination
+function updatePagination() {
+  const paginationContainer = document.getElementById('pagination-container');
+  if (!paginationContainer) return;
+
+  // Calculate total pages
+  totalPages = Math.ceil(filteredLedgerData.length / itemsPerPage);
+  
+  // Generate pagination HTML
+  let paginationHTML = `
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mb-0">
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-page="prev" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+  `;
+
+  // Add page numbers
+  for (let i = 1; i <= totalPages; i++) {
+    paginationHTML += `
+      <li class="page-item ${currentPage === i ? 'active' : ''}">
+        <a class="page-link" href="#" data-page="${i}">${i}</a>
+      </li>
+    `;
+  }
+
+  paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-page="next" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link ${showAllEntries ? 'active' : ''}" href="#" data-page="all">
+            Show All
+          </a>
+        </li>
+      </ul>
+    </nav>
+  `;
+
+  paginationContainer.innerHTML = paginationHTML;
+
+  // Add click event listeners to pagination links
+  paginationContainer.querySelectorAll('.page-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const page = this.dataset.page;
+      
+      if (page === 'all') {
+        showAllEntries = !showAllEntries;
+        renderLedgerTable();
+      } else if (page === 'prev' && currentPage > 1) {
+        showAllEntries = false;
+        currentPage--;
+        renderLedgerTable();
+      } else if (page === 'next' && currentPage < totalPages) {
+        showAllEntries = false;
+        currentPage++;
+        renderLedgerTable();
+      } else if (page !== 'prev' && page !== 'next') {
+        showAllEntries = false;
+        currentPage = parseInt(page);
+        renderLedgerTable();
+      }
+    });
+  });
+}
+
+// Function to render ledger table with pagination
+function renderLedgerTable() {
+  const ledgerBody = document.getElementById("ledger-body");
+  ledgerBody.innerHTML = "";
+  
+  let currentPageItems;
+  
+  if (showAllEntries) {
+    // Show all entries
+    currentPageItems = filteredLedgerData;
+  } else {
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredLedgerData.length);
+    currentPageItems = filteredLedgerData.slice(startIndex, endIndex);
+  }
+  
+  currentPageItems.forEach(entry => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${entry.sNo}</td>
+      <td><b>${entry.date}</b></td>
+      <td><b>${entry.description}</b></td>
+      <td><b>${entry.billAmount ? formatCurrency(entry.billAmount) : "-"}</b></td>
+      <td><b style="color: ${entry.debit ? "red" : "inherit"}">${entry.debit ? formatCurrency(entry.debit) : "-"}</b></td>
+      <td><b style="color: ${entry.credit ? "green" : "inherit"}">${entry.credit ? formatCurrency(entry.credit) : "-"}</b></td>
+      <td>${entry.gst ? formatCurrency(entry.gst) : "-"}</td>
+      <td><b style="color: ${entry.balanceColor}">${formatCurrency(entry.balance)}</b></td>
+    `;
+    ledgerBody.appendChild(row);
+  });
+
+  // Update pagination controls
+  updatePagination();
 }
 
 (async function generateChapterLedger() {
@@ -1773,25 +1886,11 @@ function showPendingExpensesPopup(mode) {
       );
     });
 
-    // Render ledger table
-    console.log("Rendering ledger table...");
-    const ledgerBody = document.getElementById("ledger-body");
-    ledgerBody.innerHTML = "";
-    
-    ledgerData.forEach(entry => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${entry.sNo}</td>
-        <td><b>${entry.date}</b></td>
-        <td><b>${entry.description}</b></td>
-        <td><b>${entry.billAmount ? formatCurrency(entry.billAmount) : "-"}</b></td>
-        <td><b style="color: ${entry.debit ? "red" : "inherit"}">${entry.debit ? formatCurrency(entry.debit) : "-"}</b></td>
-        <td><b style="color: ${entry.credit ? "green" : "inherit"}">${entry.credit ? formatCurrency(entry.credit) : "-"}</b></td>
-        <td>${entry.gst ? formatCurrency(entry.gst) : "-"}</td>
-        <td><b style="color: ${entry.balanceColor}">${formatCurrency(entry.balance)}</b></td>
-      `;
-      ledgerBody.appendChild(row);
-    });
+    // Initialize filteredLedgerData with all data
+    filteredLedgerData = [...ledgerData];
+
+    // Render the table with pagination
+    renderLedgerTable();
 
     // Initialize filters after table is populated
     initializeFilters();

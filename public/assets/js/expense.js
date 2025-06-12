@@ -795,7 +795,7 @@ async function displayExpenses(expenses) {
           </button>
         `}
       </td>
-      <td style="border: 1px solid grey;">
+   <td style="border: 1px solid grey;">
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
@@ -1103,13 +1103,22 @@ const sortByColumn = (columnName) => {
         aValue = a.querySelector('td:nth-child(4)').textContent.toLowerCase();
         bValue = b.querySelector('td:nth-child(4)').textContent.toLowerCase();
         break;
+        case 'vendor_id':
+  aValue = a.querySelector('td:nth-child(5) b').textContent.toLowerCase();
+  bValue = b.querySelector('td:nth-child(5) b').textContent.toLowerCase();
+  break;
+
+case 'hotel_id':
+  aValue = a.querySelector('td:nth-child(6) b').textContent.toLowerCase();
+  bValue = b.querySelector('td:nth-child(6) b').textContent.toLowerCase();
+  break;
       case 'description':
         aValue = a.querySelector('td:nth-child(5)').textContent.toLowerCase();
         bValue = b.querySelector('td:nth-child(5)').textContent.toLowerCase();
         break;
       case 'amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(6) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(6) b').textContent);
+        aValue = parseFloat(a.querySelector('td:nth-child(8) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(8) b').textContent);
         break;
       case 'gst_amount':
         aValue = parseFloat(a.querySelector('td:nth-child(7) b').textContent);
@@ -1126,17 +1135,18 @@ const sortByColumn = (columnName) => {
         break;
       case 'ro_verification':
         // Sort RO verification based on status
-        aValue = a.querySelector('td:nth-child(10)').textContent === 'Approved' ? 1 : (a.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
-        bValue = b.querySelector('td:nth-child(10)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
+        aValue = a.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (a.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
+        bValue = b.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
         break;
-      case 'final_payable':
-        aValue = parseFloat(a.querySelector('td:nth-child(11) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(11) b').textContent);
-        break;
-      case 'payment_status':
-        aValue = a.querySelector('td:nth-child(12)').textContent.toLowerCase();
-        bValue = b.querySelector('td:nth-child(12)').textContent.toLowerCase();
-        break;
+        case 'final_payable':
+          aValue = parseFloat(a.querySelector('td:nth-child(18) b').textContent);
+          bValue = parseFloat(b.querySelector('td:nth-child(18) b').textContent);
+          break;
+        case 'payment_status':
+          aValue = a.querySelector('td:nth-child(17)').textContent.toLowerCase();
+          bValue = b.querySelector('td:nth-child(17)').textContent.toLowerCase();
+          console.log('Comparing payment statuses:', {aValue, bValue, aText: a.querySelector('td:nth-child(12)').textContent, bText: b.querySelector('td:nth-child(12)').textContent, aHTML: a.querySelector('td:nth-child(12)').innerHTML, bHTML: b.querySelector('td:nth-child(12)').innerHTML});
+          break;
       case 'bill_date':
         aValue = new Date(a.querySelector('td:nth-child(13)').textContent);
         bValue = new Date(b.querySelector('td:nth-child(13)').textContent);
@@ -3348,9 +3358,9 @@ const viewVendorLedger = async (vendorId) => {
 
     // Get last expense date
     const lastExpense = vendorExpenses.length > 0 
-      ? formatDate(vendorExpenses[vendorExpenses.length - 1].bill_date)
-      : 'No expenses';
-    document.querySelector('.last-expense-date').textContent = lastExpense;
+    ? formatDate(vendorExpenses[0].bill_date)
+    : 'No expenses';
+  document.querySelector('.last-expense-date').textContent = lastExpense;
 
     // Populate expense history table
     const tableBody = document.querySelector('#vendorLedgerTableBody');
@@ -3590,7 +3600,7 @@ async function viewHotelLedger(hotelId) {
                     <div class="card-body" style="background: linear-gradient(135deg, #fff, #fff5f5);">
                       <h6 class="card-title" style="color: #dc143c; font-weight: 600;">Last Expense</h6>
                       <p class="last-expense" style="font-size: 1.5rem; font-weight: 600; color: #333; margin: 0;">
-                        <span class="date">${hotelExpenses.length > 0 ? formatDate(hotelExpenses[hotelExpenses.length - 1].bill_date) : 'No expenses'}</span>
+                        <span class="date">${hotelExpenses.length > 0 ? formatDate(hotelExpenses[0].bill_date) : 'No expenses'}</span>
                       </p>
                     </div>
                   </div>

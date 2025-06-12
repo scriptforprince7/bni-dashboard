@@ -1336,6 +1336,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     visitor_email: document.getElementById('visitor-email').value,
                     visitor_mobile: document.getElementById('visitor-mobile').value,
                     visitor_address: document.getElementById('visitor-address').value,
+                    visitor_state: document.getElementById('visitor-state').value,
+                    visitor_pincode: document.getElementById('visitor-pincode').value,
                     visitor_business_category: document.getElementById("visitor-category").value.trim(),
                     visitor_company: document.getElementById('visitor-company-name').value,
                     visitor_gstin: document.getElementById('company-gstin').value,

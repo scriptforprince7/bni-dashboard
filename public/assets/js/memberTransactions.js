@@ -7,6 +7,12 @@ let currentBalance = 0;
 let allTransactionItems = [];
 let memberCredits = [];
 
+// Pagination variables
+let currentPage = 1;
+const itemsPerPage = 25;
+let totalPages = 1;
+let paginatedItems = [];
+
 // Utility functions
 function showLoader() {
     const loader = document.getElementById('loader');
@@ -195,19 +201,64 @@ function updateLedgerTable(items) {
     const tbody = document.getElementById('ledger-body');
     if (!tbody) return;
 
-    tbody.innerHTML = '';
+    // Sort items in descending order for display
+    const sortedItems = [...items].sort((a, b) => new Date(b.date) - new Date(a.date));
+    paginatedItems = sortedItems;
+    totalPages = Math.ceil(sortedItems.length / itemsPerPage);
 
-    items.forEach((item, index) => {
+    // Get current page items
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, sortedItems.length);
+    const currentPageItems = sortedItems.slice(startIndex, endIndex);
+
+    tbody.innerHTML = '';
+    currentPageItems.forEach((item, index) => {
         const row = document.createElement('tr');
-        // Determine color for debit, credit, and balance
         const debitColor = item.debit > 0 ? 'red' : '';
         const creditColor = item.credit > 0 ? 'green' : '';
         const balanceColor = item.runningBalance > 0 ? 'green' : (item.runningBalance < 0 ? 'red' : '');
-        console.log('[LEDGER] Row', index + 1, 'type:', item.type, 'runningBalance:', item.runningBalance);
+
+        // For Meeting Fee Paid entries, show payment mode and View button (no order_id)
+        let descriptionHtml = item.description;
+        if (item.type === 'payment') {
+            // Try to find the transaction for this payment using cf_payment_id
+            let orderId = '';
+            let paymentMode = '';
+            let cfPaymentId = item.cf_payment_id || item.gateway_payment_id || '';
+            if (cfPaymentId && Array.isArray(allTransactions)) {
+                const txn = allTransactions.find(t => t.cf_payment_id == cfPaymentId || t.gateway_payment_id == cfPaymentId);
+                if (txn) {
+                    orderId = txn.order_id;
+                    // Get payment mode
+                    if (txn.payment_method) {
+                        if (typeof txn.payment_method === 'string') {
+                            try {
+                                const pm = JSON.parse(txn.payment_method);
+                                if (pm.upi) paymentMode = 'upi';
+                                else if (pm.netbanking) paymentMode = 'netbanking';
+                                else if (pm.card) paymentMode = 'card';
+                                else if (pm.cash) paymentMode = 'cash';
+                            } catch (e) { paymentMode = txn.payment_group || ''; }
+                        } else {
+                            if (txn.payment_method.upi) paymentMode = 'upi';
+                            else if (txn.payment_method.netbanking) paymentMode = 'netbanking';
+                            else if (txn.payment_method.card) paymentMode = 'card';
+                            else if (txn.payment_method.cash) paymentMode = 'cash';
+                        }
+                    } else if (txn.payment_group) {
+                        paymentMode = txn.payment_group;
+                    }
+                }
+            }
+            if (orderId) {
+                descriptionHtml += ` <span style='font-size:0.95em;color:#555;'>| <span class='view-invoice-btn' data-order-id='${orderId}' style='cursor:pointer;color:#007bff;text-decoration:underline;'>View</span></span>`;
+            }
+        }
+
         row.innerHTML = `
-            <td>${index + 1}</td>
+            <td>${startIndex + index + 1}</td>
             <td><b>${formatDate(item.date)}</b></td>
-            <td>${item.description}</td>
+            <td>${descriptionHtml}</td>
             <td><b>${formatCurrency(item.totalAmount)}</b></td>
             <td style="color:${debitColor}"><b>${item.debit ? formatCurrency(item.debit) : '-'}</b></td>
             <td style="color:${creditColor}"><b>${item.credit ? formatCurrency(item.credit) : '-'}</b></td>
@@ -217,8 +268,30 @@ function updateLedgerTable(items) {
         tbody.appendChild(row);
     });
 
+    // Add event listeners for view-invoice-btn
+    setTimeout(() => {
+        document.querySelectorAll('.view-invoice-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                Swal.fire({
+                    title: 'Invoice',
+                    html: `<iframe src="/t/view-invoice?order_id=${orderId}" style="width:100%;height:600px;border:none;"></iframe>`,
+                    width: 900,
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: {
+                        container: 'kitty-breakdown-popup',
+                        popup: 'kitty-breakdown-popup',
+                        content: 'kitty-breakdown-content'
+                    }
+                });
+            });
+        });
+    }, 0);
+
     // Update summary cards if they exist
     updateSummaryCards();
+    renderPagination();
 }
 
 function updateSummaryCards() {
@@ -238,12 +311,27 @@ function updateSummaryCards() {
         .filter(item => item.type === 'penalty')
         .reduce((sum, item) => sum + item.totalAmount, 0);
 
+    // BUSINESS RULE: Pending Kitty Amount
     const pendingAmount = totalKittyAmount - totalPaidAmount + totalPenalties;
 
     // Update the cards
     document.getElementById('total-kitty-amount').textContent = formatCurrency(totalKittyAmount);
     document.getElementById('success_kitty_amount').textContent = formatCurrency(totalPaidAmount);
-    document.getElementById('pending_payment_amount').textContent = formatCurrency(pendingAmount);
+    
+    // Show color and Pay Now button if pendingAmount > 0
+    const pendingElem = document.getElementById('pending_payment_amount');
+    if (pendingElem) {
+        let color = pendingAmount > 0 ? 'red' : 'green';
+        let html = `<span style='color:${color};'>${formatCurrency(pendingAmount)}</span>`;
+        if (pendingAmount > 0) {
+            // Build the Pay Now link with region_id, chapter_id, and member_id
+            const regionId = memberData.region_id || '';
+            const chapterId = memberData.chapter_id || '';
+            const memberId = memberData.member_id || '';
+            html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1?region_id=${regionId}&chapter_id=${chapterId}&member_id=${memberId}' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+        }
+        pendingElem.innerHTML = html;
+    }
     document.getElementById('total_credit_note_amount').textContent = formatCurrency(totalGST);
 }
 
@@ -339,6 +427,7 @@ async function initializeMemberLedger() {
             throw new Error('Failed to fetch orders');
         }
         allOrders = await ordersResponse.json();
+        window.allOrders = allOrders;
 
         // Fetch all transactions
         const transactionsResponse = await fetch('https://backend.bninewdelhi.com/api/allTransactions');
@@ -922,7 +1011,8 @@ function processTransactions() {
                     credit: paymentBaseAmount,
                     gst: parseFloat(paymentOrder.tax),
                     totalAmount: parseFloat(paymentOrder.order_amount),
-                    runningBalance: runningBalance + paymentBaseAmount
+                    runningBalance: runningBalance + paymentBaseAmount,
+                    cf_payment_id: payment.cf_payment_id || payment.gateway_payment_id || ''
                 });
                 runningBalance += paymentBaseAmount;
             });
@@ -1228,4 +1318,33 @@ function getLedgerSummaryForExport() {
         totalPaidKittyAmount,
         pendingKittyAmount
     };
+}
+
+function renderPagination() {
+    const container = document.getElementById('pagination-container');
+    if (!container) return;
+    // Always show pagination, even if only one page
+    let html = `<nav aria-label="Page navigation"><ul class="pagination justify-content-center mb-0">`;
+    html += `<li class="page-item${currentPage === 1 ? ' disabled' : ''}"><a class="page-link" href="#" data-page="prev">&laquo;</a></li>`;
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<li class="page-item${currentPage === i ? ' active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+    }
+    html += `<li class="page-item${currentPage === totalPages ? ' disabled' : ''}"><a class="page-link" href="#" data-page="next">&raquo;</a></li>`;
+    html += `</ul></nav>`;
+    container.innerHTML = html;
+    // Add event listeners
+    container.querySelectorAll('.page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.dataset.page;
+            if (page === 'prev' && currentPage > 1) {
+                currentPage--;
+            } else if (page === 'next' && currentPage < totalPages) {
+                currentPage++;
+            } else if (!isNaN(parseInt(page))) {
+                currentPage = parseInt(page);
+            }
+            updateLedgerTable(paginatedItems);
+        });
+    });
 }
