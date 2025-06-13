@@ -201,12 +201,33 @@ function updateLedgerTable(items) {
     const tbody = document.getElementById('ledger-body');
     if (!tbody) return;
 
-    // Sort items in descending order for display
-    const sortedItems = [...items].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // 1. Sort in chronological order (oldest to newest), penalty before payment for same date
+    const chronologicalItems = [...items].sort((a, b) => {
+        const dateDiff = new Date(a.date) - new Date(b.date);
+        if (dateDiff !== 0) return dateDiff;
+        // For same date: penalty before payment
+        if (a.type === 'penalty' && b.type === 'payment') return -1;
+        if (a.type === 'payment' && b.type === 'penalty') return 1;
+        return 0;
+    });
+
+    // 2. Calculate running balances in this order
+    let currentBalance = chronologicalItems[0]?.runningBalance || 0;
+    chronologicalItems.forEach((item, idx) => {
+        if (item.type === 'opening') {
+            item.runningBalance = currentBalance;
+        } else {
+            currentBalance = currentBalance - (item.debit || 0) + (item.credit || 0);
+            item.runningBalance = currentBalance;
+        }
+    });
+
+    // 3. For display, reverse the array (descending order)
+    const sortedItems = [...chronologicalItems].reverse();
     paginatedItems = sortedItems;
     totalPages = Math.ceil(sortedItems.length / itemsPerPage);
 
-    // Get current page items
+    // 4. Get current page items
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, sortedItems.length);
     const currentPageItems = sortedItems.slice(startIndex, endIndex);
@@ -1041,6 +1062,39 @@ function processTransactions() {
             }
         }
         // (Optional) Add credit/write-off entry if any (not implemented here)
+
+        // === NEW LOGIC: Add penalty if due date passed and less than 50% paid (even if some payment made) ===
+        const now = new Date();
+        const totalPaidForBill = billTransactions.reduce((sum, payment) => {
+            const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
+            return sum + (paymentOrder ? (parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax)) : 0);
+        }, 0);
+        const billBaseAmount = parseFloat(bill.total_bill_amount);
+        const penaltyAmount = bill.penalty_fee || 0;
+        const penaltyAlreadyAdded = allTransactionItems.some(item =>
+            item.type === 'penalty' &&
+            item.description.includes(monthName) &&
+            +new Date(item.date) === +dueDate
+        );
+        if (
+            now.getTime() > dueDate.getTime() &&
+            penaltyAmount > 0 &&
+            dueDate.getTime() >= memberJoin.getTime() &&
+            totalPaidForBill < 0.5 * billBaseAmount &&
+            !penaltyAlreadyAdded
+        ) {
+            allTransactionItems.push({
+                date: dueDate,
+                type: 'penalty',
+                description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
+                debit: penaltyAmount,
+                credit: 0,
+                gst: 0,
+                totalAmount: penaltyAmount,
+                // runningBalance will be set later
+            });
+            latePaymentCount++;
+        }
     });
 
     // Sort all transactions by date
