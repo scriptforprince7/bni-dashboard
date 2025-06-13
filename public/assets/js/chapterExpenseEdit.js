@@ -215,7 +215,10 @@ const fetchExpenseDetails = async (expenseId) => {
     document.getElementById('amount').value = expenseData.amount;
     document.getElementById('payment_status').value = expenseData.payment_status;
     document.getElementById('payment_mode').value = expenseData.mode_of_payment;
-    document.getElementById('bill_date').value = expenseData.bill_date.split('T')[0];
+        // Add one day to bill date to fix timezone issue
+        const billDate = new Date(expenseData.bill_date);
+        billDate.setDate(billDate.getDate() + 1);
+        document.getElementById('bill_date').value = billDate.toISOString().split('T')[0];
     document.getElementById('bill_no').value = expenseData.bill_no;
     document.getElementById('transaction_no').value = expenseData.transaction_no;
 

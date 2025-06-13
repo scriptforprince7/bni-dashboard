@@ -129,7 +129,9 @@ function renderPaginationControls() {
 
 // Update paginated display
 async function updatePaginatedDisplay() {
+  console.log('[TRACE] updatePaginatedDisplay called');
   paginatedExpenses = getPaginatedExpenses();
+  console.log('[TRACE] updatePaginatedDisplay -> calling displayExpenses(paginatedExpenses)');
   await displayExpenses(paginatedExpenses);
   renderPaginationControls();
   // Update total count
@@ -387,7 +389,7 @@ const fetchExpenses = async (sortDirection = 'desc') => {
     }
 
     // Remove redundant displayExpenses call and only use updatePaginatedDisplay
-    updatePaginatedDisplay();
+    // updatePaginatedDisplay();
     
     // Update the expense totals
     updateExpenseTotals(filteredExpenses);
@@ -402,6 +404,7 @@ const fetchExpenses = async (sortDirection = 'desc') => {
 
 // Sort expenses based on the selected filter
 const sortExpenses = (filter) => {
+  console.log('[TRACE] sortExpenses called with filter:', filter);
   console.log("=== Sort Debug Start ===");
   console.log("Sort direction:", filter);
 
@@ -425,7 +428,8 @@ const sortExpenses = (filter) => {
   });
 
   // Update the display after sorting
-  displayExpenses(filteredExpenses);
+  console.log('[TRACE] sortExpenses -> calling updatePaginatedDisplay()');
+  updatePaginatedDisplay();
 };
 
 const AddExpenseType = async () => {
@@ -496,6 +500,7 @@ const AddExpenseType = async () => {
 
 // Function to display expenses in the table
 async function displayExpenses(expenses) {
+  console.log('[TRACE] displayExpenses called with', expenses.length, 'entries');
   console.log('Displaying expenses:', expenses);
   const tableBody = document.getElementById("expensesTableBody");
   tableBody.innerHTML = "";

@@ -367,7 +367,7 @@ const fetchExpenses = async (sortDirection = 'desc') => {
     }
 
     // Remove redundant displayExpenses call and only use updatePaginatedDisplay
-    updatePaginatedDisplay();
+    // updatePaginatedDisplay();
     
     // Update the expense totals
     updateExpenseTotals(allExpenses);
