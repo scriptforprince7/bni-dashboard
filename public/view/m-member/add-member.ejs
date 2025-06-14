@@ -193,7 +193,6 @@
                                  class="form-control"
                                  id="member_date_of_birth"
                                  name="member_date_of_birth"
-                                 required
                                  onchange="validateDOB(this.value)"
                                  max="<%= new Date().toISOString().split('T')[0] %>"
                                />
@@ -278,7 +277,6 @@
                                  id="member_photo"
                                  name="member_photo"
                                  accept="image/png, image/jpeg, image/jpg"
-                                 required
                                />
                              </div>
                          </div>
@@ -315,9 +313,10 @@
                              class="form-control"
                              id="country"
                                name="country"
-                               required
+                               
                            >
                              <option value="">Select Country</option>
+                             <option value="In">India</option>
                            </select>
                          </div>
 
@@ -1305,7 +1304,7 @@ document.getElementById('category').addEventListener('change', function() {
     }
 });
 </script>
-  <script src="../../assets/js/country.js"></script>
+  <!-- <script src="../../assets/js/country.js"></script> -->
 
 <%- include('../partials/footer') %> 
 
