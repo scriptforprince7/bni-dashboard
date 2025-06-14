@@ -964,37 +964,17 @@ function processTransactions() {
             .sort((a, b) => new Date(a.payment_completion_time) - new Date(b.payment_completion_time));
 
         // 4. Process all payments for this bill
-        if (billTransactions.length > 0) {
-            // Process each payment and check for late payment penalties
+        let paymentIsLate = false;
+        let hasPayments = billTransactions.length > 0;
+        if (hasPayments) {
             billTransactions.forEach((payment, index) => {
                 const paymentDate = new Date(payment.payment_completion_time);
                 const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
                 const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
 
                 // Check if this payment is late
-                let skipPenaltyForProrate = false;
-                if (memberJoin > billDate && memberJoin <= billEnd) {
-                    if (dueDate.getMonth() === memberJoin.getMonth() && dueDate.getFullYear() === memberJoin.getFullYear()) {
-                        skipPenaltyForProrate = true;
-                    }
-                }
-
-                // Add penalty if payment is after due date and not exempted
-                if (paymentDate.getTime() > dueDate.getTime() && !skipPenaltyForProrate) {
-                    const penaltyAmount = bill.penalty_fee || 0;
-                    if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrate) {
-                        allTransactionItems.push({
-                            date: paymentDate,
-                            type: 'penalty',
-                            description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
-                            debit: penaltyAmount,
-                            credit: 0,
-                            gst: 0,
-                            totalAmount: penaltyAmount,
-                            // runningBalance will be set later
-                        });
-                        latePaymentCount++;
-                    }
+                if (paymentDate.getTime() > dueDate.getTime()) {
+                    paymentIsLate = true;
                 }
 
                 // Add payment entry
@@ -1037,51 +1017,40 @@ function processTransactions() {
                 });
                 runningBalance += paymentBaseAmount;
             });
-        } else {
-            // No payment, if today > due date, add penalty
-            let skipPenaltyForProrateNoPay = false;
-            if (memberJoin > billDate && memberJoin <= billEnd) {
-                if (dueDate.getMonth() === memberJoin.getMonth() && dueDate.getFullYear() === memberJoin.getFullYear()) {
-                    skipPenaltyForProrateNoPay = true;
-                }
-            }
-            const now = new Date();
-            if (now.getTime() > dueDate.getTime() && bill.penalty_fee > 0 && dueDate.getTime() >= memberJoin.getTime() && !skipPenaltyForProrateNoPay) {
-                const penaltyAmount = bill.penalty_fee;
-                allTransactionItems.push({
-                    date: dueDate,
-                    type: 'penalty',
-                    description: `<div><img src="../../assets/images/late.jpg" alt="Late Payment" style="width: 20px; height: 20px; margin-right: 5px;" /><i>Late Payment Penalty for ${monthName}</i></div>`,
-                    debit: penaltyAmount,
-                    credit: 0,
-                    gst: 0,
-                    totalAmount: penaltyAmount,
-                    // runningBalance will be set later
-                });
-                latePaymentCount++;
-            }
         }
-        // (Optional) Add credit/write-off entry if any (not implemented here)
-
-        // === NEW LOGIC: Add penalty if due date passed and less than 50% paid (even if some payment made) ===
-        const now = new Date();
-        const totalPaidForBill = billTransactions.reduce((sum, payment) => {
-            const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
-            return sum + (paymentOrder ? (parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax)) : 0);
-        }, 0);
-        const billBaseAmount = parseFloat(bill.total_bill_amount);
+        // Add penalty if less than 50% paid on time and due date has passed (on due date, only once)
         const penaltyAmount = bill.penalty_fee || 0;
         const penaltyAlreadyAdded = allTransactionItems.some(item =>
             item.type === 'penalty' &&
             item.description.includes(monthName) &&
             +new Date(item.date) === +dueDate
         );
+        const now = new Date();
+        // Prorate check: skip penalty if member joined in same month/year as due date (prorated case)
+        const isProrate = memberJoin > billDate && memberJoin <= billEnd;
+        const isSameMonthAsDue = memberJoin.getMonth() === dueDate.getMonth() && memberJoin.getFullYear() === dueDate.getFullYear();
+        const skipPenaltyForProrate = isProrate && isSameMonthAsDue;
+        // 50% on-time payment rule
+        let totalPaidOnTime = 0;
+        if (hasPayments) {
+            billTransactions.forEach((payment) => {
+                const paymentDate = new Date(payment.payment_completion_time);
+                const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
+                const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
+                if (paymentDate.getTime() <= dueDate.getTime()) {
+                    totalPaidOnTime += paymentBaseAmount;
+                }
+            });
+        }
+        const billBaseAmount = parseFloat(bill.total_bill_amount);
+        const paidAtLeast50PercentOnTime = totalPaidOnTime >= 0.5 * billBaseAmount;
         if (
-            now.getTime() > dueDate.getTime() &&
             penaltyAmount > 0 &&
             dueDate.getTime() >= memberJoin.getTime() &&
-            totalPaidForBill < 0.5 * billBaseAmount &&
-            !penaltyAlreadyAdded
+            !penaltyAlreadyAdded &&
+            !skipPenaltyForProrate &&
+            !paidAtLeast50PercentOnTime &&
+            now.getTime() > dueDate.getTime()
         ) {
             allTransactionItems.push({
                 date: dueDate,
