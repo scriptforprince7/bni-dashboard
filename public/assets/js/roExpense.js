@@ -1470,14 +1470,18 @@ document.addEventListener('click', async (event) => {
         await handleTdsSubmit(expenseId, tdsDetails);
       }
     } else if (formValues === 'noTds') {
+      const clickedButton = event.target.closest('.add-tds-btn');
+  const row = clickedButton.closest('tr');
+  const totalAmount = row.cells[9].textContent.replace(/[₹,]/g, '').trim();
       // Handle "No TDS" case
       const requestData = {
+        
         expense_id: expenseId,
         tds_percentage: "0",
         tds_amount: "0",
         tds_process: true,
         ca_comment: "No TDS Applicable",
-        final_amount: button.getAttribute('data-amount'),
+        final_amount: parseFloat(totalAmount),
         tds_section_list: "NA",
         tds_type: "NA"
       };
@@ -1867,6 +1871,8 @@ document.addEventListener('click', function(event) {
         const selectedStatus = result.value;
         
         if (selectedStatus === 'noTds') {
+          const row = button.closest('tr');
+const totalAmount = row.cells[9].textContent.replace(/[₹,]/g, '').trim();
           // Handle "No TDS" case
           const requestData = {
             expense_id: button.getAttribute('data-expense-id'),
@@ -1874,7 +1880,7 @@ document.addEventListener('click', function(event) {
             tds_amount: "0",
             tds_process: true,
             ca_comment: "No TDS Applicable",
-            final_amount: button.getAttribute('data-amount'),
+            final_amount: parseFloat(totalAmount),
             tds_section_list: "NA",
             tds_type: "NA"
           };
@@ -3371,7 +3377,7 @@ const viewVendorLedger = async (vendorId) => {
           </td>
           <td style="padding: 1rem;">
             <button class="btn btn-sm" 
-                    onclick="window.open('/uploads/${expense.bill_file}', '_blank')"
+                    onclick="window.open('${BILL_BASE_URL}/api/uploads/expenses/${expense.upload_bill}', '_blank')"
                     style="background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px;">
               View Bill
             </button>
@@ -3644,7 +3650,7 @@ async function viewHotelLedger(hotelId) {
                         </td>
                         <td style="padding: 1rem;">
                           <button class="btn btn-sm view-bill-btn" 
-                                  onclick="window.open('/uploads/${expense.upload_bill}', '_blank')"
+                                  onclick="window.open('${BILL_BASE_URL}/api/uploads/expenses/${expense.upload_bill}', '_blank')"
                                   style="background: linear-gradient(135deg, #dc143c, #8b0000); color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; transition: transform 0.2s;">
                             <i class="fas fa-file-invoice me-1"></i> View Bill
                           </button>
