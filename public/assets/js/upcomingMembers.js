@@ -792,26 +792,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Define the simplified condition for showing buttons
         const showUpdateButtons = (visitor) => {
-            return visitor.new_member_form && visitor.member_application_form ;
+            return visitor.commitment_sheet ;
         };
 
         // Function to render visitors
         async function renderVisitors(visitorsToShow) {
-            // Filter visitors based on payment status
-            const filteredVisitors = await Promise.all(
-                visitorsToShow.map(async (visitor) => {
-                    const isPaid = await checkMembershipPayment(visitor.visitor_id);
-                    return isPaid ? visitor : null;
-                })
-            );
+            // Filter visitors based on commitment_sheet status
+            const filteredVisitors = visitorsToShow.filter(visitor => visitor.commitment_sheet === true);
 
-            // Remove null values (visitors who haven't paid)
-            const paidVisitors = filteredVisitors.filter(visitor => visitor !== null);
+            // Update total count with filtered visitors
+            updateTotalCount(filteredVisitors.length);
 
-            // Update total count with paid visitors only
-            updateTotalCount(paidVisitors.length);
-
-            if (!paidVisitors.length) {
+            if (!filteredVisitors.length) {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="15" class="text-center">No visitors found</td>
@@ -819,7 +811,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
 
-            const tableContent = await Promise.all(paidVisitors.map(async (visitor, index) => {
+            const tableContent = await Promise.all(filteredVisitors.map(async (visitor, index) => {
                 console.log("👤 Processing visitor:", visitor);
                 const region = regions.find(r => r.region_id === visitor.region_id);
                 const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
@@ -1021,10 +1013,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 function createInductionKitStatus(visitor) {
                     const isReady =
                                     // visitor.eoi_form && 
-                                    visitor.member_application_form && 
-                                    visitor.new_member_form 
+                                    // visitor.member_application_form && 
+                                    // visitor.new_member_form 
                                     // visitor.interview_sheet && 
-                                    // visitor.commitment_sheet && 
+                                    visitor.commitment_sheet
                                     // visitor.inclusion_exclusion_sheet;
                     
                     if (!isReady) {

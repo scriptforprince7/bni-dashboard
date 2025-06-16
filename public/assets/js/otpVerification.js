@@ -60,7 +60,7 @@ document.getElementById('otpVerificationForm').addEventListener('submit', async 
             // Determine redirect URL first
             let redirectUrl = '/';
             if (login_type === 'ro_admin') {
-                redirectUrl = '/d/ro-dashboard';
+                redirectUrl = '/c/manage-chapter';
             } else if (login_type === 'chapter') {
                 redirectUrl = '/d/chapter-dashboard';
             } else if (login_type === 'member') {

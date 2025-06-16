@@ -1288,7 +1288,7 @@ const renderTable = () => {
                                     transition: all 0.3s ease;
                                  "
                             ><span style="font-weight: 500; color: #1e293b;">
-                ${req.accolade_ids.length} Accolades, ${req.member_ids.length} Members Requested
+               ${req.accolade_ids.length} Accolades, ${req.member_ids.length} Members Requested
             </span>
                             </div>
                         </div>
@@ -3296,62 +3296,46 @@ function showPickupComment(comment) {
 async function handleViewAccoladeDetailsVisitor(requisition) {
     try {
         console.log('👤 Starting handleViewAccoladeDetailsVisitor with requisition:', requisition);
-        
         // Fetch visitor and accolade data
         const [visitorsResponse, accoladesResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getallvisitors'),
             fetch('https://backend.bninewdelhi.com/api/accolades')
         ]);
-
         const [visitors, accolades] = await Promise.all([
             visitorsResponse.json(),
             accoladesResponse.json()
         ]);
-
-        // Log all accolades to see what we're working with
-        console.log('📊 All accolades:', accolades);
-        console.log('🔍 Looking for accolade ID:', requisition.accolade_ids[0]);
-
-        // Find visitor and accolade
         const visitor = visitors.find(v => v.visitor_id === requisition.visitor_id);
-        
-        // Try different ways to find the accolade
-        let accolade = accolades.find(a => a.accolade_id === parseInt(requisition.accolade_ids[0]));
-        if (!accolade) {
-            // Try without parseInt
-            accolade = accolades.find(a => a.accolade_id === requisition.accolade_ids[0]);
-        }
-        if (!accolade) {
-            // Try with string comparison
-            accolade = accolades.find(a => String(a.accolade_id) === String(requisition.accolade_ids[0]));
-        }
-
-        console.log('👤 Found visitor:', visitor);
-        console.log('🏆 Found accolade:', accolade);
-        console.log('🔍 Accolade search details:', {
-            searchingFor: requisition.accolade_ids[0],
-            type: typeof requisition.accolade_ids[0],
-            allAccoladeIds: accolades.map(a => ({ id: a.accolade_id, type: typeof a.accolade_id }))
-        });
-
         if (!visitor) {
             throw new Error(`Visitor not found with ID: ${requisition.visitor_id}`);
         }
-
-        if (!accolade) {
-            throw new Error(`Accolade not found with ID: ${requisition.accolade_ids[0]}. Available accolade IDs: ${accolades.map(a => a.accolade_id).join(', ')}`);
-        }
-
+        // Hardcoded accolade IDs: original + 2, 8, 10
+        const hardcodedAccoladeIds = [
+            parseInt(requisition.accolade_ids[0]),
+            2,
+            8,
+            10
+        ];
+        // Build rows for the table
+        const accoladeRows = hardcodedAccoladeIds.map(id => {
+            const accolade = accolades.find(a => parseInt(a.accolade_id) === id);
+            return {
+                accolade,
+                visitorName: visitor.visitor_name,
+                comment: requisition.comment || 'No comment'
+            };
+        });
+        // Use the first accolade for the summary card
+        const summaryAccolade = accoladeRows[0].accolade;
         // Check if requisition is already approved or declined
         const isApproved = requisition.approve_status === 'approved';
         const isDeclined = requisition.approve_status === 'declined';
-
         // Create HTML for visitor case
         const accoladesHtml = `
             <div class="accolade-details-container" style="width: 100%;">
                 <!-- Summary Card -->
                 <div style="
-                    background: ${accolade.accolade_type === 'Global' 
+                    background: ${summaryAccolade?.accolade_type === 'Global' 
                         ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
                         : 'linear-gradient(135deg, #ef4444, #b91c1c)'};
                     padding: 20px;
@@ -3364,7 +3348,7 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                         <i class="ri-award-fill"></i>
                     </div>
                     <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 4px;">
-                        ${accolade.accolade_name}
+                        ${summaryAccolade?.accolade_name || 'Accolade'}
                     </div>
                     <div style="font-size: 0.9rem; opacity: 0.9;">
                         Visitor Request
@@ -3377,10 +3361,9 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                         font-size: 0.8rem;
                         backdrop-filter: blur(4px);
                     ">
-                        ${accolade.accolade_type}
+                        ${summaryAccolade?.accolade_type || ''}
                     </div>
                 </div>
-
                 <!-- Detailed Table -->
                 <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.15);">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -3401,63 +3384,64 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom: 1px solid #e2e8f0;">
-                                <td style="padding: 16px;">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="
-                                            width: 40px;
-                                            height: 40px;
-                                            border-radius: 50%;
-                                            background: ${accolade.accolade_type === 'Global' ? '#3b82f6' : '#ef4444'};
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            color: white;
-                                        ">
-                                            <i class="ri-award-fill" style="font-size: 1.25rem;"></i>
+                            ${accoladeRows.map(row => `
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="
+                                                width: 40px;
+                                                height: 40px;
+                                                border-radius: 50%;
+                                                background: ${row.accolade?.accolade_type === 'Global' ? '#3b82f6' : '#ef4444'};
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: white;
+                                            ">
+                                                <i class="ri-award-fill" style="font-size: 1.25rem;"></i>
+                                            </div>
+                                            <span style="font-weight: 500; color: #1e293b;">
+                                                ${row.accolade?.accolade_name || 'Unknown'}
+                                            </span>
                                         </div>
-                                        <span style="font-weight: 500; color: #1e293b;">
-                                            ${accolade.accolade_name}
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="
+                                                width: 32px;
+                                                height: 32px;
+                                                border-radius: 50%;
+                                                background: #0369a1;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: white;
+                                            ">
+                                                <i class="ri-user-follow-line"></i>
+                                            </div>
+                                            <span style="color: #1e293b;">${row.visitorName}</span>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <span style="
+                                            padding: 6px 12px;
+                                            border-radius: 999px;
+                                            font-size: 0.875rem;
+                                            background: ${row.accolade?.accolade_type === 'Global' ? '#eff6ff' : '#fef2f2'};
+                                            color: ${row.accolade?.accolade_type === 'Global' ? '#1d4ed8' : '#b91c1c'};
+                                            border: 1px solid ${row.accolade?.accolade_type === 'Global' ? '#bfdbfe' : '#fecaca'};
+                                        ">
+                                            ${row.accolade?.accolade_type || ''}
                                         </span>
-                                    </div>
-                                </td>
-                                <td style="padding: 16px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="
-                                            width: 32px;
-                                            height: 32px;
-                                            border-radius: 50%;
-                                            background: #0369a1;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            color: white;
-                                        ">
-                                            <i class="ri-user-follow-line"></i>
-                                        </div>
-                                        <span style="color: #1e293b;">${visitor.visitor_name}</span>
-                                    </div>
-                                </td>
-                                <td style="padding: 16px;">
-                                    <span style="
-                                        padding: 6px 12px;
-                                        border-radius: 999px;
-                                        font-size: 0.875rem;
-                                        background: ${accolade.accolade_type === 'Global' ? '#eff6ff' : '#fef2f2'};
-                                        color: ${accolade.accolade_type === 'Global' ? '#1d4ed8' : '#b91c1c'};
-                                        border: 1px solid ${accolade.accolade_type === 'Global' ? '#bfdbfe' : '#fecaca'};
-                                    ">
-                                        ${accolade.accolade_type}
-                                    </span>
-                                </td>
-                                <td style="padding: 16px;">
-                                    <span style="color: #1e293b;">${requisition.comment || 'No comment'}</span>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td style="padding: 16px;">
+                                        <span style="color: #1e293b;">${row.comment}</span>
+                                    </td>
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
-
                 <!-- Action Buttons -->
                 <div style="
                     display: flex;
@@ -3474,10 +3458,8 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                                 pickup_status: false,
                                 pickup_date: null
                             };
-
                             console.log('📦 Visitor Request Data:', chapterRequestData);
-
-                            // Update chapter requisition for visitor
+                            // Update chapter requisition for visitor (only original accolade is affected)
                             const chapterResponse = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
                                 method: 'PUT',
                                 headers: {
@@ -3485,11 +3467,9 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                                 },
                                 body: JSON.stringify(chapterRequestData)
                             });
-
                             if (!chapterResponse.ok) {
                                 throw new Error('Chapter requisition update failed');
                             }
-
                             await Swal.fire({
                                 icon: 'success',
                                 title: 'Success!',
@@ -3547,7 +3527,6 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                         ${isDeclined ? 'Declined' : 'Decline'}
                     </button>
                 </div>
-
                 <!-- Comment Box -->
                 <div style="margin-top: 16px;">
                     <textarea id="roComment" placeholder="Add your comment here..." style="
@@ -3566,7 +3545,6 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                 </div>
             </div>
         `;
-
         // Show SweetAlert
         Swal.fire({
             title: '<div style="color: #2563eb; display: flex; align-items: center; gap: 8px;"><i class="ri-award-line"></i>Accolade Details</div>',
@@ -3580,7 +3558,6 @@ async function handleViewAccoladeDetailsVisitor(requisition) {
                 popup: 'border-radius: 16px;'
             }
         });
-
     } catch (error) {
         console.error('❌ Error in handleViewAccoladeDetailsVisitor:', error);
         console.error('Error details:', {

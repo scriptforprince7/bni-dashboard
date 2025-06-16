@@ -263,6 +263,177 @@ const calculateCurrentBalance = (chapterData, expenses, allOrders, allTransactio
     }
 };
 
+// Function to calculate payment breakdowns
+function calculatePaymentBreakdowns(chapterData, expenses, allOrders, allTransactions, allOtherPayments) {
+    try {
+        // Paid Expenses Breakdown
+        const paidExpenses = expenses.filter(expense => 
+            expense.payment_status === "paid" && 
+            parseInt(expense.chapter_id) === chapterData.chapter_id
+        );
+        const paidExpensesBreakdown = {
+            total: paidExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0),
+            online: paidExpenses.filter(exp => exp.mode_of_payment === "online")
+                .reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0),
+            cash: paidExpenses.filter(exp => exp.mode_of_payment === "cash")
+                .reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0)
+        };
+
+        // Pending Expenses Breakdown
+        const pendingExpenses = expenses.filter(expense => 
+            expense.payment_status === "pending" && 
+            parseInt(expense.chapter_id) === chapterData.chapter_id
+        );
+        const pendingExpensesBreakdown = {
+            total: pendingExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0),
+            online: pendingExpenses.filter(exp => exp.mode_of_payment === "online")
+                .reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0),
+            cash: pendingExpenses.filter(exp => exp.mode_of_payment === "cash")
+                .reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0)
+        };
+
+        // Other Payments Breakdown
+        const otherPayments = allOtherPayments.filter(payment => 
+            parseInt(payment.chapter_id) === chapterData.chapter_id
+        );
+        const otherPaymentsBreakdown = {
+            total: otherPayments.reduce((sum, pay) => sum + (parseFloat(pay.total_amount) || 0), 0),
+            online: otherPayments.filter(pay => pay.mode_of_payment === "online")
+                .reduce((sum, pay) => sum + (parseFloat(pay.total_amount) || 0), 0),
+            cash: otherPayments.filter(pay => pay.mode_of_payment === "cash")
+                .reduce((sum, pay) => sum + (parseFloat(pay.total_amount) || 0), 0)
+        };
+
+        // Visitor Payments Breakdown
+        const visitorPayments = allOrders.filter(order => 
+            parseInt(order.chapter_id) === chapterData.chapter_id &&
+            (order.payment_note === "Visitor Payment" || order.payment_note === "visitor-payment")
+        );
+        const visitorPaymentsBreakdown = {
+            total: 0,
+            online: 0,
+            cash: 0
+        };
+
+        visitorPayments.forEach(order => {
+            const transaction = allTransactions.find(tran => 
+                tran.order_id === order.order_id && 
+                tran.payment_status === "SUCCESS"
+            );
+            if (transaction) {
+                // Calculate net amount by subtracting tax
+                const tax = parseFloat(order.tax) || 0;
+                const grossAmount = parseFloat(transaction.payment_amount) || 0;
+                const netAmount = grossAmount - tax;
+                
+                visitorPaymentsBreakdown.total += netAmount;
+                
+                // Check payment method
+                if (transaction.payment_method && transaction.payment_method.cash) {
+                    visitorPaymentsBreakdown.cash += netAmount;
+                } else {
+                    visitorPaymentsBreakdown.online += netAmount;
+                }
+            }
+        });
+
+        // Kitty Payments Breakdown
+        const kittyPayments = allOrders.filter(order => 
+            parseInt(order.chapter_id) === chapterData.chapter_id &&
+            order.payment_note === "meeting-payments"
+        );
+        const kittyPaymentsBreakdown = {
+            total: 0,
+            online: 0,
+            cash: 0
+        };
+
+        kittyPayments.forEach(order => {
+            const transaction = allTransactions.find(tran => 
+                tran.order_id === order.order_id && 
+                tran.payment_status === "SUCCESS"
+            );
+            if (transaction) {
+                // Calculate net amount by subtracting tax
+                const tax = parseFloat(order.tax) || 0;
+                const grossAmount = parseFloat(transaction.payment_amount) || 0;
+                const netAmount = grossAmount - tax;
+                
+                kittyPaymentsBreakdown.total += netAmount;
+                
+                // Check payment method
+                if (transaction.payment_method && transaction.payment_method.cash) {
+                    kittyPaymentsBreakdown.cash += netAmount;
+                } else {
+                    kittyPaymentsBreakdown.online += netAmount;
+                }
+            }
+        });
+
+        return {
+            paidExpenses: paidExpensesBreakdown,
+            pendingExpenses: pendingExpensesBreakdown,
+            otherPayments: otherPaymentsBreakdown,
+            visitorPayments: visitorPaymentsBreakdown,
+            kittyPayments: kittyPaymentsBreakdown
+        };
+    } catch (error) {
+        console.error('Error calculating payment breakdowns:', error);
+        return {
+            paidExpenses: { total: 0, online: 0, cash: 0 },
+            pendingExpenses: { total: 0, online: 0, cash: 0 },
+            otherPayments: { total: 0, online: 0, cash: 0 },
+            visitorPayments: { total: 0, online: 0, cash: 0 },
+            kittyPayments: { total: 0, online: 0, cash: 0 }
+        };
+    }
+}
+
+// Function to show payment breakdown popup
+function showPaymentBreakdownPopup(title, breakdown) {
+    const formatCurrency = (amt) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amt);
+    };
+
+    const content = `
+        <div class="payment-breakdown">
+            <div class="breakdown-section">
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="ri-bank-card-line me-2"></i>Online Payments</span>
+                    <span class="fw-bold" style="color: #28a745;">${formatCurrency(breakdown.online)}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span><i class="ri-money-dollar-circle-line me-2"></i>Cash Payments</span>
+                    <span class="fw-bold" style="color: #007bff;">${formatCurrency(breakdown.cash)}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total Amount</span>
+                    <span class="fw-bold" style="color: #28a745;">${formatCurrency(breakdown.total)}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    Swal.fire({
+        title: title,
+        html: content,
+        customClass: {
+            container: 'payment-breakdown-popup',
+            popup: 'payment-breakdown-popup',
+            content: 'payment-breakdown-content'
+        },
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 500
+    });
+}
+
 // Update displayChapters to fetch all data once and process in-memory
 async function displayChapters(chapters) {
     console.log("📊 Displaying chapters:", chapters);
@@ -326,11 +497,13 @@ async function displayChapters(chapters) {
         const breakdown = calculateCurrentBalance(chapter, expenses, allOrders, allTransactions, allOtherPayments);
         const currentBalance = breakdown.currentBalance;
 
+        const breakdowns = calculatePaymentBreakdowns(chapter, expenses, allOrders, allTransactions, allOtherPayments);
+        
         const row = document.createElement("tr");
         row.innerHTML = `
             <td style="border: 1px solid grey;">${showingAll ? chapters.indexOf(chapter) + 1 : start + chapters.indexOf(chapter) + 1}</td>
             <td style="border: 1px solid grey;">
-                <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link">
+                <a href="javascript:void(0);" onclick="handleChapterAccess('${chapter.chapter_id}', '${chapter.email_id}');" class="chapter-link" target="_blank">
                     <b>${chapter.chapter_name}</b>
                 </a>
             </td>
@@ -351,6 +524,21 @@ async function displayChapters(chapters) {
                     ${chapter.chapter_status}
                 </span>
             </td>
+            <td style="border: 1px solid grey; cursor:pointer;" class="paid-expenses-cell" data-chapter="${chapter.chapter_name}">
+                <b>₹${breakdowns.paidExpenses.total.toLocaleString('en-IN')}</b>
+            </td>
+            <td style="border: 1px solid grey; cursor:pointer;" class="pending-expenses-cell" data-chapter="${chapter.chapter_name}">
+                <b>₹${breakdowns.pendingExpenses.total.toLocaleString('en-IN')}</b>
+            </td>
+            <td style="border: 1px solid grey; cursor:pointer;" class="other-payments-cell" data-chapter="${chapter.chapter_name}">
+                <b>₹${breakdowns.otherPayments.total.toLocaleString('en-IN')}</b>
+            </td>
+            <td style="border: 1px solid grey; cursor:pointer;" class="visitor-payments-cell" data-chapter="${chapter.chapter_name}">
+                <b>₹${breakdowns.visitorPayments.total.toLocaleString('en-IN')}</b>
+            </td>
+            <td style="border: 1px solid grey; cursor:pointer;" class="kitty-payments-cell" data-chapter="${chapter.chapter_name}">
+                <b>₹${breakdowns.kittyPayments.total.toLocaleString('en-IN')}</b>
+            </td>
             <td>
                 <span class="badge bg-warning text-light" style="cursor:pointer;">
                     <a href="/c/edit-chapter/?chapter_id=${chapter.chapter_id}" style="color:white">Edit</a>
@@ -362,16 +550,33 @@ async function displayChapters(chapters) {
         `;
         tableBody.appendChild(row);
 
-        // Add event listener for breakdown popup (on click)
-        setTimeout(() => {
-            const fundCell = row.querySelector('.available-fund-cell');
-            if (fundCell) {
-                fundCell.addEventListener('click', function(e) {
-                    showCurrentBalanceBreakdownPopup(chapter.chapter_name, breakdown);
+        // Add event listener for available fund breakdown
+        const fundCell = row.querySelector('.available-fund-cell');
+        if (fundCell) {
+            fundCell.addEventListener('click', function(e) {
+                showCurrentBalanceBreakdownPopup(chapter.chapter_name, breakdown);
+            });
+            fundCell.title = 'Click to see calculation breakdown';
+        }
+
+        // Add event listeners for the new cells
+        const cells = {
+            'paid-expenses-cell': { title: 'Paid Expenses Breakdown', breakdown: breakdowns.paidExpenses },
+            'pending-expenses-cell': { title: 'Pending Expenses Breakdown', breakdown: breakdowns.pendingExpenses },
+            'other-payments-cell': { title: 'Other Payments Breakdown', breakdown: breakdowns.otherPayments },
+            'visitor-payments-cell': { title: 'Visitor Payments Breakdown', breakdown: breakdowns.visitorPayments },
+            'kitty-payments-cell': { title: 'Kitty Payments Breakdown', breakdown: breakdowns.kittyPayments }
+        };
+
+        Object.entries(cells).forEach(([className, data]) => {
+            const cell = row.querySelector(`.${className}`);
+            if (cell) {
+                cell.addEventListener('click', () => {
+                    showPaymentBreakdownPopup(data.title, data.breakdown);
                 });
-                fundCell.title = 'Click to see calculation breakdown';
+                cell.title = `Click to see ${data.title}`;
             }
-        }, 0);
+        });
     }
 
     // Update status counters display
@@ -679,7 +884,7 @@ document.getElementById("chaptersTableBody")?.addEventListener("click", async (e
     }
 });
 
-// Add this function at the bottom of the file
+// Modify the handleChapterAccess function
 async function handleChapterAccess(chapterId, chapterEmail) {
     console.log('=== Starting handleChapterAccess ===');
     console.log('Params received:', { chapterId, chapterEmail });
@@ -714,8 +919,8 @@ async function handleChapterAccess(chapterId, chapterEmail) {
                     throw new Error('Failed to store chapter access data');
                 }
 
-                // Only redirect if data is properly stored
-                window.location.href = `/d/chapter-dashboard/${chapterId}`;
+                // Open in new window
+                window.open(`/d/chapter-dashboard/${chapterId}`, '_blank');
             } else {
                 throw new Error('Failed to set admin chapter access');
             }
@@ -730,13 +935,13 @@ async function handleChapterAccess(chapterId, chapterEmail) {
                 console.log('Chapter accessing own dashboard');
                 localStorage.setItem('current_chapter_email', chapterEmail);
                 localStorage.setItem('current_chapter_id', chapterId);
-                window.location.href = `/d/chapter-dashboard/${chapterId}`;
+                window.open(`/d/chapter-dashboard/${chapterId}`, '_blank');
             } else {
                 throw new Error('Chapter attempting to access unauthorized dashboard');
             }
         } else {
             console.log('Regular user access - redirecting to view-chapter');
-            window.location.href = `/c/view-chapter/?chapter_id=${chapterId}`;
+            window.open(`/c/view-chapter/?chapter_id=${chapterId}`, '_blank');
         }
     } catch (error) {
         console.error('Error in handleChapterAccess:', error);

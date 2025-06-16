@@ -348,8 +348,7 @@ function previewDocument(src, title) {
 
 // Add this function to check induction readiness (if not already present)
 function getInductionStatus(visitor) {
-    return  visitor.member_application_form && 
-    visitor.new_member_form 
+    return  visitor.commitment_sheet
     
         
            
@@ -1439,131 +1438,142 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Update renderVisitors function
         async function renderVisitors(visitorsToShow) {
-            // First filter visitors to only include those with completed payments
-            const paidVisitors = await Promise.all(
-                visitorsToShow.map(async (visitor) => {
-                    const isPaid = await checkMembershipPayment(visitor.visitor_id);
-                    return isPaid ? visitor : null;
-                })
-            );
-            
-            // Remove null entries and keep only paid visitors
-            const filteredVisitors = paidVisitors.filter(visitor => visitor !== null);
-
-            // Update total count with filtered visitors
-            updateTotalCount(filteredVisitors.length);
-
-            if (!filteredVisitors.length) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="15" class="text-center">No visitors found with completed payments</td>
-                    </tr>`;
-                return;
-            }
-
-            const tableContent = await Promise.all(filteredVisitors.map(async (visitor, index) => {
-                const region = regions.find(r => r.region_id === visitor.region_id);
-                const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+            try {
+                // First filter visitors to only include those with commitment_sheet as true
+                const filteredVisitors = visitorsToShow.filter(visitor => visitor.commitment_sheet === true);
                 
-                // Fetch member application details for this visitor
-                const memberApplication = await fetchMemberApplicationDetails(visitor.visitor_id);
+                // Update total count with filtered visitors
+                updateTotalCount(filteredVisitors.length);
 
-                const onboardingCallDisplay = visitor.onboarding_call 
-                    ? `
-                        <div class="doc-container">
-                            <img src="https://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
-                                 class="doc-preview" 
-                                 onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
-                                 alt="Onboarding Call Preview"
-                                 onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
-                            />
-                            <div class="doc-actions">
-                                <label class="upload-btn" title="Upload New">
-                                    <i class="ri-upload-2-line"></i>
-                                    <input type="file" 
-                                           accept="image/*" 
-                                           style="display: none;" 
-                                           onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
-                                    >
-                                </label>
+                // Wait for the table body element to be available
+                let tableBody = document.getElementById('chaptersTableBody');
+                let attempts = 0;
+                const maxAttempts = 10;
+
+                while (!tableBody && attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    tableBody = document.getElementById('chaptersTableBody');
+                    attempts++;
+                }
+
+                if (!tableBody) {
+                    console.error('Table body element not found after multiple attempts');
+                    return;
+                }
+
+                if (!filteredVisitors.length) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="15" class="text-center">No visitors found with commitment sheet</td>
+                        </tr>`;
+                    return;
+                }
+
+                const tableContent = await Promise.all(filteredVisitors.map(async (visitor, index) => {
+                    const region = regions.find(r => r.region_id === visitor.region_id);
+                    const chapter = chapters.find(c => c.chapter_id === visitor.chapter_id);
+                    
+                    // Fetch member application details for this visitor
+                    const memberApplication = await fetchMemberApplicationDetails(visitor.visitor_id);
+
+                    const onboardingCallDisplay = visitor.onboarding_call 
+                        ? `
+                            <div class="doc-container">
+                                <img src="https://backend.bninewdelhi.com/api/uploads/onboardingCalls/${visitor.onboarding_call}" 
+                                     class="doc-preview" 
+                                     onclick="previewDocument(this.src, 'Onboarding Call Screenshot')" 
+                                     alt="Onboarding Call Preview"
+                                     onerror="this.onerror=null; this.src='../../assets/images/media/no-image.png';"
+                                />
+                                <div class="doc-actions">
+                                    <label class="upload-btn" title="Upload New">
+                                        <i class="ri-upload-2-line"></i>
+                                        <input type="file" 
+                                               accept="image/*" 
+                                               style="display: none;" 
+                                               onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
+                                        >
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                    `
-                    : `
-                        <label class="upload-btn">
-                            <i class="ri-upload-2-line"></i> Upload Screenshot
-                            <input type="file" 
-                                   accept="image/*" 
-                                   style="display: none;" 
-                                   onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
-                            >
-                        </label>
+                        `
+                        : `
+                            <label class="upload-btn">
+                                <i class="ri-upload-2-line"></i> Upload Screenshot
+                                <input type="file" 
+                                       accept="image/*" 
+                                       style="display: none;" 
+                                       onchange="handleScreenshotUpload(event, ${visitor.visitor_id})"
+                                >
+                            </label>
+                        `;
+
+                    // Update the inductionKitDisplay
+                    const isReadyForInduction = getInductionStatus(visitor);
+                    const inductionKitDisplay = createInductionKitDisplay(visitor, isReadyForInduction);
+
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><b>${visitor.visitor_name || 'N/A'}</b></td>
+                            <td><b>${visitor.invited_by_name || 'N/A'}</b></td>
+                            <td><b>${region?.region_name || 'N/A'}</b></td>
+                            <td><b>${chapter?.chapter_name || 'N/A'}</b></td>
+                            <td><b>${formatDate(visitor.visited_date)}</b></td>
+                            <td><b>${visitor.visitor_phone || 'N/A'}</b></td>
+                            <td><b>${visitor.visitor_category || 'N/A'}</b></td>
+                            <td class="text-center">${await getStatusIcon(visitor.visitor_form, 'visitor', visitor)}</td>
+                            <td class="text-center">${await getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
+                            <td class="text-center">${await getStatusIcon(visitor.member_application_form, 'member_application', visitor)}</td>
+                            <td class="text-center">${await getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
+                            <td class="text-center">
+                                 <button class="send-vp-mail-btn" onclick="handleSendVPEmail(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                    Send VP Mail <i class="ri-mail-send-line"></i>
+                                </button>
+                            </td>
+                            <td class="text-center">
+                                <button class="send-mail-btn" onclick="handleSendEmail(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
+                                    Send Mail <i class="ri-mail-send-line"></i>
+                                </button>
+                            </td>
+                            <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
+                            <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
+                            <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
+                            <td class="text-center">${onboardingCallDisplay}</td>
+                            <td class="text-center">
+                                ${createDocumentDisplay(
+                                    memberApplication?.aadhar_card_img,
+                                    memberApplication?.aadhar_card_number,
+                                    'aadharCard',
+                                    visitor.visitor_id
+                                )}
+                            </td>
+                            <td class="text-center">
+                                ${createDocumentDisplay(
+                                    memberApplication?.pan_card_img,
+                                    memberApplication?.pan_card_number,
+                                    'panCard',
+                                    visitor.visitor_id
+                                )}
+                            </td>
+                            <td class="text-center">
+                                ${createDocumentDisplay(
+                                    memberApplication?.gst_certificate,
+                                    visitor.visitor_gst,
+                                    'gstCertificate',
+                                    visitor.visitor_id
+                                )}
+                            </td>
+                            <td class="text-center" data-visitor-id="${visitor.visitor_id}">${inductionKitDisplay}</td>
+                            <td class="text-center">${createInductionStatus(visitor)}</td>
+                        </tr>
                     `;
+                }));
 
-                // Update the inductionKitDisplay
-                const isReadyForInduction = getInductionStatus(visitor);
-                const inductionKitDisplay = createInductionKitDisplay(visitor, isReadyForInduction);
-
-                return `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td><b>${visitor.visitor_name || 'N/A'}</b></td>
-                        <td><b>${visitor.invited_by_name || 'N/A'}</b></td>
-                        <td><b>${region?.region_name || 'N/A'}</b></td>
-                        <td><b>${chapter?.chapter_name || 'N/A'}</b></td>
-                        <td><b>${formatDate(visitor.visited_date)}</b></td>
-                        <td><b>${visitor.visitor_phone || 'N/A'}</b></td>
-                        <td><b>${visitor.visitor_category || 'N/A'}</b></td>
-                        <td class="text-center">${await getStatusIcon(visitor.visitor_form, 'visitor', visitor)}</td>
-                        <td class="text-center">${await getStatusIcon(visitor.eoi_form, 'eoi', visitor)}</td>
-                        <td class="text-center">${await getStatusIcon(visitor.member_application_form, 'member_application', visitor)}</td>
-                        <td class="text-center">${await getStatusIcon(visitor.new_member_form, 'payment', visitor)}</td>
-                        <td class="text-center">
-                             <button class="send-vp-mail-btn" onclick="handleSendVPEmail(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                                Send VP Mail <i class="ri-mail-send-line"></i>
-                            </button>
-                        </td>
-                        <td class="text-center">
-                            <button class="send-mail-btn" onclick="handleSendEmail(${JSON.stringify(visitor).replace(/"/g, '&quot;')})">
-                                Send Mail <i class="ri-mail-send-line"></i>
-                            </button>
-                        </td>
-                        <td class="text-center">${await getStatusIcon(visitor.interview_sheet, 'interview', visitor)}</td>
-                        <td class="text-center">${await getStatusIcon(visitor.commitment_sheet, 'commitment', visitor)}</td>
-                        <td class="text-center">${await getStatusIcon(visitor.inclusion_exclusion_sheet, 'inclusion', visitor)}</td>
-                        <td class="text-center">${onboardingCallDisplay}</td>
-                        <td class="text-center">
-                            ${createDocumentDisplay(
-                                memberApplication?.aadhar_card_img,
-                                memberApplication?.aadhar_card_number,
-                                'aadharCard',
-                                visitor.visitor_id
-                            )}
-                        </td>
-                        <td class="text-center">
-                            ${createDocumentDisplay(
-                                memberApplication?.pan_card_img,
-                                memberApplication?.pan_card_number,
-                                'panCard',
-                                visitor.visitor_id
-                            )}
-                        </td>
-                        <td class="text-center">
-                            ${createDocumentDisplay(
-                                memberApplication?.gst_certificate,
-                                visitor.visitor_gst,
-                                'gstCertificate',
-                                visitor.visitor_id
-                            )}
-                        </td>
-                        <td class="text-center" data-visitor-id="${visitor.visitor_id}">${inductionKitDisplay}</td>
-                        <td class="text-center">${createInductionStatus(visitor)}</td>
-                        
-                    </tr>
-                `;
-            }));
-
-            tableBody.innerHTML = tableContent.join('');
+                tableBody.innerHTML = tableContent.join('');
+            } catch (error) {
+                console.error('Error rendering visitors:', error);
+            }
         }
 
         // Update the createDocumentDisplay function
