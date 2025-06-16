@@ -783,7 +783,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     // GST Checkbox logic
-    const includeGstCheckbox = document.getElementById('include-gst');
+    const includeGstCheckboxDefault = document.getElementById('include-gst');
     const taxableAmountInput = document.getElementById('taxable-total-amount');
     const cgstInput = document.getElementById('cgst_amount');
     const sgstInput = document.getElementById('sgst_amount');
@@ -793,7 +793,7 @@ document.addEventListener("DOMContentLoaded", async function() {
         const taxable = parseFloat(taxableAmountInput.value.replace(/[₹,\s]/g, '')) || 0;
         let cgst = 0, sgst = 0;
 
-        if (includeGstCheckbox.checked) {
+        if (includeGstCheckboxDefault.checked) {
             // Calculate GST (18% of taxable), split into CGST/SGST
             const gst = +(taxable * 0.18).toFixed(2);
             cgst = +(gst / 2).toFixed(2);
@@ -810,11 +810,17 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     // Attach listeners
-    if (includeGstCheckbox) includeGstCheckbox.addEventListener('change', updateGrandTotalWithGST);
+    if (includeGstCheckboxDefault) includeGstCheckboxDefault.addEventListener('change', updateGrandTotalWithGST);
     if (taxableAmountInput) taxableAmountInput.addEventListener('input', updateGrandTotalWithGST);
 
     // Initial call to set correct value on page load
     updateGrandTotalWithGST();
+
+    // Ensure GST is included by default
+    if (includeGstCheckboxDefault) {
+      includeGstCheckboxDefault.checked = true;
+      updateGrandTotalWithGST();
+    }
 
     // Add submit handler for the invoice form
     const submitButton = document.getElementById('submit_invoice');
