@@ -199,26 +199,375 @@ function hideLoader() {
 
 // Function to calculate and update expense totals
 const updateExpenseTotals = (expenses) => {
+  console.log('Calculating expense totals for:', expenses.length, 'expenses');
+  
   // Calculate total expenses
   const totalAmount = expenses.reduce((sum, expense) => {
-    return sum + parseFloat(expense.amount);
+    return sum + parseFloat(expense.amount || 0);
   }, 0);
 
   // Calculate paid expenses
   const paidAmount = expenses
     .filter(expense => expense.payment_status.toLowerCase() === 'paid')
-    .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
 
-  // Calculate pending expenses
-  const pendingAmount = expenses
-    .filter(expense => expense.payment_status.toLowerCase() !== 'paid')
-    .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+  // Calculate pending expenses with cash/online breakdown
+  const pendingExpenses = expenses.filter(expense => expense.payment_status.toLowerCase() !== 'paid');
+  const pendingAmount = pendingExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+  
+  // Calculate cash and online pending amounts
+  const cashPendingAmount = pendingExpenses
+    .filter(expense => expense.mode_of_payment?.toLowerCase() === 'cash')
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+    
+  const onlinePendingAmount = pendingExpenses
+    .filter(expense => expense.mode_of_payment?.toLowerCase() === 'online')
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+
+  console.log('Expense totals:', {
+    total: totalAmount,
+    paid: paidAmount,
+    pending: pendingAmount,
+    cashPending: cashPendingAmount,
+    onlinePending: onlinePendingAmount
+  });
 
   // Update the UI with formatted amounts
   document.querySelector('[data-total-expenses]').textContent = `₹ ${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   document.querySelector('[data-paid-expenses]').textContent = `₹ ${paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  document.querySelector('[data-pending-expenses]').textContent = `₹ ${pendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  
+  // Update pending expenses with cash/online breakdown
+  const pendingExpensesElement = document.querySelector('[data-pending-expenses]');
+  pendingExpensesElement.innerHTML = `
+    ₹ ${pendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    <div style="font-size: 0.8em; color: #666;">
+      <span style="cursor:pointer;" onclick="showPendingExpensesPopup('cash')">
+        <i class="ri-money-dollar-circle-line"></i> Cash: ₹ ${cashPendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+      <span style="margin-left:8px; cursor:pointer;" onclick="showPendingExpensesPopup('online')">
+        <i class="ri-bank-card-line"></i> Online: ₹ ${onlinePendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+    </div>
+  `;
+  
+  // Store pending expenses for popup
+  window.pendingExpenseDetails = pendingExpenses.map(expense => ({
+    description: expense.description,
+    amount: parseFloat(expense.amount || 0),
+    date: expense.bill_date,
+    mode: expense.mode_of_payment,
+    submittedBy: expense.submitted_by,
+    billNo: expense.bill_no,
+    gstAmount: parseFloat(expense.gst_amount || 0),
+    baseAmount: parseFloat(expense.amount || 0) - parseFloat(expense.gst_amount || 0),
+    gstPercentage: expense.gst_percentage
+  }));
 };
+
+// Function to show pending expenses popup
+function showPendingExpensesPopup(mode) {
+  console.log('Showing pending expenses popup for mode:', mode);
+  
+  // Get current chapter_id from the page context (assume it's available globally or via a hidden input)
+  let currentChapterId = null;
+  if (typeof window.currentChapterId !== 'undefined') {
+    currentChapterId = window.currentChapterId;
+  } else {
+    // Try to get from a hidden input if not set globally
+    const chapterInput = document.getElementById('current-chapter-id');
+    if (chapterInput) {
+      currentChapterId = chapterInput.value;
+    }
+  }
+  console.log('Current chapter_id for filtering:', currentChapterId);
+
+  // Filter pendingExpenseDetails for the current chapter only
+  let filteredDetails = window.pendingExpenseDetails.filter(expense => {
+    // If chapter_id is present on the expense, filter by it
+    if (expense.chapter_id && currentChapterId) {
+      return expense.chapter_id == currentChapterId && (mode === 'all' || expense.mode.toLowerCase() === mode.toLowerCase());
+    }
+    // If not present, fallback to mode filter only
+    return mode === 'all' || expense.mode.toLowerCase() === mode.toLowerCase();
+  });
+
+  if (filteredDetails.length === 0) {
+    Swal.fire({
+      title: 'Pending Expenses',
+      html: '<p>No pending expenses found</p>',
+      width: 600,
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        container: 'kitty-breakdown-popup',
+        popup: 'kitty-breakdown-popup',
+        content: 'kitty-breakdown-content'
+      }
+    });
+    return;
+  }
+
+  // Sort filteredDetails by date descending (most recent first)
+  filteredDetails.sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB - dateA;
+  });
+
+  // Calculate totals for the filtered expenses
+  const totalBaseAmount = filteredDetails.reduce((sum, e) => sum + (e.amount || 0), 0); // Use original amount
+  const totalGST = filteredDetails.reduce((sum, e) => sum + (e.gstAmount || 0), 0);
+  const totalAmount = filteredDetails.reduce((sum, e) => sum + ((e.amount || 0) + (e.gstAmount || 0)), 0);
+
+  console.log('Calculated totals:', {
+    totalBaseAmount,
+    totalGST,
+    totalAmount
+  });
+
+  // Add custom styles for the beautiful table
+  if (!document.getElementById('pending-expense-popup-style')) {
+    const style = document.createElement('style');
+    style.id = 'pending-expense-popup-style';
+    style.textContent = `
+      .pending-expense-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        font-size: 1.05em;
+      }
+      .pending-expense-table thead th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 700;
+        padding: 14px 10px;
+        border-radius: 10px 10px 0 0;
+        border-bottom: 2px solid #e0e0e0;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+      }
+      .pending-expense-table thead th:hover {
+        background: #e9ecef;
+      }
+      .pending-expense-table thead th .sort-icon {  
+        margin-left: 5px;
+        opacity: 0.5;
+      }
+      .pending-expense-table thead th.sort-asc .sort-icon,
+      .pending-expense-table thead th.sort-desc .sort-icon {
+        opacity: 1;
+      }
+      .pending-expense-table tbody tr {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s;
+      }
+      .pending-expense-table tbody tr:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        background: #f3f7fa;
+      }
+      .pending-expense-table td {
+        padding: 14px 10px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 1em;
+      }
+      .pending-expense-table td.description {
+        text-align: left;
+        min-width: 220px;
+        max-width: 400px;
+        word-break: break-word;
+        color: #333;
+      }
+      .pending-expense-table td.mode {
+        font-weight: 600;
+        text-align: center;
+      }
+      .pending-expense-table .icon {
+        font-size: 1.1em;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+      .pending-expense-table .mode-cash {
+        color: #28a745;
+        background: #eafaf1;
+        border-radius: 8px;
+        padding: 4px 10px;
+        display: inline-block;
+      }
+      .pending-expense-table .mode-online {
+        color: #1976D2;
+        background: #e3f0fd;
+        border-radius: 8px;
+        padding: 4px 10px;
+        display: inline-block;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Create HTML for the popup with improved table styling and icons
+  let html = `
+    <div class="breakdown-section">
+      <h6>Total Pending Expenses</h6>
+      <div class="d-flex justify-content-between">
+        <span>Base Amount:</span>
+        <span class="fw-bold">₹ ${totalBaseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span>GST Amount:</span>
+        <span class="fw-bold">₹ ${totalGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span>Total Amount:</span>
+        <span class="fw-bold">₹ ${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      </div>
+    </div>
+    <hr>
+    <div class="breakdown-section">
+      <h6>Detailed List</h6>
+      <div class="table-responsive">
+        <table class="pending-expense-table">
+          <thead>
+            <tr>
+              <th data-sort="date"><i class="ri-calendar-line icon"></i>Date <i class="ri-arrow-up-down-line sort-icon"></i></th>
+              <th data-sort="description"><i class="ri-file-text-line icon"></i>Description <i class="ri-arrow-up-down-line sort-icon"></i></th>
+              <th data-sort="baseAmount"><i class="ri-money-rupee-circle-line icon"></i>Base Amount <i class="ri-arrow-up-down-line sort-icon"></i></th>
+              <th data-sort="gstAmount"><i class="ri-percent-line icon"></i>GST <i class="ri-arrow-up-down-line sort-icon"></i></th>
+              <th data-sort="totalAmount"><i class="ri-calculator-line icon"></i>Total <i class="ri-arrow-up-down-line sort-icon"></i></th>
+              <th data-sort="mode"><i class="ri-bank-card-line icon"></i>Mode <i class="ri-arrow-up-down-line sort-icon"></i></th>
+            </tr>
+          </thead>
+          <tbody>
+  `;
+
+  // Add detailed list
+  filteredDetails.forEach(expense => {
+    const totalExpenseAmount = (expense.amount || 0) + (expense.gstAmount || 0);
+    const modeIcon = (expense.mode && expense.mode.toLowerCase() === 'cash')
+      ? '<span class="mode-cash"><i class="ri-money-dollar-circle-line icon"></i>Cash</span>'
+      : '<span class="mode-online"><i class="ri-bank-card-line icon"></i>Online</span>';
+    html += `
+      <tr>
+        <td>${new Date(expense.date).toLocaleDateString('en-IN')}</td>
+        <td class="description">${expense.description || 'N/A'}</td>
+        <td>₹ ${(expense.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>₹ ${(expense.gstAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>₹ ${totalExpenseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td class="mode">${modeIcon}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Show popup
+  Swal.fire({
+    title: 'Pending Expenses Details',
+    html: html,
+    width: 1100,
+    showCloseButton: true,
+    showConfirmButton: false,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    },
+    didOpen: () => {
+      // Add sorting functionality
+      const table = document.querySelector('.pending-expense-table');
+      const headers = table.querySelectorAll('th[data-sort]');
+      let currentSort = {
+        column: 'date',
+        direction: 'desc'
+      };
+
+      headers.forEach(header => {
+        header.addEventListener('click', () => {
+          const column = header.dataset.sort;
+          const direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+          
+          // Update sort icons
+          headers.forEach(h => {
+            h.classList.remove('sort-asc', 'sort-desc');
+            h.querySelector('.sort-icon').className = 'ri-arrow-up-down-line sort-icon';
+          });
+          header.classList.add(`sort-${direction}`);
+          header.querySelector('.sort-icon').className = `ri-arrow-${direction === 'asc' ? 'up' : 'down'}-line sort-icon`;
+
+          // Sort the data
+          filteredDetails.sort((a, b) => {
+            let valueA, valueB;
+            
+            switch(column) {
+              case 'date':
+                valueA = new Date(a.date);
+                valueB = new Date(b.date);
+                break;
+              case 'description':
+                valueA = (a.description || '').toLowerCase();
+                valueB = (b.description || '').toLowerCase();
+                break;
+              case 'baseAmount':
+                valueA = parseFloat(a.amount || 0);
+                valueB = parseFloat(b.amount || 0);
+                break;
+              case 'gstAmount':
+                valueA = parseFloat(a.gstAmount || 0);
+                valueB = parseFloat(b.gstAmount || 0);
+                break;
+              case 'totalAmount':
+                valueA = parseFloat(a.amount || 0) + parseFloat(a.gstAmount || 0);
+                valueB = parseFloat(b.amount || 0) + parseFloat(b.gstAmount || 0);
+                break;
+              case 'mode':
+                valueA = (a.mode || '').toLowerCase();
+                valueB = (b.mode || '').toLowerCase();
+                break;
+              default:
+                return 0;
+            }
+
+            if (direction === 'asc') {
+              return valueA > valueB ? 1 : -1;
+            } else {
+              return valueA < valueB ? 1 : -1;
+            }
+          });
+
+          // Update the table
+          const tbody = table.querySelector('tbody');
+          tbody.innerHTML = filteredDetails.map(expense => {
+            const totalExpenseAmount = (expense.amount || 0) + (expense.gstAmount || 0);
+            const modeIcon = (expense.mode && expense.mode.toLowerCase() === 'cash')
+              ? '<span class="mode-cash"><i class="ri-money-dollar-circle-line icon"></i>Cash</span>'
+              : '<span class="mode-online"><i class="ri-bank-card-line icon"></i>Online</span>';
+            return `
+              <tr>
+                <td>${new Date(expense.date).toLocaleDateString('en-IN')}</td>
+                <td class="description">${expense.description || 'N/A'}</td>
+                <td>₹ ${(expense.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>₹ ${(expense.gstAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>₹ ${totalExpenseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td class="mode">${modeIcon}</td>
+              </tr>
+            `;
+          }).join('');
+
+          currentSort = { column, direction };
+        });
+      });
+    }
+  });
+}
 
 // Function to fetch and display expenses based on user's email and chapter
 const fetchExpenses = async (sortDirection = 'desc') => {
@@ -422,7 +771,7 @@ const sortExpenses = (filter) => {
     
     if (filter === "desc") {
       return dateB - dateA; // Latest first
-    } else {
+      } else {
       return dateA - dateB; // Oldest first
     }
   });
@@ -1121,18 +1470,26 @@ case 'hotel_id':
         aValue = a.querySelector('td:nth-child(5)').textContent.toLowerCase();
         bValue = b.querySelector('td:nth-child(5)').textContent.toLowerCase();
         break;
-      case 'amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(8) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(8) b').textContent);
-        break;
-      case 'gst_amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(7) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(7) b').textContent);
-        break;
-      case 'total_amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(8) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(8) b').textContent);
-        break;
+        case 'amount':
+          const aText = a.querySelector('td:nth-child(8) b')?.textContent || '';
+const bText = b.querySelector('td:nth-child(8) b')?.textContent || '';
+aValue = parseFloat(aText.replace(/[₹, ]/g, ''));
+bValue = parseFloat(bText.replace(/[₹, ]/g, ''));
+console.log(`[SORT] Comparing Amounts:`, { aText, bText, aValue, bValue });
+          break; 
+          case 'gst_amount':
+            const aGstText = a.querySelector('td:nth-child(9) b')?.textContent || '';
+            const bGstText = b.querySelector('td:nth-child(9) b')?.textContent || '';
+            aValue = parseFloat(aGstText.replace(/[₹, ]/g, ''));
+            bValue = parseFloat(bGstText.replace(/[₹, ]/g, ''));
+            break;
+          
+          case 'total_amount':
+            const aTotalText = a.querySelector('td:nth-child(10) b')?.textContent || '';
+            const bTotalText = b.querySelector('td:nth-child(10) b')?.textContent || '';
+            aValue = parseFloat(aTotalText.replace(/[₹, ]/g, ''));
+            bValue = parseFloat(bTotalText.replace(/[₹, ]/g, ''));
+            break;
       case 'tds_details':
         // Sort TDS details based on section and process status
         aValue = a.querySelector('td:nth-child(9)').textContent.split(' ')[0] === 'No' ? 0 : 1;
@@ -1144,21 +1501,29 @@ case 'hotel_id':
         bValue = b.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
         break;
         case 'final_payable':
-          aValue = parseFloat(a.querySelector('td:nth-child(18) b').textContent);
-          bValue = parseFloat(b.querySelector('td:nth-child(18) b').textContent);
-          break;
+  // Get the text content from the 15th column, look for the div with the amount
+  let aFinalDiv = a.querySelector('td:nth-child(15) div[style*="font-size: 16px"]');
+  let bFinalDiv = b.querySelector('td:nth-child(15) div[style*="font-size: 16px"]');
+  let aFinalText = aFinalDiv ? aFinalDiv.textContent : '-';
+  let bFinalText = bFinalDiv ? bFinalDiv.textContent : '-';
+  // Clean the text: remove ₹, commas, and spaces, treat '-' as 0
+  aValue = aFinalText === '-' ? -1 : parseFloat(aFinalText.replace(/[₹, ]/g, '')) || 0;
+  bValue = bFinalText === '-' ? -1 : parseFloat(bFinalText.replace(/[₹, ]/g, '')) || 0;
+  // Log for debugging
+  console.log('[SORT] Comparing Final Payable Amounts:', { aFinalText, bFinalText, aValue, bValue });
+  break;
         case 'payment_status':
           aValue = a.querySelector('td:nth-child(17)').textContent.toLowerCase();
           bValue = b.querySelector('td:nth-child(17)').textContent.toLowerCase();
           console.log('Comparing payment statuses:', {aValue, bValue, aText: a.querySelector('td:nth-child(12)').textContent, bText: b.querySelector('td:nth-child(12)').textContent, aHTML: a.querySelector('td:nth-child(12)').innerHTML, bHTML: b.querySelector('td:nth-child(12)').innerHTML});
           break;
       case 'bill_date':
-        aValue = new Date(a.querySelector('td:nth-child(13)').textContent);
-        bValue = new Date(b.querySelector('td:nth-child(13)').textContent);
+        aValue = new Date(a.querySelector('td:nth-child(18)').textContent);
+        bValue = new Date(b.querySelector('td:nth-child(18)').textContent);
         break;
       case 'mode_of_payment':
-        aValue = (a.querySelector('td:nth-child(14)').textContent || 'N/A').toLowerCase();
-        bValue = (b.querySelector('td:nth-child(14)').textContent || 'N/A').toLowerCase();
+        aValue = (a.querySelector('td:nth-child(19)').textContent || 'N/A').toLowerCase();
+        bValue = (b.querySelector('td:nth-child(19)').textContent || 'N/A').toLowerCase();
         break;
       case 'tds_percentage_type':
         aValue = a.querySelector('td:nth-child(15) b')?.textContent || '-';
@@ -1167,20 +1532,21 @@ case 'hotel_id':
         aValue = aValue === '-' ? 0 : parseFloat(aValue.split('%')[0]) || 0;
         bValue = bValue === '-' ? 0 : parseFloat(bValue.split('%')[0]) || 0;
         break;
-      case 'tds_amount':
-        aValue = a.querySelector('td:nth-child(16) b')?.textContent || '-';
-        bValue = b.querySelector('td:nth-child(16) b')?.textContent || '-';
-        // Extract amount number for sorting
-        aValue = aValue === '-' ? 0 : parseFloat(aValue.replace('₹', '').trim()) || 0;
-        bValue = bValue === '-' ? 0 : parseFloat(bValue.replace('₹', '').trim()) || 0;
-        break;
+        case 'tds_amount':
+          let aTdsText = a.querySelector('td:nth-child(13) b')?.textContent || '-';
+          let bTdsText = b.querySelector('td:nth-child(13) b')?.textContent || '-';
+          // Extract amount number for sorting
+          aValue = aTdsText === '-' ? 0 : parseFloat(aTdsText.replace(/[₹, ]/g, '')) || 0;
+          bValue = bTdsText === '-' ? 0 : parseFloat(bTdsText.replace(/[₹, ]/g, '')) || 0;
+          console.log('[SORT] Comparing TDS Amounts:', { aTdsText, bTdsText, aValue, bValue });
+          break;
       case 'ca_comment':
         aValue = a.querySelector('td:nth-child(17)').textContent || 'No comment';
         bValue = b.querySelector('td:nth-child(17)').textContent || 'No comment';
         break;
       case 'final_amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(18) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(18) b').textContent);
+        aValue = parseFloat(a.querySelector('td:nth-child(15) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(15) b').textContent);
         break;
       case 'ro_comment':
         aValue = a.querySelector('td:nth-child(19)').textContent || 'No comment';
@@ -3382,8 +3748,8 @@ const viewVendorLedger = async (vendorId) => {
           <td colspan="5" class="text-center py-4" style="color: #7f8c8d;">
             No expenses found for this vendor
           </td>
-        </tr>
-      `;
+      </tr>
+    `;
     } else {
       vendorExpenses.forEach(expense => {
         const row = document.createElement('tr');

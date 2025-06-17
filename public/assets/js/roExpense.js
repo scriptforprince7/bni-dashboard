@@ -197,25 +197,70 @@ function hideLoader() {
 
 // Function to calculate and update expense totals
 const updateExpenseTotals = (expenses) => {
+  console.log('Calculating expense totals for:', expenses.length, 'expenses');
+  
   // Calculate total expenses
   const totalAmount = expenses.reduce((sum, expense) => {
-    return sum + parseFloat(expense.amount);
+    return sum + parseFloat(expense.amount || 0);
   }, 0);
 
   // Calculate paid expenses
   const paidAmount = expenses
     .filter(expense => expense.payment_status.toLowerCase() === 'paid')
-    .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
 
-  // Calculate pending expenses
-  const pendingAmount = expenses
-    .filter(expense => expense.payment_status.toLowerCase() !== 'paid')
-    .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+  // Calculate pending expenses with cash/online breakdown
+  const pendingExpenses = expenses.filter(expense => expense.payment_status.toLowerCase() !== 'paid');
+  const pendingAmount = pendingExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+  
+  // Calculate cash and online pending amounts
+  const cashPendingAmount = pendingExpenses
+    .filter(expense => expense.mode_of_payment?.toLowerCase() === 'cash')
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+    
+  const onlinePendingAmount = pendingExpenses
+    .filter(expense => expense.mode_of_payment?.toLowerCase() === 'online')
+    .reduce((sum, expense) => sum + parseFloat(expense.amount || 0), 0);
+
+  console.log('Expense totals:', {
+    total: totalAmount,
+    paid: paidAmount,
+    pending: pendingAmount,
+    cashPending: cashPendingAmount,
+    onlinePending: onlinePendingAmount
+  });
 
   // Update the UI with formatted amounts
   document.querySelector('[data-total-expenses]').textContent = `₹ ${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   document.querySelector('[data-paid-expenses]').textContent = `₹ ${paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  document.querySelector('[data-pending-expenses]').textContent = `₹ ${pendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  
+  // Update pending expenses with cash/online breakdown
+  const pendingExpensesElement = document.querySelector('[data-pending-expenses]');
+  pendingExpensesElement.innerHTML = `
+    ₹ ${pendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    <div style="font-size: 0.8em; color: #666;">
+      <span style="cursor:pointer;" onclick="showPendingExpensesPopup('cash')">
+        <i class="ri-money-dollar-circle-line"></i> Cash: ₹ ${cashPendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+      <span style="margin-left:8px; cursor:pointer;" onclick="showPendingExpensesPopup('online')">
+        <i class="ri-bank-card-line"></i> Online: ₹ ${onlinePendingAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+    </div>
+  `;
+  
+  // Store pending expenses for popup
+  window.pendingExpenseDetails = pendingExpenses.map(expense => ({
+    description: expense.description,
+    amount: parseFloat(expense.amount || 0),
+    date: expense.bill_date,
+    mode: expense.mode_of_payment,
+    submittedBy: expense.submitted_by,
+    billNo: expense.bill_no,
+    chapterName: expense.chapter_id,
+    gstAmount: parseFloat(expense.gst_amount || 0),
+    baseAmount: parseFloat(expense.amount || 0) - parseFloat(expense.gst_amount || 0),
+    gstPercentage: expense.gst_percentage
+  }));
 };
 
 // Function to fetch and display expenses based on user's email and chapter
@@ -1095,22 +1140,30 @@ case 'hotel_id':
         aValue = a.querySelector('td:nth-child(5)').textContent.toLowerCase();
         bValue = b.querySelector('td:nth-child(5)').textContent.toLowerCase();
         break;
-      case 'amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(8) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(8) b').textContent);
-        break;
-      case 'gst_amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(7) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(7) b').textContent);
-        break;
-      case 'total_amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(8) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(8) b').textContent);
-        break;
+        case 'amount':
+          const aText = a.querySelector('td:nth-child(8) b')?.textContent || '';
+const bText = b.querySelector('td:nth-child(8) b')?.textContent || '';
+aValue = parseFloat(aText.replace(/[₹, ]/g, ''));
+bValue = parseFloat(bText.replace(/[₹, ]/g, ''));
+console.log(`[SORT] Comparing Amounts:`, { aText, bText, aValue, bValue });
+          break; 
+          case 'gst_amount':
+            const aGstText = a.querySelector('td:nth-child(9) b')?.textContent || '';
+            const bGstText = b.querySelector('td:nth-child(9) b')?.textContent || '';
+            aValue = parseFloat(aGstText.replace(/[₹, ]/g, ''));
+            bValue = parseFloat(bGstText.replace(/[₹, ]/g, ''));
+            break;
+          
+          case 'total_amount':
+            const aTotalText = a.querySelector('td:nth-child(10) b')?.textContent || '';
+            const bTotalText = b.querySelector('td:nth-child(10) b')?.textContent || '';
+            aValue = parseFloat(aTotalText.replace(/[₹, ]/g, ''));
+            bValue = parseFloat(bTotalText.replace(/[₹, ]/g, ''));
+            break;
       case 'tds_details':
         // Sort TDS details based on section and process status
-        aValue = a.querySelector('td:nth-child(9)').textContent.split(' ')[0] === 'No' ? 0 : 1;
-        bValue = b.querySelector('td:nth-child(9)').textContent.split(' ')[0] === 'No' ? 0 : 1;
+        aValue = a.querySelector('td:nth-child(11)').textContent.split(' ')[0] === 'No' ? 0 : 1;
+        bValue = b.querySelector('td:nth-child(11)').textContent.split(' ')[0] === 'No' ? 0 : 1;
         break;
       case 'ro_verification':
         // Sort RO verification based on status
@@ -1118,8 +1171,14 @@ case 'hotel_id':
         bValue = b.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
         break;
         case 'final_payable':
-          aValue = parseFloat(a.querySelector('td:nth-child(18) b').textContent);
-          bValue = parseFloat(b.querySelector('td:nth-child(18) b').textContent);
+          // Get the text content from the 15th column, or '-' if not present
+  let aFinalText = a.querySelector('td:nth-child(15) b')?.textContent || '-';
+  let bFinalText = b.querySelector('td:nth-child(15) b')?.textContent || '-';
+  // Clean the text: remove ₹, commas, and spaces, treat '-' as 0
+  aValue = aFinalText === '-' ? -1 : parseFloat(aFinalText.replace(/[₹, ]/g, '')) || 0;
+bValue = bFinalText === '-' ? -1 : parseFloat(bFinalText.replace(/[₹, ]/g, '')) || 0;
+  // Log for debugging
+  console.log('[SORT] Comparing Final Payable Amounts:', { aFinalText, bFinalText, aValue, bValue });
           break;
         case 'payment_status':
           aValue = a.querySelector('td:nth-child(17)').textContent.toLowerCase();
@@ -1127,12 +1186,12 @@ case 'hotel_id':
           console.log('Comparing payment statuses:', {aValue, bValue, aText: a.querySelector('td:nth-child(12)').textContent, bText: b.querySelector('td:nth-child(12)').textContent, aHTML: a.querySelector('td:nth-child(12)').innerHTML, bHTML: b.querySelector('td:nth-child(12)').innerHTML});
           break;
       case 'bill_date':
-        aValue = new Date(a.querySelector('td:nth-child(13)').textContent);
-        bValue = new Date(b.querySelector('td:nth-child(13)').textContent);
+        aValue = new Date(a.querySelector('td:nth-child(18)').textContent);
+        bValue = new Date(b.querySelector('td:nth-child(18)').textContent);
         break;
       case 'mode_of_payment':
-        aValue = (a.querySelector('td:nth-child(14)').textContent || 'N/A').toLowerCase();
-        bValue = (b.querySelector('td:nth-child(14)').textContent || 'N/A').toLowerCase();
+        aValue = (a.querySelector('td:nth-child(19)').textContent || 'N/A').toLowerCase();
+        bValue = (b.querySelector('td:nth-child(19)').textContent || 'N/A').toLowerCase();
         break;
       case 'tds_percentage_type':
         aValue = a.querySelector('td:nth-child(15) b')?.textContent || '-';
@@ -1141,20 +1200,21 @@ case 'hotel_id':
         aValue = aValue === '-' ? 0 : parseFloat(aValue.split('%')[0]) || 0;
         bValue = bValue === '-' ? 0 : parseFloat(bValue.split('%')[0]) || 0;
         break;
-      case 'tds_amount':
-        aValue = a.querySelector('td:nth-child(16) b')?.textContent || '-';
-        bValue = b.querySelector('td:nth-child(16) b')?.textContent || '-';
-        // Extract amount number for sorting
-        aValue = aValue === '-' ? 0 : parseFloat(aValue.replace('₹', '').trim()) || 0;
-        bValue = bValue === '-' ? 0 : parseFloat(bValue.replace('₹', '').trim()) || 0;
-        break;
+        case 'tds_amount':
+          let aTdsText = a.querySelector('td:nth-child(13) b')?.textContent || '-';
+          let bTdsText = b.querySelector('td:nth-child(13) b')?.textContent || '-';
+          // Extract amount number for sorting
+          aValue = aTdsText === '-' ? 0 : parseFloat(aTdsText.replace(/[₹, ]/g, '')) || 0;
+          bValue = bTdsText === '-' ? 0 : parseFloat(bTdsText.replace(/[₹, ]/g, '')) || 0;
+          console.log('[SORT] Comparing TDS Amounts:', { aTdsText, bTdsText, aValue, bValue });
+          break;
       case 'ca_comment':
         aValue = a.querySelector('td:nth-child(17)').textContent || 'No comment';
         bValue = b.querySelector('td:nth-child(17)').textContent || 'No comment';
         break;
       case 'final_amount':
-        aValue = parseFloat(a.querySelector('td:nth-child(18) b').textContent);
-        bValue = parseFloat(b.querySelector('td:nth-child(18) b').textContent);
+        aValue = parseFloat(a.querySelector('td:nth-child(15) b').textContent);
+        bValue = parseFloat(b.querySelector('td:nth-child(15) b').textContent);
         break;
       case 'ro_comment':
         aValue = a.querySelector('td:nth-child(19)').textContent || 'No comment';
@@ -3790,4 +3850,106 @@ function getColumnIndex(column) {
     'payment_status': 8
   };
   return columnMap[column];
+}
+
+// Function to show pending expenses popup
+function showPendingExpensesPopup(mode) {
+  console.log('Showing pending expenses popup for mode:', mode);
+  
+  const filteredDetails = window.pendingExpenseDetails.filter(expense => 
+    mode === 'all' || expense.mode.toLowerCase() === mode.toLowerCase()
+  );
+
+  if (filteredDetails.length === 0) {
+    Swal.fire({
+      title: 'Pending Expenses',
+      html: '<p>No pending expenses found</p>',
+      width: 500,
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        container: 'kitty-breakdown-popup',
+        popup: 'kitty-breakdown-popup',
+        content: 'kitty-breakdown-content'
+      }
+    });
+    return;
+  }
+
+  // Calculate totals for the filtered expenses
+  const totalBaseAmount = filteredDetails.reduce((sum, e) => sum + (e.amount || 0), 0); // Use original amount
+  const totalGST = filteredDetails.reduce((sum, e) => sum + (e.gstAmount || 0), 0);
+  const totalAmount = filteredDetails.reduce((sum, e) => sum + ((e.amount || 0) + (e.gstAmount || 0)), 0);
+
+  // Group expenses by chapter
+  const expensesByChapter = {};
+  filteredDetails.forEach(expense => {
+    if (!expensesByChapter[expense.chapterName]) {
+      expensesByChapter[expense.chapterName] = [];
+    }
+    expensesByChapter[expense.chapterName].push(expense);
+  });
+
+  // Create HTML for the popup
+  let html = `
+    <div class="breakdown-section">
+      <h6>Total Pending Expenses</h6>
+      <div class="d-flex justify-content-between">
+        <span>Base Amount:</span>
+        <span class="fw-bold">₹ ${totalBaseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span>GST Amount:</span>
+        <span class="fw-bold">₹ ${totalGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span>Total Amount:</span>
+        <span class="fw-bold">₹ ${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      </div>
+    </div>
+    <hr>
+    <div class="breakdown-section">
+      <h6>Chapter-wise Breakdown</h6>
+  `;
+
+  // Add chapter-wise breakdown
+  Object.entries(expensesByChapter).forEach(([chapterName, expenses]) => {
+    const chapterBase = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const chapterGST = expenses.reduce((sum, e) => sum + (e.gstAmount || 0), 0);
+    const chapterTotal = expenses.reduce((sum, e) => sum + ((e.amount || 0) + (e.gstAmount || 0)), 0);
+
+    html += `
+      <div class="mt-3">
+        <h6 class="mb-2">${chapterName}</h6>
+        <div class="d-flex justify-content-between">
+          <span>Base Amount:</span>
+          <span class="fw-bold">₹ ${chapterBase.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>GST Amount:</span>
+          <span class="fw-bold">₹ ${chapterGST.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Total Amount:</span>
+          <span class="fw-bold">₹ ${chapterTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  // Show popup
+  Swal.fire({
+    title: 'Pending Expenses Details',
+    html: html,
+    width: 600,
+    showCloseButton: true,
+    showConfirmButton: false,
+    customClass: {
+      container: 'kitty-breakdown-popup',
+      popup: 'kitty-breakdown-popup',
+      content: 'kitty-breakdown-content'
+    }
+  });
 }
