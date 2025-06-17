@@ -357,7 +357,7 @@ document.getElementById('addVisitorBtn').addEventListener('click', async () => {
                         </div>
                         <div class="col-12">
                             <div class="form-check" style="margin-top: 10px;">
-                                <input type="checkbox" id="include-gst" class="form-check-input">
+                                <input type="checkbox" id="include-gst" class="form-check-input me-2" checked>
                                 <label class="form-check-label" for="include-gst">Include GST</label>
                             </div>
                         </div>

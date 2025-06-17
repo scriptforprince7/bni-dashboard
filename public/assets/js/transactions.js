@@ -19,7 +19,7 @@ let currentFilters = {
 
 // Pagination variables
 let currentPage = 1;
-const itemsPerPage = 20;
+const itemsPerPage = 50;
 let totalPages = 1;
 let showAll = false; // Add show all flag
 

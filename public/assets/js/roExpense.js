@@ -1171,15 +1171,15 @@ console.log(`[SORT] Comparing Amounts:`, { aText, bText, aValue, bValue });
         bValue = b.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
         break;
         case 'final_payable':
-          // Get the text content from the 15th column, or '-' if not present
-  let aFinalText = a.querySelector('td:nth-child(15) b')?.textContent || '-';
-  let bFinalText = b.querySelector('td:nth-child(15) b')?.textContent || '-';
-  // Clean the text: remove ₹, commas, and spaces, treat '-' as 0
+  // Select the div with the amount (font-size: 16px)
+  let aFinalDiv = a.querySelector('td:nth-child(15) div[style*="font-size: 16px"]');
+  let bFinalDiv = b.querySelector('td:nth-child(15) div[style*="font-size: 16px"]');
+  let aFinalText = aFinalDiv ? aFinalDiv.textContent : '-';
+  let bFinalText = bFinalDiv ? bFinalDiv.textContent : '-';
   aValue = aFinalText === '-' ? -1 : parseFloat(aFinalText.replace(/[₹, ]/g, '')) || 0;
-bValue = bFinalText === '-' ? -1 : parseFloat(bFinalText.replace(/[₹, ]/g, '')) || 0;
-  // Log for debugging
+  bValue = bFinalText === '-' ? -1 : parseFloat(bFinalText.replace(/[₹, ]/g, '')) || 0;
   console.log('[SORT] Comparing Final Payable Amounts:', { aFinalText, bFinalText, aValue, bValue });
-          break;
+  break;
         case 'payment_status':
           aValue = a.querySelector('td:nth-child(17)').textContent.toLowerCase();
           bValue = b.querySelector('td:nth-child(17)').textContent.toLowerCase();
