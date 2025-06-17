@@ -299,7 +299,6 @@ const populateChapterFields = (data) => {
 
 // Initialize the page
 document.addEventListener("DOMContentLoaded", async () => {
-  await populateCountryDropdown();
   await fetchChapterDetails();
 });
 

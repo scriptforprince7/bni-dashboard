@@ -49,50 +49,32 @@ function formatDate(date) {
   return `${year}-${month}-${day}`;
 }
 
-// Add this function near the top with other utility functions
-async function fetchAndPopulateCountries() {
-  try {
-    const response = await fetch('https://restcountries.com/v3.1/all');
-    if (!response.ok) throw new Error('Failed to fetch countries.');
-
-    const countries = await response.json();
-    const selectElement = document.getElementById('country');
-
-    selectElement.innerHTML = '<option value="">Select Country</option>';
-
-    // Add India first
-    const india = countries.find(country => country.cca2 === 'IN');
-    if (india) {
-      const indiaOption = document.createElement('option');
-      indiaOption.value = india.cca2;
-      indiaOption.textContent = india.name.common;
-      selectElement.appendChild(indiaOption);
-    }
-
-    // Add other countries
-    countries.forEach(country => {
-      if (country.cca2 !== 'IN') { // Skip India since we already added it
-        const option = document.createElement('option');
-        option.value = country.cca2;
-        option.textContent = country.name.common;
-        selectElement.appendChild(option);
-      }
-    });
-
-    // Set India as default
-    selectElement.value = 'IN';
-  } catch (error) {
-    console.error('Error populating country dropdown:', error);
-    alert('Failed to load country data. Please try again.');
+// Function to set India as the only country option
+function setIndiaAsCountry() {
+  const selectElement = document.getElementById('country');
+  if (!selectElement) {
+    console.warn('Element with id "country" not found');
+    return;
   }
+  
+  // Clear existing options
+  selectElement.innerHTML = '';
+  
+  // Add India as the only option
+  const indiaOption = document.createElement('option');
+  indiaOption.value = 'IN';
+  indiaOption.textContent = 'India';
+  selectElement.appendChild(indiaOption);
+  
+  // Set India as selected
+  selectElement.value = 'IN';
 }
 
 // Initialize the page
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // First populate countries and set India as default
-    await fetchAndPopulateCountries();
-    document.getElementById('country').value = 'IN'; // Set India as default immediately
+    // Set India as the only country option
+    setIndiaAsCountry();
 
     const urlParams = new URLSearchParams(window.location.search);
     const memberId = urlParams.get('member_id');
@@ -110,12 +92,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const member = await memberResponse.json();
     console.log('📄 Fetched member data:', member);
 
-    // If member has a different country, update it, otherwise keep India
-    if (member.country && member.country !== 'IN') {
-      document.getElementById('country').value = member.country;
-    } else {
-      document.getElementById('country').value = 'IN'; // Ensure India is selected
-    }
+    // Always set India as the country
+    document.getElementById('country').value = 'IN';
 
     // Fetch and populate regions
     const regionResponse = await fetch('https://backend.bninewdelhi.com/api/regions'); // Adjust the endpoint accordingly
