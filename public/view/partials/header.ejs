@@ -1330,8 +1330,8 @@
     }
 
     try {
-        // Set a fixed expiration time: 30 minutes from now
-        const fixedExpiration = Date.now() / 1000 + 30 * 60; // 30 minutes in seconds
+        // Set a fixed expiration time: 3 hours from now
+        const fixedExpiration = Date.now() / 1000 + 3 * 60 * 60; // 3 hours in seconds
 
         // Clear any existing timer
         if (window.tokenExpirationTimer) {

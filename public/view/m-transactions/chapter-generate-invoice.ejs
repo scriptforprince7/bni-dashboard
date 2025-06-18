@@ -118,7 +118,7 @@ async function fetchUniversalLinkss() {
         col.className = 'col'; // Use Bootstrap's `col` class for automatic grid layout
 
         col.innerHTML = `
-          <a href="/trans/chapter-generate-invoice?id=${link.id}" class="card custom-card overflow-hidden main-content-card text-decoration-none car">
+          <a href="${link.id === 5 ? '/trans/chapter-multiple-visitor-payment' : `/trans/chapter-generate-invoice?id=${link.id}`}" class="card custom-card overflow-hidden main-content-card text-decoration-none car">
             <div class="card-body p-4" style="background-color: #f33041">
               <div class="d-flex align-items-start gap-3">
                 <div class="flex-fill">

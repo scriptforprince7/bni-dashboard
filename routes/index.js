@@ -38,6 +38,8 @@ const linkRoutes = require('./r-links/linksRoutes');
 const visitorRoutes = require('./r-visitor/visitorRoutes');
 const chapterVisitorRoutes = require('./r-chapterVisitor/chapterVisitorRoutes');
 const roVisitorRoutes = require('./r-roVisitor/roVisitorRoutes');
+const bannerRoutes = require('./r-banner/bannerRoutes');
+
 // Use all the imported routes
 router.use('/', indexRoutes);
 router.use('/d', dashboardRoutes);
@@ -74,5 +76,7 @@ router.use('/links', linkRoutes);
 router.use('/vi', visitorRoutes);
 router.use('/cv', chapterVisitorRoutes);
 router.use('/ro', roVisitorRoutes);
+router.use('/bann', bannerRoutes);
+
 
 module.exports = router;

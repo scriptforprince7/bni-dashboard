@@ -339,7 +339,7 @@ document.getElementById('addVisitorBtn').addEventListener('click', async () => {
                 <div class="form-section" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
                     <div class="row g-3">
                         <div class="col-12">
-                            <input type="datetime-local" id="date-issued" class="form-control" value="${new Date().toISOString().slice(0, 16)}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                            <input type="datetime-local" id="date-issued" class="form-control" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
                         </div>
                         <div class="col-12">
                             <select id="payment-mode" class="form-control" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
@@ -465,8 +465,68 @@ document.getElementById('addVisitorBtn').addEventListener('click', async () => {
 
             if (paymentMode) {
                 paymentMode.addEventListener('change', (e) => {
-                    upiFields.style.display = e.target.value === 'upi' ? 'block' : 'none';
-                    netBankingFields.style.display = e.target.value === 'net-banking' ? 'block' : 'none';
+                    if (e.target.value === 'upi') {
+                        // Create a simple confirmation dialog
+                        const confirmDialog = document.createElement('div');
+                        confirmDialog.className = 'upi-confirm-dialog';
+                        confirmDialog.style.cssText = `
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: white;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                            z-index: 9999;
+                            text-align: center;
+                        `;
+                        confirmDialog.innerHTML = `
+                            <h5 style="margin-bottom: 15px;">Confirm UPI Payment</h5>
+                            <p style="margin-bottom: 20px;">Are you sure that the payment has been transferred to ADI Corporate's Account?</p>
+                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                <button class="btn btn-primary btn-sm" id="confirm-upi-yes">Yes</button>
+                                <button class="btn btn-light btn-sm" id="confirm-upi-no">No</button>
+                            </div>
+                        `;
+
+                        // Add overlay
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = `
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0,0,0,0.5);
+                            z-index: 9998;
+                        `;
+
+                        // Add to modal
+                        const modal = Swal.getPopup();
+                        modal.appendChild(overlay);
+                        modal.appendChild(confirmDialog);
+
+                        // Handle Yes button
+                        confirmDialog.querySelector('#confirm-upi-yes').addEventListener('click', () => {
+                            upiFields.style.display = 'block';
+                            netBankingFields.style.display = 'none';
+                            overlay.remove();
+                            confirmDialog.remove();
+                        });
+
+                        // Handle No button
+                        confirmDialog.querySelector('#confirm-upi-no').addEventListener('click', () => {
+                            paymentMode.value = 'cash';
+                            upiFields.style.display = 'none';
+                            netBankingFields.style.display = 'none';
+                            overlay.remove();
+                            confirmDialog.remove();
+                        });
+                    } else {
+                        upiFields.style.display = e.target.value === 'upi' ? 'block' : 'none';
+                        netBankingFields.style.display = e.target.value === 'net-banking' ? 'block' : 'none';
+                    }
                 });
             }
 
@@ -525,14 +585,18 @@ document.getElementById('addVisitorBtn').addEventListener('click', async () => {
                 hasBankName: !!bankName
             });
 
-            // More lenient validation - only check name and mobile
             if (!name || !mobile) {
                 console.log('Validation failed: Missing required fields');
                 Swal.showValidationMessage('Please enter at least name and mobile number');
                 return false;
             }
 
-            // Payment mode specific validation
+            if (!dateIssued) {
+                console.log('Validation failed: Missing date issued');
+                Swal.showValidationMessage('Please select date issued');
+                return false;
+            }
+
             if (paymentMode === 'upi' && !upiId) {
                 console.log('Validation failed: Missing UPI ID');
                 Swal.showValidationMessage('Please enter UPI ID for UPI payment');
@@ -780,8 +844,68 @@ document.addEventListener('click', async (e) => {
 
                 if (paymentMode) {
                     paymentMode.addEventListener('change', (e) => {
-                        upiFields.style.display = e.target.value === 'upi' ? 'block' : 'none';
-                        netBankingFields.style.display = e.target.value === 'net-banking' ? 'block' : 'none';
+                        if (e.target.value === 'upi') {
+                            // Create a simple confirmation dialog
+                            const confirmDialog = document.createElement('div');
+                            confirmDialog.className = 'upi-confirm-dialog';
+                            confirmDialog.style.cssText = `
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: white;
+                                padding: 20px;
+                                border-radius: 8px;
+                                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                                z-index: 9999;
+                                text-align: center;
+                            `;
+                            confirmDialog.innerHTML = `
+                                <h5 style="margin-bottom: 15px;">Confirm UPI Payment</h5>
+                                <p style="margin-bottom: 20px;">Are you sure that the payment has been transferred to ADI Corporate's Account?</p>
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <button class="btn btn-primary btn-sm" id="confirm-upi-yes">Yes</button>
+                                    <button class="btn btn-light btn-sm" id="confirm-upi-no">No</button>
+                                </div>
+                            `;
+
+                            // Add overlay
+                            const overlay = document.createElement('div');
+                            overlay.style.cssText = `
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                background: rgba(0,0,0,0.5);
+                                z-index: 9998;
+                            `;
+
+                            // Add to modal
+                            const modal = Swal.getPopup();
+                            modal.appendChild(overlay);
+                            modal.appendChild(confirmDialog);
+
+                            // Handle Yes button
+                            confirmDialog.querySelector('#confirm-upi-yes').addEventListener('click', () => {
+                                upiFields.style.display = 'block';
+                                netBankingFields.style.display = 'none';
+                                overlay.remove();
+                                confirmDialog.remove();
+                            });
+
+                            // Handle No button
+                            confirmDialog.querySelector('#confirm-upi-no').addEventListener('click', () => {
+                                paymentMode.value = 'cash';
+                                upiFields.style.display = 'none';
+                                netBankingFields.style.display = 'none';
+                                overlay.remove();
+                                confirmDialog.remove();
+                            });
+                        } else {
+                            upiFields.style.display = e.target.value === 'upi' ? 'block' : 'none';
+                            netBankingFields.style.display = e.target.value === 'net-banking' ? 'block' : 'none';
+                        }
                     });
                 }
 
@@ -849,6 +973,11 @@ document.addEventListener('click', async (e) => {
 
                 if (!name || !mobile) {
                     Swal.showValidationMessage('Please enter at least name and mobile number');
+                    return false;
+                }
+
+                if (!dateIssued) {
+                    Swal.showValidationMessage('Please select date issued');
                     return false;
                 }
 
@@ -1016,16 +1145,12 @@ function loadStoredVisitors() {
 document.getElementById('submit_invoice').addEventListener('click', async () => {
     console.log('Submit invoice button clicked');
     
-    // Get all visitors from localStorage
-    const storedVisitors = localStorage.getItem('visitors');
-    if (!storedVisitors) {
+    // Get visitors from the table instead of localStorage
+    const tableRows = document.querySelectorAll('#visitorsTableBody tr');
+    if (tableRows.length === 0) {
         toast.error('No visitors added. Please add at least one visitor.');
-        
         return;
     }
-
-    const visitors = JSON.parse(storedVisitors);
-    console.log('Stored visitors:', visitors);
 
     // Get common data
     const regionId = selectedRegionId;
@@ -1036,92 +1161,477 @@ document.getElementById('submit_invoice').addEventListener('click', async () => 
         return;
     }
 
-    // Function to format payment method based on mode
-    const formatPaymentMethod = (visitor) => {
-        switch(visitor.paymentMode) {
-            case 'upi':
-                return {
-                    upi: {
-                        upi_id: visitor.upiId,
-                        channel: "collect"
-                    }
-                };
-            case 'net-banking':
-                return {
-                    netbanking: {
-                        bank: visitor.bankName,
-                        ifsc: visitor.ifscCode
-                    }
-                };
-            case 'cash':
-            default:
-                return {
-                    cash: {
-                        payment_note: "Cash"
-                    }
-                };
-        }
-    };
+    // Create table HTML for visitor summary
+    const visitorSummaryHTML = `
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-bordered table-hover">
+                <thead style="background-color: #f8f9fa; position: sticky; top: 0;">
+                    <tr>
+                        <th>Name</th>
+                        <th>State</th>
+                        <th>Pincode</th>
+                        <th>GSTIN</th>
+                        <th>Date Issued</th>
+                        <th>Final Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${Array.from(tableRows).map((row, index) => {
+                        const cells = row.cells;
+                        return `
+                            <tr data-index="${index}">
+                                <td>${cells[0].textContent}</td>
+                                <td>${cells[5].textContent}</td>
+                                <td>${cells[6].textContent}</td>
+                                <td>${cells[8].textContent}</td>
+                                <td>${cells[12].textContent}</td>
+                                <td>${cells[15].textContent}</td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-primary btn-sm edit-visitor-summary" data-index="${index}">
+                                        <i class="ti ti-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 
-    // Prepare data for API
-    const requestData = {
-        region_id: regionId,
-        chapter_id: chapterId,
-        universal_link_id: 5, // Set to 5 for now
-        visitors: visitors.map(visitor => ({
-            // Visitor basic info
-            visitor_name: visitor.name,
-            visitor_email: visitor.email,
-            visitor_mobile: visitor.mobile,
-            visitor_address: visitor.address,
-            visitor_category: visitor.category,
-            visitor_state: visitor.state,
-            visitor_pincode: visitor.pincode,
-            visitor_gstin: visitor.gstin,
-            visitor_company: visitor.companyName,
-            visitor_company_address: visitor.companyAddress,
-            visitor_business_category: visitor.category,
-
-            // Payment related
-            date_issued: visitor.dateIssued,
-            mode_of_payment: formatPaymentMethod(visitor),
-            include_gst: visitor.includeGst,
-            base_amount: visitor.baseAmount,
-            gst_amount: visitor.gstAmount,
-            final_amount: visitor.finalAmount,
-            taxable_amount: visitor.finalAmount,
-            total_amount: visitor.baseAmount,
-
-            // Member related - Fixed to handle null/undefined cases
-            member_id: visitor.invitedBy === "N/A" || !visitor.invitedBy ? null : visitor.invitedBy,
-            member_name: visitor.invitedByName === "Select Member" || !visitor.invitedByName ? "BNI" : visitor.invitedByName,
-
-            // Additional required fields
-            payment_gateway_id: null,
-            order_currency: "INR",
-            payment_currency: "INR",
-            payment_status: "SUCCESS",
-            payment_note: "Visitor Payment",
-            error_details: {}
-        }))
-    };
-
-    // Log the complete request data
-    console.log('Request data to be sent:', requestData);
-
-    // Show confirmation dialog
+    // Show confirmation dialog with visitor summary
     const result = await Swal.fire({
-        title: 'Confirm Multiple Visitor Payment',
-        text: `Are you sure you want to process payment for ${visitors.length} visitor(s)?`,
-        icon: 'question',
+        title: 'Review Visitor Details',
+        html: visitorSummaryHTML,
         showCancelButton: true,
-        confirmButtonText: 'Yes, proceed',
-        cancelButtonText: 'No, cancel',
+        confirmButtonText: 'Yes, Proceed',
+        cancelButtonText: 'Cancel',
         confirmButtonColor: '#6259ca',
-        cancelButtonColor: '#d33'
+        cancelButtonColor: '#d33',
+        width: '900px',
+        customClass: {
+            popup: 'animated fadeInDown',
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-light'
+        },
+        didOpen: async (popup) => {
+            // Add click handlers for edit buttons
+            const editButtons = popup.querySelectorAll('.edit-visitor-summary');
+            editButtons.forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    e.stopPropagation(); // Prevent SweetAlert from closing
+                    const index = button.getAttribute('data-index');
+                    
+                    // Get visitor data from localStorage
+                    const storedVisitors = localStorage.getItem('visitors');
+                    if (!storedVisitors) return;
+                    
+                    const visitors = JSON.parse(storedVisitors);
+                    const visitor = visitors[index];
+                    
+                    // Get members for the selected chapter
+                    let memberOptions = '<option value="">Select Member</option>';
+                    if (selectedChapterId) {
+                        try {
+                            const response = await fetch(MEMBERS_API);
+                            const members = await response.json();
+                            const chapterMembers = members.filter(member => member.chapter_id === selectedChapterId);
+                            
+                            chapterMembers.forEach(member => {
+                                const selected = member.member_id === visitor.invitedBy ? 'selected' : '';
+                                memberOptions += `<option value="${member.member_id}" ${selected}>${member.member_first_name} ${member.member_last_name}</option>`;
+                            });
+                        } catch (error) {
+                            console.error('Error loading members for edit form:', error);
+                        }
+                    }
+
+                    const { value: formValues } = await Swal.fire({
+                        title: 'Edit Visitor',
+                        html: `
+                            <div class="visitor-form-container" style="max-width: 600px; margin: 0 auto;">
+                                <div class="form-section" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <input type="text" id="visitor-name" class="form-control" placeholder="Name" value="${visitor.name}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="email" id="visitor-email" class="form-control" placeholder="Email" value="${visitor.email}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="tel" id="visitor-mobile" class="form-control" placeholder="Mobile" value="${visitor.mobile}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <textarea id="visitor-address" class="form-control" placeholder="Address" rows="2" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">${visitor.address}</textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="text" id="visitor-category" class="form-control" placeholder="Business Category" value="${visitor.category}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="text" id="visitor-state" class="form-control" placeholder="Visitor State" value="${visitor.state}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="text" id="visitor-pincode" class="form-control" placeholder="Visitor Pincode" value="${visitor.pincode}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <select id="invited-by" class="form-control" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                                ${memberOptions}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="input-group">
+                                                <input type="text" id="visitor-gstin" class="form-control" placeholder="GSTIN" value="${visitor.gstin}" style="border-radius: 8px 0 0 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                                <button type="button" id="get-gst-details" class="btn btn-primary" style="border-radius: 0 8px 8px 0; padding: 12px 20px;">Get GST Details</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="text" id="company-name" class="form-control" placeholder="Company Name" value="${visitor.companyName}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <textarea id="company-address" class="form-control" placeholder="Company Address" rows="2" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">${visitor.companyAddress}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-section" style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <input type="datetime-local" id="date-issued" class="form-control" value="${visitor.dateIssued.slice(0, 16)}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <select id="payment-mode" class="form-control" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                                <option value="cash" ${visitor.paymentMode === 'cash' ? 'selected' : ''}>Cash</option>
+                                                <option value="upi" ${visitor.paymentMode === 'upi' ? 'selected' : ''}>UPI</option>
+                                                <option value="net-banking" ${visitor.paymentMode === 'net-banking' ? 'selected' : ''}>Net Banking</option>
+                                            </select>
+                                        </div>
+                                        <div id="upi-fields" class="col-12" style="display: ${visitor.paymentMode === 'upi' ? 'block' : 'none'};">
+                                            <input type="text" id="upi-id" class="form-control" placeholder="Enter UPI ID" value="${visitor.upiId}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div id="net-banking-fields" class="col-12" style="display: ${visitor.paymentMode === 'net-banking' ? 'block' : 'none'};">
+                                            <input type="text" id="ifsc-code" class="form-control mb-2" placeholder="IFSC Code" value="${visitor.ifscCode}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                            <input type="text" id="bank-name" class="form-control" placeholder="Bank Name" value="${visitor.bankName}" style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px;">
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-check" style="margin-top: 10px;">
+                                                <input type="checkbox" id="include-gst" class="form-check-input" ${visitor.includeGst ? 'checked' : ''}>
+                                                <label class="form-check-label" for="include-gst">Include GST</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="alert alert-info" style="border-radius: 8px; margin-top: 15px;">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span>Base Amount:</span>
+                                                    <span id="base-amount" style="font-weight: 600;">${visitor.baseAmount.toFixed(2)}</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                    <span>GST Amount:</span>
+                                                    <span id="gst-amount" style="font-weight: 600;">${visitor.gstAmount.toFixed(2)}</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                    <span>Final Amount:</span>
+                                                    <span id="final-amount" style="font-weight: 600;">${visitor.finalAmount.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Save Changes',
+                        cancelButtonText: 'Cancel',
+                        focusConfirm: false,
+                        customClass: {
+                            popup: 'animated fadeInDown',
+                            confirmButton: 'btn btn-primary',
+                            cancelButton: 'btn btn-light'
+                        },
+                        buttonsStyling: true,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInDown animate__faster'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutUp animate__faster'
+                        },
+                        didOpen: (modal) => {
+                            const paymentMode = modal.querySelector('#payment-mode');
+                            const upiFields = modal.querySelector('#upi-fields');
+                            const netBankingFields = modal.querySelector('#net-banking-fields');
+
+                            if (paymentMode) {
+                                paymentMode.addEventListener('change', (e) => {
+                                    if (e.target.value === 'upi') {
+                                        // Create a simple confirmation dialog
+                                        const confirmDialog = document.createElement('div');
+                                        confirmDialog.className = 'upi-confirm-dialog';
+                                        confirmDialog.style.cssText = `
+                                            position: absolute;
+                                            top: 50%;
+                                            left: 50%;
+                                            transform: translate(-50%, -50%);
+                                            background: white;
+                                            padding: 20px;
+                                            border-radius: 8px;
+                                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                                            z-index: 9999;
+                                            text-align: center;
+                                        `;
+                                        confirmDialog.innerHTML = `
+                                            <h5 style="margin-bottom: 15px;">Confirm UPI Payment</h5>
+                                            <p style="margin-bottom: 20px;">Are you sure that the payment has been transferred to ADI Corporate's Account?</p>
+                                            <div style="display: flex; gap: 10px; justify-content: center;">
+                                                <button class="btn btn-primary btn-sm" id="confirm-upi-yes">Yes</button>
+                                                <button class="btn btn-light btn-sm" id="confirm-upi-no">No</button>
+                                            </div>
+                                        `;
+
+                                        // Add overlay
+                                        const overlay = document.createElement('div');
+                                        overlay.style.cssText = `
+                                            position: fixed;
+                                            top: 0;
+                                            left: 0;
+                                            right: 0;
+                                            bottom: 0;
+                                            background: rgba(0,0,0,0.5);
+                                            z-index: 9998;
+                                        `;
+
+                                        // Add to modal
+                                        const modal = Swal.getPopup();
+                                        modal.appendChild(overlay);
+                                        modal.appendChild(confirmDialog);
+
+                                        // Handle Yes button
+                                        confirmDialog.querySelector('#confirm-upi-yes').addEventListener('click', () => {
+                                            upiFields.style.display = 'block';
+                                            netBankingFields.style.display = 'none';
+                                            overlay.remove();
+                                            confirmDialog.remove();
+                                        });
+
+                                        // Handle No button
+                                        confirmDialog.querySelector('#confirm-upi-no').addEventListener('click', () => {
+                                            paymentMode.value = 'cash';
+                                            upiFields.style.display = 'none';
+                                            netBankingFields.style.display = 'none';
+                                            overlay.remove();
+                                            confirmDialog.remove();
+                                        });
+                                    } else {
+                                        upiFields.style.display = e.target.value === 'upi' ? 'block' : 'none';
+                                        netBankingFields.style.display = e.target.value === 'net-banking' ? 'block' : 'none';
+                                    }
+                                });
+                            }
+
+                            // Add GST details fetch functionality
+                            const getGstDetailsBtn = modal.querySelector('#get-gst-details');
+                            const gstInput = modal.querySelector('#visitor-gstin');
+                            const companyNameInput = modal.querySelector('#company-name');
+                            const companyAddressInput = modal.querySelector('#company-address');
+
+                            getGstDetailsBtn.addEventListener('click', async () => {
+                                const gstNumber = gstInput.value.trim();
+                                if (!gstNumber) {
+                                    toast.error('Please enter GST number');
+                                    return;
+                                }
+
+                                try {
+                                    getGstDetailsBtn.disabled = true;
+                                    getGstDetailsBtn.innerHTML = 'Fetching...';
+                                    
+                                    const response = await fetch(`https://backend.bninewdelhi.com/einvoice/get-gst-details/${gstNumber}`);
+                                    const data = await response.json();
+                                    console.log('GST API Response:', data);
+
+                                    if (data.success && data.extractedDetails) {
+                                        companyNameInput.value = data.extractedDetails.legalName || data.extractedDetails.tradeName || '';
+                                        companyAddressInput.value = data.extractedDetails.address || '';
+                                        toast.success('GST details fetched successfully');
+                                    } else {
+                                        toast.error(data.message || 'Failed to fetch GST details');
+                                    }
+                                } catch (error) {
+                                    console.error('Error fetching GST details:', error);
+                                    toast.error('Error fetching GST details');
+                                } finally {
+                                    getGstDetailsBtn.disabled = false;
+                                    getGstDetailsBtn.innerHTML = 'Get GST Details';
+                                }
+                            });
+                        },
+                        preConfirm: () => {
+                            const popup = Swal.getPopup();
+                            const name = popup.querySelector('#visitor-name').value;
+                            const email = popup.querySelector('#visitor-email').value;
+                            const mobile = popup.querySelector('#visitor-mobile').value;
+                            const paymentMode = popup.querySelector('#payment-mode').value;
+                            const upiId = popup.querySelector('#upi-id').value;
+                            const ifscCode = popup.querySelector('#ifsc-code').value;
+                            const bankName = popup.querySelector('#bank-name').value;
+                            const dateIssued = popup.querySelector('#date-issued').value;
+                            const invitedBySelect = popup.querySelector('#invited-by');
+                            const invitedBy = invitedBySelect.value || null;
+                            const invitedByName = invitedBySelect.options[invitedBySelect.selectedIndex]?.text || 'BNI';
+
+                            if (!name || !mobile) {
+                                Swal.showValidationMessage('Please enter at least name and mobile number');
+                                return false;
+                            }
+
+                            if (!dateIssued) {
+                                Swal.showValidationMessage('Please select date issued');
+                                return false;
+                            }
+
+                            if (paymentMode === 'upi' && !upiId) {
+                                Swal.showValidationMessage('Please enter UPI ID for UPI payment');
+                                return false;
+                            }
+
+                            if (paymentMode === 'net-banking' && (!ifscCode || !bankName)) {
+                                Swal.showValidationMessage('Please enter IFSC code and bank name for net banking');
+                                return false;
+                            }
+
+                            return {
+                                name,
+                                email: email || 'N/A',
+                                mobile,
+                                address: popup.querySelector('#visitor-address').value || 'N/A',
+                                category: popup.querySelector('#visitor-category').value || 'N/A',
+                                state: popup.querySelector('#visitor-state').value || 'N/A',
+                                pincode: popup.querySelector('#visitor-pincode').value || 'N/A',
+                                invitedBy: invitedBy,
+                                invitedByName: invitedByName,
+                                gstin: popup.querySelector('#visitor-gstin').value || 'N/A',
+                                companyName: popup.querySelector('#company-name').value || 'N/A',
+                                companyAddress: popup.querySelector('#company-address').value || 'N/A',
+                                dateIssued: dateIssued || new Date().toISOString(),
+                                paymentMode,
+                                upiId: upiId || 'N/A',
+                                ifscCode: ifscCode || 'N/A',
+                                bankName: bankName || 'N/A',
+                                includeGst: popup.querySelector('#include-gst').checked,
+                                baseAmount: parseFloat(popup.querySelector('#base-amount').textContent),
+                                gstAmount: parseFloat(popup.querySelector('#gst-amount').textContent),
+                                finalAmount: parseFloat(popup.querySelector('#final-amount').textContent)
+                            };
+                        }
+                    });
+
+                    if (formValues) {
+                        // Update the visitor in localStorage
+                        visitors[index] = formValues;
+                        localStorage.setItem('visitors', JSON.stringify(visitors));
+
+                        // Update the row in the review table
+                        const row = popup.querySelector(`tr[data-index="${index}"]`);
+                        if (row) {
+                            row.cells[0].textContent = formValues.name;
+                            row.cells[5].textContent = formValues.state;
+                            row.cells[6].textContent = formValues.pincode;
+                            row.cells[8].textContent = formValues.gstin;
+                            row.cells[12].textContent = new Date(formValues.dateIssued).toLocaleString();
+                            row.cells[15].textContent = formValues.finalAmount.toFixed(2);
+                        }
+
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Visitor updated successfully',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            });
+        }
     });
 
     if (result.isConfirmed) {
+        // Get visitors from localStorage for API call
+        const storedVisitors = localStorage.getItem('visitors');
+        if (!storedVisitors) {
+            toast.error('Error: Visitor data not found');
+            return;
+        }
+
+        const visitors = JSON.parse(storedVisitors);
+
+        // Function to format payment method based on mode
+        const formatPaymentMethod = (visitor) => {
+            switch(visitor.paymentMode) {
+                case 'upi':
+                    return {
+                        upi: {
+                            upi_id: visitor.upiId,
+                            channel: "collect"
+                        }
+                    };
+                case 'net-banking':
+                    return {
+                        netbanking: {
+                            bank: visitor.bankName,
+                            ifsc: visitor.ifscCode
+                        }
+                    };
+                case 'cash':
+                default:
+                    return {
+                        cash: {
+                            payment_note: "Cash"
+                        }
+                    };
+            }
+        };
+
+        // Prepare data for API
+        const requestData = {
+            region_id: regionId,
+            chapter_id: chapterId,
+            universal_link_id: 5,
+            visitors: visitors.map(visitor => ({
+                visitor_name: visitor.name,
+                visitor_email: visitor.email,
+                visitor_mobile: visitor.mobile,
+                visitor_address: visitor.address,
+                visitor_category: visitor.category,
+                visitor_state: visitor.state,
+                visitor_pincode: visitor.pincode,
+                visitor_gstin: visitor.gstin,
+                visitor_company: visitor.companyName,
+                visitor_company_address: visitor.companyAddress,
+                visitor_business_category: visitor.category,
+                date_issued: visitor.dateIssued,
+                mode_of_payment: formatPaymentMethod(visitor),
+                include_gst: visitor.includeGst,
+                base_amount: visitor.baseAmount,
+                gst_amount: visitor.gstAmount,
+                final_amount: visitor.finalAmount,
+                taxable_amount: visitor.finalAmount,
+                total_amount: visitor.baseAmount,
+                member_id: visitor.invitedBy === "N/A" || !visitor.invitedBy ? null : visitor.invitedBy,
+                member_name: visitor.invitedByName === "Select Member" || !visitor.invitedByName ? "BNI" : visitor.invitedByName,
+                payment_gateway_id: null,
+                order_currency: "INR",
+                payment_currency: "INR",
+                payment_status: "SUCCESS",
+                payment_note: "Visitor Payment",
+                error_details: {}
+            }))
+        };
+
         try {
             // Make the API call to backend
             const response = await fetch('https://backend.bninewdelhi.com/api/addMultipleVisitorPayment', {
