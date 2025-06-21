@@ -4,6 +4,7 @@ const path = require('path');
 const routes = require('./routes'); // Import all routes from index.js
 
 const app = express();
+const methodOverride = require('method-override');
 
 // Set custom views directory
 app.set('views', path.join(__dirname, 'public/view'));
@@ -14,6 +15,8 @@ app.set('view engine', 'ejs');
 // Serve static files like CSS or images from the 'public' directory
 app.use(express.static('public'));
 
+app.use(express.json());
+app.use(methodOverride('_method')); 
 // Use the consolidated routes
 app.use('/', routes); // All routes are prefixed with /api
 

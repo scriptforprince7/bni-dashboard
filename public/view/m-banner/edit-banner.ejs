@@ -1,0 +1,137 @@
+<script src="/assets/js/tokenUtils.js"></script>
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+      <!-- header -->
+      <%- include('../partials/header') %> 
+      <!-- end header -->
+  <!-- Loader -->
+  <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+    <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+      <!-- sidebar -->
+
+      <%- include('../partials/sidebar') %>
+
+      <!-- end sidebar -->
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+
+
+
+
+<h1 class="page-title fw-medium fs-18 mb-0">
+  <span style="font-weight: 700; font-family: Poppins"><%= title %></span>
+</h1>
+<p>Manage everything with just one click</p>
+<!-- manage-banners.ejs -->
+
+<form
+  action="/edit-banner/<%= banner.id %>?_method=PUT"
+  method="POST"
+  enctype="multipart/form-data"
+>
+  <input
+    type="text"
+    name="banner_heading"
+    placeholder="Heading"
+    value="<%= banner.banner_heading %>"
+    required
+  />
+
+  <textarea name="banner_description" placeholder="Description">
+<%= banner.banner_description %></textarea
+  >
+
+  <!-- Show existing image if needed -->
+  <% if (banner.banner_image) { %>
+  <p>Current Image: <%= banner.banner_image %></p>
+  <% } %>
+  <input type="file" name="banner_image" accept="image/*" />
+
+  <!-- Button 1 -->
+  <input
+    type="text"
+    name="banner_button_0_text"
+    placeholder="Button 1 Text"
+    value="<%= banner.banner_button_0_text %>"
+  />
+  <input
+    type="text"
+    name="banner_button_0_link"
+    placeholder="Button 1 Link"
+    value="<%= banner.banner_button_0_link %>"
+  />
+  <input
+    type="number"
+    name="banner_button_0_x_position"
+    placeholder="Button 1 X Pos"
+    value="<%= banner.banner_button_0_x_position %>"
+  />
+  <input
+    type="number"
+    name="banner_button_0_y_position"
+    placeholder="Button 1 Y Pos"
+    value="<%= banner.banner_button_0_y_position %>"
+  />
+  <input type="checkbox" name="banner_button_0_status" value="true" <%=
+  banner.banner_button_0_status ? "checked" : "" %> />
+
+  <!-- Button 2 -->
+  <input
+    type="text"
+    name="banner_button_1_text"
+    placeholder="Button 2 Text"
+    value="<%= banner.banner_button_1_text %>"
+  />
+  <input
+    type="text"
+    name="banner_button_1_link"
+    placeholder="Button 2 Link"
+    value="<%= banner.banner_button_1_link %>"
+  />
+  <input
+    type="number"
+    name="banner_button_1_x_position"
+    placeholder="Button 2 X Pos"
+    value="<%= banner.banner_button_1_x_position %>"
+  />
+  <input
+    type="number"
+    name="banner_button_1_y_position"
+    placeholder="Button 2 Y Pos"
+    value="<%= banner.banner_button_1_y_position %>"
+  />
+  <input type="checkbox" name="banner_button_1_status" value="true" <%=
+  banner.banner_button_1_status ? "checked" : "" %> />
+
+  <button type="submit">Update Banner</button>
+</form>
+      </div>
+      <!-- End::content  -->
+
+      <script src="../../assets/js/region.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+      <%- include('../partials/footer') %> 

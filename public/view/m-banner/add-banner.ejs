@@ -1,0 +1,199 @@
+<script src="/assets/js/tokenUtils.js"></script>
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+      <!-- header -->
+      <%- include('../partials/header') %> 
+      <!-- end header -->
+  <!-- Loader -->
+  <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+    <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+      <!-- sidebar -->
+
+      <%- include('../partials/sidebar') %>
+
+      <!-- end sidebar -->
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+
+
+<h1 class="page-title fw-medium fs-18 mb-0 mt-5">
+  <span class="fw-bold" style="font-family: Poppins"> <%= title %> </span>
+</h1>
+
+<form
+  action="/add-banner"
+  method="POST"
+  enctype="multipart/form-data"
+  class="p-4 bg-white rounded shadow-sm mt-4"
+>
+  <div class="mb-3">
+    <input
+      type="text"
+      name="banner_heading"
+      placeholder="Heading"
+      required
+      class="form-control form-control-lg"
+    />
+  </div>
+  <div class="mb-3">
+    <textarea
+      name="banner_description"
+      placeholder="Description"
+      class="form-control"
+      rows="3"
+    ></textarea>
+  </div>
+  <div class="mb-3">
+    <input type="file" name="image" accept="image/*" class="form-control" />
+  </div>
+
+  <div class="row">
+    <!-- Button 1 -->
+    <div class="col-md-6">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-primary text-white py-2 px-3">
+          <span class="fw-semibold">Button 1</span>
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <input
+              type="text"
+              name="banner_button_0_text"
+              placeholder="Button 1 Text"
+              class="form-control"
+            />
+          </div>
+          <div class="mb-2">
+            <input
+              type="text"
+              name="banner_button_0_link"
+              placeholder="Button 1 Link"
+              class="form-control"
+            />
+          </div>
+          <div class="row g-2">
+            <div class="col">
+              <input
+                type="number"
+                name="banner_button_0_x_position"
+                placeholder="X Pos"
+                class="form-control"
+              />
+            </div>
+            <div class="col">
+              <input
+                type="number"
+                name="banner_button_0_y_position"
+                placeholder="Y Pos"
+                class="form-control"
+              />
+            </div>
+          </div>
+          <div class="form-check mt-3">
+            <input
+              type="checkbox"
+              name="banner_button_0_status"
+              value="true"
+              class="form-check-input"
+              id="btn1status"
+            />
+            <label class="form-check-label" for="btn1status">
+              Enable Button 1
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Button 2 -->
+    <div class="col-md-6">
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-primary text-white py-2 px-3">
+          <span class="fw-semibold">Button 2</span>
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <input
+              type="text"
+              name="banner_button_1_text"
+              placeholder="Button 2 Text"
+              class="form-control"
+            />
+          </div>
+          <div class="mb-2">
+            <input
+              type="text"
+              name="banner_button_1_link"
+              placeholder="Button 2 Link"
+              class="form-control"
+            />
+          </div>
+          <div class="row g-2">
+            <div class="col">
+              <input
+                type="number"
+                name="banner_button_1_x_position"
+                placeholder="X Pos"
+                class="form-control"
+              />
+            </div>
+            <div class="col">
+              <input
+                type="number"
+                name="banner_button_1_y_position"
+                placeholder="Y Pos"
+                class="form-control"
+              />
+            </div>
+          </div>
+          <div class="form-check mt-3">
+            <input
+              type="checkbox"
+              name="banner_button_1_status"
+              value="true"
+              class="form-check-input"
+              id="btn2status"
+            />
+            <label class="form-check-label" for="btn2status">
+              Enable Button 2
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-success w-100 fw-bold py-2 fs-5 mt-2">
+    Add Banner
+  </button>
+</form>
+      </div>
+      <!-- End::content  -->
+
+      <script src="../../assets/js/region.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+      <%- include('../partials/footer') %> 

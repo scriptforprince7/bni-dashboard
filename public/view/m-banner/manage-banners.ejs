@@ -1,0 +1,126 @@
+<script src="/assets/js/tokenUtils.js"></script>
+<script>
+    (function checkAccess() {
+        try {
+            const loginType = getUserLoginType();
+            if (loginType !== 'ro_admin') {
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f8f9fa;">
+                        <div style="text-align: center; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 10px;">Unauthorized Access</h2>
+                            <p style="color: #6c757d;">Only RO Admin can access this page.</p>
+                            <a href="/" style="display: inline-block; margin-top: 15px; padding: 8px 16px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 4px;">Go to Home</a>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Access check failed:', error);
+            window.location.href = '/';
+        }
+    })();
+</script>
+      <!-- header -->
+      <%- include('../partials/header') %> 
+      <!-- end header -->
+  <!-- Loader -->
+  <div id="loader" style="display: none; align-items: center; justify-content: center;opacity: 99999; background-color: red;">
+    <img src="../../assets/images/media/loader-5.svg" alt="Loading...">
+</div>
+
+<!-- Loader -->
+      <!-- sidebar -->
+
+      <%- include('../partials/sidebar') %>
+
+      <!-- end sidebar -->
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+
+
+    <h1 class="page-title fw-medium fs-18 mb-0">
+      <span style="font-weight: 700; font-family: Poppins"><%= title %></span>
+    </h1>
+    <p>Manage banners from here</p>
+    <!-- manage-banners.ejs -->
+
+    <% if (banners && banners.length > 0) { %>
+    <table class="table table-bordered table-hover align-middle mt-4">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col">Image</th>
+          <th scope="col">Heading</th>
+          <th scope="col">Description</th>
+          <th scope="col">Status</th>
+          <th scope="col">Buttons</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% banners.forEach(banner => { %>
+        <tr>
+          <td>
+            <% if (banner.banner_image) { %>
+            <img
+              src="http://localhost:5000/uploads/banners/<%= banner.banner_image %>"
+              width="300"
+              class="img-thumbnail"
+            />
+            <% } else { %> 
+            <span class="text-muted">No Image</span>
+            <% } %>
+          </td>
+          <td><%= banner.banner_heading %></td>
+          <td><%= banner.banner_description %></td>
+          <td>
+            <span class="badge <%= banner.banner_status ? 'bg-success' : 'bg-secondary' %>">
+              <%= banner.banner_status ? "Enabled" : "Disabled" %>
+            </span>
+          </td>
+          <td>
+            <% for (let i = 0; i <= 1; i++) { %> 
+              <% if (banner[`banner_button_${i}_status`]) { %>
+                <div class="mb-2">
+                  <span class="fw-semibold"><%= banner[`banner_button_${i}_text`] %></span>
+                  <br>
+                  <small class="text-muted"><%= banner[`banner_button_${i}_link`] %></small>
+                </div>
+              <% } %> 
+            <% } %>
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              <form>
+                <a class="btn btn-primary btn-sm" href="/edit-banner?id=<%= banner.id %>">Edit</a>
+              </form>
+              <form
+                action="/delete-banner/<%= banner.id %>"
+                method="GET"
+                onsubmit="return confirm('Are you sure you want to delete this banner?');"
+                class="d-inline"
+              >
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            </div>
+
+
+
+
+
+            
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p class="alert alert-warning mt-4">No banners found.</p>
+    <% } %>
+      </div>
+      <!-- End::content  -->
+
+      <script src="../../assets/js/region.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+      <%- include('../partials/footer') %> 
