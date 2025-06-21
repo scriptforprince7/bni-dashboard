@@ -145,17 +145,43 @@ async function fetchMemberData() {
             .map(ma => {
                 const accoladeDetails = accoladesData.find(a => a.accolade_id === ma.accolade_id);
                 if (accoladeDetails) {
+                    // Calculate count by counting occurrences of this member_id and accolade_id combination
+                    const count = memberAccoladesData.filter(item => 
+                        item.member_id === parseInt(member_id) && 
+                        item.accolade_id === ma.accolade_id
+                    ).length;
+                    
+                    // Find the most recent given date for this accolade
+                    const allEntriesForThisAccolade = memberAccoladesData.filter(item => 
+                        item.member_id === parseInt(member_id) && 
+                        item.accolade_id === ma.accolade_id &&
+                        item.given_date // Only consider entries with given_date
+                    );
+                    
+                    let mostRecentGivenDate = null;
+                    if (allEntriesForThisAccolade.length > 0) {
+                        // Sort by given_date and get the most recent one
+                        const sortedEntries = allEntriesForThisAccolade.sort((a, b) => 
+                            new Date(b.given_date) - new Date(a.given_date)
+                        );
+                        mostRecentGivenDate = formatDate(sortedEntries[0].given_date);
+                    }
+                    
                     return {
                         ...accoladeDetails,
                         accolade_publish_date: formatDate(ma.issue_date),
-                        accolade_given_date: formatDate(ma.given_date),
-                        count: ma.count,
+                        accolade_given_date: mostRecentGivenDate || '-', // Use most recent given date
+                        count: count, // Use calculated count instead of ma.count
                         comment: ma.comment
                     };
                 }
                 return null;
             })
-            .filter(Boolean); // Remove any null values
+            .filter(Boolean) // Remove any null values
+            // Remove duplicates by keeping only unique accolade_id entries
+            .filter((accolade, index, self) => 
+                index === self.findIndex(a => a.accolade_id === accolade.accolade_id)
+            );
 
         console.log(`📚 Total accolades processed: ${memberAccolades.length}`, memberAccolades);
 
@@ -192,7 +218,26 @@ function populateAccoladesTable(accolades) {
                 >${accolade.accolade_name || 'N/A'}</span>
             </td>
             <td>${accolade.item_type || 'N/A'}</td>
-            <td><span style="font-weight: 600">${accolade.count || 1}</span></td>
+            <td>
+                <span 
+                    style="
+                        font-weight: 600; 
+                        color: #2563eb; 
+                        cursor: pointer; 
+                        background: #eff6ff; 
+                        padding: 4px 8px; 
+                        border-radius: 4px;
+                        border: 1px solid #dbeafe;
+                        transition: all 0.2s ease;
+                    "
+                    onmouseover="this.style.background='#dbeafe'"
+                    onmouseout="this.style.background='#eff6ff'"
+                    onclick="showAccoladeCountDetails(${accolade.accolade_id}, ${accolade.count})"
+                    title="Click to view all given dates"
+                >
+                    ${accolade.count || 1}
+                </span>
+            </td>
             <td>${accolade.accolade_published_by || 'N/A'}</td>
             <td><span style="font-weight: 600">${accolade.accolade_publish_date || '-'}</span></td>
             <td><span style="font-weight: 600">${accolade.accolade_given_date || '-'}</span></td>
@@ -351,16 +396,19 @@ async function handleRequestAndPay(accoladeId) {
                 customer_email: currentMember.member_email_address,
                 customer_phone: currentMember.member_phone_number,
                 customer_name: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
+                memberName: `${currentMember.member_first_name} ${currentMember.member_last_name}`,
                 chapter_id: currentMember.chapter_id,
                 region_id: currentMember.region_id,
                 member_id: currentMember.member_id,
                 payment_note: 'member-requisition-payment',
                 payment_gateway_id: '1',
                 accolade_id: accoladeId,
+                request_comment: comment,
             },
             order_meta: {
                 payment_note: 'member-requisition-payment',
-                accolade_id: accoladeId // Also add here for reference
+                accolade_id: accoladeId,
+                request_comment: comment
             },
             tax: taxAmount,
             memberData: {
@@ -400,50 +448,12 @@ async function handleRequestAndPay(accoladeId) {
                 cashfreeInstance.checkout({
                     paymentSessionId: sessionData.payment_session_id,
                     redirectTarget: "_self",  // Ensures redirection occurs
-                    returnUrl: `https://backend.bninewdelhi.com/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Change this to your production URL
+                    returnUrl: `https://backend.bninewdelhi.com/api/getCashfreeOrderDataAndVerifyPayment/${sessionData.order_id}`, // Backend API will redirect to payment receipt page
                 }).then(async (result) => {
                     if (result.paymentDetails) {
                         console.log("✅ Payment completed:", result.paymentDetails);
-                        
-                        try {
-                            // Create member requisition after successful payment
-                            const requisitionData = {
-                                member_id: currentMember.member_id,
-                                chapter_id: currentMember.chapter_id,
-                                accolade_id: accoladeId,
-                                request_comment: comment, // From the earlier SweetAlert input
-                                accolade_amount: accoladeAmount,
-                                order_id: sessionData.order_id // From the payment session
-                            };
-
-                            console.log('📝 Creating member requisition:', requisitionData);
-
-                            const requisitionResponse = await fetch('https://backend.bninewdelhi.com/api/member-requisition', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(requisitionData)
-                            });
-
-                            const requisitionResult = await requisitionResponse.json();
-                            console.log('✅ Requisition created:', requisitionResult);
-
-                            if (!requisitionResponse.ok) {
-                                throw new Error(requisitionResult.message || 'Failed to create requisition');
-                            }
-
-                            // Success - redirect to manage accolades page
-                            window.location.href = `/macc/manage-memberAccolades`;
-                        } catch (error) {
-                            console.error('❌ Error creating requisition:', error);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Payment successful but failed to create requisition. Please contact support.',
-                                confirmButtonColor: '#dc2626'
-                            });
-                        }
+                        // Payment processing and requisition creation will be handled by the backend API
+                        // The backend will redirect to the payment receipt page
                     }
 
                     if (result.error) {
@@ -714,3 +724,121 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resetFilter').addEventListener('click', resetFilter);
     getPendingRequisitions();
 });
+
+// Add this function to show accolade count details with all given dates
+async function showAccoladeCountDetails(accoladeId, count) {
+    try {
+        // Get current member ID
+        const loginType = getUserLoginType();
+        let currentMemberId;
+        
+        if (loginType === 'ro_admin') {
+            currentMemberId = parseInt(localStorage.getItem('current_member_id'));
+        } else {
+            const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+            const members = await membersResponse.json();
+            const currentMember = members.find(member => member.member_email_address === getUserEmail());
+            currentMemberId = currentMember.member_id;
+        }
+
+        // Fetch member accolades data
+        const memberAccoladesResponse = await fetch('https://backend.bninewdelhi.com/api/getAllMemberAccolades');
+        const memberAccoladesData = await memberAccoladesResponse.json();
+
+        // Filter for this specific member and accolade combination
+        const accoladeEntries = memberAccoladesData.filter(item => 
+            item.member_id === currentMemberId && 
+            item.accolade_id === accoladeId
+        );
+
+        // Fetch accolade name
+        const accoladesResponse = await fetch('https://backend.bninewdelhi.com/api/accolades');
+        const accoladesData = await accoladesResponse.json();
+        const accoladeName = accoladesData.find(a => a.accolade_id === accoladeId)?.accolade_name || 'Unknown Accolade';
+
+        // Sort entries by given_date (most recent first)
+        const sortedEntries = accoladeEntries
+            .filter(entry => entry.given_date) // Only show entries with given_date
+            .sort((a, b) => new Date(b.given_date) - new Date(a.given_date));
+
+        if (sortedEntries.length === 0) {
+            Swal.fire({
+                icon: 'info',
+                title: 'No Given Dates Found',
+                text: `This accolade (${accoladeName}) has been issued ${count} times but no given dates are recorded yet.`,
+                confirmButtonColor: '#2563eb'
+            });
+            return;
+        }
+
+        // Create the modal content
+        const modalContent = `
+            <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                <div style="
+                    background: #f8fafc;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 15px;
+                    border-left: 4px solid #2563eb;
+                ">
+                    <h4 style="margin: 0; color: #2563eb;">
+                        <i class="ri-award-line me-2"></i>${accoladeName}
+                    </h4>
+                    <p style="margin: 5px 0 0 0; color: #64748b;">
+                        Total times received: <strong>${count}</strong> | Given dates: <strong>${sortedEntries.length}</strong>
+                    </p>
+                </div>
+                
+                <div style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f1f5f9; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 12px; text-align: left; color: #475569; font-weight: 600;">#</th>
+                            <th style="padding: 12px; text-align: left; color: #475569; font-weight: 600;">Given Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedEntries.map((entry, index) => `
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 12px; color: #64748b; font-weight: 500;">${index + 1}</td>
+                                    <td style="padding: 12px;">
+                                        <span style="
+                                            background: #dcfce7;
+                                            color: #15803d;
+                                            padding: 4px 8px;
+                                            border-radius: 4px;
+                                            font-weight: 500;
+                                            font-size: 0.875rem;
+                                        ">
+                                            <i class="ri-calendar-check-line me-1"></i>
+                                            ${formatDate(entry.given_date)}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        Swal.fire({
+            title: `<span style="color: #2563eb;"><i class="ri-stack-line me-2"></i>Accolade Details</span>`,
+            html: modalContent,
+            width: '600px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                popup: 'accolade-count-details-modal'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error showing accolade count details:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load accolade details'
+        });
+    }
+}

@@ -6,6 +6,6 @@ const memberAccoladesController = require('../../controllers/c-member-accolades/
 router.get('/manage-memberAccolades', memberAccoladesController.manageMemberAccolades);
 router.get('/request-memberAccolades', memberAccoladesController.requestMemberAccolades);
 router.get('/view-all-accolades', memberAccoladesController.viewAllAccolades);
-
+router.get('/memberAccoladePaymentReceipt', memberAccoladesController.memberAccoladePaymentReceipt);
 
 module.exports = router;

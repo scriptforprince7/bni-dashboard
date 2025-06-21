@@ -485,7 +485,7 @@ function showGeneratedInvoicesDetails() {
                 <td>${chapter?.chapter_name || 'N/A'}</td>
                 <td>${formatINR(transaction.payment_amount)}</td>
                 <td>${getPaymentMethodHTML(transaction.payment_group)}</td>
-                <td>${universalLink ? universalLink.universal_link_name : 'N/A'}</td>
+                <td>${getPaymentTypeDisplay(order, universalLink)}</td>
                 <td><b>${formatNA(docNo)}</b></td>
                 <td>
                     <button class="btn btn-success btn-sm" onclick="viewEInvoice('${order.order_id}')">
@@ -577,6 +577,8 @@ function populateFilters() {
     universalLinks.forEach(link => {
         paymentTypeFilter.innerHTML += `<li><a class="dropdown-item" href="#" data-value="${link.id}">${link.universal_link_name}</a></li>`;
     });
+    // Add Requisition Payment option
+    paymentTypeFilter.innerHTML += `<li><a class="dropdown-item" href="#" data-value="requisition-payment">Requisition Payment</a></li>`;
 
     // Payment status filter
     const statuses = [...new Set(allTransactions.map(t => t.payment_status))];
@@ -717,7 +719,7 @@ async function generateEInvoice(orderId) {
                     <strong>Visitor Mobile:</strong> ${order.visitor_mobilenumber || 'N/A'}<br>
                     <strong>Visitor GSTIN:</strong> ${order.visitor_gstin || 'N/A'}<br>
                     <strong>Chapter Name:</strong> ${chapter?.chapter_name || 'N/A'}<br>
-                    <strong>Payment Description:</strong> ${universalLink?.universal_link_name || 'N/A'}<br>
+                    <strong>Payment Description:</strong> ${getPaymentDescription(order, universalLink)}<br>
                     <strong>Amount:</strong> ₹ ${transaction.payment_amount}
                 `;
             } else {
@@ -728,7 +730,7 @@ async function generateEInvoice(orderId) {
                     <strong>Phone:</strong> ${order?.customer_phone || 'N/A'}<br>
                     <strong>Company Name:</strong> ${order?.company || 'N/A'}<br>
                     <strong>Company GST No:</strong> ${order?.gstin || 'N/A'}<br>
-                    <strong>Payment Description:</strong> ${universalLink?.universal_link_name || 'N/A'}<br>
+                    <strong>Payment Description:</strong> ${getPaymentDescription(order, universalLink)}<br>
                     <strong>Amount:</strong> ₹ ${transaction.payment_amount}
                 `;
             }
@@ -760,7 +762,7 @@ async function generateEInvoice(orderId) {
                     amount: transaction.payment_amount,
                     chapterName: chapter?.chapter_name || 'N/A',
                     gatewayName: 'Cashfree',
-                    universalLinkName: universalLink?.universal_link_name || 'N/A',
+                    universalLinkName: getPaymentDescription(order, universalLink),
                 };
 
                 // Make API call
@@ -812,7 +814,7 @@ async function viewEInvoice(orderId) {
             amount: order?.order_amount,
             chapterName: chapter ? chapter.chapter_name : 'N/A',
             gatewayName: 'Unknown', // Set as needed or fetch if available
-            universalLinkName: universalLink ? universalLink.universal_link_name : 'Not Applicable'
+            universalLinkName: getPaymentDescription(order, universalLink)
         };
         const einvoiceData = eInvoiceData;
 
@@ -930,7 +932,7 @@ async function displayTransactions() {
             <td><b><i>${chapter ? chapter.chapter_name : formatNA('Not Applicable')}</i></b></td>
             <td><div><b>${formatINR(transaction.payment_amount)}</b></div><div><span class="text-success" style="cursor:pointer;font-weight:500;" onclick="showInvoiceModal('${order.order_id}')">View</span></div></td>
             <td>${getPaymentMethodHTML(transaction.payment_group)}</td>
-            <td><i>${universalLink ? universalLink.universal_link_name : formatNA('Not Applicable')}</i></td>
+            <td>${getPaymentTypeDisplay(order, universalLink)}</td>
             <td>${getPGStatusBadge(transaction.payment_status)}</td>
             <td><i>${order.order_id || formatNA('Not Applicable')}</i></td>
             <td><b><i>${transaction.cf_payment_id || formatNA('Not Applicable')}</i></b></td>
@@ -1084,7 +1086,17 @@ async function filterTransactions() {
         if (currentFilters.chapter && String(order.chapter_id) !== String(currentFilters.chapter)) return false;
 
         // Payment type filter
-        if (currentFilters.paymentType && String(order.universal_link_id) !== String(currentFilters.paymentType)) return false;
+        if (currentFilters.paymentType) {
+            if (currentFilters.paymentType === 'requisition-payment') {
+                // Special case for Requisition Payment
+                if (!order.payment_note || order.payment_note.toLowerCase() !== 'member-requisition-payment') {
+                    return false;
+                }
+            } else {
+                // Regular universal link filter
+                if (String(order.universal_link_id) !== String(currentFilters.paymentType)) return false;
+            }
+        }
 
         // Payment status filter
         if (currentFilters.paymentStatus && transaction.payment_status !== currentFilters.paymentStatus) return false;
@@ -1313,4 +1325,26 @@ async function generateQRCode(orderId) {
 function getDocumentNumber(orderId) {
     const docNumber = allDocNumbers.find(doc => doc.order_id === orderId);
     return docNumber ? docNumber.doc_no : 'Not Applicable';
+}
+
+// Helper function to get payment type display text
+function getPaymentTypeDisplay(order, universalLink) {
+    // Check if this is a member requisition payment
+    if (order.payment_note && order.payment_note.toLowerCase() === 'member-requisition-payment') {
+        return '<i>Requisition Payment</i>';
+    }
+    
+    // Return the universal link name for other payment types
+    return `<i>${universalLink ? universalLink.universal_link_name : formatNA('Not Applicable')}</i>`;
+}
+
+// Helper function to get payment description
+function getPaymentDescription(order, universalLink) {
+    // Check if this is a member requisition payment
+    if (order.payment_note && order.payment_note.toLowerCase() === 'member-requisition-payment') {
+        return 'Requisition Payment';
+    }
+    
+    // Return the universal link name for other payment types
+    return universalLink ? universalLink.universal_link_name : 'N/A';
 }

@@ -1202,14 +1202,39 @@ async function showRequisitionForm() {
         const requisitions = await requisitionsResponse.json();
 
         // Filter requisitions for current chapter and not approved
-        const allRequisitions = requisitions.filter(req => 
-            req.chapter_id === currentChapter.chapter_id && 
-            req.approve_status !== 'approved'
-        );
+        const allRequisitions = requisitions.filter(req => {
+            console.log('🔍 Filtering requisition:', {
+                requisitionId: req.member_request_id,
+                chapterId: req.chapter_id,
+                currentChapterId: currentChapter.chapter_id,
+                approveStatus: req.approve_status,
+                actionNeeded: req.action_needed,
+                isChapterMatch: req.chapter_id === currentChapter.chapter_id,
+                isNotApproved: req.approve_status !== 'approved',
+                hasActionNeeded: req.action_need === true,
+                willShow: req.chapter_id === currentChapter.chapter_id && 
+                         req.approve_status !== 'approved' && 
+                         req.action_needed === true
+            });
+            
+            return req.chapter_id === currentChapter.chapter_id && 
+                   req.approve_status !== 'approved' &&
+                   req.action_need === true;
+        });
+        
+        console.log('📊 Filtered requisitions count:', allRequisitions.length);
+        console.log('📋 All filtered requisitions:', allRequisitions);
+
+        // Use the filtered requisitions directly (no need for complex accolade_id checking)
+        const finalFilteredRequisitions = allRequisitions;
+        
+        console.log('📊 Final filtered requisitions count:', finalFilteredRequisitions.length);
+        console.log('📋 Final filtered requisitions:', finalFilteredRequisitions);
 
         // Track selected assignments
         let assignments = [];
         let currentSno = 1;
+        let selectedItems = []; // Store selected items globally for preConfirm access
 
         const formHtml = `
             <div class="requisition-container" style="
@@ -1496,9 +1521,13 @@ async function showRequisitionForm() {
                         max-height: 200px;
                         overflow-y: auto;
                     ">
-                        ${allRequisitions.map(req => {
-                            // Skip if the requisition has already been given
-                            if (req.given_status === true) return '';
+                        ${finalFilteredRequisitions.map(req => {
+                            // Removed given_status condition - only approve_status filter is applied
+                            console.log('🎯 Processing requisition for display:', {
+                                requisitionId: req.member_request_id,
+                                givenStatus: req.given_status,
+                                approveStatus: req.approve_status
+                            });
 
                             const member = members.find(m => m.member_id === req.member_id);
                             const accolade = accolades.find(a => a.accolade_id === req.accolade_id);
@@ -1621,6 +1650,32 @@ async function showRequisitionForm() {
                     });
 
                     if (!response.ok) throw new Error('Failed to submit requisition');
+
+                    // Update member requisitions to action_needed = false for selected items
+                    console.log('🔄 Updating member requisitions with action_needed = false');
+                    for (const item of selectedItems) {
+                        try {
+                            const memberUpdateResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    member_request_id: item.member_request_id,
+                                    action_need: false
+                                })
+                            });
+
+                            if (memberUpdateResponse.ok) {
+                                console.log(`✅ Updated member requisition ${item.member_request_id} with action_need = false`);
+                            } else {
+                                console.warn(`⚠️ Failed to update member requisition ${item.member_request_id}`);
+                            }
+                        } catch (error) {
+                            console.error(`❌ Error updating member requisition ${item.member_request_id}:`, error);
+                        }
+                    }
+
                     return true;
                 } catch (error) {
                     Swal.showValidationMessage(`Submission failed: ${error.message}`);
@@ -1654,13 +1709,15 @@ async function showRequisitionForm() {
                     .map(checkbox => members.find(m => m.member_id === parseInt(checkbox.value)));
 
                 // Get selections from requisitions (Method 2)
-                const selectedItems = Array.from(document.querySelectorAll('.payment-item input[type="checkbox"]:checked'))
+                selectedItems = Array.from(document.querySelectorAll('.payment-item input[type="checkbox"]:checked'))
                     .map(checkbox => {
                         const requisitionId = parseInt(checkbox.dataset.requisitionId);
-                        const requisition = allRequisitions.find(r => r.member_request_id === requisitionId);
+                        const requisition = finalFilteredRequisitions.find(r => r.member_request_id === requisitionId);
                         return {
+                            member_request_id: requisitionId, // Include member_request_id for updating
                             accolade: accolades.find(a => a.accolade_id === requisition.accolade_id),
-                            member: members.find(m => m.member_id === requisition.member_id)
+                            member: members.find(m => m.member_id === requisition.member_id),
+                            requisition: requisition // Include the original requisition data
                         };
                     });
 
@@ -1693,14 +1750,40 @@ async function showRequisitionForm() {
                 }
 
                 // Handle Method 2: Requisition selection
+                // For paid requisitions: Skip existing accolade check (member can request same accolade multiple times if paid)
+                // For free requisitions: Check if member already has the accolade to prevent duplicates
                 for (const item of selectedItems) {
                     if (item.accolade && item.member) {
-                        const hasAccolade = await checkExistingAccolades(item.member.member_id, item.accolade.accolade_id);
+                        // Find the original requisition to check if it's paid
+                        const originalRequisition = finalFilteredRequisitions.find(r => 
+                            r.member_id === item.member.member_id && 
+                            r.accolade_id === item.accolade.accolade_id
+                        );
                         
-                        if (hasAccolade) {
-                            // Show custom toast notification for existing accolade
-                            showCustomToast(`${item.member.member_first_name} ${item.member.member_last_name} already has ${item.accolade.accolade_name}`, 'warning');
-                            continue; // Skip this combination
+                        // Check if this is a paid requisition
+                        const isPaidRequisition = originalRequisition && 
+                            originalRequisition.order_id !== null && 
+                            originalRequisition.accolade_amount !== null;
+                        
+                        console.log('🔍 Processing requisition:', {
+                            memberId: item.member.member_id,
+                            accoladeId: item.accolade.accolade_id,
+                            isPaid: isPaidRequisition,
+                            orderId: originalRequisition?.order_id,
+                            amount: originalRequisition?.accolade_amount
+                        });
+
+                        // Only check existing accolades for free requisitions
+                        if (!isPaidRequisition) {
+                            const hasAccolade = await checkExistingAccolades(item.member.member_id, item.accolade.accolade_id);
+                            
+                            if (hasAccolade) {
+                                // Show custom toast notification for existing accolade
+                                showCustomToast(`${item.member.member_first_name} ${item.member.member_last_name} already has ${item.accolade.accolade_name}`, 'warning');
+                                continue; // Skip this combination
+                            }
+                        } else {
+                            console.log('💰 Skipping existing accolade check for paid requisition');
                         }
 
                         assignments.push({
@@ -2182,7 +2265,7 @@ async function markAsGiven(requisitionId, combinationKey) {
                 req.accolade_id === accoladeId &&
                 req.chapter_id === currentRequisition.chapter_id &&
                 req.given_status === false &&
-                req.request_status === 'open' &&
+                (req.request_status === 'open' || req.request_status === null) &&
                 req.given_date === null
             );
 

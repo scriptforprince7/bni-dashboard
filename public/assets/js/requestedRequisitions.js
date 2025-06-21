@@ -923,6 +923,19 @@ async function handleRequisitionAction(data) {
             });
 
             // Check if this is a paid accolade
+            console.log('🔍 Checking if accolade is paid...');
+            
+            // Fetch member requisitions data to check paid status
+            const memberRequisitionsResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedMemberRequisition');
+            const memberRequisitions = await memberRequisitionsResponse.json();
+            
+            console.log('📊 memberRequisitions data:', memberRequisitions);
+            console.log('🎯 Looking for:', {
+                memberId: actionData.memberId,
+                chapterId: currentRequisition.chapter_id,
+                accoladeId: actionData.accoladeId
+            });
+            
             const isPaidAccolade = memberRequisitions.some(req => 
                 req.member_id === actionData.memberId && 
                 req.chapter_id === currentRequisition.chapter_id && 
@@ -930,6 +943,8 @@ async function handleRequisitionAction(data) {
                 req.order_id !== null && 
                 req.accolade_amount !== null
             );
+            
+            console.log('💰 Is Paid Accolade:', isPaidAccolade);
 
             // First update chapter requisition
             const chapterRequestData = {
@@ -956,18 +971,53 @@ async function handleRequisitionAction(data) {
                 // Rest of the existing member logic...
                 if (isPaidAccolade) {
                     console.log('🔄 Updating member requisition for paid accolade');
+                    console.log('🔍 Searching for member requisition record...');
                     
                     // Find the correct member requisition record
-                    const memberReq = memberRequisitions.find(req => 
-                        req.member_id === actionData.memberId && 
-                        req.chapter_id === currentRequisition.chapter_id && 
-                        req.accolade_id === actionData.accoladeId &&
-                        req.given_status === false &&
-                        req.request_status === 'open' &&
-                        req.given_date === null
-                    );
+                    const memberReq = memberRequisitions.find(req => {
+                        console.log('🔍 Checking record:', {
+                            member_request_id: req.member_request_id,
+                            member_id: req.member_id,
+                            chapter_id: req.chapter_id,
+                            accolade_id: req.accolade_id,
+                            given_status: req.given_status,
+                            request_status: req.request_status,
+                            given_date: req.given_date,
+                            order_id: req.order_id,
+                            accolade_amount: req.accolade_amount
+                        });
+                        
+                        const matches = req.member_id === actionData.memberId && 
+                            req.chapter_id === currentRequisition.chapter_id && 
+                            req.accolade_id === actionData.accoladeId &&
+                            req.given_status === false &&
+                            (req.request_status === null || req.request_status === 'open') &&  // Fixed: check for null OR 'open'
+                            req.given_date === null;
+                            
+                        console.log('✅ Record matches conditions:', matches);
+                        return matches;
+                    });
+
+                    console.log('🎯 Found member requisition:', memberReq);
 
                     if (!memberReq) {
+                        console.error('❌ Member requisition record not found!');
+                        console.log('🔍 Available records for this member/accolade:');
+                        memberRequisitions.forEach(req => {
+                            if (req.member_id === actionData.memberId && req.accolade_id === actionData.accoladeId) {
+                                console.log('📋 Record:', {
+                                    member_request_id: req.member_request_id,
+                                    member_id: req.member_id,
+                                    chapter_id: req.chapter_id,
+                                    accolade_id: req.accolade_id,
+                                    given_status: req.given_status,
+                                    request_status: req.request_status,
+                                    given_date: req.given_date,
+                                    order_id: req.order_id,
+                                    accolade_amount: req.accolade_amount
+                                });
+                            }
+                        });
                         throw new Error('Member requisition record not found');
                     }
 
@@ -979,11 +1029,11 @@ async function handleRequisitionAction(data) {
                         accolade_id: actionData.accoladeId,
                         approve_status: actionData.status === 'approved' ? 'approved' : 'rejected',
                         response_comment: roComment,
-                        
                         approved_date: actionData.status === 'approved' ? new Date().toISOString() : null
                     };
 
                     console.log('📝 Member Request Data:', memberRequestData);
+                    console.log('🚀 About to call updateMemberRequisition API...');
 
                     const memberResponse = await fetch('https://backend.bninewdelhi.com/api/updateMemberRequisition', {
                         method: 'PUT',
@@ -993,13 +1043,19 @@ async function handleRequisitionAction(data) {
                         body: JSON.stringify(memberRequestData)
                     });
 
+                    console.log('📡 API Response Status:', memberResponse.status);
+                    console.log('📡 API Response OK:', memberResponse.ok);
+
                     if (!memberResponse.ok) {
+                        const errorText = await memberResponse.text();
+                        console.error('❌ API Error Response:', errorText);
                         throw new Error('Member requisition update failed');
                     }
 
-                    console.log('✅ Member requisition updated:', {
+                    console.log('✅ Member requisition updated successfully:', {
+                        member_request_id: memberReq.member_request_id,
                         status: actionData.status,
-                        newRequestStatus: memberRequestData.request_status
+                        newRequestStatus: memberRequestData.approve_status
                     });
                 } else {
                     // For free accolades, check if member requisition exists
@@ -1024,7 +1080,7 @@ async function handleRequisitionAction(data) {
                                 member_id: actionData.memberId,
                                 chapter_id: currentRequisition.chapter_id,
                                 accolade_id: actionData.accoladeId,
-                                approve_status: actionData.status === 'approved' ? 'approved' : 'pending',
+                                approve_status: actionData.status === 'approved' ? 'approved' : 'rejected',
                                 response_comment: roComment,
                                
                                 approved_date: actionData.status === 'approved' ? new Date().toISOString() : null

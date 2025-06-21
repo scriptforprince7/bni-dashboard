@@ -35,6 +35,7 @@ try {
   const trainings = await response.json();
   console.log("All trainings:", trainings); // Debug log
 
+
   // Convert trainingId to string for comparison if needed
   const training = trainings.find(t => String(t.training_id) === String(trainingId));
   console.log("Found training:", training); // Debug log
@@ -189,6 +190,12 @@ const amountInWords = formatAmount(invoiceData.amount);
 console.log(invoiceData);
 // Calculate base amount
 const baseAmount = orderAmount - taxAmount;
+
+// Convenience charge logic
+const isConvenience = invoiceData.orderId.is_convenience === true;
+const convenienceCharge = isConvenience ? parseFloat(invoiceData.orderId.convenience_charge) || 0 : 0;
+const baseAmountForDisplay = baseAmount - convenienceCharge;
+
 let invoiceDate = ackDate;
 
 // Function to fetch payment time from transactions API
@@ -288,11 +295,17 @@ if (ackDate === null || ackDate === undefined) {
       <td class="col-2 text-end lin">₹5999.00</td>
     `;
     tableBody.appendChild(newRow);
+    
+    // Add convenience charge row if applicable
+    addConvenienceChargeRow();
   } else if (universalLinkId === 3) {
     console.log("Fetching training name..."); // Debug log
     const trainingName = await fetchTrainingDetails(trainingId);
     console.log("Received training name:", trainingName); // Debug log
     document.querySelector(".payment_type").innerHTML = `<strong>Training Payments - ${trainingName || 'N/A'}</strong>`;
+    
+    // Add convenience charge row if applicable
+    addConvenienceChargeRow();
   } else if (universalLinkId === 4) {
     console.log("💰 Processing Kitty Payment");
     const kittyBillId = invoiceData.orderId.kitty_bill_id;
@@ -321,20 +334,29 @@ if (ackDate === null || ackDate === undefined) {
       console.error("❌ Error fetching kitty payments:", error);
       document.querySelector(".payment_type").innerHTML = "<strong>Meeting Payment</strong>";
     }
+    
+    // Add convenience charge row if applicable
+    addConvenienceChargeRow();
   } else {
     document.querySelector(".payment_type").innerHTML = `
       <strong>${universalLinkName} - ${invoiceData.orderId?.renewal_year || "N/A"}</strong>
     `;
+    
+    // Add convenience charge row if applicable
+    addConvenienceChargeRow();
   }
 })
 .catch((error) => {
   console.error("❌ Error in main fetch:", error);
   document.querySelector(".payment_type").innerHTML = `<strong>New Member Payment - 1Year</strong>`;
+  
+  // Add convenience charge row if applicable even in case of error
+  addConvenienceChargeRow();
 });
 
-document.querySelector(".base_amount").textContent = `₹ ${baseAmount.toFixed(2)}`;
-document.querySelector(".base_amountt").textContent = `₹${baseAmount.toFixed(2)}`;
-document.querySelector(".sub_total").innerHTML = `<strong>₹ ${baseAmount.toFixed(2)}</strong>`;
+document.querySelector(".base_amount").textContent = `₹ ${baseAmountForDisplay.toFixed(2)}`;
+document.querySelector(".base_amountt").textContent = `₹${baseAmountForDisplay.toFixed(2)}`;
+document.querySelector(".sub_total").innerHTML = `<strong>₹ ${(baseAmountForDisplay + convenienceCharge).toFixed(2)}</strong>`;
 
 // Check if it's a visitor payment
 const isVisitorPayment = invoiceData.orderId.payment_note === 'visitor-payment' || invoiceData.orderId.payment_note === 'Visitor Payment';
@@ -477,3 +499,34 @@ async function fetchAndDisplayChapterName(orderId) {
 
 // Call the function after setting orderId
 fetchAndDisplayChapterName(orderId);
+
+// Function to add convenience charge row if applicable
+function addConvenienceChargeRow() {
+  // Check if convenience charge is applicable
+  if (invoiceData.orderId.is_convenience === true) {
+    const tableBody = document.querySelector("tbody");
+    const convenienceCharge = parseFloat(invoiceData.orderId.convenience_charge) || 0;
+    const conveniencePercent = parseFloat(invoiceData.orderId.convenience_percent) || 0;
+    
+    // Get the current number of rows to determine the row number
+    const currentRows = tableBody.querySelectorAll("tr");
+    const rowNumber = currentRows.length + 1;
+    
+    // Create new row for convenience charge
+    const newRow = document.createElement("tr");
+    newRow.innerHTML = `
+      <td class="col-1 text-center lin">${rowNumber}</td>
+      <td class="col-3 lin"><b>Convenience Charge</b></td>
+      <td class="col-2 text-center lin">998599</td>
+      <td class="col-2 text-end lin">${conveniencePercent.toFixed(2)} %</td>
+      <td class="col-2 text-end lin">₹${convenienceCharge.toFixed(2)}</td>
+    `;
+    tableBody.appendChild(newRow);
+    
+    console.log("✅ Added convenience charge row:", {
+      rowNumber: rowNumber,
+      charge: convenienceCharge,
+      percent: conveniencePercent
+    });
+  }
+}
