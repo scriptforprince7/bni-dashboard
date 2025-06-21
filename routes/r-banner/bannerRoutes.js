@@ -22,4 +22,3 @@ router.put('/edit-banner/:id', upload.single('banner_image') ,bannerController.e
 router.get("/delete-banner/:id", bannerController.deleteBanner);
 module.exports = router;
 
-

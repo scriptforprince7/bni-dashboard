@@ -11,7 +11,7 @@ exports.manageBanners = async (req, res) => {
   try {
     const response = await bannerApi.getAllBanners();
     const banners = response.data;
-    res.render('m-banner/manage-banner', {
+    res.render('m-banner/manage-banners', {
       title: 'Manage Banners',
       banners: banners.data
     });
@@ -43,7 +43,7 @@ exports.addBannerSubmit = async (req, res) => {
 
   formData.append("banner_image", fs.createReadStream(req.file.path), req.file.originalname);
 
-  const response = await axios.post("https://backend.bninewdelhi.com/api/banners", formData, {
+  const response = await axios.post("http://localhost:5000/api/banners", formData, {
     headers: formData.getHeaders()
   });
 
@@ -117,7 +117,7 @@ exports.editBannerSubmit = async (req, res) => {
 
     const response = await axios({
       method: 'put',
-      url: `https://backend.bninewdelhi.com/api/banners/${id}`,
+      url: `http://localhost:5000/api/banners/${id}`,
       data: form,
       headers: form.getHeaders(),
       maxContentLength: Infinity,
@@ -140,7 +140,7 @@ exports.deleteBanner = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await axios.delete(`https://backend.bninewdelhi.com/api/banners/${id}`);
+    await axios.delete(`http://localhost:5000/api/banners/${id}`);
 
     res.redirect("/manage-banners");
   } catch (err) {
