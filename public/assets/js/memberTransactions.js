@@ -332,19 +332,19 @@ function updateSummaryCards() {
         .filter(item => item.type === 'penalty')
         .reduce((sum, item) => sum + item.totalAmount, 0);
 
-    // BUSINESS RULE: Pending Kitty Amount
-    const pendingAmount = totalKittyAmount - totalPaidAmount + totalPenalties;
+    // BUSINESS RULE: Pending Kitty Amount (with GST for display)
+    const pendingAmountWithGST = totalKittyAmount - totalPaidAmount + totalPenalties;
 
     // Update the cards
     document.getElementById('total-kitty-amount').textContent = formatCurrency(totalKittyAmount);
     document.getElementById('success_kitty_amount').textContent = formatCurrency(totalPaidAmount);
     
-    // Show color and Pay Now button if pendingAmount > 0
+    // Show color and Pay Now button if pendingAmount > 0 (with GST for display)
     const pendingElem = document.getElementById('pending_payment_amount');
     if (pendingElem) {
-        let color = pendingAmount > 0 ? 'red' : 'green';
-        let html = `<span style='color:${color};'>${formatCurrency(pendingAmount)}</span>`;
-        if (pendingAmount > 0) {
+        let color = pendingAmountWithGST > 0 ? 'red' : 'green';
+        let html = `<span style='color:${color};'>${formatCurrency(pendingAmountWithGST)}</span>`;
+        if (pendingAmountWithGST > 0) {
             // Build the Pay Now link with region_id, chapter_id, and member_id
             const regionId = memberData.region_id || '';
             const chapterId = memberData.chapter_id || '';
@@ -354,6 +354,15 @@ function updateSummaryCards() {
         pendingElem.innerHTML = html;
     }
     document.getElementById('total_credit_note_amount').textContent = formatCurrency(totalGST);
+
+    // Store the ACTUAL pending amount (final running balance) in the database as a positive value, or 0 if in credit
+    if (allTransactionItems.length > 0) {
+        let lastBalance = allTransactionItems[allTransactionItems.length - 1].runningBalance;
+        let pendingToStore = lastBalance < 0 ? Math.abs(lastBalance) : 0;
+        let advancePay = lastBalance > 0 ? lastBalance : 0;
+        let isAdvance = lastBalance > 0;
+        updateMemberPendingAmount(pendingToStore, advancePay, isAdvance);
+    }
 }
 
 // Main initialization function
@@ -870,7 +879,7 @@ function processTransactions() {
                 billEnd = new Date(billDate.getFullYear() + 1, billDate.getMonth(), 0);
             }
         } else {
-            billEnd = new Date(bill.kitty_due_date); // fallback
+            billEnd = new Date(bill.kitty_due_date);
         }
         console.log('[PRORATE] Bill Start:', billDate, 'Bill End (calculated):', billEnd, 'Type:', bill.bill_type, 'Desc:', bill.description);
         const dueDate = bill.kitty_due_date ? new Date(bill.kitty_due_date) : billEnd;
@@ -1185,13 +1194,17 @@ function exportLedgerToPDF() {
         'No. of Late Payments',
         'Credit Given',
         'Total Paid Kitty Amount',
-        'Pending Kitty Amount'
+        'Pending Kitty Amount',
+        'Advance Payment',
+        'Is Advance'
     ];
     const summaryValues = [
         summary.noOfLatePayments,
         formatCurrency(summary.creditGiven),
         formatCurrency(summary.totalPaidKittyAmount),
-        formatCurrency(summary.pendingKittyAmount)
+        formatCurrency(summary.pendingKittyAmount),
+        formatCurrency(summary.advancePay),
+        summary.isAdvance ? 'Yes' : 'No'
     ];
     doc.autoTable({
         head: [summaryHeaders],
@@ -1324,22 +1337,30 @@ function getLedgerSummaryForExport() {
     let creditGiven = 0;
     let totalPaidKittyAmount = 0;
     let pendingKittyAmount = 0;
+    let advancePay = 0;
+    let isAdvance = false;
 
     allTransactionItems.forEach(item => {
         if (item.type === 'penalty') noOfLatePayments++;
         if (item.type === 'credit') creditGiven += item.credit || 0;
         if (item.type === 'payment') totalPaidKittyAmount += item.credit || 0;
     });
+    
     // Pending = last running balance if negative, else 0
     if (allTransactionItems.length > 0) {
         const lastBalance = allTransactionItems[allTransactionItems.length - 1].runningBalance;
         pendingKittyAmount = lastBalance < 0 ? Math.abs(lastBalance) : 0;
+        advancePay = lastBalance > 0 ? lastBalance : 0;
+        isAdvance = lastBalance > 0;
     }
+    
     return {
         noOfLatePayments,
         creditGiven,
         totalPaidKittyAmount,
-        pendingKittyAmount
+        pendingKittyAmount,
+        advancePay,
+        isAdvance
     };
 }
 
@@ -1370,4 +1391,317 @@ function renderPagination() {
             updateLedgerTable(paginatedItems);
         });
     });
+}
+
+// Function to update member's pending amount in database
+async function updateMemberPendingAmount(pendingAmount, advancePay, isAdvance) {
+    try {
+        if (!memberData || !memberData.member_id) {
+            console.error('Member data not available for database update');
+            return;
+        }
+
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateMemberPendingAmount', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                member_id: memberData.member_id,
+                meeting_payable_amount: pendingAmount,
+                advance_pay: advancePay,
+                is_advance: isAdvance
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update member pending amount');
+        }
+
+        const result = await response.json();
+        console.log('✅ Updated member pending amount in database:', pendingAmount);
+        return result;
+    } catch (error) {
+        console.error('❌ Error updating member pending amount:', error);
+        // Don't throw error to avoid breaking the main flow
+    }
+}
+
+// Function to update all members' pending amounts (for admin use)
+async function updateAllMembersPendingAmounts() {
+    try {
+        console.log('🔄 Starting bulk update for all members...');
+        
+        // Show loading state
+        const updateBtn = document.getElementById('bulk-update-btn');
+        if (updateBtn) {
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = '<i class="ri-loader-4-line"></i> Updating...';
+        }
+
+        // First, get all members
+        const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+        if (!membersResponse.ok) {
+            throw new Error('Failed to fetch members');
+        }
+        const members = await membersResponse.json();
+        console.log(`📊 Found ${members.length} members to update`);
+
+        // Get all required data for calculations
+        const [kittyBillsResponse, allOrdersResponse, allTransactionsResponse, allCreditsResponse] = await Promise.all([
+            fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments'),
+            fetch('https://backend.bninewdelhi.com/api/allOrders'),
+            fetch('https://backend.bninewdelhi.com/api/allTransactions'),
+            fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit')
+        ]);
+
+        if (!kittyBillsResponse.ok || !allOrdersResponse.ok || !allTransactionsResponse.ok || !allCreditsResponse.ok) {
+            throw new Error('Failed to fetch required data');
+        }
+
+        const kittyBills = await kittyBillsResponse.json();
+        const allOrders = await allOrdersResponse.json();
+        const allTransactions = await allTransactionsResponse.json();
+        const allCredits = await allCreditsResponse.json();
+
+        console.log('📈 Data fetched successfully');
+
+        // Calculate pending amounts for each member
+        const updates = [];
+        let processedCount = 0;
+
+        for (const member of members) {
+            try {
+                processedCount++;
+                console.log(`🔄 Processing member ${processedCount}/${members.length}: ${member.member_first_name} ${member.member_last_name}`);
+
+                // Calculate pending amount for this member (similar to the existing logic)
+                const memberCalculation = calculateMemberPendingAmount(member, kittyBills, allOrders, allTransactions, allCredits);
+                
+                // Calculate advance fields based on running balance
+                const advancePay = memberCalculation.runningBalance > 0 ? memberCalculation.runningBalance : 0;
+                const isAdvance = memberCalculation.runningBalance > 0;
+                
+                updates.push({
+                    member_id: member.member_id,
+                    meeting_payable_amount: memberCalculation.pendingAmount,
+                    advance_pay: advancePay,
+                    is_advance: isAdvance
+                });
+
+                console.log(`✅ Member ${member.member_id}: Pending amount = ${memberCalculation.pendingAmount}, Advance pay = ${advancePay}, Is advance = ${isAdvance}`);
+            } catch (error) {
+                console.error(`❌ Error processing member ${member.member_id}:`, error);
+                // Continue with other members even if one fails
+            }
+        }
+
+        console.log(`📊 Prepared ${updates.length} updates`);
+
+        // Send bulk update request
+        const response = await fetch('https://backend.bninewdelhi.com/api/updateAllMembersPendingAmount', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ updates })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update all members pending amounts');
+        }
+
+        const result = await response.json();
+        console.log('✅ Bulk update completed:', result);
+
+        // Show success message
+        Swal.fire({
+            title: 'Bulk Update Completed!',
+            html: `
+                <div class="text-left">
+                    <p><strong>Total Members:</strong> ${result.summary.total}</p>
+                    <p><strong>Successfully Updated:</strong> <span style="color: green;">${result.summary.successful}</span></p>
+                    <p><strong>Failed:</strong> <span style="color: red;">${result.summary.failed}</span></p>
+                </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+
+        return result;
+    } catch (error) {
+        console.error('❌ Error updating all members pending amounts:', error);
+        
+        // Show error message
+        Swal.fire({
+            title: 'Update Failed',
+            text: error.message || 'An error occurred during bulk update',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        
+        throw error;
+    } finally {
+        // Reset button state
+        const updateBtn = document.getElementById('bulk-update-btn');
+        if (updateBtn) {
+            updateBtn.disabled = false;
+            updateBtn.innerHTML = '<i class="ri-refresh-line"></i> Update All Members';
+        }
+    }
+}
+
+// Helper function to calculate pending amount for a specific member
+function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransactions, allCredits) {
+    try {
+        const memberId = member.member_id;
+        const chapterId = member.chapter_id;
+        let openingBalance = member.meeting_opening_balance || 0;
+        if (openingBalance > 0) openingBalance = -Math.abs(openingBalance);
+        
+        let runningBalance = openingBalance;
+        const allTransactionItems = [];
+
+        // Add opening balance entry
+        const openingBalanceDate = new Date(member.date_of_publishing);
+        allTransactionItems.push({
+            date: openingBalanceDate,
+            type: 'opening',
+            description: 'Opening Balance',
+            amount: 0,
+            debit: 0,
+            credit: 0,
+            gst: 0,
+            totalAmount: 0,
+            runningBalance: openingBalance
+        });
+
+        // Add credit entries for this member
+        const memberCredits = allCredits.filter(c => 
+            c.member_id == memberId && 
+            c.chapter_id == chapterId
+        );
+
+        memberCredits.forEach(credit => {
+            allTransactionItems.push({
+                date: new Date(credit.credit_date),
+                type: 'credit',
+                description: 'Credit Adjustment',
+                debit: 0,
+                credit: parseFloat(credit.credit_amount),
+                gst: 0,
+                totalAmount: parseFloat(credit.credit_amount)
+            });
+        });
+
+        // Get all kitty bills for the member's chapter
+        const chapterKittyBills = kittyBills.filter(bill => 
+            bill.chapter_id === chapterId
+        ).sort((a, b) => new Date(a.raised_on) - new Date(b.raised_on));
+
+        chapterKittyBills.forEach(bill => {
+            const billDate = new Date(bill.raised_on);
+            const baseAmount = parseFloat(bill.total_bill_amount);
+            const gstAmount = Math.round(baseAmount * 0.18);
+            const totalAmount = baseAmount + gstAmount;
+            const memberJoin = new Date(member.date_of_publishing);
+
+            // Only add bill if member joined before or on bill start
+            if (memberJoin <= billDate) {
+                allTransactionItems.push({
+                    date: billDate,
+                    type: 'kitty_bill',
+                    description: `Meeting Payable Amount (${bill.bill_type}) - (${bill.description})`,
+                    debit: baseAmount,
+                    credit: 0,
+                    gst: gstAmount,
+                    totalAmount: totalAmount
+                });
+            }
+
+            // Find payments for this bill and member
+            const billOrders = allOrders.filter(order =>
+                order.universal_link_id === 4 &&
+                order.kitty_bill_id === bill.kitty_bill_id &&
+                order.customer_id === memberId &&
+                order.chapter_id === chapterId &&
+                order.payment_note === 'meeting-payments'
+            );
+
+            const billTransactions = billOrders
+                .map(order => allTransactions.find(t => t.order_id === order.order_id && t.payment_status === 'SUCCESS'))
+                .filter(Boolean)
+                .sort((a, b) => new Date(a.payment_completion_time) - new Date(b.payment_completion_time));
+
+            // Process payments
+            billTransactions.forEach((payment) => {
+                const paymentDate = new Date(payment.payment_completion_time);
+                const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
+                const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
+
+                allTransactionItems.push({
+                    date: paymentDate,
+                    type: 'payment',
+                    description: 'Meeting Fee Paid',
+                    debit: 0,
+                    credit: paymentBaseAmount,
+                    gst: parseFloat(paymentOrder.tax),
+                    totalAmount: parseFloat(paymentOrder.order_amount)
+                });
+            });
+
+            // Add penalty if applicable
+            const penaltyAmount = bill.penalty_fee || 0;
+            const dueDate = bill.kitty_due_date ? new Date(bill.kitty_due_date) : new Date(bill.raised_on);
+            const now = new Date();
+            
+            if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && now.getTime() > dueDate.getTime()) {
+                allTransactionItems.push({
+                    date: dueDate,
+                    type: 'penalty',
+                    description: 'Late Payment Penalty',
+                    debit: penaltyAmount,
+                    credit: 0,
+                    gst: 0,
+                    totalAmount: penaltyAmount
+                });
+            }
+        });
+
+        // Sort by date and calculate running balance
+        allTransactionItems.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        let currentBalance = openingBalance;
+        allTransactionItems.forEach(item => {
+            if (item.type === 'opening') {
+                item.runningBalance = openingBalance;
+            } else {
+                currentBalance = currentBalance - (item.debit || 0) + (item.credit || 0);
+                item.runningBalance = currentBalance;
+            }
+        });
+
+        // Return both pending amount and running balance
+        const totalKittyAmountWithoutGST = allTransactionItems
+            .filter(item => item.type === 'kitty_bill')
+            .reduce((sum, item) => sum + (item.totalAmount - Math.abs(item.gst)), 0);
+
+        const totalPaidAmountWithoutGST = allTransactionItems
+            .filter(item => item.type === 'payment')
+            .reduce((sum, item) => sum + (Math.abs(item.totalAmount) - Math.abs(item.gst)), 0);
+
+        const totalPenalties = allTransactionItems
+            .filter(item => item.type === 'penalty')
+            .reduce((sum, item) => sum + item.totalAmount, 0);
+
+        const pendingAmountWithoutGST = totalKittyAmountWithoutGST - totalPaidAmountWithoutGST + totalPenalties;
+
+        return {
+            pendingAmount: pendingAmountWithoutGST,
+            runningBalance: currentBalance
+        };
+    } catch (error) {
+        console.error(`Error calculating pending amount for member ${member.member_id}:`, error);
+        return { pendingAmount: 0, runningBalance: 0 }; // Return 0 if calculation fails
+    }
 }

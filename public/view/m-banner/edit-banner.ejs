@@ -51,83 +51,169 @@
   action="/edit-banner/<%= banner.id %>?_method=PUT"
   method="POST"
   enctype="multipart/form-data"
+  class="container mt-4 p-4 border rounded shadow-sm bg-light"
 >
-  <input
-    type="text"
-    name="banner_heading"
-    placeholder="Heading"
-    value="<%= banner.banner_heading %>"
-    required
-  />
+  <div class="mb-3">
+    <label class="form-label">Heading</label>
+    <input
+      type="text"
+      name="banner_heading"
+      placeholder="Heading"
+      value="<%= banner.banner_heading %>"
+      required
+      class="form-control"
+    />
+  </div>
 
-  <textarea name="banner_description" placeholder="Description">
-<%= banner.banner_description %></textarea
-  >
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <textarea
+      name="banner_description"
+      placeholder="Description"
+      class="form-control"
+      rows="3"
+      required
+    ><%= banner.banner_description %></textarea>
+  </div>
 
-  <!-- Show existing image if needed -->
   <% if (banner.banner_image) { %>
-  <p>Current Image: <%= banner.banner_image %></p>
+    <div class="mb-3">
+      <label class="form-label">Current Image:</label>
+      <p><%= banner.banner_image %></p>
+    </div>
   <% } %>
-  <input type="file" name="banner_image" accept="image/*" />
 
-  <!-- Button 1 -->
-  <input
-    type="text"
-    name="banner_button_0_text"
-    placeholder="Button 1 Text"
-    value="<%= banner.banner_button_0_text %>"
-  />
-  <input
-    type="text"
-    name="banner_button_0_link"
-    placeholder="Button 1 Link"
-    value="<%= banner.banner_button_0_link %>"
-  />
-  <input
-    type="number"
-    name="banner_button_0_x_position"
-    placeholder="Button 1 X Pos"
-    value="<%= banner.banner_button_0_x_position %>"
-  />
-  <input
-    type="number"
-    name="banner_button_0_y_position"
-    placeholder="Button 1 Y Pos"
-    value="<%= banner.banner_button_0_y_position %>"
-  />
-  <input type="checkbox" name="banner_button_0_status" value="true" <%=
-  banner.banner_button_0_status ? "checked" : "" %> />
+  <div class="mb-3">
+    <label class="form-label">Upload New Image</label>
+    <input
+      type="file"
+      name="banner_image"
+      accept="image/*"
+      class="form-control"
+      
+    />
+  </div>
 
-  <!-- Button 2 -->
-  <input
-    type="text"
-    name="banner_button_1_text"
-    placeholder="Button 2 Text"
-    value="<%= banner.banner_button_1_text %>"
-  />
-  <input
-    type="text"
-    name="banner_button_1_link"
-    placeholder="Button 2 Link"
-    value="<%= banner.banner_button_1_link %>"
-  />
-  <input
-    type="number"
-    name="banner_button_1_x_position"
-    placeholder="Button 2 X Pos"
-    value="<%= banner.banner_button_1_x_position %>"
-  />
-  <input
-    type="number"
-    name="banner_button_1_y_position"
-    placeholder="Button 2 Y Pos"
-    value="<%= banner.banner_button_1_y_position %>"
-  />
-  <input type="checkbox" name="banner_button_1_status" value="true" <%=
-  banner.banner_button_1_status ? "checked" : "" %> />
+  <hr />
+  <h5 class="mt-3">Button 1</h5>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <input
+        type="text"
+        name="banner_button_0_text"
+        placeholder="Button 1 Text"
+        value="<%= banner.banner_button_0_text %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <input
+        type="text"
+        name="banner_button_0_link"
+        placeholder="Button 1 Link"
+        value="<%= banner.banner_button_0_link %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <input
+        type="number"
+        name="banner_button_0_x_position"
+        placeholder="Button 1 X Pos"
+        value="<%= banner.banner_button_0_x_position %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <input
+        type="number"
+        name="banner_button_0_y_position"
+        placeholder="Button 1 Y Pos"
+        value="<%= banner.banner_button_0_y_position %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-12 mb-3 form-check">
+      <input
+        type="checkbox"
+        name="banner_button_0_status"
+        value="true"
+        class="form-check-input"
+        id="btn1check"
+        <%= banner.banner_button_0_status ? "checked" : "" %>
+        required
+      />
+      <label class="form-check-label" for="btn1check">Enable Button 1</label>
+    </div>
+  </div>
 
-  <button type="submit">Update Banner</button>
+  <hr />
+  <h5 class="mt-3">Button 2</h5>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <input
+        type="text"
+        name="banner_button_1_text"
+        placeholder="Button 2 Text"
+        value="<%= banner.banner_button_1_text %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <input
+        type="text"
+        name="banner_button_1_link"
+        placeholder="Button 2 Link"
+        value="<%= banner.banner_button_1_link %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <input
+        type="number"
+        name="banner_button_1_x_position"
+        placeholder="Button 2 X Pos"
+        value="<%= banner.banner_button_1_x_position %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-md-6 mb-3">
+      <input
+        type="number"
+        name="banner_button_1_y_position"
+        placeholder="Button 2 Y Pos"
+        value="<%= banner.banner_button_1_y_position %>"
+        class="form-control"
+        required
+      />
+    </div>
+    <div class="col-12 mb-3 form-check">
+      <input
+        type="checkbox"
+        name="banner_button_1_status"
+        value="true"
+        class="form-check-input"
+        id="btn2check"
+        <%= banner.banner_button_1_status ? "checked" : "" %>
+        required
+      />
+      <label class="form-check-label" for="btn2check">Enable Button 2</label>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-success w-100 mt-3">Update Banner</button>
 </form>
+
+
+
+
       </div>
       <!-- End::content  -->
 
@@ -135,4 +221,3 @@
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
       <%- include('../partials/footer') %> 
-

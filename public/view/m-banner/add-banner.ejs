@@ -44,7 +44,7 @@
 </h1>
 
 <form
-  action="https://backend.bninewdelhi.com/api/add-banner"
+  action="/add-banner"
   method="POST"
   enctype="multipart/form-data"
   class="p-4 bg-white rounded shadow-sm mt-4"
@@ -58,16 +58,25 @@
       class="form-control form-control-lg"
     />
   </div>
+
   <div class="mb-3">
     <textarea
       name="banner_description"
       placeholder="Description"
       class="form-control"
       rows="3"
+      required
     ></textarea>
   </div>
+
   <div class="mb-3">
-    <input type="file" name="image" accept="image/*" class="form-control" />
+    <input
+      type="file"
+      name="banner_image"
+      accept="image/*"
+      class="form-control"
+      required
+    />
   </div>
 
   <div class="row">
@@ -84,6 +93,7 @@
               name="banner_button_0_text"
               placeholder="Button 1 Text"
               class="form-control"
+              required
             />
           </div>
           <div class="mb-2">
@@ -92,6 +102,7 @@
               name="banner_button_0_link"
               placeholder="Button 1 Link"
               class="form-control"
+              required
             />
           </div>
           <div class="row g-2">
@@ -101,6 +112,7 @@
                 name="banner_button_0_x_position"
                 placeholder="X Pos"
                 class="form-control"
+                required
               />
             </div>
             <div class="col">
@@ -109,6 +121,7 @@
                 name="banner_button_0_y_position"
                 placeholder="Y Pos"
                 class="form-control"
+                required
               />
             </div>
           </div>
@@ -119,6 +132,7 @@
               value="true"
               class="form-check-input"
               id="btn1status"
+              required
             />
             <label class="form-check-label" for="btn1status">
               Enable Button 1
@@ -141,6 +155,7 @@
               name="banner_button_1_text"
               placeholder="Button 2 Text"
               class="form-control"
+              required
             />
           </div>
           <div class="mb-2">
@@ -149,6 +164,7 @@
               name="banner_button_1_link"
               placeholder="Button 2 Link"
               class="form-control"
+              required
             />
           </div>
           <div class="row g-2">
@@ -158,6 +174,7 @@
                 name="banner_button_1_x_position"
                 placeholder="X Pos"
                 class="form-control"
+                required
               />
             </div>
             <div class="col">
@@ -166,6 +183,7 @@
                 name="banner_button_1_y_position"
                 placeholder="Y Pos"
                 class="form-control"
+                required
               />
             </div>
           </div>
@@ -176,6 +194,7 @@
               value="true"
               class="form-check-input"
               id="btn2status"
+              required
             />
             <label class="form-check-label" for="btn2status">
               Enable Button 2
@@ -190,10 +209,11 @@
     Add Banner
   </button>
 </form>
+
       </div>
       <!-- End::content  -->
 
-      <!-- <script src="../../assets/js/region.js"></script> -->
+      <script src="../../assets/js/region.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
       <%- include('../partials/footer') %> 

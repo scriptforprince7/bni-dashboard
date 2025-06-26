@@ -76,7 +76,7 @@ router.use('/links', linkRoutes);
 router.use('/vi', visitorRoutes);
 router.use('/cv', chapterVisitorRoutes);
 router.use('/ro', roVisitorRoutes);
-router.use('/bann', bannerRoutes);
+router.use('/', bannerRoutes);
 
 
 module.exports = router;

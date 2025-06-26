@@ -2,6 +2,7 @@ const apiRoutes = require('./routes/r-api/apiRoutes'); // Adjust the path as nee
 const express = require('express');
 const path = require('path');
 const routes = require('./routes'); // Import all routes from index.js
+const methodOverride = require('method-override');
 
 const app = express();
 
@@ -15,7 +16,10 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 // Use the consolidated routes
-app.use('/', routes); // All routes are prefixed with /api
+app.use(express.json());
+app.use(methodOverride('_method')); 
+app.use('/', routes); // All routes are prefixed with /
+
 
 app.use('/api', apiRoutes); // This will handle routes starting with /api
 

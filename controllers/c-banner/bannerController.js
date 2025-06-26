@@ -42,8 +42,9 @@ exports.addBannerSubmit = async (req, res) => {
   formData.append("banner_button_1_status", req.body.banner_button_1_status ? "true" : "false");
 
   formData.append("banner_image", fs.createReadStream(req.file.path), req.file.originalname);
+  // formData.append("banner_image", fs.createReadStream(req.files.banner_image[0].path), req.files.banner_image[0].originalname);
 
-  const response = await axios.post("https://backend.bninewdelhi.com/api/banners", formData, {
+  const response = await axios.post("https://backend.bninewdelhi.com/banners", formData, {
     headers: formData.getHeaders()
   });
 
@@ -117,7 +118,7 @@ exports.editBannerSubmit = async (req, res) => {
 
     const response = await axios({
       method: 'put',
-      url: `https://backend.bninewdelhi.com/api/banners/${id}`,
+      url: `https://backend.bninewdelhi.com/banners/${id}`,
       data: form,
       headers: form.getHeaders(),
       maxContentLength: Infinity,
@@ -140,7 +141,7 @@ exports.deleteBanner = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await axios.delete(`https://backend.bninewdelhi.com/api/banners/${id}`);
+    await axios.delete(`https://backend.bninewdelhi.com/banners/${id}`);
 
     res.redirect("/manage-banners");
   } catch (err) {

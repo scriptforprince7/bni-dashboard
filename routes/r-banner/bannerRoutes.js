@@ -14,12 +14,17 @@ router.get('/edit-banner', bannerController.editBanner);
 
 router.post(
   '/add-banner',
-  upload.single('image'),
+  upload.single('banner_image'),
   bannerController.addBannerSubmit
 );
+
+// router.post(
+//   '/add-banner',
+//   upload.fields([{ name: 'banner_image', maxCount: 1 }]),
+//   bannerController.addBannerSubmit
+// );
 
 router.put('/edit-banner/:id', upload.single('banner_image') ,bannerController.editBannerSubmit);
 router.get("/delete-banner/:id", bannerController.deleteBanner);
 module.exports = router;
-
 

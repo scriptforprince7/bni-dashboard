@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const BASE_URL = process.env.BANNER_API_BASE_URL || 'https://backend.bninewdelhi.com/api/banners'; // adjust as needed
+const BASE_URL = process.env.BANNER_API_BASE_URL || 'https://backend.bninewdelhi.com/banners'; // adjust as needed
 
 exports.getAllBanners = async () => {
     return await axios.get(`${BASE_URL}`);
