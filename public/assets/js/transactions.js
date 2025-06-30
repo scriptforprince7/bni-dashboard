@@ -438,6 +438,9 @@ function showGeneratedInvoicesDetails() {
         allOrders.some(o => o.order_id === t.order_id)
     );
 
+    // Sort by payment_time in descending order (most recent first)
+    generatedInvoices.sort((a, b) => new Date(b.payment_time) - new Date(a.payment_time));
+
     let renderedCount = 0;
     let htmlContent = `
         <div style="text-align:left;font-size:1.1em;">

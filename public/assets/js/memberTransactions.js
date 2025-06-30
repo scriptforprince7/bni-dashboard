@@ -332,8 +332,17 @@ function updateSummaryCards() {
         .filter(item => item.type === 'penalty')
         .reduce((sum, item) => sum + item.totalAmount, 0);
 
+    // Check if member is written off
+    const isWriteoff = memberData.writeoff_status === true;
+    const hasWriteoffEntry = allTransactionItems.some(item => item.type === 'writeoff');
+
     // BUSINESS RULE: Pending Kitty Amount (with GST for display)
-    const pendingAmountWithGST = totalKittyAmount - totalPaidAmount + totalPenalties;
+    let pendingAmountWithGST = totalKittyAmount - totalPaidAmount + totalPenalties;
+    
+    // If member is written off, pending amount should be 0
+    if (isWriteoff && hasWriteoffEntry) {
+        pendingAmountWithGST = 0;
+    }
 
     // Update the cards
     document.getElementById('total-kitty-amount').textContent = formatCurrency(totalKittyAmount);
@@ -342,14 +351,24 @@ function updateSummaryCards() {
     // Show color and Pay Now button if pendingAmount > 0 (with GST for display)
     const pendingElem = document.getElementById('pending_payment_amount');
     if (pendingElem) {
-        let color = pendingAmountWithGST > 0 ? 'red' : 'green';
-        let html = `<span style='color:${color};'>${formatCurrency(pendingAmountWithGST)}</span>`;
-        if (pendingAmountWithGST > 0) {
-            // Build the Pay Now link with region_id, chapter_id, and member_id
-            const regionId = memberData.region_id || '';
-            const chapterId = memberData.chapter_id || '';
-            const memberId = memberData.member_id || '';
-            html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1?region_id=${regionId}&chapter_id=${chapterId}&member_id=${memberId}' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+        let color = 'green'; // Default to green for written-off members
+        let html = '';
+        
+        if (isWriteoff && hasWriteoffEntry) {
+            // Member is written off - show as settled
+            html = `<span style='color:green;'>₹0.00</span> <span style='color:#dc3545;font-size:0.9em;'>(Member Write Off)</span>`;
+        } else {
+            // Regular member logic
+            color = pendingAmountWithGST > 0 ? 'red' : 'green';
+            html = `<span style='color:${color};'>${formatCurrency(pendingAmountWithGST)}</span>`;
+            
+            if (pendingAmountWithGST > 0 && !isWriteoff) {
+                // Build the Pay Now link with region_id, chapter_id, and member_id
+                const regionId = memberData.region_id || '';
+                const chapterId = memberData.chapter_id || '';
+                const memberId = memberData.member_id || '';
+                html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1?region_id=${regionId}&chapter_id=${chapterId}&member_id=${memberId}' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+            }
         }
         pendingElem.innerHTML = html;
     }
@@ -361,6 +380,14 @@ function updateSummaryCards() {
         let pendingToStore = lastBalance < 0 ? Math.abs(lastBalance) : 0;
         let advancePay = lastBalance > 0 ? lastBalance : 0;
         let isAdvance = lastBalance > 0;
+        
+        // If member is written off, set pending amount to 0
+        if (isWriteoff && hasWriteoffEntry) {
+            pendingToStore = 0;
+            advancePay = 0;
+            isAdvance = false;
+        }
+        
         updateMemberPendingAmount(pendingToStore, advancePay, isAdvance);
     }
 }
@@ -523,15 +550,26 @@ async function initializeMemberLedger() {
         // 4. Pending Kitty Amount (last entry's running balance from the ledger)
         if (allTransactionItems.length > 0) {
             const lastBalance = allTransactionItems[allTransactionItems.length - 1].runningBalance;
+            const isWriteoff = memberData.writeoff_status === true;
+            const hasWriteoffEntry = allTransactionItems.some(item => item.type === 'writeoff');
+            
             const pendingElem = document.getElementById('pending_payment_amount');
-            let color = lastBalance < 0 ? 'red' : 'green';
-            let html = `<span style='color:${color};'>${formatCurrency(lastBalance)}</span>`;
-            if (lastBalance < 0) {
-                // Build the Pay Now link with region_id, chapter_id, and member_id
-                const regionId = memberData.region_id || '';
-                const chapterId = memberData.chapter_id || '';
-                const memberId = memberData.member_id || '';
-                html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1?region_id=${regionId}&chapter_id=${chapterId}&member_id=${memberId}' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+            let html = '';
+            
+            if (isWriteoff && hasWriteoffEntry) {
+                // Member is written off - show as settled
+                html = `<span style='color:green;'>₹0.00</span> <span style='color:#dc3545;font-size:0.9em;'>(Member Write Off)</span>`;
+            } else {
+                // Regular member logic
+                let color = lastBalance < 0 ? 'red' : 'green';
+                html = `<span style='color:${color};'>${formatCurrency(lastBalance)}</span>`;
+                if (lastBalance < 0 && !isWriteoff) {
+                    // Build the Pay Now link with region_id, chapter_id, and member_id
+                    const regionId = memberData.region_id || '';
+                    const chapterId = memberData.chapter_id || '';
+                    const memberId = memberData.member_id || '';
+                    html += ` <a href='https://bninewdelhi.com/meeting-payment/4/2d4efe39-b134-4187-a5c0-4530125f5248/1?region_id=${regionId}&chapter_id=${chapterId}&member_id=${memberId}' target='_blank'><button id='pay-now-btn' class='btn btn-sm btn-danger' style='margin-left:8px;font-size:0.8em;padding:2px 8px;'>Pay Now</button></a>`;
+                }
             }
             pendingElem.innerHTML = html;
         }
@@ -631,42 +669,27 @@ async function initializeMemberLedger() {
         const activeKittyBillsProrate = kittyBills.filter(bill => bill.is_completed === false && bill.chapter_id == memberData.chapter_id);
         if (activeKittyBillsProrate.length > 0 && memberChapter) {
             const activeBill = activeKittyBillsProrate.reduce((a, b) => new Date(a.raised_on) > new Date(b.raised_on) ? a : b);
-            const billStart = new Date(activeBill.raised_on);
+            const raisedOnDate = new Date(activeBill.raised_on);
             
-            // Calculate bill end date based on bill type and description
-            let billEnd;
+            // Calculate the actual bill period based on bill type and raised_on date
+            let billStart, billEnd;
+            
             if (activeBill.bill_type === 'monthly') {
-                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                let year = billStart.getFullYear();
-                let monthIdx = monthNames.findIndex(m => activeBill.description.toLowerCase().includes(m.toLowerCase()));
-                if (monthIdx === -1) monthIdx = billStart.getMonth();
-                billEnd = new Date(year, monthIdx + 1, 0);
+                // For monthly bills, the period is the month of the raised_on date
+                billStart = new Date(raisedOnDate.getFullYear(), raisedOnDate.getMonth(), 1);
+                billEnd = new Date(raisedOnDate.getFullYear(), raisedOnDate.getMonth() + 1, 0);
             } else if (activeBill.bill_type === 'quartely') {
-                const parts = activeBill.description.split('to');
-                let year = billStart.getFullYear();
-                if (parts.length === 2) {
-                    let endMonth = parts[1].trim();
-                    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
-                    if (monthIdx === -1) monthIdx = billStart.getMonth() + 2;
-                    billEnd = new Date(year, monthIdx + 1, 0);
-                } else {
-                    billEnd = new Date(billStart.getFullYear(), billStart.getMonth() + 3, 0);
-                }
-            } else if (activeBill.bill_type === 'annual') {
-                const parts = activeBill.description.split('to');
-                let year = billStart.getFullYear();
-                if (parts.length === 2) {
-                    let endMonth = parts[1].trim();
-                    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
-                    if (monthIdx === -1) monthIdx = billStart.getMonth() + 11;
-                    if (monthIdx < billStart.getMonth()) year++;
-                    billEnd = new Date(year, monthIdx + 1, 0);
-                } else {
-                    billEnd = new Date(billStart.getFullYear() + 1, billStart.getMonth(), 0);
-                }
+                // For quarterly bills, calculate the quarter start
+                const quarter = Math.floor(raisedOnDate.getMonth() / 3);
+                billStart = new Date(raisedOnDate.getFullYear(), quarter * 3, 1);
+                billEnd = new Date(raisedOnDate.getFullYear(), (quarter + 1) * 3, 0);
+            } else if (activeBill.bill_type === 'yearly') {
+                // For yearly bills, the period starts from raised_on date and ends one year later
+                billStart = new Date(raisedOnDate);
+                billEnd = new Date(raisedOnDate.getFullYear() + 1, raisedOnDate.getMonth(), raisedOnDate.getDate() - 1);
             } else {
+                // For other bill types, use the due date as reference
+                billStart = new Date(activeBill.kitty_due_date);
                 billEnd = new Date(activeBill.kitty_due_date);
             }
 
@@ -814,6 +837,35 @@ function processTransactions() {
         runningBalance: openingBalance
     });
 
+    // Add writeoff entry if member is written off
+    if (memberData.writeoff_status === true) {
+        // Calculate the amount to write off (current running balance as a positive credit)
+        const writeoffAmount = Math.abs(runningBalance);
+        
+        allTransactionItems.push({
+            date: new Date(), // Use current date for writeoff
+            type: 'writeoff',
+            description: `
+                <div>
+                    <b><span style="color: #dc3545;">Member Write Off</span></b>
+                    <div style="font-style: italic; font-size: 0.95em; color: #666;">
+                        Member is no longer liable to pay any outstanding amounts
+                    </div>
+                </div>
+            `,
+            debit: 0,
+            credit: writeoffAmount,
+            gst: 0,
+            totalAmount: writeoffAmount,
+            // runningBalance will be set later
+        });
+        
+        console.log('[WRITEOFF] Member writeoff entry added:', writeoffAmount);
+        
+        // Update running balance to 0 (member is no longer liable)
+        runningBalance = 0;
+    }
+
     // Add credit entries (before bills/payments, so they sort by date)
     memberCredits.forEach(credit => {
         allTransactionItems.push({
@@ -841,52 +893,35 @@ function processTransactions() {
         const baseAmount = parseFloat(bill.total_bill_amount);
         const gstAmount = Math.round(baseAmount * 0.18);
         const totalAmount = baseAmount + gstAmount;
-        // --- Calculate correct bill end date ---
-        let billEnd;
+        
+        // Calculate the actual bill period based on bill type and raised_on date
+        let billStart, billEnd;
+        
         if (bill.bill_type === 'monthly') {
-            // bill.description is like 'Apr' or 'May'
-            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            let year = billDate.getFullYear();
-            let monthIdx = monthNames.findIndex(m => bill.description.toLowerCase().includes(m.toLowerCase()));
-            if (monthIdx === -1) monthIdx = billDate.getMonth();
-            billEnd = new Date(year, monthIdx + 1, 0); // last day of month
+            // For monthly bills, the period is the month of the raised_on date
+            billStart = new Date(billDate.getFullYear(), billDate.getMonth(), 1);
+            billEnd = new Date(billDate.getFullYear(), billDate.getMonth() + 1, 0);
         } else if (bill.bill_type === 'quartely') {
-            // bill.description is like 'Apr to Jun'
-            const parts = bill.description.split('to');
-            let year = billDate.getFullYear();
-            if (parts.length === 2) {
-                let endMonth = parts[1].trim();
-                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
-                if (monthIdx === -1) monthIdx = billDate.getMonth() + 2; // fallback
-                billEnd = new Date(year, monthIdx + 1, 0);
-            } else {
-                billEnd = new Date(billDate.getFullYear(), billDate.getMonth() + 3, 0);
-            }
-        } else if (bill.bill_type === 'annual') {
-            // bill.description is like 'Apr to Mar'
-            const parts = bill.description.split('to');
-            let year = billDate.getFullYear();
-            if (parts.length === 2) {
-                let endMonth = parts[1].trim();
-                const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                let monthIdx = monthNames.findIndex(m => endMonth.toLowerCase().includes(m.toLowerCase()));
-                if (monthIdx === -1) monthIdx = billDate.getMonth() + 11; // fallback
-                // If end month is before start month, it's next year
-                if (monthIdx < billDate.getMonth()) year++;
-                billEnd = new Date(year, monthIdx + 1, 0);
-            } else {
-                billEnd = new Date(billDate.getFullYear() + 1, billDate.getMonth(), 0);
-            }
+            // For quarterly bills, calculate the quarter start
+            const quarter = Math.floor(billDate.getMonth() / 3);
+            billStart = new Date(billDate.getFullYear(), quarter * 3, 1);
+            billEnd = new Date(billDate.getFullYear(), (quarter + 1) * 3, 0);
+        } else if (bill.bill_type === 'yearly') {
+            // For yearly bills, the period starts from raised_on date and ends one year later
+            billStart = new Date(billDate);
+            billEnd = new Date(billDate.getFullYear() + 1, billDate.getMonth(), billDate.getDate() - 1);
         } else {
+            // For other bill types, use the due date as reference
+            billStart = new Date(bill.kitty_due_date);
             billEnd = new Date(bill.kitty_due_date);
         }
-        console.log('[PRORATE] Bill Start:', billDate, 'Bill End (calculated):', billEnd, 'Type:', bill.bill_type, 'Desc:', bill.description);
+        
+        console.log('[PRORATE] Bill Start:', billStart, 'Bill End (calculated):', billEnd, 'Type:', bill.bill_type, 'Desc:', bill.description);
         const dueDate = bill.kitty_due_date ? new Date(bill.kitty_due_date) : billEnd;
         const monthName = billDate.toLocaleString('default', { month: 'long' });
         const memberJoin = new Date(memberData.date_of_publishing);
         // --- Only add full bill if member joined before or on bill start ---
-        if (memberJoin <= billDate) {
+        if (memberJoin <= billStart) {
             allTransactionItems.push({
                 date: billDate,
                 type: 'kitty_bill',
@@ -904,7 +939,7 @@ function processTransactions() {
                 totalAmount: totalAmount,
                 // runningBalance will be set later
             });
-        } else if (memberJoin > billDate && memberJoin <= billEnd) {
+        } else if (memberJoin > billStart && memberJoin <= billEnd) {
             // Prorated logic
             let memberChapter = window.memberChapterGlobal;
             if (!memberChapter && window.allChaptersGlobal) {
@@ -925,11 +960,8 @@ function processTransactions() {
             let meetingCount = 0;
             let currentDate = new Date(memberJoin);
             const daysUntilNext = (meetingDayNum - currentDate.getDay() + 7) % 7;
-            if (daysUntilNext === 0) {
-                currentDate.setDate(currentDate.getDate() + 7);
-            } else {
-                currentDate.setDate(currentDate.getDate() + daysUntilNext);
-            }
+            if (daysUntilNext === 0) currentDate.setDate(currentDate.getDate() + 7);
+            else currentDate.setDate(currentDate.getDate() + daysUntilNext);
             while (currentDate <= billEnd) {
                 meetingCount++;
                 currentDate.setDate(currentDate.getDate() + 7);
@@ -1036,7 +1068,7 @@ function processTransactions() {
         );
         const now = new Date();
         // Prorate check: skip penalty if member joined in same month/year as due date (prorated case)
-        const isProrate = memberJoin > billDate && memberJoin <= billEnd;
+        const isProrate = memberJoin > billStart && memberJoin <= billEnd;
         const isSameMonthAsDue = memberJoin.getMonth() === dueDate.getMonth() && memberJoin.getFullYear() === dueDate.getFullYear();
         const skipPenaltyForProrate = isProrate && isSameMonthAsDue;
         // 50% on-time payment rule
@@ -1431,90 +1463,67 @@ async function updateMemberPendingAmount(pendingAmount, advancePay, isAdvance) {
 async function updateAllMembersPendingAmounts() {
     try {
         console.log('🔄 Starting bulk update for all members...');
-        
-        // Show loading state
         const updateBtn = document.getElementById('bulk-update-btn');
         if (updateBtn) {
             updateBtn.disabled = true;
             updateBtn.innerHTML = '<i class="ri-loader-4-line"></i> Updating...';
         }
-
-        // First, get all members
         const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         if (!membersResponse.ok) {
             throw new Error('Failed to fetch members');
         }
         const members = await membersResponse.json();
         console.log(`📊 Found ${members.length} members to update`);
-
-        // Get all required data for calculations
-        const [kittyBillsResponse, allOrdersResponse, allTransactionsResponse, allCreditsResponse] = await Promise.all([
+        // Fetch all required data for calculations, including chapters
+        const [kittyBillsResponse, allOrdersResponse, allTransactionsResponse, allCreditsResponse, allChaptersResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments'),
             fetch('https://backend.bninewdelhi.com/api/allOrders'),
             fetch('https://backend.bninewdelhi.com/api/allTransactions'),
-            fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit')
+            fetch('https://backend.bninewdelhi.com/api/getAllMemberCredit'),
+            fetch('https://backend.bninewdelhi.com/api/chapters')
         ]);
-
-        if (!kittyBillsResponse.ok || !allOrdersResponse.ok || !allTransactionsResponse.ok || !allCreditsResponse.ok) {
+        if (!kittyBillsResponse.ok || !allOrdersResponse.ok || !allTransactionsResponse.ok || !allCreditsResponse.ok || !allChaptersResponse.ok) {
             throw new Error('Failed to fetch required data');
         }
-
         const kittyBills = await kittyBillsResponse.json();
         const allOrders = await allOrdersResponse.json();
         const allTransactions = await allTransactionsResponse.json();
         const allCredits = await allCreditsResponse.json();
-
+        const allChapters = await allChaptersResponse.json();
         console.log('📈 Data fetched successfully');
-
-        // Calculate pending amounts for each member
         const updates = [];
         let processedCount = 0;
-
         for (const member of members) {
             try {
                 processedCount++;
                 console.log(`🔄 Processing member ${processedCount}/${members.length}: ${member.member_first_name} ${member.member_last_name}`);
-
-                // Calculate pending amount for this member (similar to the existing logic)
-                const memberCalculation = calculateMemberPendingAmount(member, kittyBills, allOrders, allTransactions, allCredits);
-                
-                // Calculate advance fields based on running balance
+                // Pass allChapters to calculation
+                const memberCalculation = calculateMemberPendingAmount(member, kittyBills, allOrders, allTransactions, allCredits, allChapters);
                 const advancePay = memberCalculation.runningBalance > 0 ? memberCalculation.runningBalance : 0;
                 const isAdvance = memberCalculation.runningBalance > 0;
-                
                 updates.push({
                     member_id: member.member_id,
                     meeting_payable_amount: memberCalculation.pendingAmount,
                     advance_pay: advancePay,
                     is_advance: isAdvance
                 });
-
                 console.log(`✅ Member ${member.member_id}: Pending amount = ${memberCalculation.pendingAmount}, Advance pay = ${advancePay}, Is advance = ${isAdvance}`);
             } catch (error) {
                 console.error(`❌ Error processing member ${member.member_id}:`, error);
                 // Continue with other members even if one fails
             }
         }
-
         console.log(`📊 Prepared ${updates.length} updates`);
-
-        // Send bulk update request
         const response = await fetch('https://backend.bninewdelhi.com/api/updateAllMembersPendingAmount', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ updates })
         });
-
         if (!response.ok) {
             throw new Error('Failed to update all members pending amounts');
         }
-
         const result = await response.json();
         console.log('✅ Bulk update completed:', result);
-
-        // Show success message
         Swal.fire({
             title: 'Bulk Update Completed!',
             html: `
@@ -1527,22 +1536,17 @@ async function updateAllMembersPendingAmounts() {
             icon: 'success',
             confirmButtonText: 'OK'
         });
-
         return result;
     } catch (error) {
         console.error('❌ Error updating all members pending amounts:', error);
-        
-        // Show error message
         Swal.fire({
             title: 'Update Failed',
             text: error.message || 'An error occurred during bulk update',
             icon: 'error',
             confirmButtonText: 'OK'
         });
-        
         throw error;
     } finally {
-        // Reset button state
         const updateBtn = document.getElementById('bulk-update-btn');
         if (updateBtn) {
             updateBtn.disabled = false;
@@ -1552,17 +1556,14 @@ async function updateAllMembersPendingAmounts() {
 }
 
 // Helper function to calculate pending amount for a specific member
-function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransactions, allCredits) {
+function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransactions, allCredits, allChapters) {
     try {
         const memberId = member.member_id;
         const chapterId = member.chapter_id;
         let openingBalance = member.meeting_opening_balance || 0;
         if (openingBalance > 0) openingBalance = -Math.abs(openingBalance);
-        
         let runningBalance = openingBalance;
         const allTransactionItems = [];
-
-        // Add opening balance entry
         const openingBalanceDate = new Date(member.date_of_publishing);
         allTransactionItems.push({
             date: openingBalanceDate,
@@ -1576,12 +1577,23 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
             runningBalance: openingBalance
         });
 
-        // Add credit entries for this member
-        const memberCredits = allCredits.filter(c => 
-            c.member_id == memberId && 
-            c.chapter_id == chapterId
-        );
+        // Write-off logic
+        if (member.writeoff_status === true) {
+            const writeoffAmount = Math.abs(runningBalance);
+            allTransactionItems.push({
+                date: new Date(),
+                type: 'writeoff',
+                description: 'Member Write Off',
+                debit: 0,
+                credit: writeoffAmount,
+                gst: 0,
+                totalAmount: writeoffAmount
+            });
+            runningBalance = 0;
+        }
 
+        // Credits
+        const memberCredits = allCredits.filter(c => c.member_id == memberId && c.chapter_id == chapterId);
         memberCredits.forEach(credit => {
             allTransactionItems.push({
                 date: new Date(credit.credit_date),
@@ -1594,11 +1606,8 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
             });
         });
 
-        // Get all kitty bills for the member's chapter
-        const chapterKittyBills = kittyBills.filter(bill => 
-            bill.chapter_id === chapterId
-        ).sort((a, b) => new Date(a.raised_on) - new Date(b.raised_on));
-
+        // Bills
+        const chapterKittyBills = kittyBills.filter(bill => bill.chapter_id === chapterId).sort((a, b) => new Date(a.raised_on) - new Date(b.raised_on));
         chapterKittyBills.forEach(bill => {
             const billDate = new Date(bill.raised_on);
             const baseAmount = parseFloat(bill.total_bill_amount);
@@ -1606,8 +1615,25 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
             const totalAmount = baseAmount + gstAmount;
             const memberJoin = new Date(member.date_of_publishing);
 
-            // Only add bill if member joined before or on bill start
-            if (memberJoin <= billDate) {
+            // Bill period calculation
+            let billStart, billEnd;
+            if (bill.bill_type === 'monthly') {
+                billStart = new Date(billDate.getFullYear(), billDate.getMonth(), 1);
+                billEnd = new Date(billDate.getFullYear(), billDate.getMonth() + 1, 0);
+            } else if (bill.bill_type === 'quartely') {
+                const quarter = Math.floor(billDate.getMonth() / 3);
+                billStart = new Date(billDate.getFullYear(), quarter * 3, 1);
+                billEnd = new Date(billDate.getFullYear(), (quarter + 1) * 3, 0);
+            } else if (bill.bill_type === 'yearly') {
+                billStart = new Date(billDate);
+                billEnd = new Date(billDate.getFullYear() + 1, billDate.getMonth(), billDate.getDate() - 1);
+            } else {
+                billStart = new Date(bill.kitty_due_date);
+                billEnd = new Date(bill.kitty_due_date);
+            }
+
+            // Full bill or prorate
+            if (memberJoin <= billStart) {
                 allTransactionItems.push({
                     date: billDate,
                     type: 'kitty_bill',
@@ -1617,9 +1643,40 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
                     gst: gstAmount,
                     totalAmount: totalAmount
                 });
+            } else if (memberJoin > billStart && memberJoin <= billEnd) {
+                // Prorate logic (meeting-count-based)
+                const memberChapter = allChapters.find(ch => ch.chapter_id == member.chapter_id);
+                if (!memberChapter) return;
+                const meetingDay = memberChapter.chapter_meeting_day;
+                const kittyFee = parseFloat(memberChapter.chapter_kitty_fees);
+                const dayMap = { 'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6 };
+                const meetingDayNum = dayMap[meetingDay];
+                let meetingCount = 0;
+                let currentDate = new Date(memberJoin);
+                const daysUntilNext = (meetingDayNum - currentDate.getDay() + 7) % 7;
+                if (daysUntilNext === 0) currentDate.setDate(currentDate.getDate() + 7);
+                else currentDate.setDate(currentDate.getDate() + daysUntilNext);
+                while (currentDate <= billEnd) {
+                    meetingCount++;
+                    currentDate.setDate(currentDate.getDate() + 7);
+                }
+                const proratedAmount = meetingCount * kittyFee;
+                const gstAmountProrated = Math.round(proratedAmount * 0.18);
+                const totalAmountProrated = proratedAmount + gstAmountProrated;
+                if (proratedAmount > 0) {
+                    allTransactionItems.push({
+                        date: memberJoin,
+                        type: 'kitty_bill',
+                        description: `Prorated Kitty Bill - ${bill.bill_type} (${bill.description})`,
+                        debit: proratedAmount,
+                        credit: 0,
+                        gst: gstAmountProrated,
+                        totalAmount: totalAmountProrated
+                    });
+                }
             }
 
-            // Find payments for this bill and member
+            // Payments
             const billOrders = allOrders.filter(order =>
                 order.universal_link_id === 4 &&
                 order.kitty_bill_id === bill.kitty_bill_id &&
@@ -1627,18 +1684,14 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
                 order.chapter_id === chapterId &&
                 order.payment_note === 'meeting-payments'
             );
-
             const billTransactions = billOrders
                 .map(order => allTransactions.find(t => t.order_id === order.order_id && t.payment_status === 'SUCCESS'))
                 .filter(Boolean)
                 .sort((a, b) => new Date(a.payment_completion_time) - new Date(b.payment_completion_time));
-
-            // Process payments
             billTransactions.forEach((payment) => {
                 const paymentDate = new Date(payment.payment_completion_time);
                 const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
                 const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
-
                 allTransactionItems.push({
                     date: paymentDate,
                     type: 'payment',
@@ -1650,16 +1703,42 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
                 });
             });
 
-            // Add penalty if applicable
+            // Penalty logic (50% rule, skip for prorate, etc.)
             const penaltyAmount = bill.penalty_fee || 0;
-            const dueDate = bill.kitty_due_date ? new Date(bill.kitty_due_date) : new Date(bill.raised_on);
+            const dueDate = bill.kitty_due_date ? new Date(bill.kitty_due_date) : billEnd;
             const now = new Date();
-            
-            if (penaltyAmount > 0 && dueDate.getTime() >= memberJoin.getTime() && now.getTime() > dueDate.getTime()) {
+            const monthName = billDate.toLocaleString('default', { month: 'long' });
+            const isProrate = memberJoin > billStart && memberJoin <= billEnd;
+            const isSameMonthAsDue = memberJoin.getMonth() === dueDate.getMonth() && memberJoin.getFullYear() === dueDate.getFullYear();
+            const skipPenaltyForProrate = isProrate && isSameMonthAsDue;
+            let totalPaidOnTime = 0;
+            billTransactions.forEach((payment) => {
+                const paymentDate = new Date(payment.payment_completion_time);
+                const paymentOrder = billOrders.find(order => order.order_id === payment.order_id);
+                const paymentBaseAmount = parseFloat(paymentOrder.order_amount) - parseFloat(paymentOrder.tax);
+                if (paymentDate.getTime() <= dueDate.getTime()) {
+                    totalPaidOnTime += paymentBaseAmount;
+                }
+            });
+            const billBaseAmount = parseFloat(bill.total_bill_amount);
+            const paidAtLeast50PercentOnTime = totalPaidOnTime >= 0.5 * billBaseAmount;
+            const penaltyAlreadyAdded = allTransactionItems.some(item =>
+                item.type === 'penalty' &&
+                item.description.includes(monthName) &&
+                +new Date(item.date) === +dueDate
+            );
+            if (
+                penaltyAmount > 0 &&
+                dueDate.getTime() >= memberJoin.getTime() &&
+                !penaltyAlreadyAdded &&
+                !skipPenaltyForProrate &&
+                !paidAtLeast50PercentOnTime &&
+                now.getTime() > dueDate.getTime()
+            ) {
                 allTransactionItems.push({
                     date: dueDate,
                     type: 'penalty',
-                    description: 'Late Payment Penalty',
+                    description: `Late Payment Penalty for ${monthName}`,
                     debit: penaltyAmount,
                     credit: 0,
                     gst: 0,
@@ -1668,9 +1747,8 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
             }
         });
 
-        // Sort by date and calculate running balance
+        // Sort and running balance
         allTransactionItems.sort((a, b) => new Date(a.date) - new Date(b.date));
-        
         let currentBalance = openingBalance;
         allTransactionItems.forEach(item => {
             if (item.type === 'opening') {
@@ -1681,27 +1759,18 @@ function calculateMemberPendingAmount(member, kittyBills, allOrders, allTransact
             }
         });
 
-        // Return both pending amount and running balance
-        const totalKittyAmountWithoutGST = allTransactionItems
-            .filter(item => item.type === 'kitty_bill')
-            .reduce((sum, item) => sum + (item.totalAmount - Math.abs(item.gst)), 0);
-
-        const totalPaidAmountWithoutGST = allTransactionItems
-            .filter(item => item.type === 'payment')
-            .reduce((sum, item) => sum + (Math.abs(item.totalAmount) - Math.abs(item.gst)), 0);
-
-        const totalPenalties = allTransactionItems
-            .filter(item => item.type === 'penalty')
-            .reduce((sum, item) => sum + item.totalAmount, 0);
-
-        const pendingAmountWithoutGST = totalKittyAmountWithoutGST - totalPaidAmountWithoutGST + totalPenalties;
+        // Pending amount logic (same as UI)
+        let pendingToStore = currentBalance < 0 ? Math.abs(currentBalance) : 0;
+        if (member.writeoff_status === true) {
+            pendingToStore = 0;
+        }
 
         return {
-            pendingAmount: pendingAmountWithoutGST,
+            pendingAmount: pendingToStore,
             runningBalance: currentBalance
         };
     } catch (error) {
         console.error(`Error calculating pending amount for member ${member.member_id}:`, error);
-        return { pendingAmount: 0, runningBalance: 0 }; // Return 0 if calculation fails
+        return { pendingAmount: 0, runningBalance: 0 };
     }
 }

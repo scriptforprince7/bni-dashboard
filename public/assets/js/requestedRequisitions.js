@@ -157,6 +157,10 @@ async function handleAccoladesClick(requisition) {
         // Reset selected actions for new popup
         selectedActions = {};
         
+        // Reset accumulated data for new popup - IMPORTANT FIX
+        accumulatedApprovals = {};
+        accumulatedComments = {};
+        
         // Parse approve status and comments for member case
         let approveStatusMap = {};
         let commentsMap = {};
@@ -201,10 +205,11 @@ async function handleAccoladesClick(requisition) {
             req.chapter_requisition_id === requisition.chapter_requisition_id
         );
 
-        // Parse the comment field to get the actual pairs
+        // Parse the comment field to get the actual pairs - ONLY CURRENT REQUISITION
         const commentPairs = safeJSONParse(currentChapterReq.comment || '{}');
+        console.log('🔍 Current Comment Pairs for popup:', commentPairs);
 
-        // Create combinations only for existing pairs
+        // Create combinations only for existing pairs in CURRENT requisition
         const combinations = [];
         Object.keys(commentPairs).forEach(pair => {
             const [memberId, accoladeId] = pair.split('_').map(Number);
@@ -232,10 +237,13 @@ async function handleAccoladesClick(requisition) {
                 accolade,
                 comment,
                 roComment,
+                roImage: '', // Add RO image field
                 isVisitor,
                 currentStatus
             });
         });
+
+        console.log('📋 Combinations created (only current requisition):', combinations);
 
         // Create HTML for the popup
         Swal.fire({
@@ -376,6 +384,7 @@ async function handleAccoladesClick(requisition) {
                                 <th style="padding: 16px; font-weight: 600; white-space: nowrap;">
                                     <i class="ri-chat-2-line me-2"></i>RO Comment
                                 </th>
+                                
                                 <th style="padding: 16px; font-weight: 600; text-align: center; white-space: nowrap;">
                                     <i class="ri-checkbox-circle-line me-2"></i>Actions
                                 </th>
@@ -471,6 +480,7 @@ async function handleAccoladesClick(requisition) {
                                                 "
                                             >${combo.roComment}</textarea>
                                         </td>
+                                        
                                         <td style="padding: 16px; text-align: center;">
                                             <div style="
                                                 display: flex;
@@ -702,78 +712,6 @@ function bulkDecline() {
     });
 }
 
-// async function submitBulkActions() {
-
-
-//     try {
-//         // Get the current requisition's existing data
-//         const existingApproveStatus = currentRequisition.approve_status ? 
-//             JSON.parse(currentRequisition.approve_status) : {};
-//         const existingRoComments = currentRequisition.ro_comment ? 
-//             JSON.parse(currentRequisition.ro_comment) : {};
-
-//         // Prepare the data for API
-//         const updateData = {
-//             chapter_requisition_id: currentRequisition.chapter_requisition_id,
-//             approve_status: { ...existingApproveStatus },
-//             ro_comment: { ...existingRoComments }
-//         };
-
-//         // Populate the update data
-//         for (const [key, action] of Object.entries(selectedActions)) {
-//             // Only update status if one was selected
-//             if (action.status) {
-//                 updateData.approve_status[key] = action.status;
-//             }
-//             // Always update comment if provided
-//             if (action.comment && action.comment.trim()) {
-//                 updateData.ro_comment[key] = action.comment.trim();
-//             }
-//         }
-
-//         // Make API call
-//         const response = await fetch('https://backend.bninewdelhi.com/api/updateChapterRequisition', {
-//             method: 'PUT',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify(updateData)
-//         });
-
-//         if (!response.ok) {
-//             throw new Error('Failed to update requisitions');
-//         }
-
-//         // Show success message
-//         await Swal.fire({
-//             icon: 'success',
-//             title: 'Success!',
-//             text: 'Changes saved successfully',
-//             timer: 2000,
-//             showConfirmButton: false
-//         });
-
-//         // Refresh the data
-//         loadData();
-
-//     } catch (error) {
-//         console.error('Error in submitBulkActions:', error);
-//         Swal.fire({
-//             icon: 'error',
-//             title: 'Error',
-//             text: 'Failed to process changes: ' + error.message
-//         });
-//     }
-// }
-
-
-// Comment out original function
-/*
-async function submitBulkActions() {
-    // ... original code ...
-}
-*/
-
 // New simplified version
 async function submitBulkActions() {
     if (!currentRequisition) {
@@ -791,6 +729,46 @@ async function submitBulkActions() {
     try {
         console.log('🎯 Starting Simplified Submit Actions');
         console.log('📦 Selected Actions:', selectedActions);
+
+        // Get the current requisition to read the comment field
+        const requisitionResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+        const allRequisitions = await requisitionResponse.json();
+        const currentRequisitionData = allRequisitions.find(req => req.chapter_requisition_id === currentRequisition.chapter_requisition_id);
+        
+        if (!currentRequisitionData) {
+            throw new Error('Current requisition not found');
+        }
+        
+        console.log('📋 Current Requisition Data:', currentRequisitionData);
+        
+        // Parse the comment field to get ONLY the current member-accolade pairs
+        const commentPairs = safeJSONParse(currentRequisitionData.comment || '{}');
+        console.log('🔍 Current Comment Pairs:', commentPairs);
+        
+        // Create fresh approve_status and ro_comment objects with ONLY current pairs
+        const freshApproveStatus = {};
+        const freshRoComments = {};
+        
+        // Initialize all current pairs with their existing status or 'pending'
+        Object.keys(commentPairs).forEach(pair => {
+            const [memberId, accoladeId] = pair.split('_').map(Number);
+            
+            // Check if this pair has a selected action
+            if (selectedActions[pair]) {
+                freshApproveStatus[pair] = selectedActions[pair].status;
+                freshRoComments[pair] = selectedActions[pair].comment || '';
+            } else {
+                // For pairs without selected actions, preserve existing status or set to pending
+                const existingApproveStatus = safeJSONParse(currentRequisitionData.approve_status || '{}');
+                const existingRoComments = safeJSONParse(currentRequisitionData.ro_comment || '{}');
+                
+                freshApproveStatus[pair] = existingApproveStatus[pair] || 'pending';
+                freshRoComments[pair] = existingRoComments[pair] || '';
+            }
+        });
+        
+        console.log('🆕 Fresh Approve Status (only current requisition):', freshApproveStatus);
+        console.log('🆕 Fresh RO Comments (only current requisition):', freshRoComments);
 
         // Process each selected action
         for (const [key, action] of Object.entries(selectedActions)) {
@@ -900,23 +878,54 @@ async function handleRequisitionAction(data) {
             }
 
         } else {
-            // Original member flow
-            console.log('👥 Member Flow - Before Update:');
-            console.log('Current accumulatedApprovals:', accumulatedApprovals);
-            console.log('Current accumulatedComments:', accumulatedComments);
+            // For member case - FIXED LOGIC
+            console.log('👥 Member Flow - Starting with clean slate');
             
-            accumulatedApprovals[key] = actionData.status;
-            accumulatedComments[key] = roComment;
+            // Get the current requisition to read the comment field
+            const requisitionResponse = await fetch('https://backend.bninewdelhi.com/api/getRequestedChapterRequisition');
+            const allRequisitions = await requisitionResponse.json();
+            const currentRequisition = allRequisitions.find(req => req.chapter_requisition_id === actionData.requisitionId);
             
-            console.log('👥 Member Flow - After Update:');
-            console.log('Updated accumulatedApprovals:', accumulatedApprovals);
-            console.log('Updated accumulatedComments:', accumulatedComments);
+            if (!currentRequisition) {
+                throw new Error('Current requisition not found');
+            }
+            
+            console.log('📋 Current Requisition:', currentRequisition);
+            
+            // Parse the comment field to get ONLY the current member-accolade pairs
+            const commentPairs = safeJSONParse(currentRequisition.comment || '{}');
+            console.log('🔍 Current Comment Pairs:', commentPairs);
+            
+            // Create fresh approve_status and ro_comment objects with ONLY current pairs
+            const freshApproveStatus = {};
+            const freshRoComments = {};
+            
+            // Initialize all current pairs with their existing status or 'pending'
+            Object.keys(commentPairs).forEach(pair => {
+                const [memberId, accoladeId] = pair.split('_').map(Number);
+                
+                // Check if this is the current action being processed
+                if (memberId === actionData.memberId && accoladeId === actionData.accoladeId) {
+                    freshApproveStatus[pair] = actionData.status;
+                    freshRoComments[pair] = roComment;
+                } else {
+                    // For other pairs, preserve existing status or set to pending
+                    const existingApproveStatus = safeJSONParse(currentRequisition.approve_status || '{}');
+                    const existingRoComments = safeJSONParse(currentRequisition.ro_comment || '{}');
+                    
+                    freshApproveStatus[pair] = existingApproveStatus[pair] || 'pending';
+                    freshRoComments[pair] = existingRoComments[pair] || '';
+                }
+            });
+            
+            console.log('🆕 Fresh Approve Status (only current requisition):', freshApproveStatus);
+            console.log('🆕 Fresh RO Comments (only current requisition):', freshRoComments);
 
             // Check if any accolade is approved to set pickup status
-            const isAnyApproved = Object.values(accumulatedApprovals).includes('approved');
+            const isAnyApproved = Object.values(freshApproveStatus).includes('approved');
             
             console.log('🔍 Approval Status Check:', {
-                accumulatedApprovals,
+                freshApproveStatus,
                 isAnyApproved,
                 currentKey: key,
                 currentStatus: actionData.status
@@ -946,11 +955,11 @@ async function handleRequisitionAction(data) {
             
             console.log('💰 Is Paid Accolade:', isPaidAccolade);
 
-            // First update chapter requisition
+            // Update chapter requisition with ONLY current requisition data
             const chapterRequestData = {
                 chapter_requisition_id: actionData.requisitionId,
-                approve_status: accumulatedApprovals,
-                ro_comment: accumulatedComments,
+                approve_status: freshApproveStatus,  // Only current requisition pairs
+                ro_comment: freshRoComments,         // Only current requisition comments
                 pickup_date: null
             };
 
@@ -1170,8 +1179,8 @@ function shouldHighlightRequisition(req) {
             req.visitor_id ? 1 : Object.keys(safeJSONParse(req.comment || '{}')).length;
 
         // Get approved and declined counts
-        const approvedCount = countApprovedStatus(req.approve_status);
-        const declinedCount = countRejectedStatus(req.approve_status);
+        const approvedCount = countApprovedStatus(req.approve_status, req.comment);
+        const declinedCount = countRejectedStatus(req.approve_status, req.comment);
         const totalProcessed = approvedCount + declinedCount;
 
         // If read_status is false and not all accolades are processed
@@ -1406,50 +1415,7 @@ const renderTable = () => {
                     </td>
 
                     <!-- Comment field -->
-                    <td style="padding: 16px;">
-                        <div class="comment-container" style="
-                            display: flex;
-                            align-items: center;
-                            gap: 8px;
-                        ">
-                            <div class="input-group" style="max-width: 250px;">
-                                <input 
-                                    type="text" 
-                                    class="form-control ro-comment"
-                                    placeholder="Add comment..."
-                                    value="${slabWiseComment}"
-                                    style="
-                                        border: 1px solid #e5e7eb;
-                                        border-radius: 6px 0 0 6px;
-                                        padding: 8px 12px;
-                                        font-size: 0.875rem;
-                                        transition: all 0.3s ease;
-                                        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-                                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                                        color: ${slabWiseComment === 'No comment provided' ? '#9ca3af' : '#1e293b'};
-                                        font-style: ${slabWiseComment === 'No comment provided' ? 'italic' : 'normal'};
-                                    "
-                                >
-                                <button 
-                                    class="btn btn-success submit-comment"
-                                    style="
-                                        border-radius: 0 6px 6px 0;
-                                        padding: 8px 12px;
-                                        background: #16a34a;
-                                        border: none;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        transition: all 0.3s ease;
-                                        cursor: pointer;
-                                    "
-                                    onclick="handleCommentSubmit(${req.chapter_requisition_id}, this.previousElementSibling.value)"
-                                >
-                                    <i class="ri-check-line" style="color: white;"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </td>
+                    
 
                     <!-- Approved column with count -->
                     <td style="padding: 16px; text-align: center;">
@@ -1475,7 +1441,7 @@ const renderTable = () => {
                                 padding: 4px 8px;
                                 border-radius: 12px;
                                 font-weight: 500;
-                            ">${countApprovedStatus(req.approve_status)}</span>
+                            ">${countApprovedStatus(req.approve_status, req.comment)}</span>
                         </button>
                     </td>
 
@@ -1503,7 +1469,7 @@ const renderTable = () => {
                                 padding: 4px 8px;
                                 border-radius: 12px;
                                 font-weight: 500;
-                            ">${countRejectedStatus(req.approve_status)}</span>
+                            ">${countRejectedStatus(req.approve_status, req.comment)}</span>
                         </button>
                     </td>
 
@@ -2649,9 +2615,18 @@ async function handleApprovedView(chapterRequisitionId) {
         const members = await membersResponse.json();
         const accolades = await accoladesResponse.json();
 
-        // Parse the approve_status JSON
+        // Parse the approve_status JSON and comment field
         const approveStatus = safeJSONParse(requisition.approve_status || '{}');
         const roComments = safeJSONParse(requisition.ro_comment || '{}');
+        
+        // FIXED: Get current requisition members from comment field
+        const commentPairs = safeJSONParse(requisition.comment || '{}');
+        console.log('🔍 Current Comment Pairs for approved view:', commentPairs);
+        console.log('📋 All Approve Status:', approveStatus);
+        
+        // Get current member IDs from comment field
+        const currentMemberIds = Object.keys(commentPairs).map(pair => pair.split('_')[0]);
+        console.log('👥 Current Member IDs:', currentMemberIds);
 
         // Build the HTML content with improved styling
         let htmlContent = `
@@ -2696,45 +2671,63 @@ async function handleApprovedView(chapterRequisitionId) {
                     </thead>
                     <tbody>`;
 
-        // Process each approved pair
+        // FIXED: Process only approved pairs from CURRENT requisition
+        let approvedCount = 0;
         for (const [key, status] of Object.entries(approveStatus)) {
             if (status === 'approved') {
                 const [memberId, accoladeId] = key.split('_').map(Number);
-                const member = members.find(m => m.member_id === memberId);
-                const accolade = accolades.find(a => a.accolade_id === accoladeId);
                 
-                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
-                const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
-                const roComment = roComments[key] || '-';
-                
-                htmlContent += `
-                    <tr style="border-bottom: 1px solid #d1fae5;">
-                        <td style="padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #86efac; display: flex; align-items: center; justify-content: center;">
-                                    <i class="ri-user-line" style="color: #15803d; font-size: 1.25rem;"></i>
+                // FIXED: Only show if this member belongs to current requisition
+                if (currentMemberIds.includes(memberId.toString())) {
+                    const member = members.find(m => m.member_id === memberId);
+                    const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                    
+                    const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
+                    const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+                    const roComment = roComments[key] || '-';
+                    
+                    approvedCount++;
+                    
+                    htmlContent += `
+                        <tr style="border-bottom: 1px solid #d1fae5;">
+                            <td style="padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #86efac; display: flex; align-items: center; justify-content: center;">
+                                        <i class="ri-user-line" style="color: #15803d; font-size: 1.25rem;"></i>
+                                    </div>
+                                    <span style="font-weight: 500; color: #15803d;">${memberName}</span>
                                 </div>
-                                <span style="font-weight: 500; color: #15803d;">${memberName}</span>
-                            </div>
-                        </td>
-                        <td style="padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 8px; color: #059669;">
-                                <i class="ri-award-fill"></i>
-                                <span style="font-weight: 500;">${accoladeName}</span>
-                            </div>
-                        </td>
-                        <td style="padding: 16px;">
-                            <span style="background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
-                                <i class="ri-checkbox-circle-line me-1"></i>Approved
-                            </span>
-                        </td>
-                        <td style="padding: 16px;">
-                            <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; color: #374151;">
-                                <i class="ri-message-2-line me-2" style="color: #16a34a;"></i>${roComment}
-                            </div>
-                        </td>
-                    </tr>`;
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #059669;">
+                                    <i class="ri-award-fill"></i>
+                                    <span style="font-weight: 500;">${accoladeName}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
+                                    <i class="ri-checkbox-circle-line me-1"></i>Approved
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; color: #374151;">
+                                    <i class="ri-message-2-line me-2" style="color: #16a34a;"></i>${roComment}
+                                </div>
+                            </td>
+                        </tr>`;
+                }
             }
+        }
+
+        // Show message if no approved members found
+        if (approvedCount === 0) {
+            htmlContent += `
+                <tr>
+                    <td colspan="4" style="padding: 32px; text-align: center; color: #6b7280;">
+                        <i class="ri-information-line" style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                        No approved accolades found for this requisition
+                    </td>
+                </tr>`;
         }
 
         htmlContent += `
@@ -2766,25 +2759,29 @@ async function handleApprovedView(chapterRequisitionId) {
                             ['S.No', 'Member Name', 'Accolade Name', 'Status', 'RO Comment']
                         ];
 
-                        // Add data rows
+                        // Add data rows - FIXED: Only current requisition members
                         let rowCount = 1;
                         for (const [key, status] of Object.entries(approveStatus)) {
                             if (status === 'approved') {
                                 const [memberId, accoladeId] = key.split('_').map(Number);
-                                const member = members.find(m => m.member_id === memberId);
-                                const accolade = accolades.find(a => a.accolade_id === accoladeId);
                                 
-                                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
-                                const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
-                                const roComment = roComments[key] || 'No RO comment';
+                                // FIXED: Only export if this member belongs to current requisition
+                                if (currentMemberIds.includes(memberId.toString())) {
+                                    const member = members.find(m => m.member_id === memberId);
+                                    const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                                    
+                                    const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
+                                    const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+                                    const roComment = roComments[key] || 'No RO comment';
 
-                                csvRows.push([
-                                    rowCount++,
-                                    memberName,
-                                    accoladeName,
-                                    'Approved',
-                                    roComment
-                                ]);
+                                    csvRows.push([
+                                        rowCount++,
+                                        memberName,
+                                        accoladeName,
+                                        'Approved',
+                                        roComment
+                                    ]);
+                                }
                             }
                         }
 
@@ -3007,6 +3004,15 @@ async function handleRejectedView(chapterRequisitionId) {
         // Parse the approve_status JSON
         const approveStatus = safeJSONParse(requisition.approve_status || '{}');
         const roComments = safeJSONParse(requisition.ro_comment || '{}');
+        
+        // FIXED: Get current requisition members from comment field
+        const commentPairs = safeJSONParse(requisition.comment || '{}');
+        console.log('🔍 Current Comment Pairs for rejected view:', commentPairs);
+        console.log('📋 All Approve Status:', approveStatus);
+        
+        // Get current member IDs from comment field
+        const currentMemberIds = Object.keys(commentPairs).map(pair => pair.split('_')[0]);
+        console.log('👥 Current Member IDs:', currentMemberIds);
 
         // Build the HTML content with improved styling
         let htmlContent = `
@@ -3051,45 +3057,63 @@ async function handleRejectedView(chapterRequisitionId) {
                     </thead>
                     <tbody>`;
 
-        // Process each rejected pair
+        // FIXED: Process only declined pairs from CURRENT requisition
+        let declinedCount = 0;
         for (const [key, status] of Object.entries(approveStatus)) {
             if (status === 'declined') {
                 const [memberId, accoladeId] = key.split('_').map(Number);
-                const member = members.find(m => m.member_id === memberId);
-                const accolade = accolades.find(a => a.accolade_id === accoladeId);
                 
-                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
-                const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
-                const roComment = roComments[key] || '-';
+                // FIXED: Only show if this member belongs to current requisition
+                if (currentMemberIds.includes(memberId.toString())) {
+                    const member = members.find(m => m.member_id === memberId);
+                    const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                    
+                    const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
+                    const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+                    const roComment = roComments[key] || '-';
+                    
+                    declinedCount++;
 
-                htmlContent += `
-                    <tr style="border-bottom: 1px solid #fee2e2;">
-                        <td style="padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #fca5a5; display: flex; align-items: center; justify-content: center;">
-                                    <i class="ri-user-line" style="color: #991b1b; font-size: 1.25rem;"></i>
+                    htmlContent += `
+                        <tr style="border-bottom: 1px solid #fee2e2;">
+                            <td style="padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #fca5a5; display: flex; align-items: center; justify-content: center;">
+                                        <i class="ri-user-line" style="color: #991b1b; font-size: 1.25rem;"></i>
+                                    </div>
+                                    <span style="font-weight: 500; color: #991b1b;">${memberName}</span>
                                 </div>
-                                <span style="font-weight: 500; color: #991b1b;">${memberName}</span>
-                            </div>
-                        </td>
-                        <td style="padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 8px; color: #dc2626;">
-                                <i class="ri-award-fill"></i>
-                                <span style="font-weight: 500;">${accoladeName}</span>
-                            </div>
-                        </td>
-                        <td style="padding: 16px;">
-                            <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
-                                <i class="ri-close-circle-line me-1"></i>Rejected
-                            </span>
-                        </td>
-                        <td style="padding: 16px;">
-                            <div style="background: #fef2f2; padding: 12px; border-radius: 8px; color: #374151;">
-                                <i class="ri-message-2-line me-2" style="color: #dc2626;"></i>${roComment}
-                            </div>
-                        </td>
-                    </tr>`;
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #dc2626;">
+                                    <i class="ri-award-fill"></i>
+                                    <span style="font-weight: 500;">${accoladeName}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 16px;">
+                                <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 9999px; font-size: 0.875rem;">
+                                    <i class="ri-close-circle-line me-1"></i>Rejected
+                                </span>
+                            </td>
+                            <td style="padding: 16px;">
+                                <div style="background: #fef2f2; padding: 12px; border-radius: 8px; color: #374151;">
+                                    <i class="ri-message-2-line me-2" style="color: #dc2626;"></i>${roComment}
+                                </div>
+                            </td>
+                        </tr>`;
+                }
             }
+        }
+
+        // Show message if no declined members found
+        if (declinedCount === 0) {
+            htmlContent += `
+                <tr>
+                    <td colspan="4" style="padding: 32px; text-align: center; color: #6b7280;">
+                        <i class="ri-information-line" style="font-size: 2rem; margin-bottom: 8px; display: block;"></i>
+                        No rejected accolades found for this requisition
+                    </td>
+                </tr>`;
         }
 
         htmlContent += `
@@ -3121,25 +3145,29 @@ async function handleRejectedView(chapterRequisitionId) {
                             ['S.No', 'Member Name', 'Accolade Name', 'Status', 'RO Comment']
                         ];
 
-                        // Add data rows
+                        // Add data rows - FIXED: Only current requisition members
                         let rowCount = 1;
                         for (const [key, status] of Object.entries(approveStatus)) {
                             if (status === 'declined') {
                                 const [memberId, accoladeId] = key.split('_').map(Number);
-                                const member = members.find(m => m.member_id === memberId);
-                                const accolade = accolades.find(a => a.accolade_id === accoladeId);
                                 
-                                const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
-                                const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
-                                const roComment = roComments[key] || 'No RO comment';
+                                // FIXED: Only export if this member belongs to current requisition
+                                if (currentMemberIds.includes(memberId.toString())) {
+                                    const member = members.find(m => m.member_id === memberId);
+                                    const accolade = accolades.find(a => a.accolade_id === accoladeId);
+                                    
+                                    const memberName = member ? `${member.member_first_name} ${member.member_last_name}` : 'Unknown Member';
+                                    const accoladeName = accolade ? accolade.accolade_name : 'Unknown Accolade';
+                                    const roComment = roComments[key] || 'No RO comment';
 
-                                csvRows.push([
-                                    rowCount++,
-                                    memberName,
-                                    accoladeName,
-                                    'Rejected',
-                                    roComment
-                                ]);
+                                    csvRows.push([
+                                        rowCount++,
+                                        memberName,
+                                        accoladeName,
+                                        'Rejected',
+                                        roComment
+                                    ]);
+                                }
                             }
                         }
 
@@ -3190,12 +3218,34 @@ async function handleRejectedView(chapterRequisitionId) {
 }
 
 // Add these helper functions to count approved and rejected statuses
-function countApprovedStatus(approveStatus) {
+function countApprovedStatus(approveStatus, comment = null) {
     try {
         if (!approveStatus) return 0;
+        
         // Add condition for visitor case
         if (approveStatus === "approved") return 1;
+        
         const statusObj = typeof approveStatus === 'string' ? JSON.parse(approveStatus) : approveStatus;
+        
+        // If comment field is provided, filter by current requisition members only
+        if (comment) {
+            const commentPairs = safeJSONParse(comment || '{}');
+            const currentMemberIds = Object.keys(commentPairs).map(pair => pair.split('_')[0]);
+            
+            // Only count approved statuses for current requisition members
+            let approvedCount = 0;
+            for (const [key, status] of Object.entries(statusObj)) {
+                if (status === 'approved') {
+                    const [memberId, accoladeId] = key.split('_').map(Number);
+                    if (currentMemberIds.includes(memberId.toString())) {
+                        approvedCount++;
+                    }
+                }
+            }
+            return approvedCount;
+        }
+        
+        // Fallback to original logic if no comment field provided
         return Object.values(statusObj).filter(status => status === 'approved').length;
     } catch (error) {
         console.error('Error counting approved status:', error);
@@ -3203,12 +3253,34 @@ function countApprovedStatus(approveStatus) {
     }
 }
 
-function countRejectedStatus(approveStatus) {
+function countRejectedStatus(approveStatus, comment = null) {
     try {
         if (!approveStatus) return 0;
+        
         // Add condition for visitor case
         if (approveStatus === "declined") return 1;
+        
         const statusObj = typeof approveStatus === 'string' ? JSON.parse(approveStatus) : approveStatus;
+        
+        // If comment field is provided, filter by current requisition members only
+        if (comment) {
+            const commentPairs = safeJSONParse(comment || '{}');
+            const currentMemberIds = Object.keys(commentPairs).map(pair => pair.split('_')[0]);
+            
+            // Only count declined statuses for current requisition members
+            let declinedCount = 0;
+            for (const [key, status] of Object.entries(statusObj)) {
+                if (status === 'declined') {
+                    const [memberId, accoladeId] = key.split('_').map(Number);
+                    if (currentMemberIds.includes(memberId.toString())) {
+                        declinedCount++;
+                    }
+                }
+            }
+            return declinedCount;
+        }
+        
+        // Fallback to original logic if no comment field provided
         return Object.values(statusObj).filter(status => status === 'declined').length;
     } catch (error) {
         console.error('Error counting rejected status:', error);
@@ -3701,3 +3773,50 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSorting();
     // ... existing initialization code ...
 });
+
+// Add this function to handle image upload
+function handleImageUpload(input, key) {
+    const file = input.files[0];
+    const previewDiv = document.getElementById(`image-preview-${key}`);
+    
+    if (file) {
+        // Show preview
+        previewDiv.style.display = 'flex';
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid File Type',
+                text: 'Please select an image file (JPG, PNG, GIF, etc.)'
+            });
+            input.value = '';
+            previewDiv.style.display = 'none';
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'File Too Large',
+                text: 'Please select an image smaller than 5MB'
+            });
+            input.value = '';
+            previewDiv.style.display = 'none';
+            return;
+        }
+        
+        console.log(`Image uploaded for ${key}:`, file.name);
+        
+        // Store the file for later upload
+        if (!window.uploadedImages) {
+            window.uploadedImages = {};
+        }
+        window.uploadedImages[key] = file;
+        
+    } else {
+        previewDiv.style.display = 'none';
+        delete window.uploadedImages[key];
+    }
+}

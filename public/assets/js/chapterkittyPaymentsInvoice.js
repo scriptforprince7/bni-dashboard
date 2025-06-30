@@ -4,6 +4,7 @@ console.log("🚀 kittyPaymentsInvoice.js loaded - Meeting Payments (ID: 4)");
 // At the very top of the file, outside any function, ensure these are declared:
 let selectedRegionId = null;
 let selectedChapterId = null;
+let originalAdvanceAmount = null;
 
 // Function to show the loader
 function showLoader() {
@@ -843,33 +844,35 @@ function showLoader() {
           // Add this after the member selection change event listener
           // Handle partial payment calculations
           document.getElementById("partial-amount").addEventListener("input", function() {
-              const grandTotalElement = document.getElementById("grand_total");
+              const partialAmount = parseFloat(this.value) || 0;
               const remainingBalanceElement = document.getElementById("remaining-balance");
+              const isGstIncluded = document.getElementById("include-gst").checked;
+              const taxableAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
               
-              // Get grand total (remove ₹ symbol and commas)
-              const grandTotal = parseFloat(grandTotalElement.value.replace(/[₹,\s]/g, '')) || 0;
-              
-              // Get the input value without any processing
-              const inputValue = this.value;
-              
-              // Only process if there's an actual input
-              if (inputValue) {
-                  const partialAmount = parseFloat(inputValue);
+              if (partialAmount > 0) {
+                  let remainingBalance;
                   
-                  if (!isNaN(partialAmount)) {
-                      // Calculate remaining balance (grand total - partial amount)
-                      const remainingBalance = grandTotal - partialAmount;
-                      remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-                      
-                      console.log('💰 Partial Payment:', {
-                          grandTotal,
-                          partialAmount,
-                          remainingBalance
-                      });
+                  if (isGstIncluded) {
+                      // When GST is included, partial amount includes GST
+                      // Extract base amount from GST-inclusive partial amount
+                      const taxableAmountPaid = partialAmount / 1.18;
+                      remainingBalance = Math.round(taxableAmount - taxableAmountPaid);
+                  } else {
+                      // When GST is not included, use simple subtraction
+                      remainingBalance = Math.round(taxableAmount - partialAmount);
                   }
+                  
+                  remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
+                  
+                  console.log('💰 Partial Payment Calculation:', {
+                      partialAmount,
+                      taxableAmount,
+                      isGstIncluded,
+                      remainingBalance
+                  });
               } else {
                   // If input is empty, show full amount as remaining
-                  remainingBalanceElement.value = `₹ ${grandTotal.toFixed(2)}`;
+                  remainingBalanceElement.value = `₹ ${taxableAmount.toFixed(2)}`;
               }
           });
 
@@ -886,19 +889,25 @@ function showLoader() {
                   } else {
                       // When switching to partial, initialize with empty values
                       partialAmountInput.value = '';
-                      const grandTotal = parseFloat(document.getElementById("grand_total").value.replace(/[₹,\s]/g, '')) || 0;
-                      remainingBalanceElement.value = formatCurrency(grandTotal);
+                      const taxableAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+                      remainingBalanceElement.value = formatCurrency(taxableAmount);
                   }
               });
           });
   
           // Modify the GST checkbox handler
           document.getElementById("include-gst").addEventListener("change", function() {
+            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
+            
+            // If payment type is advance, do nothing on GST checkbox toggle
+            if (selectedPaymentType === "advance") {
+                return;
+            }
+            
             const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
             const cgstField = document.getElementById("cgst_amount");
             const sgstField = document.getElementById("sgst_amount");
             const grandTotalField = document.getElementById("grand_total");
-            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
 
             if (this.checked) {
                 // Calculate GST (9% CGST + 9% SGST = 18% total)
@@ -1090,13 +1099,20 @@ function showLoader() {
           if (selectedMemberId === "Select Member") return;
   
           try {
-            // Fetch member's kitty data
-            const bankOrderResponse = await fetch(`https://backend.bninewdelhi.com/api/getbankOrder`);
-            const bankOrderData = await bankOrderResponse.json();
-            const memberBankOrder = bankOrderData.find(order => 
-                order.member_id === selectedMemberId && 
-                order.chapter_id === selectedChapterId
-            );
+            // Fetch member data
+            const memberResponse = await fetch('https://backend.bninewdelhi.com/api/members');
+            const membersData = await memberResponse.json();
+            const selectedMember = membersData.find(m => m.member_id == selectedMemberId && m.chapter_id == selectedChapterId);
+            if (!selectedMember) {
+              console.log('❌ Member not found in members API for selected ID and chapter.');
+              return;
+            }
+            const meetingPayableAmount = parseFloat(selectedMember.meeting_payable_amount) || 0;
+            console.log('💰 Meeting Payable Amount for selected member:', meetingPayableAmount);
+            // Update form fields
+            document.getElementById("rate").value = `₹ ${meetingPayableAmount.toFixed(2)}`;
+            document.getElementById("price").value = `₹ ${meetingPayableAmount.toFixed(2)}`;
+            document.getElementById("taxable-total-amount").value = `₹ ${meetingPayableAmount.toFixed(2)}`;
 
             // Fetch member credits
             const creditResponse = await fetch(`https://backend.bninewdelhi.com/api/getAllMemberCredit`);
@@ -1117,18 +1133,18 @@ function showLoader() {
             const currentDate = await currentDateResponse.json();
 
             // Update UI with kitty bill info
-            if (memberBankOrder) {
-                let amountToPay = parseFloat(memberBankOrder.amount_to_pay);
-                const kittyDueDate = memberBankOrder.kitty_due_date;
-                const numberOfLatePayments = memberBankOrder.no_of_late_payment;
-                const kittyPenalty = parseFloat(memberBankOrder.kitty_penalty);
-                const advancePayment = parseFloat(memberBankOrder.advance_pay) || 0;
+            if (selectedMember) {
+                let amountToPay = meetingPayableAmount;
+                const kittyDueDate = selectedMember.kitty_due_date;
+                const numberOfLatePayments = selectedMember.no_of_late_payment;
+                const kittyPenalty = parseFloat(selectedMember.kitty_penalty);
+                const advancePayment = parseFloat(selectedMember.advance_pay) || 0;
 
                 // Subtract advance payment if exists
                 if (advancePayment > 0) {
                     amountToPay = Math.max(0, amountToPay - advancePayment);
                     console.log('💰 Amount after advance payment deduction:', {
-                        originalAmount: memberBankOrder.amount_to_pay,
+                        originalAmount: meetingPayableAmount,
                         advancePayment,
                         finalAmount: amountToPay
                     });
@@ -1158,7 +1174,7 @@ function showLoader() {
                 document.getElementById("sgst_amount").value = `₹ ${(gstAmount/2).toFixed(2)}`;
                 document.getElementById("grand_total").value = `₹ ${grandTotal.toFixed(2)}`;
                 document.getElementById("credit-amount").textContent = `₹ ${totalCreditAmount.toFixed(2)}`;
-                document.getElementById("opening-balance").textContent = `₹ ${memberBankOrder.opening_balance || "0.00"}`;
+                document.getElementById("opening-balance").textContent = `₹ ${selectedMember.opening_balance || "0.00"}`;
 
                 // Store values for later use
                 this.dataset.totalAmount = totalAmount;
@@ -1170,7 +1186,6 @@ function showLoader() {
             }
           } catch (error) {
             console.error("Error fetching member data:", error);
-            showToast('error', "Error fetching member data");
           }
         });
   
@@ -1178,28 +1193,49 @@ function showLoader() {
         document.getElementById("partial-amount").addEventListener("input", function() {
             const partialAmount = parseFloat(this.value) || 0;
             const remainingBalanceElement = document.getElementById("remaining-balance");
-            
-            // Get taxable amount (not grand total)
+            const isGstIncluded = document.getElementById("include-gst").checked;
             const taxableAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
             
-            // Calculate remaining balance using taxable amount
-            const remainingBalance = taxableAmount - partialAmount;
-            remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-            
-            console.log('💰 Partial Payment Calculation:', {
-                partialAmount,
-                taxableAmount,
-                remainingBalance
-            });
+            if (partialAmount > 0) {
+                let remainingBalance;
+                
+                if (isGstIncluded) {
+                    // When GST is included, partial amount includes GST
+                    // Extract base amount from GST-inclusive partial amount
+                    const taxableAmountPaid = partialAmount / 1.18;
+                    remainingBalance = Math.round(taxableAmount - taxableAmountPaid);
+                } else {
+                    // When GST is not included, use simple subtraction
+                    remainingBalance = Math.round(taxableAmount - partialAmount);
+                }
+                
+                remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
+                
+                console.log('💰 Partial Payment Calculation:', {
+                    partialAmount,
+                    taxableAmount,
+                    isGstIncluded,
+                    remainingBalance
+                });
+            } else {
+                // If input is empty, show full amount as remaining
+                remainingBalanceElement.value = `₹ ${taxableAmount.toFixed(2)}`;
+            }
         });
 
         // Modify the GST checkbox handler
         document.getElementById("include-gst").addEventListener("change", function() {
+            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
+            
+            // If payment type is advance, do nothing on GST checkbox toggle
+            if (selectedPaymentType === "advance") {
+                return;
+            }
+            
             const baseAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
             const cgstField = document.getElementById("cgst_amount");
             const sgstField = document.getElementById("sgst_amount");
             const grandTotalField = document.getElementById("grand_total");
-            const selectedPaymentType = document.querySelector('input[name="paymentType"]:checked')?.value;
 
             if (this.checked) {
                 // Calculate GST (9% CGST + 9% SGST = 18% total)
@@ -1297,6 +1333,14 @@ function showLoader() {
               });
           }
       });
+
+      // Add this event listener after the DOM is loaded to store the original value
+      const advanceAmountInputEl = document.getElementById("advance-amount");
+      if (advanceAmountInputEl) {
+          advanceAmountInputEl.addEventListener("input", function() {
+              originalAdvanceAmount = parseFloat(this.value) || 0;
+          });
+      }
     } catch (error) {
       console.error("Error:", error);
       showToast('error', "An error occurred while loading data");
@@ -1440,6 +1484,27 @@ function showLoader() {
                     });
                 }
 
+                // Add advance payment handling before the API call
+                if (selectedPaymentType === "advance") {
+                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
+                    const taxableValue = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+                    // Calculate current_balance: (advance/1.18) - taxableValue
+                    const baseAdvance = advanceAmount / 1.18;
+                    let currentBalance = baseAdvance - taxableValue;
+                    currentBalance = Math.round(currentBalance); // Round off
+                    // Calculate tax: (advance*18)/118
+                    const taxAmount = (advanceAmount * 18) / 118;
+
+                    Object.assign(invoiceData, {
+                        order_amount: advanceAmount,
+                        payment_type: "advance",
+                        payment_note: "meeting-payments-advance",
+                        advance_amount: advanceAmount,
+                        current_balance: currentBalance,
+                        tax_amount: taxAmount
+                    });
+                }
+
                 // Adjust for credits
                 const finalAmount = Math.max(0, amountToPay - creditAmount);
 
@@ -1502,51 +1567,6 @@ function showLoader() {
                 // If confirmed, proceed with payment
                 console.log("✅ Payment confirmed, processing...");
                 showLoader();
-
-                // Add advance payment handling before the API call
-                if (selectedPaymentType === "advance") {
-                    const advanceAmount = parseFloat(document.getElementById("advance-amount").value || 0);
-                    const includeGst = document.getElementById("include-gst").checked;
-                    const grandTotal = parseFloat(document.getElementById("grand_total").value.replace(/[₹,\s]/g, '')) || 0;
-
-                    // Calculate amounts based on GST checkbox
-                    const advanceWithGST = includeGst ? advanceAmount * 1.18 : advanceAmount;
-                    const taxAmount = includeGst ? advanceAmount * 0.18 : 0;
-
-                    if (grandTotal === 0) {
-                        // Case 1: When grand total is zero
-                        Object.assign(invoiceData, {
-                            order_amount: advanceWithGST,
-                            payment_type: "advance",
-                            payment_note: "meeting-payments-advance",
-                            advance_amount: advanceAmount,
-                            tax_amount: includeGst ? taxAmount : undefined
-                        });
-                    } else if (advanceAmount > grandTotal) {
-                        // Case 2: When advance is greater than grand total
-                        Object.assign(invoiceData, {
-                            order_amount: advanceWithGST,
-                            payment_type: "advance",
-                            payment_note: "meeting-payments-advance",
-                            advance_amount: advanceAmount - grandTotal,
-                            tax_amount: includeGst ? taxAmount : undefined
-                        });
-                    }
-
-                    // Remove tax_amount if GST is not included
-                    if (!includeGst) {
-                        delete invoiceData.tax_amount;
-                    }
-
-                    console.log("💰 Advance Payment (Second Section):", {
-                        amount: advanceAmount,
-                        withGST: includeGst,
-                        finalAmount: advanceWithGST,
-                        taxAmount: taxAmount,
-                        grandTotal: grandTotal,
-                        paymentType: "advance"
-                    });
-                }
 
                 // Keep existing console log
                 console.log("🌐 Payment Data to be sent:", invoiceData);

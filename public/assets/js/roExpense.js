@@ -330,13 +330,6 @@ const fetchExpenses = async (sortDirection = 'desc') => {
     const allExpensesData = await response.json();
     console.log('All expenses:', allExpensesData);
 
-    // Sort all expenses by entry_date in descending order (latest first)
-    allExpensesData.sort((a, b) => {
-      const dateA = new Date(a.entry_date);
-      const dateB = new Date(b.entry_date);
-      return dateB - dateA; // Sort by entry_date in descending order (latest first)
-    });
-
     // Filter expenses based on user type and chapter
     if (getUserLoginType() === 'ro_admin') {
       console.log('User is RO Admin - showing all expenses');
@@ -361,38 +354,32 @@ const fetchExpenses = async (sortDirection = 'desc') => {
       expense.vendor_company = vendorDetails ? vendorDetails.company : 'N/A';
     });
 
-    filteredExpenses = [...allExpenses];
-    console.log('All dates before sorting:', filteredExpenses.map(exp => ({
-      date: exp.entry_date,
-      parsed: new Date(exp.entry_date),
-      timestamp: new Date(exp.entry_date).getTime()
-    })));
-
-    // Sort expenses by entry_date in descending order (latest first) initially
-    filteredExpenses.sort((a, b) => { 
+    // NEW SORTING LOGIC: Pending expenses first, then by recent entry date
+    const pendingExpenses = allExpenses.filter(expense => 
+      expense.payment_status.toLowerCase() === 'pending'
+    );
+    
+    const nonPendingExpenses = allExpenses.filter(expense => 
+      expense.payment_status.toLowerCase() !== 'pending'
+    );
+    
+    // Sort non-pending expenses by entry_date in descending order (latest first)
+    nonPendingExpenses.sort((a, b) => {
       const dateA = new Date(a.entry_date);
       const dateB = new Date(b.entry_date);
-      console.log('Comparing dates:', {
-        dateA: {
-          original: a.entry_date,
-          parsed: dateA,
-          timestamp: dateA.getTime()
-        },
-        dateB: {
-          original: b.entry_date,
-          parsed: dateB,
-          timestamp: dateB.getTime()
-        },
-        result: dateB - dateA
-      });
-      return dateB - dateA;
+      return dateB - dateA; // Sort by entry_date in descending order (latest first)
     });
+    
+    // Combine: pending expenses first, then sorted non-pending expenses
+    filteredExpenses = [...pendingExpenses, ...nonPendingExpenses];
 
-    console.log('All dates after sorting:', filteredExpenses.map(exp => ({
-      date: exp.entry_date,
-      parsed: new Date(exp.entry_date),
-      timestamp: new Date(exp.entry_date).getTime()
-    })));
+    console.log('Sorting breakdown:', {
+      total: filteredExpenses.length,
+      pending: pendingExpenses.length,
+      nonPending: nonPendingExpenses.length,
+      'pending dates': pendingExpenses.map(exp => exp.entry_date),
+      'non-pending dates': nonPendingExpenses.slice(0, 5).map(exp => exp.entry_date) // Show first 5 for debugging
+    });
 
     // Set initial sort state for entry_date column
     currentSortColumn = 'entry_date';
@@ -436,8 +423,17 @@ const sortExpenses = (filter) => {
     })
   );
 
-  filteredExpenses.sort((a, b) => {
-    // Sort by entry_date in descending order (latest first)
+  // Separate pending and non-pending expenses
+  const pendingExpenses = filteredExpenses.filter(expense => 
+    expense.payment_status.toLowerCase() === 'pending'
+  );
+  
+  const nonPendingExpenses = filteredExpenses.filter(expense => 
+    expense.payment_status.toLowerCase() !== 'pending'
+  );
+
+  // Sort non-pending expenses by entry_date
+  nonPendingExpenses.sort((a, b) => {
     const dateA = new Date(a.entry_date);
     const dateB = new Date(b.entry_date);
     
@@ -447,6 +443,9 @@ const sortExpenses = (filter) => {
       return dateA - dateB; // Oldest first
     }
   });
+
+  // Combine: pending expenses first, then sorted non-pending expenses
+  filteredExpenses = [...pendingExpenses, ...nonPendingExpenses];
 
   // Update the display after sorting
   displayExpenses(filteredExpenses);
@@ -585,6 +584,7 @@ async function displayExpenses(expenses) {
           <small style="color: #666; font-size: 0.85em;">${formattedEntryTime}</small>
         </div>
       </td>
+       <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
       <td style="border: 1px solid grey;"><b>${expenseName}</b></td>
       <td style="border: 1px solid grey;"><b>${expense.chapter_id}</b></td>
      <td style="border: 1px solid grey;">
@@ -822,7 +822,7 @@ async function displayExpenses(expenses) {
      <td style="border: 1px solid grey;">
         <span class="badge bg-${expense.payment_status === "pending" ? "warning" : "success"}">${expense.payment_status}</span>
       </td>
-      <td style="border: 1px solid grey;"><b>${formattedBillDate}</b></td>
+     
       <td style="border: 1px solid grey;">
         <span class="badge bg-${expense.mode_of_payment === "online" ? "info" : "secondary"}">${expense.mode_of_payment || "N/A"}</span>
       </td>
@@ -1118,62 +1118,62 @@ const sortByColumn = (columnName) => {
         });
         break;
       case 'expense_type':
-        const expenseNameA = expenseTypes.find(type => type.expense_id === a.querySelector('td:nth-child(3) b').textContent)?.expense_name || '';
-        const expenseNameB = expenseTypes.find(type => type.expense_id === b.querySelector('td:nth-child(3) b').textContent)?.expense_name || '';
+        const expenseNameA = expenseTypes.find(type => type.expense_id === a.querySelector('td:nth-child(4) b').textContent)?.expense_name || '';
+        const expenseNameB = expenseTypes.find(type => type.expense_id === b.querySelector('td:nth-child(4) b').textContent)?.expense_name || '';
         aValue = expenseNameA.toLowerCase();
         bValue = expenseNameB.toLowerCase();
         break;
       case 'chapter_id':
-        aValue = a.querySelector('td:nth-child(4)').textContent.toLowerCase();
-        bValue = b.querySelector('td:nth-child(4)').textContent.toLowerCase();
-        break;
-        case 'vendor_id':
-  aValue = a.querySelector('td:nth-child(5) b').textContent.toLowerCase();
-  bValue = b.querySelector('td:nth-child(5) b').textContent.toLowerCase();
-  break;
-
-case 'hotel_id':
-  aValue = a.querySelector('td:nth-child(6) b').textContent.toLowerCase();
-  bValue = b.querySelector('td:nth-child(6) b').textContent.toLowerCase();
-  break;
-      case 'description':
         aValue = a.querySelector('td:nth-child(5)').textContent.toLowerCase();
         bValue = b.querySelector('td:nth-child(5)').textContent.toLowerCase();
         break;
+        case 'vendor_id':
+  aValue = a.querySelector('td:nth-child(6) b').textContent.toLowerCase();
+  bValue = b.querySelector('td:nth-child(6) b').textContent.toLowerCase();
+  break;
+
+case 'hotel_id':
+  aValue = a.querySelector('td:nth-child(7) b').textContent.toLowerCase();
+  bValue = b.querySelector('td:nth-child(7) b').textContent.toLowerCase();
+  break;
+      case 'description':
+        aValue = a.querySelector('td:nth-child(8)').textContent.toLowerCase();
+        bValue = b.querySelector('td:nth-child(8)').textContent.toLowerCase();
+        break;
         case 'amount':
-          const aText = a.querySelector('td:nth-child(8) b')?.textContent || '';
-const bText = b.querySelector('td:nth-child(8) b')?.textContent || '';
+          const aText = a.querySelector('td:nth-child(9) b')?.textContent || '';
+const bText = b.querySelector('td:nth-child(9) b')?.textContent || '';
 aValue = parseFloat(aText.replace(/[₹, ]/g, ''));
 bValue = parseFloat(bText.replace(/[₹, ]/g, ''));
 console.log(`[SORT] Comparing Amounts:`, { aText, bText, aValue, bValue });
           break; 
           case 'gst_amount':
-            const aGstText = a.querySelector('td:nth-child(9) b')?.textContent || '';
-            const bGstText = b.querySelector('td:nth-child(9) b')?.textContent || '';
+            const aGstText = a.querySelector('td:nth-child(10) b')?.textContent || '';
+            const bGstText = b.querySelector('td:nth-child(10) b')?.textContent || '';
             aValue = parseFloat(aGstText.replace(/[₹, ]/g, ''));
             bValue = parseFloat(bGstText.replace(/[₹, ]/g, ''));
             break;
           
           case 'total_amount':
-            const aTotalText = a.querySelector('td:nth-child(10) b')?.textContent || '';
-            const bTotalText = b.querySelector('td:nth-child(10) b')?.textContent || '';
+            const aTotalText = a.querySelector('td:nth-child(11) b')?.textContent || '';
+            const bTotalText = b.querySelector('td:nth-child(11) b')?.textContent || '';
             aValue = parseFloat(aTotalText.replace(/[₹, ]/g, ''));
             bValue = parseFloat(bTotalText.replace(/[₹, ]/g, ''));
             break;
       case 'tds_details':
         // Sort TDS details based on section and process status
-        aValue = a.querySelector('td:nth-child(11)').textContent.split(' ')[0] === 'No' ? 0 : 1;
-        bValue = b.querySelector('td:nth-child(11)').textContent.split(' ')[0] === 'No' ? 0 : 1;
+        aValue = a.querySelector('td:nth-child(12)').textContent.split(' ')[0] === 'No' ? 0 : 1;
+        bValue = b.querySelector('td:nth-child(12)').textContent.split(' ')[0] === 'No' ? 0 : 1;
         break;
       case 'ro_verification':
         // Sort RO verification based on status
-        aValue = a.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (a.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
-        bValue = b.querySelector('td:nth-child(16)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
+        aValue = a.querySelector('td:nth-child(17)').textContent === 'Approved' ? 1 : (a.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
+        bValue = b.querySelector('td:nth-child(17)').textContent === 'Approved' ? 1 : (b.querySelector('td:nth-child(10)').textContent === 'Rejected' ? 2 : 0);
         break;
         case 'final_payable':
   // Select the div with the amount (font-size: 16px)
-  let aFinalDiv = a.querySelector('td:nth-child(15) div[style*="font-size: 16px"]');
-  let bFinalDiv = b.querySelector('td:nth-child(15) div[style*="font-size: 16px"]');
+  let aFinalDiv = a.querySelector('td:nth-child(16) div[style*="font-size: 16px"]');
+  let bFinalDiv = b.querySelector('td:nth-child(16) div[style*="font-size: 16px"]');
   let aFinalText = aFinalDiv ? aFinalDiv.textContent : '-';
   let bFinalText = bFinalDiv ? bFinalDiv.textContent : '-';
   aValue = aFinalText === '-' ? -1 : parseFloat(aFinalText.replace(/[₹, ]/g, '')) || 0;
@@ -1181,28 +1181,28 @@ console.log(`[SORT] Comparing Amounts:`, { aText, bText, aValue, bValue });
   console.log('[SORT] Comparing Final Payable Amounts:', { aFinalText, bFinalText, aValue, bValue });
   break;
         case 'payment_status':
-          aValue = a.querySelector('td:nth-child(17)').textContent.toLowerCase();
-          bValue = b.querySelector('td:nth-child(17)').textContent.toLowerCase();
+          aValue = a.querySelector('td:nth-child(18)').textContent.toLowerCase();
+          bValue = b.querySelector('td:nth-child(18)').textContent.toLowerCase();
           console.log('Comparing payment statuses:', {aValue, bValue, aText: a.querySelector('td:nth-child(12)').textContent, bText: b.querySelector('td:nth-child(12)').textContent, aHTML: a.querySelector('td:nth-child(12)').innerHTML, bHTML: b.querySelector('td:nth-child(12)').innerHTML});
           break;
       case 'bill_date':
-        aValue = new Date(a.querySelector('td:nth-child(18)').textContent);
-        bValue = new Date(b.querySelector('td:nth-child(18)').textContent);
+        aValue = new Date(a.querySelector('td:nth-child(3)').textContent);
+        bValue = new Date(b.querySelector('td:nth-child(3)').textContent);
         break;
       case 'mode_of_payment':
         aValue = (a.querySelector('td:nth-child(19)').textContent || 'N/A').toLowerCase();
         bValue = (b.querySelector('td:nth-child(19)').textContent || 'N/A').toLowerCase();
         break;
       case 'tds_percentage_type':
-        aValue = a.querySelector('td:nth-child(15) b')?.textContent || '-';
-        bValue = b.querySelector('td:nth-child(15) b')?.textContent || '-';
+        aValue = a.querySelector('td:nth-child(13) b')?.textContent || '-';
+        bValue = b.querySelector('td:nth-child(13) b')?.textContent || '-';
         // Extract percentage number for sorting
         aValue = aValue === '-' ? 0 : parseFloat(aValue.split('%')[0]) || 0;
         bValue = bValue === '-' ? 0 : parseFloat(bValue.split('%')[0]) || 0;
         break;
         case 'tds_amount':
-          let aTdsText = a.querySelector('td:nth-child(13) b')?.textContent || '-';
-          let bTdsText = b.querySelector('td:nth-child(13) b')?.textContent || '-';
+          let aTdsText = a.querySelector('td:nth-child(14) b')?.textContent || '-';
+          let bTdsText = b.querySelector('td:nth-child(14) b')?.textContent || '-';
           // Extract amount number for sorting
           aValue = aTdsText === '-' ? 0 : parseFloat(aTdsText.replace(/[₹, ]/g, '')) || 0;
           bValue = bTdsText === '-' ? 0 : parseFloat(bTdsText.replace(/[₹, ]/g, '')) || 0;

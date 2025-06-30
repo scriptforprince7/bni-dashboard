@@ -121,14 +121,16 @@ async function fetchMemberWiseKitty() {
     // Continue with existing member filtering and table population
     const filteredMembers = bankOrders
       .filter(order => {
+        const member = members.find(m => m.member_id === order.member_id);
+        if (!member) return false;
         if (selectedRegionId && selectedChapterId) {
           const chapter = chapters.find(ch => ch.chapter_id === order.chapter_id);
-          return order.amount_to_pay > 0 && 
+          return member.meeting_payable_amount > 0 && 
                  chapter && 
                  chapter.region_id === parseInt(selectedRegionId) && 
                  chapter.chapter_id === parseInt(selectedChapterId);
         }
-        return order.amount_to_pay > 0;
+        return member.meeting_payable_amount > 0;
       })
       .map(order => {
         const member = members.find(m => m.member_id === order.member_id);
@@ -184,7 +186,10 @@ async function fetchMemberWiseKitty() {
             memberId: member.member_id,
             memberName: `${member.member_first_name} ${member.member_last_name}`,
             chapterName: chapter ? chapter.chapter_name : 'Unknown Chapter',
-            pendingAmount: order.amount_to_pay,
+            pendingAmount: member.meeting_payable_amount,
+            // Log the value for debugging
+            // eslint-disable-next-line no-console
+            ...(console.log(`Pending Amount for ${member.member_first_name} (${member.member_id}):`, member.meeting_payable_amount), {}),
             creditAmount: memberCredit ? memberCredit.credit_amount : 0,
             totalPaid: totalPaid,
             lastPayment: lastPayment

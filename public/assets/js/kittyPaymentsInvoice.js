@@ -682,76 +682,34 @@ function showLoader() {
                   document.getElementById("member_phone_number").value = selectedOption.dataset.phoneNumber || "";
                   document.getElementById("member_gst_number").value = selectedOption.dataset.gstNumber || "";
   
-                  try {
-                      console.log("🔄 Fetching bank order data...");
-                      const response = await fetch('https://backend.bninewdelhi.com/api/getbankorder');
-                      const bankOrders = await response.json();
-                      
-                      console.log("📦 Bank Orders received:", bankOrders);
-  
-                      // Find matching bank order
-                      const matchingOrder = bankOrders.find(order => {
-                          console.log("🔍 Checking order:", {
-                              orderId: order.id,
-                              orderMemberId: order.member_id,
-                              orderChapterId: order.chapter_id,
-                              matches: order.member_id == selectedMemberId && order.chapter_id == chapterId
-                          });
-                          return order.member_id == selectedMemberId && order.chapter_id == chapterId;
-                      });
-  
-                      console.log("🎯 Matching order found:", matchingOrder);
-                      
-                      if (matchingOrder) {
-                          const baseAmount = parseFloat(matchingOrder.amount_to_pay);
-                          
-                          // Update amount fields
-                          document.getElementById("rate").value = `₹ ${baseAmount.toFixed(2)}`;
-                          document.getElementById("price").value = `₹ ${baseAmount.toFixed(2)}`;
-                          document.getElementById("taxable-total-amount").value = `₹ ${baseAmount.toFixed(2)}`;
-                          
-                          // Calculate and set CGST and SGST (9% each)
-                          const cgstAmount = (baseAmount * 0.09).toFixed(2);
-                          const sgstAmount = (baseAmount * 0.09).toFixed(2);
-                          document.getElementById("cgst_amount").value = `₹ ${cgstAmount}`;
-                          document.getElementById("sgst_amount").value = `₹ ${sgstAmount}`;
-                          
-                          // Always calculate grand total with taxes included
-                          const grandTotal = (baseAmount + parseFloat(cgstAmount) + parseFloat(sgstAmount)).toFixed(2);
-                          document.getElementById("grand_total").value = `₹ ${grandTotal}`;
-
-                          // Add partial amount input handler here to ensure it's set up correctly
-                          const partialAmountInput = document.getElementById("partial-amount");
-                          const remainingBalanceElement = document.getElementById("remaining-balance");
-
-                          // Remove any existing event listeners
-                          const newPartialAmountInput = partialAmountInput.cloneNode(true);
-                          partialAmountInput.parentNode.replaceChild(newPartialAmountInput, partialAmountInput);
-
-                          // Add new event listener
-                          newPartialAmountInput.addEventListener("input", function() {
-                              const partialAmount = parseFloat(this.value) || 0;
-                              // Use baseAmount (taxable amount) for remaining balance calculation
-                              const remainingBalance = baseAmount - partialAmount;
-                              remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
-                              
-                              console.log('💰 Partial Payment Calculation:', {
-                                  partialAmount,
-                                  baseAmount,
-                                  remainingBalance
-                              });
-                          });
-
-                          console.log("💰 Updated amounts:", {
-                              baseAmount,
-                              cgstAmount,
-                              sgstAmount,
-                              grandTotal
-                          });
-                      }
-                  } catch (error) {
-                      console.error("❌ Error fetching bank order data:", error);
-                      showToast('error', "Failed to fetch payment details");
+                  // Set amount fields from member.meeting_payable_amount
+                  const selectedMember = allMembers.find(m => m.member_id == selectedMemberId && m.chapter_id == chapterId);
+                  if (selectedMember) {
+                    const meetingPayableAmount = parseFloat(selectedMember.meeting_payable_amount) || 0;
+                    console.log('💰 Meeting Payable Amount for selected member:', meetingPayableAmount);
+                    document.getElementById("rate").value = `₹ ${meetingPayableAmount.toFixed(2)}`;
+                    document.getElementById("price").value = `₹ ${meetingPayableAmount.toFixed(2)}`;
+                    document.getElementById("taxable-total-amount").value = `₹ ${meetingPayableAmount.toFixed(2)}`;
+                    
+                    // Automatically calculate and set CGST and SGST (9% each)
+                    const cgstAmount = (meetingPayableAmount * 0.09).toFixed(2);
+                    const sgstAmount = (meetingPayableAmount * 0.09).toFixed(2);
+                    document.getElementById("cgst_amount").value = `₹ ${cgstAmount}`;
+                    document.getElementById("sgst_amount").value = `₹ ${sgstAmount}`;
+                    
+                    // Calculate grand total with taxes included
+                    const grandTotal = (meetingPayableAmount + parseFloat(cgstAmount) + parseFloat(sgstAmount)).toFixed(2);
+                    document.getElementById("grand_total").value = `₹ ${grandTotal}`;
+                    
+                    // Check the "Include GST" checkbox
+                    document.getElementById("include-gst").checked = true;
+                    
+                    console.log("💰 Updated amounts:", {
+                      baseAmount: meetingPayableAmount,
+                      cgstAmount,
+                      sgstAmount,
+                      grandTotal
+                    });
                   }
               } else {
                   // Clear all fields
@@ -786,13 +744,18 @@ function showLoader() {
                   const partialAmount = parseFloat(inputValue);
                   
                   if (!isNaN(partialAmount)) {
-                      // Calculate remaining balance (grand total - partial amount)
-                      const remainingBalance = grandTotal - partialAmount;
+                      // Since GST is always included, partial amount includes GST
+                      // Extract base amount from GST-inclusive partial amount
+                      const taxableAmountPaid = partialAmount / 1.18;
+                      const taxableAmount = parseFloat(document.getElementById("taxable-total-amount").value.replace(/[₹,\s]/g, '')) || 0;
+                      const remainingBalance = Math.round(taxableAmount - taxableAmountPaid);
                       remainingBalanceElement.value = `₹ ${remainingBalance.toFixed(2)}`;
                       
-                      console.log('💰 Partial Payment:', {
+                      console.log('💰 Partial Payment Calculation:', {
                           grandTotal,
+                          taxableAmount,
                           partialAmount,
+                          taxableAmountPaid,
                           remainingBalance
                       });
                   }
