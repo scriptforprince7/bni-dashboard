@@ -1433,6 +1433,10 @@ async function updateMemberPendingAmount(pendingAmount, advancePay, isAdvance) {
             return;
         }
 
+        // Round amounts to integers to avoid decimal point issues
+        const roundedPendingAmount = Math.round(pendingAmount);
+        const roundedAdvancePay = Math.round(advancePay);
+
         const response = await fetch('https://backend.bninewdelhi.com/api/updateMemberPendingAmount', {
             method: 'POST',
             headers: {
@@ -1440,8 +1444,8 @@ async function updateMemberPendingAmount(pendingAmount, advancePay, isAdvance) {
             },
             body: JSON.stringify({
                 member_id: memberData.member_id,
-                meeting_payable_amount: pendingAmount,
-                advance_pay: advancePay,
+                meeting_payable_amount: roundedPendingAmount,
+                advance_pay: roundedAdvancePay,
                 is_advance: isAdvance
             })
         });
@@ -1451,7 +1455,7 @@ async function updateMemberPendingAmount(pendingAmount, advancePay, isAdvance) {
         }
 
         const result = await response.json();
-        console.log('✅ Updated member pending amount in database:', pendingAmount);
+        console.log('✅ Updated member pending amount in database:', roundedPendingAmount);
         return result;
     } catch (error) {
         console.error('❌ Error updating member pending amount:', error);

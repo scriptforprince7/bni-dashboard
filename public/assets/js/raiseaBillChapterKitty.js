@@ -262,85 +262,9 @@ const autofillFields = async () => {
 // autofillFields();
 
 
-// 
-(async function() {
-    document.querySelector('.add_bill').addEventListener('click', async (e) => {
-        e.preventDefault();
-
-        const chapter_id = current_user.chapter_id;
-        const date = document.querySelector('#region_name').value;
-        const bill_type = document.querySelector('#kitty_billing_frequency').value;
-        const description = document.querySelector('#contact_person').value;
-        const total_weeks = parseInt(document.querySelector('.total_weeks').value) || 0;
-        const total_bill_amount = parseFloat(document.querySelector('.total_bill_amount').value) || 0;
-        const due_date = document.querySelector('#due_date').value;
-        const penalty_amount = parseFloat(document.querySelector('#penalty_amount').value) || 0; // Get penalty amount
-
-        // Validation for penalty amount
-        if (isNaN(penalty_amount) || penalty_amount <= 0) {
-            alert("Please enter a valid penalty amount.");
-            return;
-        }
-        
-
-        console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount, due_date, penalty_amount });
-        if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
-            alert("Please fill all fields correctly.");
-            return;
-        }
-        if (new Date(due_date) <= new Date(date)) {
-            alert("Due date must be greater than the bill date.");
-            return;
-        }
-
-        try {
-            showLoader();
-
-            const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPayment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    chapter_id,
-                    date,
-                    bill_type,
-                    description,
-                    total_weeks,
-                    total_bill_amount,
-                    due_date,
-                    penalty_amount, // Include penalty amount in the request
-                }),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: result.message || 'Bill added successfully.',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    window.location.href = '/ck/chapter-raiseBill';
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: result.message || 'Failed to add bill',
-                    confirmButtonText: 'ok'
-                });
-            }            
-        } catch (error) {
-            console.error('Error adding bill:', error);
-            alert('Something went wrong. Please try again.');
-        } finally {
-            hideLoader();
-        }
-    });
-})();
-
+// Global variables to store calculated values
+let calculatedTotalWeeks = 0;
+let calculatedTotalBillAmount = 0;
 
 function calculateBilling() {
     console.log( current_user);
@@ -362,8 +286,10 @@ function calculateBilling() {
     const getMeetingDaysCount = (startDate, endDate, meetingDay) => {
         let count = 0;
         const dayIndex = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(meetingDay);
+        console.log('Counting from:', startDate, 'to:', endDate, 'for day:', meetingDay, 'index:', dayIndex);
 
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        for (let d = new Date(startDate); d <= endDate; d = new Date(d.getTime() + 24*60*60*1000)) {
+            console.log('Checking date:', d, 'day:', d.getDay(), 'is meeting day:', d.getDay() === dayIndex);
             if (d.getDay() === dayIndex) count++;
         }
         return count;
@@ -393,10 +319,8 @@ function calculateBilling() {
         case 'quartely':
             const quarterStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
             const quarterEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 3, 0);
-            // const quarterEnd = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 3, 0);
-            
+            quarterEnd.setHours(23, 59, 59, 999); // Ensure last day is included
             // chapterDescription.value = `${quarterStart.toLocaleString('default', { month: 'short' })} to  ${quarterEnd.toLocaleString('default', { month: 'short' })}`;
-            
             const quarterStartMonth = quarterStart.getMonth();
             const quarterEndMonth = quarterEnd.getMonth();
             const quarterStartMonthName = quarterStart.toLocaleString('default', { month: 'short' });
@@ -441,6 +365,10 @@ function calculateBilling() {
             return;
     }
 
+    // Store calculated values in global variables
+    calculatedTotalWeeks = totalWeeks;
+    calculatedTotalBillAmount = totalBillAmount;
+    
     document.getElementById('total_weeks').value = `${totalWeeks} weeks`;
     document.getElementById('total_bill_amount').value = `${totalBillAmount.toFixed(2)}`;
 }
@@ -539,6 +467,105 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Remove old IIFE event listener for .add_bill if present
+// Add new event listener that always recalculates before submission and uses the global variable
+const addBillButton = document.querySelector('.add_bill');
+if (addBillButton) {
+    addBillButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        // Always recalculate before submission
+        calculateBilling();
+
+        const chapter_id = current_user.chapter_id;
+        const date = document.querySelector('#region_name').value;
+        const bill_type = document.querySelector('#kitty_billing_frequency').value;
+        const description = document.querySelector('#contact_person').value;
+        // Use the stored calculated values instead of reading from form fields
+        const total_weeks = calculatedTotalWeeks;
+        const total_bill_amount = calculatedTotalBillAmount;
+        const due_date = document.querySelector('#due_date').value;
+        const penalty_amount = parseFloat(document.querySelector('#penalty_amount').value) || 0; // Get penalty amount
+
+        // Log the values being submitted
+        console.log('Submitting bill with weeks:', total_weeks, 'Field value:', document.getElementById('total_weeks').value);
+
+        // Validation for penalty amount
+        if (isNaN(penalty_amount) || penalty_amount <= 0) {
+            alert("Please enter a valid penalty amount.");
+            return;
+        }
+        
+
+        console.log({ chapter_id, date, bill_type, description, total_weeks, total_bill_amount, due_date, penalty_amount });
+        if (!chapter_id || !date || !bill_type || !description || total_weeks <= 0 || total_bill_amount <= 0 || !due_date) {
+            alert("Please fill all fields correctly.");
+            return;
+        }
+        if (new Date(due_date) <= new Date(date)) {
+            alert("Due date must be greater than the bill date.");
+            return;
+        }
+
+        // API call commented out for debugging
+        console.log('=== BILL DATA TO BE SENT ===');
+        console.log('Chapter ID:', chapter_id);
+        console.log('Date:', date);
+        console.log('Bill Type:', bill_type);
+        console.log('Description:', description);
+        console.log('Total Weeks:', total_weeks);
+        console.log('Total Bill Amount:', total_bill_amount);
+        console.log('Due Date:', due_date);
+        console.log('Penalty Amount:', penalty_amount);
+        console.log('=== END BILL DATA ===');
+
+        try {
+            showLoader();
+
+            const response = await fetch('https://backend.bninewdelhi.com/api/addKittyPayment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chapter_id,
+                    date,
+                    bill_type,
+                    description,
+                    total_weeks,
+                    total_bill_amount,
+                    due_date,
+                    penalty_amount, // Include penalty amount in the request
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: result.message || 'Bill added successfully.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '/ck/chapter-raiseBill';
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message || 'Failed to add bill',
+                    confirmButtonText: 'ok'
+                });
+            }            
+        } catch (error) {
+            console.error('Error adding bill:', error);
+            alert('Something went wrong. Please try again.');
+        } finally {
+            hideLoader();
+        }
+    });
+}
 
 
 
