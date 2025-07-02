@@ -2761,6 +2761,10 @@ function exportExpensesToExcel() {
       );
       const expenseTypeName = expenseTypeObj ? expenseTypeObj.expense_name : "Unknown";
 
+      // Format bill date to match UI display (local time)
+      const billDate = new Date(expense.bill_date);
+      const formattedBillDate = billDate.toLocaleDateString();
+
       const row = [
         expense.expense_id,
         expense.entry_date,
@@ -2781,7 +2785,7 @@ function exportExpensesToExcel() {
         expense.verification ? "Approved" : (expense.ro_comment ? "Rejected" : "Pending"),
         (expense.ro_comment || '').replace(/,/g, ';'),
         expense.payment_status,
-        expense.bill_date,
+        formattedBillDate, // Use formatted bill date instead of raw date
         expense.mode_of_payment,
         expense.upload_bill ? `${BILL_BASE_URL}/api/uploads/expenses/${expense.upload_bill.split('/').pop()}` : '',
         expense.upload_receipt ? `${BILL_BASE_URL}/api/uploads/expenses/${expense.upload_receipt.split('/').pop()}` : '',
