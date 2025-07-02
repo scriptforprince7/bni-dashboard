@@ -629,7 +629,7 @@ async function displayExpenses(expenses) {
       </td>
       <td style="border: 1px solid grey;"><b>₹ ${expense.amount}</b></td>
       <td style="border: 1px solid grey;"><b>₹ ${expense.gst_amount || 0}</b></td>
-      <td style="border: 1px solid grey;"><b>₹ ${expense.total_amount}</b></td>
+      <td style="border: 1px solid grey;"><b>₹ ${Math.round(expense.total_amount)}</b></td>
       <td style="border: 1px solid grey;">
         ${expense.tds_process ? `
           <button class="btn ${expense.tds_section_list === "NA" ? 'btn-danger' : 'btn-success'} btn-sm view-tds-btn" 

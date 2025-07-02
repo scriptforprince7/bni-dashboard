@@ -62,9 +62,9 @@ document.getElementById('otpVerificationForm').addEventListener('submit', async 
             if (login_type === 'ro_admin') {
                 redirectUrl = '/c/manage-chapter';
             } else if (login_type === 'chapter') {
-                redirectUrl = '/d/chapter-dashboard';
+                redirectUrl = '/ck/chapter-wiseLedger';
             } else if (login_type === 'member') {
-                redirectUrl = '/d/member-dashboard';
+                redirectUrl = '/m/member-transactions';
             }
             console.log('Redirect URL determined:', redirectUrl);
 

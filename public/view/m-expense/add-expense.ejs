@@ -283,8 +283,8 @@
                         <div id="membershipFeesContainer" class="container">
                           <div class="row">
                             <div class="col-xl-4 col-md-4">
-                              <label class="form-label" for="amount">Amount</label>
-                              <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" />
+                              <label class="form-label" for="amount">Base Amount (Without GST)</label>
+                              <input type="number" class="form-control" id="amount" name="amount" placeholder="Enter Amount" maxlength="10" required />
                               
                               <!-- Added GST Checkbox -->
                               <div class="form-check mt-2" style="margin-left: 4px;">
@@ -327,7 +327,7 @@
 
                             <div class="col-xl-4 col-md-4">
                               <label for="payment_status" class="form-label">Payment Status</label>
-                                <select class="form-control" name="payment_status" id="payment_status">
+                                <select class="form-control" name="payment_status" id="payment_status" required>
                                 <option value="">Payment Status</option>
                                 <option value="paid">Paid</option>
                                 <option value="pending">Pending</option>
@@ -347,7 +347,7 @@
                           <div class="row">
                             <div class="col-xl-3">
                               <label for="upload_bill" class="form-label">Upload Bill</label>
-                              <input type="file" class="form-control" id="upload_bill" name="upload_bill" />
+                              <input type="file" class="form-control" id="upload_bill" name="upload_bill" required />
                             </div>
                             <div class="col-xl-3">
                               <label for="upload_receipt" class="form-label">Upload Receipt</label>
@@ -364,7 +364,7 @@
                           </div>
                           <div class="col-xl-4">
                             <label for="payment_mode" class="form-label">Mode of Payment</label>
-                            <select class="form-control" name="payment_mode" id="payment_mode">
+                            <select class="form-control" name="payment_mode" id="payment_mode" required>
                               <option value="">Select Payment Mode</option>
                               <option value="cash">Cash</option>
                               <option value="online">Online</option>
@@ -940,7 +940,7 @@ function hideLoader() {
 
     if (withGSTCheckbox.checked) {
       const gstAmount = amount * gstPercentage;
-      const totalAmount = amount + gstAmount;
+      const totalAmount = Math.round(amount + gstAmount);
 
       // Update the fields with formatted numbers
       gstAmountInput.value = gstAmount.toFixed(2);
@@ -968,6 +968,52 @@ function hideLoader() {
 
   addExpenseButton.addEventListener("click", async function () {
     try {
+      // Validation - Check all required fields
+      const amountValue = document.getElementById('amount').value.trim();
+      const paymentStatusValue = document.getElementById('payment_status').value;
+      const paymentModeValue = document.getElementById('payment_mode').value;
+      const expenseTypeValue = document.getElementById('expense_type').value;
+      const chapterValue = document.getElementById('chapter').value;
+      const descriptionValue = document.getElementById('description').value.trim();
+      const billDateValue = document.getElementById('bill_date').value;
+      const billFileValue = document.getElementById('upload_bill').files[0];
+      const submittedByValue = document.getElementById('submitted_by').value.trim();
+
+      // Create array to store missing fields
+      const missingFields = [];
+
+      // Check each required field
+      if (!amountValue) missingFields.push('Base Amount');
+      if (!paymentStatusValue) missingFields.push('Payment Status');
+      if (!paymentModeValue) missingFields.push('Mode of Payment');
+      if (!expenseTypeValue) missingFields.push('Type of Expense');
+      if (!chapterValue) missingFields.push('Chapter');
+      if (!billDateValue) missingFields.push('Bill Date');
+      if (!billFileValue) missingFields.push('Bill Upload');
+      if (!submittedByValue) missingFields.push('Submitted By');
+
+      // If any fields are missing, show error message
+      if (missingFields.length > 0) {
+        let errorMessage = 'Please fill the following required fields: ';
+        
+        if (missingFields.length === 1) {
+          errorMessage = `Please fill ${missingFields[0]}`;
+        } else if (missingFields.length === 2) {
+          errorMessage = `Please fill ${missingFields[0]} and ${missingFields[1]}`;
+        } else {
+          errorMessage = `Please fill ${missingFields.slice(0, -1).join(', ')} and ${missingFields[missingFields.length - 1]}`;
+        }
+
+        Swal.fire({
+          title: 'Required Fields Missing!',
+          text: errorMessage,
+          icon: 'warning',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#dc3545'
+        });
+        return;
+      }
+
       const form = document.getElementById("addExpenseForm");
       const formData = new FormData();
 
