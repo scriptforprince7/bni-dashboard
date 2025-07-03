@@ -212,7 +212,9 @@ const fetchExpenseDetails = async (expenseId) => {
     // Populate other form fields
     document.getElementById('submitted_by').value = expenseData.submitted_by;
     document.getElementById('description').value = expenseData.description;
-    document.getElementById('amount').value = expenseData.amount;
+    // Round off the amount to remove decimal points
+    const roundedAmount = Math.round(parseFloat(expenseData.amount) || 0);
+    document.getElementById('amount').value = roundedAmount;
     document.getElementById('payment_status').value = expenseData.payment_status;
     document.getElementById('payment_mode').value = expenseData.mode_of_payment;
         // Add one day to bill date to fix timezone issue
