@@ -154,6 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
          return {
            memberId: member.member_id,
            memberName: `${member.member_first_name} ${member.member_last_name}`,
+           memberEmail: member.member_email_address, // Add member email
            chapterName: loggedInChapter.chapter_name,
            chapterId: loggedInChapter.chapter_id,
            pendingAmount: member.meeting_payable_amount,
@@ -169,6 +170,15 @@ document.addEventListener("DOMContentLoaded", () => {
        .filter(memberObj => memberObj && memberObj.pendingAmount > 0);
  
      console.log(`📊 Found ${membersWithPending.length} members with pending payments for chapter ${loggedInChapter.chapter_name}`);
+ 
+     // Sort members alphabetically by name (A to Z)
+     membersWithPending.sort((a, b) => {
+       const nameA = a.memberName.toLowerCase().trim();
+       const nameB = b.memberName.toLowerCase().trim();
+       return nameA.localeCompare(nameB);
+     });
+     
+     console.log('✅ Members sorted alphabetically (A to Z)');
  
      // Populate the table
      const tableBody = document.getElementById('paymentsTableBody');
@@ -206,7 +216,29 @@ document.addEventListener("DOMContentLoaded", () => {
              <tr>
                <td style="border: 1px solid lightgrey; text-align: center;"><strong>${index + 1}</strong></td>
                <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.chapterName}</strong></td>
-               <td style="border: 1px solid lightgrey; text-align: center;"><strong>${member.memberName}</strong></td>
+               <td style="border: 1px solid lightgrey; text-align: center;">
+                 <strong 
+                   class="member-name-link" 
+                   style="
+                     color: #007bff; 
+                     cursor: pointer; 
+                     text-decoration: none; 
+                     transition: all 0.3s ease;
+                     padding: 4px 8px;
+                     border-radius: 4px;
+                     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                     border: 1px solid #dee2e6;
+                     display: inline-block;
+                     min-width: 120px;
+                   "
+                   onmouseover="this.style.background='linear-gradient(135deg, #007bff 0%, #0056b3 100%)'; this.style.color='white'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(0,123,255,0.3)'"
+                   onmouseout="this.style.background='linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'; this.style.color='#007bff'; this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                   onclick="handleMemberClick('${member.memberName}', ${member.memberId}, '${member.memberEmail}')"
+                   title="Click to view member transactions"
+                 >
+                   <i class="ri-user-line me-1"></i>${member.memberName}
+                 </strong>
+               </td>
                <td style="border: 1px solid lightgrey; text-align: center;" class="pending-balance-cell" data-pending-amount="${member.pendingAmount || 0}">
                  <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                    <strong>₹ ${formatInIndianStyle(member.pendingAmount || 0)}</strong>
@@ -636,7 +668,44 @@ document.addEventListener("DOMContentLoaded", () => {
  `;
  document.head.appendChild(style);
  
- async function sendReminder(memberId, event) {
+// Function to handle member name click
+function handleMemberClick(memberName, memberId, memberEmail) {
+  console.log('👤 Member clicked:', { memberName, memberId, memberEmail });
+  
+  try {
+    // Store member data in localStorage
+    localStorage.setItem('current_member_email', memberEmail);
+    localStorage.setItem('current_member_id', memberId);
+    
+    // Verify data was stored
+    const storedEmail = localStorage.getItem('current_member_email');
+    const storedId = localStorage.getItem('current_member_id');
+    
+    console.log('✅ Member data stored in localStorage:', {
+      originalEmail: memberEmail,
+      storedEmail: storedEmail,
+      originalId: memberId,
+      storedId: storedId
+    });
+    
+    if (!storedEmail || !storedId) {
+      throw new Error('Failed to store member data in localStorage');
+    }
+    
+    // Open member transactions page in new tab
+    window.open('/m/member-transactions', '_blank');
+    
+  } catch (error) {
+    console.error('❌ Error handling member click:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to access member transactions. Please try again.'
+    });
+  }
+}
+
+async function sendReminder(memberId, event) {
    // Store the element reference at the start
    const reminderElement = event.currentTarget;
    

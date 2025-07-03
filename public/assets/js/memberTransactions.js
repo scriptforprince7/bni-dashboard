@@ -1466,18 +1466,28 @@ async function updateMemberPendingAmount(pendingAmount, advancePay, isAdvance) {
 // Function to update all members' pending amounts (for admin use)
 async function updateAllMembersPendingAmounts() {
     try {
-        console.log('🔄 Starting bulk update for all members...');
+        console.log('🔄 Starting bulk update for chapter members...');
         const updateBtn = document.getElementById('bulk-update-btn');
         if (updateBtn) {
             updateBtn.disabled = true;
             updateBtn.innerHTML = '<i class="ri-loader-4-line"></i> Updating...';
         }
+        
+        // Get current member's chapter_id
+        const currentChapterId = memberData?.chapter_id;
+        if (!currentChapterId) {
+            throw new Error('No chapter ID found for current member');
+        }
+        
         const membersResponse = await fetch('https://backend.bninewdelhi.com/api/members');
         if (!membersResponse.ok) {
             throw new Error('Failed to fetch members');
         }
-        const members = await membersResponse.json();
-        console.log(`📊 Found ${members.length} members to update`);
+        const allMembers = await membersResponse.json();
+        
+        // Filter members by chapter_id
+        const members = allMembers.filter(member => member.chapter_id === currentChapterId);
+        console.log(`📊 Found ${members.length} members in chapter ${currentChapterId} to update`);
         // Fetch all required data for calculations, including chapters
         const [kittyBillsResponse, allOrdersResponse, allTransactionsResponse, allCreditsResponse, allChaptersResponse] = await Promise.all([
             fetch('https://backend.bninewdelhi.com/api/getAllKittyPayments'),
@@ -1517,7 +1527,7 @@ async function updateAllMembersPendingAmounts() {
                 // Continue with other members even if one fails
             }
         }
-        console.log(`📊 Prepared ${updates.length} updates`);
+        console.log(`📊 Prepared ${updates.length} updates for chapter ${currentChapterId}`);
         const response = await fetch('https://backend.bninewdelhi.com/api/updateAllMembersPendingAmount', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1529,9 +1539,10 @@ async function updateAllMembersPendingAmounts() {
         const result = await response.json();
         console.log('✅ Bulk update completed:', result);
         Swal.fire({
-            title: 'Bulk Update Completed!',
+            title: 'Chapter Bulk Update Completed!',
             html: `
                 <div class="text-left">
+                    <p><strong>Chapter ID:</strong> ${currentChapterId}</p>
                     <p><strong>Total Members:</strong> ${result.summary.total}</p>
                     <p><strong>Successfully Updated:</strong> <span style="color: green;">${result.summary.successful}</span></p>
                     <p><strong>Failed:</strong> <span style="color: red;">${result.summary.failed}</span></p>
