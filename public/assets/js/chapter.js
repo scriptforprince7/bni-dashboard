@@ -26,7 +26,7 @@ window.BNI.state = window.BNI.state || {
 let currentPage = 1;
 const entriesPerPage = 10;
 let totalPages = 0;
-let showingAll = false;
+let showingAll = true; // Changed to true to show all chapters on initial load
 
 // Function to show the loader
 function showLoader() {
@@ -920,7 +920,7 @@ async function handleChapterAccess(chapterId, chapterEmail) {
                 }
 
                 // Open in new window
-                window.open(`/d/chapter-dashboard/${chapterId}`, '_blank');
+                window.open(`/ck/chapter-wiseLedger`, '_blank');
             } else {
                 throw new Error('Failed to set admin chapter access');
             }
@@ -1102,6 +1102,12 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPage = 1;
         displayChapters(window.BNI.state.filteredChapters);
     });
+    
+    // Set initial button text since showingAll starts as true
+    const showAllBtn = document.getElementById("showAllBtn");
+    if (showAllBtn) {
+        showAllBtn.textContent = "Show Less";
+    }
 
     // Previous page handler
     document.getElementById("prevPage").addEventListener('click', function() {

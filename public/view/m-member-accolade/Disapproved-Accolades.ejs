@@ -1,0 +1,100 @@
+    <!-- header -->
+    <%- include('../partials/header') %> 
+    <!-- end header -->
+
+    <!-- sidebar -->
+
+    <%- include('../partials/member-sidebar') %>
+    <div id="loader">
+      <img src="../../assets/images/media/loader.svg" alt="" />
+    </div>
+
+      <!-- Start::app-content -->
+      <div class="main-content app-content">
+        <div class="container-fluid">
+          <!-- Page Header -->
+          <div
+            class="d-flex align-items-center justify-content-between page-header-breadcrumb flex-wrap gap-2"
+          >
+            <div>
+              <nav>
+                <ol class="breadcrumb mb-1">
+                  <li class="breadcrumb-item">
+                    <a href="javascript:void(0);" style="color: #d01f2f"
+                      >Accolades Information</a
+                    >
+                  </li>
+                  <li class="breadcrumb-item Approved" aria-current="page">
+                    View All Disapproved Accolades
+                  </li>
+                </ol>
+              </nav>
+              <h1 class="page-title fw-medium fs-18 mb-0">
+                All Disapproved Accolades
+              </h1>
+            </div>
+            
+          </div>
+          <!-- Page Header Close -->
+
+          <!-- Start::row-1 -->
+          <div class="card custom-card" style="background-color: gainsboro">
+            <div class="card-header justify-content-between">
+              <div class="card-title">All Accolades List</div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table
+                  class="table table-hover text-nowrap chaptersTableBody"
+                  style="border: 1px solid grey"
+                >
+                  <thead>
+                    <tr>
+                      <th>S.No.</th>
+                      <th>Member Name</th>
+                      <th>Accolde Name</th>
+                      <th> Image</th>
+                      <th>Disapproved Date</th>
+                      
+                      
+                      
+                      
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Data will be populated by JavaScript -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-footer border-top-0">
+              <div class="d-flex align-items-center flex-wrap overflow-auto">
+                <div class="mb-2 mb-sm-0">
+                  Showing <b>1</b> to <b>10</b> entries
+                  <i class="bi bi-arrow-right ms-2 fw-semibold"></i>
+                </div>
+                <div class="ms-auto">
+                  <ul class="pagination mb-0 overflow-auto">
+                    <li class="page-item disabled">
+                      <a class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item Approved" aria-current="page">
+                      <a class="page-link" href="javascript:void(0)">1</a>
+                    </li>
+                    <li class="page-item">
+                      <a class="page-link" href="javascript:void(0)">Next</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--End::row-1 -->
+        </div>
+      </div>
+      <!-- End::content  -->
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script src="../../assets/js/disapprovedAccolades.js"></script>
+      
+
+      <%- include('../partials/footer') %> 

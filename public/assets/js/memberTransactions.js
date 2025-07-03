@@ -403,7 +403,7 @@ async function initializeMemberLedger() {
         let memberId;
         let memberEmail;
 
-        if (loginType === "ro_admin") {
+        if  (loginType === "ro_admin" || loginType === "chapter") {
             console.log("RO Admin detected, fetching from localStorage...");
             memberEmail = localStorage.getItem("current_member_email");
             memberId = parseInt(localStorage.getItem("current_member_id"));

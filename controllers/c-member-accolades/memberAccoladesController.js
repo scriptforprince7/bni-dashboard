@@ -7,6 +7,10 @@ exports.requestMemberAccolades = (req, res) => {
 exports.viewAllAccolades = (req, res) => {
     res.render('m-member-accolade/view-all-accolades', { title: 'View All Accolades' });
 };
+exports.DisapprovedAccolades = (req, res) => {
+    res.render('m-member-accolade/Disapproved-Accolades', { title: 'Disapproved accolades' });
+};
+
 exports.memberAccoladePaymentReceipt = async (req, res) => {
     try {
         const { order_id } = req.query;

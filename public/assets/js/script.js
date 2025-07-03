@@ -575,7 +575,7 @@ function displayMembers(members) {
                 }
 
                 // Only redirect if data is properly stored
-                window.location.href = `/d/member-dashboard/${memberData.member_id}`;
+                window.open(`/m/member-transactions`, '_blank');
             } catch (error) {
                 console.error('Error in member access:', error);
                 Swal.fire({

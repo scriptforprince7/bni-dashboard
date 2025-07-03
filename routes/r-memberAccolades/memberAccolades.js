@@ -7,5 +7,6 @@ router.get('/manage-memberAccolades', memberAccoladesController.manageMemberAcco
 router.get('/request-memberAccolades', memberAccoladesController.requestMemberAccolades);
 router.get('/view-all-accolades', memberAccoladesController.viewAllAccolades);
 router.get('/memberAccoladePaymentReceipt', memberAccoladesController.memberAccoladePaymentReceipt);
+router.get('/disapprovedAccolades' , memberAccoladesController.DisapprovedAccolades)
 
 module.exports = router;

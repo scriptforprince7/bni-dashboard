@@ -5,7 +5,7 @@ function handleMemberClick(memberEmail, memberId) {
   localStorage.setItem('current_member_id', memberId);
   
   // Redirect to member dashboard
-  window.location.href = `/d/member-dashboard/?member_id=${memberId}`;
+  window.location.href = `/m/member-transactions`;
 }
 
 // Wrap everything in an IIFE to prevent global scope pollution

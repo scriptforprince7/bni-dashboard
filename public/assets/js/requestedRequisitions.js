@@ -209,6 +209,10 @@ async function handleAccoladesClick(requisition) {
         const commentPairs = safeJSONParse(currentChapterReq.comment || '{}');
         console.log('🔍 Current Comment Pairs for popup:', commentPairs);
 
+        // Parse the roimage field to get existing images
+        const roimagePairs = safeJSONParse(currentChapterReq.roimage || '{}');
+        console.log('🖼️ Current RO Image Pairs for popup:', roimagePairs);
+
         // Create combinations only for existing pairs in CURRENT requisition
         const combinations = [];
         Object.keys(commentPairs).forEach(pair => {
@@ -230,6 +234,7 @@ async function handleAccoladesClick(requisition) {
             const comment = commentsMap[commentKey] || '';
             const roComment = roCommentsMap[commentKey] || '';
             const currentStatus = approveStatusMap[commentKey];
+            const roImage = roimagePairs[pair] || ''; // Get existing image URL
 
             combinations.push({
                 memberId,
@@ -237,7 +242,7 @@ async function handleAccoladesClick(requisition) {
                 accolade,
                 comment,
                 roComment,
-                roImage: '', // Add RO image field
+                roImage, // Add existing RO image URL
                 isVisitor,
                 currentStatus
             });
@@ -384,6 +389,9 @@ async function handleAccoladesClick(requisition) {
                                 <th style="padding: 16px; font-weight: 600; white-space: nowrap;">
                                     <i class="ri-chat-2-line me-2"></i>RO Comment
                                 </th>
+                                <th style="padding: 16px; font-weight: 600; white-space: nowrap;">
+                                    <i class="ri-image-line me-2"></i>RO Image
+                                </th>
                                 
                                 <th style="padding: 16px; font-weight: 600; text-align: center; white-space: nowrap;">
                                     <i class="ri-checkbox-circle-line me-2"></i>Actions
@@ -480,6 +488,96 @@ async function handleAccoladesClick(requisition) {
                                                 "
                                             >${combo.roComment}</textarea>
                                         </td>
+                                        <td style="padding: 16px;">
+                                            <div style="
+                                                display: flex;
+                                                flex-direction: column;
+                                                gap: 8px;
+                                                align-items: center;
+                                            ">
+                                                <!-- Image Preview -->
+                                                <div 
+                                                    id="image-preview-${key}"
+                                                    style="
+                                                        display: ${combo.roImage ? 'flex' : 'none'};
+                                                        width: 60px;
+                                                        height: 60px;
+                                                        border-radius: 8px;
+                                                        overflow: hidden;
+                                                        border: 2px solid #e5e7eb;
+                                                        background: #f8fafc;
+                                                        justify-content: center;
+                                                        align-items: center;
+                                                    "
+                                                >
+                                                    <img 
+                                                        id="preview-img-${key}"
+                                                        src="${combo.roImage || ''}"
+                                                        style="
+                                                            width: 100%;
+                                                            height: 100%;
+                                                            object-fit: cover;
+                                                        "
+                                                    />
+                                                </div>
+                                                
+                                                <!-- File Upload Button -->
+                                                <label 
+                                                    for="image-upload-${key}"
+                                                    style="
+                                                        display: ${combo.roImage ? 'none' : 'inline-flex'};
+                                                        align-items: center;
+                                                        gap: 6px;
+                                                        padding: 6px 12px;
+                                                        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+                                                        color: #0369a1;
+                                                        border: 1px solid #bae6fd;
+                                                        border-radius: 6px;
+                                                        font-size: 0.8rem;
+                                                        font-weight: 500;
+                                                        cursor: pointer;
+                                                        transition: all 0.2s ease;
+                                                        white-space: nowrap;
+                                                    "
+                                                    onmouseover="this.style.background='linear-gradient(135deg, #e0f2fe, #bae6fd)'"
+                                                    onmouseout="this.style.background='linear-gradient(135deg, #f0f9ff, #e0f2fe)'"
+                                                >
+                                                    <i class="ri-image-add-line" style="font-size: 1rem;"></i>
+                                                    Upload Image
+                                                </label>
+                                                
+                                                <!-- Hidden File Input -->
+                                                <input 
+                                                    type="file"
+                                                    id="image-upload-${key}"
+                                                    accept="image/*"
+                                                    style="display: none;"
+                                                    onchange="handleImageUpload(this, '${key}')"
+                                                />
+                                                
+                                                <!-- Remove Image Button (shown when image is uploaded) -->
+                                                <button 
+                                                    id="remove-image-${key}"
+                                                    onclick="removeImage('${key}')"
+                                                    style="
+                                                        display: ${combo.roImage ? 'inline-flex' : 'none'};
+                                                        padding: 4px 8px;
+                                                        background: #fee2e2;
+                                                        color: #dc2626;
+                                                        border: none;
+                                                        border-radius: 4px;
+                                                        font-size: 0.75rem;
+                                                        cursor: pointer;
+                                                        transition: all 0.2s ease;
+                                                    "
+                                                    onmouseover="this.style.backgroundColor='#fecaca'"
+                                                    onmouseout="this.style.backgroundColor='#fee2e2'"
+                                                >
+                                                    <i class="ri-delete-bin-line"></i>
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </td>
                                         
                                         <td style="padding: 16px; text-align: center;">
                                             <div style="
@@ -563,6 +661,25 @@ async function handleAccoladesClick(requisition) {
                 container: 'swal-wide',
                 popup: 'swal-wide-popup'
             }
+        }).then(() => {
+            // Initialize window.uploadedImages with existing images
+            if (!window.uploadedImages) {
+                window.uploadedImages = {};
+            }
+            
+            combinations.forEach(combo => {
+                const key = `${combo.memberId}_${combo.accolade.accolade_id}`;
+                if (combo.roImage) {
+                    // Extract filename from URL
+                    const filename = combo.roImage.split('/').pop();
+                    window.uploadedImages[key] = {
+                        name: filename,
+                        url: combo.roImage,
+                        filename: filename
+                    };
+                    console.log(`🖼️ Initialized existing image for ${key}:`, combo.roImage);
+                }
+            });
         });
 
         // Add export functionality
@@ -654,10 +771,24 @@ async function handleBulkAction(key, action) {
     const commentEl = document.querySelector(`#ro-comment-${key}`);
     const comment = commentEl ? commentEl.value : '';
 
+    // Get uploaded image for this key
+    const uploadedImage = window.uploadedImages ? window.uploadedImages[key] : null;
+    const imageName = uploadedImage ? uploadedImage.url : null; // Use the full URL instead of just filename
+
+    console.log('🖼️ handleBulkAction - Image Debug:', {
+        key: key,
+        action: action,
+        uploadedImage: uploadedImage,
+        imageName: imageName,
+        imageUrl: uploadedImage ? uploadedImage.url : null,
+        windowUploadedImages: window.uploadedImages
+    });
+
     // Update status and comment in selectedActions for bulk, if needed
     selectedActions[key] = {
         status: action,
-        comment: comment
+        comment: comment,
+        imageName: imageName
     };
 
     // Immediately blur (disable and fade) the Approve/Decline buttons for this row
@@ -687,7 +818,8 @@ async function handleBulkAction(key, action) {
             accoladeId: parseInt(accoladeId),
             status: action,
             requisitionId: currentRequisition.chapter_requisition_id,
-            skipRefresh: true // Don't reload the page
+            skipRefresh: true, // Don't reload the page
+            imageName: imageName // Pass the image name
         });
         // Optionally, update the UI for this row (e.g., show status)
     } catch (error) {
@@ -783,7 +915,8 @@ async function submitBulkActions() {
                 accoladeId: parseInt(accoladeId),
                 status: action.status,
                 requisitionId: currentRequisition.chapter_requisition_id,
-                skipRefresh: true  // Add this flag to skip individual refreshes
+                skipRefresh: true,  // Add this flag to skip individual refreshes
+                imageName: action.imageName || null
             });
         }
 
@@ -821,6 +954,10 @@ async function handleRequisitionAction(data) {
         const actionData = typeof data === 'string' ? JSON.parse(data) : data;
         const skipRefresh = actionData.skipRefresh || false;  // Get the flag
         console.log('📦 Parsed Action Data:', actionData);
+        console.log('🖼️ Image Debug in handleRequisitionAction:', {
+            imageName: actionData.imageName,
+            hasImageName: !!actionData.imageName
+        });
 
         const key = `${actionData.memberId}_${actionData.accoladeId}`;
         console.log('🔑 Generated Key:', key);
@@ -845,6 +982,12 @@ async function handleRequisitionAction(data) {
                 pickup_status: false,
                 pickup_date: null
             };
+
+            // Add roimage if image is uploaded
+            if (actionData.imageName) {
+                chapterRequestData.roimage = actionData.imageName;
+                console.log('📸 Adding RO Image for visitor:', actionData.imageName);
+            }
 
             console.log('📦 Visitor Request Data:', chapterRequestData);
 
@@ -962,6 +1105,14 @@ async function handleRequisitionAction(data) {
                 ro_comment: freshRoComments,         // Only current requisition comments
                 pickup_date: null
             };
+
+            // Add roimage if image is uploaded for this specific member-accolade pair
+            if (actionData.imageName) {
+                const roimage = {};
+                roimage[key] = actionData.imageName;
+                chapterRequestData.roimage = roimage;
+                console.log('📸 Adding RO Image:', roimage);
+            }
 
             try {
                 // Update chapter requisition
@@ -3775,14 +3926,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Add this function to handle image upload
-function handleImageUpload(input, key) {
+async function handleImageUpload(input, key) {
     const file = input.files[0];
     const previewDiv = document.getElementById(`image-preview-${key}`);
+    const previewImg = document.getElementById(`preview-img-${key}`);
+    const removeBtn = document.getElementById(`remove-image-${key}`);
     
     if (file) {
-        // Show preview
-        previewDiv.style.display = 'flex';
-        
         // Validate file type
         if (!file.type.startsWith('image/')) {
             Swal.fire({
@@ -3791,7 +3941,6 @@ function handleImageUpload(input, key) {
                 text: 'Please select an image file (JPG, PNG, GIF, etc.)'
             });
             input.value = '';
-            previewDiv.style.display = 'none';
             return;
         }
         
@@ -3803,20 +3952,80 @@ function handleImageUpload(input, key) {
                 text: 'Please select an image smaller than 5MB'
             });
             input.value = '';
-            previewDiv.style.display = 'none';
             return;
         }
         
+        // Create preview URL
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewDiv.style.display = 'flex';
+            removeBtn.style.display = 'inline-flex';
+        };
+        reader.readAsDataURL(file);
+        
         console.log(`Image uploaded for ${key}:`, file.name);
         
-        // Store the file for later upload
-        if (!window.uploadedImages) {
-            window.uploadedImages = {};
+        // Upload file to backend
+        try {
+            const formData = new FormData();
+            formData.append('roimage', file);
+            
+            const uploadResponse = await fetch('https://backend.bninewdelhi.com/api/uploadRoImage', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!uploadResponse.ok) {
+                throw new Error('Failed to upload image');
+            }
+            
+            const uploadResult = await uploadResponse.json();
+            const imageUrl = `https://backend.bninewdelhi.com/uploads/reqImage/${uploadResult.filename}`;
+            
+            console.log('📸 Image uploaded successfully:', imageUrl);
+            
+            // Store the image URL for later use
+            if (!window.uploadedImages) {
+                window.uploadedImages = {};
+            }
+            window.uploadedImages[key] = {
+                file: file,
+                name: file.name,
+                url: imageUrl,
+                filename: uploadResult.filename
+            };
+            
+        } catch (error) {
+            console.error('❌ Error uploading image:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Upload Failed',
+                text: 'Failed to upload image. Please try again.'
+            });
+            input.value = '';
+            previewDiv.style.display = 'none';
+            removeBtn.style.display = 'none';
+            return;
         }
-        window.uploadedImages[key] = file;
         
     } else {
         previewDiv.style.display = 'none';
+        removeBtn.style.display = 'none';
         delete window.uploadedImages[key];
     }
+}
+
+// Add function to remove image
+function removeImage(key) {
+    const input = document.getElementById(`image-upload-${key}`);
+    const previewDiv = document.getElementById(`image-preview-${key}`);
+    const removeBtn = document.getElementById(`remove-image-${key}`);
+    
+    input.value = '';
+    previewDiv.style.display = 'none';
+    removeBtn.style.display = 'none';
+    delete window.uploadedImages[key];
+    
+    console.log(`Image removed for ${key}`);
 }
