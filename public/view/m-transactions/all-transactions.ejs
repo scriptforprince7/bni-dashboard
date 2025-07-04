@@ -157,13 +157,10 @@ background-color: #555; /* Darker shade on hover */
         >
           <i class="ri-share-plus me-1"></i> Generate Receipt +
         </button></a> -->
-       <a href="https://backend.bninewdelhi.com/api/export-orders"><button
-        class="btn btn-primary btn-wave me-0"
-        style="background-color: #fb3e4e!important; border: #fb3e4e"
-      >
+       <button onclick="downloadExport('orders')" class="btn btn-primary btn-wave me-0" style="background-color: #fb3e4e!important; border: #fb3e4e">
         <i class="ri-share-forward-line me-1"></i> Export All
         Orders
-      </button></a> 
+      </button> 
 
       <a href="https://backend.bninewdelhi.com/api/export-transactions"><button
         class="btn btn-primary btn-wave me-0"
@@ -943,6 +940,46 @@ background-color: #555; /* Darker shade on hover */
 
 <script src="../../assets/js/transactions.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+function downloadExport(type) {
+  const url = type === 'orders' 
+    ? 'https://backend.bninewdelhi.com/api/export-orders'
+    : 'https://backend.bninewdelhi.com/api/export-transactions';
+    
+  // Show loading message
+  console.log('Starting download...');
+  
+  fetch(url, {
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'include'
+  })
+    .then(response => {
+      console.log('Response received:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.blob();
+    })
+    .then(blob => {
+      console.log('Blob created, size:', blob.size);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = type === 'orders' ? 'orders.xlsx' : 'transactions.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      console.log('Download completed');
+    })
+    .catch(error => {
+      console.error('Download failed:', error);
+      alert('Download failed: ' + error.message);
+    });
+}
+</script>
 
 <!-- Modal for Invoice View -->
 <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
